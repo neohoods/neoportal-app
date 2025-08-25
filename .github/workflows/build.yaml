@@ -1,0 +1,47 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Prepare release
+        id: vars
+        run: |
+          # Install libxml2-utils
+          sudo apt-get update
+          sudo apt-get install libxml2-utils
+          cd platform-api
+          export VERSION=`xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' pom.xml | sed -e  "s/-SNAPSHOT$//"`
+          echo "app-version=$VERSION"
+          echo "app-version=$VERSION" >> $GITHUB_ENV
+
+      # Java
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: /root/.m2
+          key: ${{ runner.os }}-m2-${{ env.app-version }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and Test
+        uses: qcastel/github-actions-maven-cmd@master
+        with:
+          maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
+
+      # Angular
+      - name: Clear npm cache
+        run: npm cache clean --force
+      - name: Verify Angular project compiles
+        run: |
+          cd platform-ui
+          npm ci # Install dependencies
+          npm run build -- --configuration production # Build the project

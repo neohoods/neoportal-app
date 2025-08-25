@@ -1,0 +1,40 @@
+<footer>
+  <button id="scrollToTop" class="scroll-to-top" (click)="scrollToTop()">
+    <tui-icon icon="@tui.arrow-up"></tui-icon>
+  </button>
+  <div class="footer-container">
+    <div class="footer-branding">
+      <img alt="{{ 'footer.brandingAlt' | translate }}" src="/logo-bright.png" />
+    </div>
+    <div class="footer-links">
+      <h3 class="footer-help-title">{{ 'footer.usefulLinks' | translate }}</h3>
+      
+    </div>
+    <div class="footer-help">
+      <h3 class="footer-help-title">{{ 'footer.needHelp' | translate }}</h3>
+      
+      <language-switcher />
+    </div>
+  </div>
+
+  <div class="footer-copyright">
+    <div class="footer-copyright-left">
+      <span class="copyright"
+        ><tui-icon icon="@tui.copyright" />2025 portal NeoHoods</span
+      >
+     
+    </div>
+    <div class="footer-copyright-right">
+      <a
+        class="github-link"
+        href="https://github.com/neohoods"
+        target="_blank"
+      >
+        <tui-icon icon="@tui.github" />
+      </a>
+      <span class="powered-by"
+        >{{ 'footer.poweredBy' | translate }} <tui-icon icon="@tui.heart" /> portal NeoHoods</span
+      >
+    </div>
+  </div>
+</footer>

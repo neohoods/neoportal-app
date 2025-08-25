@@ -1,0 +1,77 @@
+<div class="profile-container">
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSave()">
+    <h1>{{ 'profile.editTitle' | translate }}</h1>
+
+    <tui-textfield>
+      <label tuiLabel>{{ 'profile.email' | translate }}</label>
+      <input
+        formControlName="email"
+        type="email"
+        placeholder="{{ 'profile.emailPlaceholder' | translate }}"
+        tuiTextfield
+      />
+    </tui-textfield>
+
+    <tui-textfield>
+      <label tuiLabel>{{ 'profile.password' | translate }}</label>
+      <input
+        formControlName="password"
+        type="password"
+        placeholder="{{ 'profile.passwordPlaceholder' | translate }}"
+        tuiTextfield
+      />
+      <tui-icon tuiPassword />
+    </tui-textfield>
+
+    <!-- Address Fields -->
+    <tui-textfield>
+      <label tuiLabel>{{ 'profile.streetAddress' | translate }}</label>
+      <input
+        formControlName="streetAddress"
+        type="text"
+        placeholder="{{ 'profile.streetAddressPlaceholder' | translate }}"
+        tuiTextfield
+      />
+    </tui-textfield>
+
+    <div class="row">
+      <div class="column">
+        <tui-textfield>
+          <label tuiLabel>{{ 'profile.city' | translate }}</label>
+          <input
+            formControlName="city"
+            type="text"
+            placeholder="{{ 'profile.cityPlaceholder' | translate }}"
+            tuiTextfield
+          />
+        </tui-textfield>
+      </div>
+      <div class="column">
+        <tui-textfield>
+          <label tuiLabel>{{ 'profile.postalCode' | translate }}</label>
+          <input
+            formControlName="postalCode"
+            type="text"
+            placeholder="{{ 'profile.postalCodePlaceholder' | translate }}"
+            tuiTextfield
+          />
+        </tui-textfield>
+      </div>
+    </div>
+
+    <tui-textfield>
+      <label tuiLabel>{{ 'profile.country' | translate }}</label>
+      <input
+        formControlName="country"
+        type="text"
+        placeholder="{{ 'profile.countryPlaceholder' | translate }}"
+        tuiTextfield
+      />
+    </tui-textfield>
+
+    <button appearance="accent" tuiButton size="l" type="submit">
+      {{ 'profile.saveButton' | translate }}
+    </button>
+  </form>
+</div>

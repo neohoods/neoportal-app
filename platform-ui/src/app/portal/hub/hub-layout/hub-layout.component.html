@@ -1,0 +1,120 @@
+<tui-root>
+  <!-- Position drawer inside the example block -->
+  <div class="custom-portal"><ng-container #viewContainer /></div>
+
+  <!-- Header -->
+  <header tuiNavigationHeader>
+    <span tuiNavigationLogo routerLink="/hub/">
+      <img id="logo" src="/logo-simple.png" />
+      <span tuiFade>Space NeoHoods</span>
+    </span>
+    <hr />
+
+    
+
+    <button
+      iconStart="@tui.heart"
+      tuiIconButton
+      class="wishlist-button"
+      routerLink="/hub/wishlist"
+      size="m"
+      type="button"
+    ></button>
+
+
+    @if (user.user.avatarUrl) {
+      <tui-avatar
+        tuiChevron
+        tuiDropdownOpen
+        [tuiDropdown]="settings" 
+         class="tui-space_horizontal-4">
+        <picture>
+            <source
+                media="(min-width: 600px)"
+                [srcset]="user.user.avatarUrl"
+            />
+            <img
+                alt="Alex Inkin"
+                [src]="user.user.avatarUrl"
+            />
+        </picture>
+    </tui-avatar>
+    } @else {
+    <tui-avatar 
+        class="user-avatar"      
+        tuiChevron
+        tuiDropdownOpen
+        [tuiDropdown]="settings" 
+        [src]="user.username | tuiInitials"
+        [style.background]="
+          user.username | tuiAutoColor
+        "
+        size="s">
+      </tui-avatar>
+    }
+
+    <ng-template #settings>
+      <tui-data-list size="s">
+          <button
+            routerLink="/hub/settings/profile"
+            class="dropdown"
+            iconStart="@tui.user"
+            tuiButton
+            type="button"
+          >
+            Sign in as {{ user.username }}
+          </button>
+        </tui-data-list>
+        <tui-data-list size="s">
+          <button
+            routerLink="/hub/settings"
+            class="dropdown"
+            iconStart="@tui.settings"
+            tuiButton
+            type="button"
+          >
+            {{ 'hubLayout.settings' | translate }}
+          </button>
+        </tui-data-list>
+        <tui-data-list size="s">
+          <button
+            routerLink="/admin/"
+            class="dropdown"
+            iconStart="@tui.lock"
+            tuiButton
+            type="button"
+          >
+            {{ 'hubLayout.adminPanel' | translate }}
+          </button>
+        </tui-data-list>
+        <tui-data-list size="s">
+          <button
+            routerLink="/auth/sign-out"
+            class="dropdown"
+            iconStart="@tui.log-out"
+            tuiButton
+            type="button"
+          >
+            {{ 'hubLayout.logOut' | translate }}
+          </button>
+        </tui-data-list>
+      </ng-template>
+  </header>
+
+  <!-- Horizontal Menu -->
+  <nav id="menu" class="horizontal-menu">
+    <!-- Buttons -->
+   
+  
+  </nav>
+
+
+  <!-- Main Content -->
+  <div [style.display]="'flex'">
+    <main tuiNavigationMain>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <tos-footer></tos-footer>
+</tui-root>

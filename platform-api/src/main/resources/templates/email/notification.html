@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{email/fragments/email-layout :: head(~{::title})}">
+        <title th:text="${title}">Notification - [[${appName}]]</title>
+    </head>
+    <body>
+        <th:block th:replace="~{email/fragments/email-layout :: layout}">
+            <!-- Header -->
+            <tr th:replace="~{email/fragments/email-layout :: header}"></tr>
+
+            <!-- Content -->
+            <td th:fragment="content">
+                <h1 th:text="${title}">Notification</h1>
+                <p>
+                    <span th:text="#{email.common.greeting(${username})}">Hello username,</span>
+                </p>
+                <p>
+                    <span th:text="#{notification.type(${type})}">Notification of type</span>
+                </p>
+
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="content-block">
+                            <p>
+                                <span th:text="#{email.common.signature}">Best regards,</span>
+                                <br>
+                                <span>[[${appName}]] Team</span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <!-- Footer -->
+            <div th:replace="~{email/fragments/email-layout :: footer}"></div>
+        </th:block>
+    </body>
+</html>

@@ -1,0 +1,150 @@
+@use 'styles' as *;
+
+/* General styling for main navigation */
+main {
+    border: none;
+}
+
+#logo {
+    width: 40px;
+}
+
+header {
+    position: fixed;
+    height: 100px;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+}
+
+/* Dropdown button */
+button.dropdown {
+    min-width: 200px;
+    justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+
+    nav a {
+        min-width: 70px !important;
+    }
+}
+
+@media (min-width: 768px) {
+
+    nav a {
+        min-width: 120px !important;
+    }
+}
+
+/* Horizontal Menu */
+.horizontal-menu {
+    position: sticky;
+    top: 47px;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    display: flex;
+    background-color: #000000;
+    /* Use lighter gray for background */
+    padding: 0.5em 0em;
+    border-bottom: 1px solid #ccc;
+    /* Use theme border color */
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+    margin-bottom: 10px;
+}
+
+.t-more {
+    color: #fff;
+}
+
+
+.horizontal-menu a {
+    text-align: center;
+    position: relative;
+    /* Allow absolute positioning of the underline */
+    display: inline-block;
+    text-decoration: none;
+    color: var(--tos-text-primary-on-accent-1);
+    /* Use dark text color from theme */
+    font-weight: bold;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.horizontal-menu a tui-icon {
+    margin: 5px;
+}
+
+.horizontal-menu a:hover {
+    background-color: var(--tos-background-neutral-1);
+    /* Use lighter shade of primary color */
+    color: var(--tos-text-accent);
+    /* White text on hover */
+}
+
+.horizontal-menu a.active:hover {
+    background-color: inherit;
+    color: var(--tos-text-primary-on-accent-1);
+    /* Use dark text color from theme */
+}
+
+.horizontal-menu a.active::after {
+    content: '';
+    /* Empty content for the pseudo-element */
+    position: absolute;
+    bottom: -7px;
+    /* Shift the line down by 5px */
+    left: 0;
+    width: 100%;
+    /* Full width of the link */
+    height: 4px;
+    /* Underline thickness */
+    background-color: var(--tos-background-accent-2);
+    /* Underline color (match active link color) */
+    border-radius: 0;
+    /* No border radius for the line */
+}
+
+.more-button {
+    color: #fff;
+}
+
+.dropdown a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 10px;
+    color: var(--tos-text-primary);
+    text-decoration: none;
+
+    tui-icon {
+        margin-right: 10px;
+    }
+}
+
+/* Responsive styling for horizontal menu */
+@media (max-width: 768px) {
+    .horizontal-menu {
+        flex-direction: row;
+        /* Keep the menu items in a horizontal row */
+        justify-content: portal-around;
+        /* portal out the menu items evenly */
+    }
+
+    .horizontal-menu a {
+        display: flex;
+        flex-direction: column;
+        /* Stack icon above the label */
+        align-items: center;
+        padding: 0.3em 0em;
+        font-size: 0.9em;
+    }
+
+    .horizontal-menu a tui-icon {
+        margin: 0 0 3px 0;
+        /* Adjust margin for compactness */
+    }
+}

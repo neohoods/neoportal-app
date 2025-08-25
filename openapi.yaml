@@ -1,0 +1,807 @@
+openapi: 3.0.1
+info:
+  title: portal NeoHoods API
+  version: "2.0"
+  description: |
+    # Summary
+    portal NeoHoods API
+
+servers:
+  - url: https://portal.neohoods.com
+    description: portal neohoods API
+
+paths:
+  /public/auth/login:
+    post:
+      operationId: login
+      summary: Log user with username / password
+      tags:
+        - auth-api
+
+      security:
+        - BearerAuthOAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "my-login"
+                password:
+                  type: string
+                  example: "my-password"
+              required:
+                - username
+                - password
+
+      responses:
+        "200":
+          $ref: "#/components/responses/OK_200_LOGIN"
+
+  /public/auth/signup:
+    post:
+      operationId: signUp
+      summary: Register a new user
+      tags:
+        - auth-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "newuser@example.com"
+                username:
+                  type: string
+                  example: "newuser"
+                password:
+                  type: string
+                  example: "securepassword"
+                streetAddress:
+                  type: string
+                  example: "123 Main St"
+                city:
+                  type: string
+                  example: "Anytown"
+                postalCode:
+                  type: string
+                  example: "12345"
+                country:
+                  type: string
+                  example: "Countryland"
+              required:
+                - email
+                - username
+                - password
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /public/auth/signout:
+    post:
+      operationId: signOut
+      summary: Sign out the current user
+      tags:
+        - auth-api
+      responses:
+        "204":
+          description: User signed out successfully
+
+  /public/auth/reset-password:
+    post:
+      operationId: resetPassword
+      summary: Reset password for a user
+      tags:
+        - auth-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user@example.com"
+              required:
+                - email
+      responses:
+        "200":
+          description: Password reset email sent
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /public/auth/reset-password/confirm:
+    post:
+      operationId: confirmResetPassword
+      summary: Confirm password reset with token
+      tags:
+        - auth-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "reset-token-123"
+                newPassword:
+                  type: string
+                  example: "newSecurePassword"
+              required:
+                - token
+                - newPassword
+      responses:
+        "200":
+          description: Password reset successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /public/auth/email-verification:
+    post:
+      operationId: verifyEmail
+      summary: Verify user's email with token
+      tags:
+        - auth-api
+      parameters:
+        - name: token
+          in: query
+          description: Email verification token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Email verification response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Email verified successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /hub/hello-world:
+    get:
+      operationId: getHelloWorld
+      summary: hello world
+      tags:
+        - hello-world-api
+
+      security:
+        - BearerAuthOAuth: []
+
+      responses:
+        "200":
+          $ref: "#/components/responses/OK_200_GET_HELLO_WORLD"
+
+  /hub/profile:
+    get:
+      operationId: getProfile
+      summary: Get the current user's profile
+      tags:
+        - profile-hub-api
+      responses:
+        "200":
+          description: get profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    put:
+      operationId: updateProfile
+      summary: Update the current user's profile
+      tags:
+        - profile-hub-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+        "404":
+          description: User not found
+
+  /admin/users:
+    get:
+      operationId: getUsers
+      summary: Retrieve all users
+      tags:
+        - users-admin-api
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserWithStats"
+    post:
+      operationId: saveUser
+      summary: Save a user
+      tags:
+        - users-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserWithStats"
+      responses:
+        "201":
+          description: User saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithStats"
+
+  /admin/users/{user-id}:
+    parameters:
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getUser
+      summary: Retrieve a specific user by ID
+      tags:
+        - users-admin-api
+      responses:
+        "200":
+          description: A single user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithStats"
+
+  /admin/users/{user-id}/password:
+    parameters:
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: setUserPassword
+      summary: Set a user's password
+      tags:
+        - users-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newPassword:
+                  type: string
+                  example: "newSecurePassword"
+              required:
+                - newPassword
+      responses:
+        "204":
+          description: Password updated successfully
+
+  /admin/settings/security:
+    get:
+      operationId: getSecuritySettings
+      summary: Retrieve security settings
+      tags:
+        - settings-admin-api
+      responses:
+        "200":
+          description: Security settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isRegistrationEnabled:
+                    type: boolean
+                    example: true
+                  ssoEnabled:
+                    type: boolean
+                    example: false
+                  ssoClientId:
+                    type: string
+                    example: "my-client-id"
+                  ssoClientSecret:
+                    type: string
+                    example: "my-client-secret"
+                  ssoTokenEndpoint:
+                    type: string
+                    example: "https://openid.example.com/token"
+                  ssoAuthorizationEndpoint:
+                    type: string
+                    example: "https://openid.example.com/authorize"
+                  ssoScope:
+                    type: string
+                    example: "openid profile email"
+    post:
+      operationId: saveSecuritySettings
+      summary: Save security settings
+      tags:
+        - settings-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isRegistrationEnabled:
+                  type: boolean
+                  example: false
+                ssoEnabled:
+                  type: boolean
+                  example: false
+                ssoClientId:
+                  type: string
+                  example: "my-client-id"
+                ssoClientSecret:
+                  type: string
+                  example: "my-client-secret"
+                ssoTokenEndpoint:
+                  type: string
+                  example: "https://openid.example.com/token"
+                ssoAuthorizationEndpoint:
+                  type: string
+                  example: "https://openid.example.com/authorize"
+                ssoScope:
+                  type: string
+                  example: "openid profile email"
+      responses:
+        "200":
+          description: Security settings saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isRegistrationEnabled:
+                    type: boolean
+                    example: false
+                  ssoEnabled:
+                    type: boolean
+                    example: false
+                  ssoClientId:
+                    type: string
+                    example: "my-client-id"
+                  ssoClientSecret:
+                    type: string
+                    example: "my-client-secret"
+                  ssoTokenEndpoint:
+                    type: string
+                    example: "https://openid.example.com/token"
+                  ssoAuthorizationEndpoint:
+                    type: string
+                    example: "https://openid.example.com/authorize"
+                  ssoScope:
+                    type: string
+                    example: "openid profile email"
+
+  /public/settings:
+    get:
+      operationId: getPublicSettings
+      summary: Retrieve public UI settings
+      tags:
+        - settings-public-api
+      responses:
+        "200":
+          description: Public UI settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isRegistrationEnabled:
+                    type: boolean
+                    example: true
+                  ssoEnabled:
+                    type: boolean
+                    example: false
+
+  /public/sso/login-url:
+    post:
+      operationId: generateSSOLoginUrl
+      summary: Generate the SSO login URL
+      tags:
+        - sso-public-api
+      responses:
+        "200":
+          description: SSO login URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  loginUrl:
+                    type: string
+                    example: true
+
+  /public/sso/token-exchange:
+    post:
+      operationId: exchangeSSOToken
+      summary: Exchange the SSO token for a JWT token
+      tags:
+        - sso-public-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                authorizationCode:
+                  type: string
+              required:
+                - state
+                - authorizationCode
+      responses:
+        "200":
+          description: SSO token exchanged successfully
+
+components:
+  #####################################################
+  # Predefined Components
+  #####################################################
+
+  securitySchemes:
+    BearerAuthOAuth:
+      description: Bearer Token.
+      type: http
+      scheme: bearer
+
+  parameters:
+    itemId:
+      name: item-id
+      in: path
+      description: Item ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    userId:
+      name: user-id
+      in: path
+      description: User ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - login
+        - username
+        - firstName
+        - lastName
+        - roles
+      properties:
+        id:
+          type: string
+          format: uuid
+        disabled:
+          type: boolean
+        isEmailVerified:
+          type: boolean
+        username:
+          type: string
+        avatarUrl:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        flatNumber:
+          type: string
+          example: A701
+        roles:
+          type: array
+          items:
+            type: string
+            example: "admin"
+        streetAddress:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        preferredLanguage:
+          type: string
+          example: "en"
+
+    UserWithStats:
+      type: object
+      required:
+        - id
+        - username
+        - firstName
+        - lastName
+        - email
+        - borrowedItems
+        - returnedLate
+        - successRate
+        - disabled
+        - isEmailVerified
+        - streetAddress
+        - city
+        - postalCode
+        - country
+        - roles
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        borrowedItems:
+          type: integer
+        returnedLate:
+          type: integer
+        successRate:
+          type: number
+        disabled:
+          type: boolean
+        isEmailVerified:
+          type: boolean
+        flatNumber:
+          type: string
+        streetAddress:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        avatarUrl:
+          type: string
+        preferredLanguage:
+          type: string
+
+    Location:
+      type: object
+      required:
+        - name
+        - address
+        - coordinates
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        coordinates:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+
+    CodedError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: A unique error code that identifies the type of error
+          example: AUTH001
+        message:
+          type: string
+          description: A human-readable error message
+          example: The specified user could not be found
+        traceId:
+          type: string
+          description: A unique identifier for tracing this error instance
+          example: 550e8400-e29b-41d4-a716-446655440000
+        documentationUrl:
+          type: string
+          description: URL to the documentation about this error
+          example: https://docs.portal.neohoods.com/errors/AUTH001
+        variables:
+          type: object
+          additionalProperties: true
+          description: Additional context variables for the error
+          example:
+            field: "email"
+            value: "invalid@email"
+
+    ValidationFieldError:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          description: The field that failed validation
+          example: email
+        message:
+          type: string
+          description: The validation error message
+          example: must be a valid email
+
+    ValidationError:
+      allOf:
+        - $ref: "#/components/schemas/CodedError"
+        - type: object
+          properties:
+            variables:
+              type: object
+              required:
+                - fields
+              properties:
+                fields:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ValidationFieldError"
+
+    NotificationSettings:
+      type: object
+      properties:
+        enableNotifications:
+          type: boolean
+          description: Whether notifications are enabled for the user
+      required:
+        - enableNotifications
+
+  responses:
+    OK_200_GET_HELLO_WORLD:
+      description: OK
+      content:
+        application/json:
+          schema:
+            title: responseHelloWorld
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: "Hello world!"
+    OK_200_LOGIN:
+      description: Logged in user details
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/User"
+            example:
+              id: "123e4567-e89b-12d3-a456-426614174000"
+              username: "my-login"
+              firstName: "John"
+              lastName: "Doe"
+              email: "john.doe@example.com"
+              flat: "A701"
+    BadRequest:
+      description: Bad Request - The request was invalid or cannot be served
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CodedError"
+          examples:
+            validation_error:
+              value:
+                code: VAL001
+                message: Validation failed
+                variables:
+                  fields:
+                    - field: email
+                      message: must be a valid email
+            invalid_input:
+              value:
+                code: VAL002
+                message: Missing required field
+                variables:
+                  field: username
+    Unauthorized:
+      description: Unauthorized - Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CodedError"
+          example:
+            code: AUTH001
+            message: Authentication required
+            documentationUrl: https://docs.portal.neohoods.com/errors/AUTH001
+    Forbidden:
+      description: Forbidden - No permission to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CodedError"
+          example:
+            code: AUTH005
+            message: You don't have sufficient permissions to perform this action
+    NotFound:
+      description: Not Found - The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CodedError"
+          example:
+            code: RES001
+            message: The requested resource was not found
+    ValidationError:
+      description: Validation Error - The request data failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+          example:
+            code: VAL001
+            message: Validation failed
+            variables:
+              fields:
+                - field: email
+                  message: must be a valid email
+                - field: password
+                  message: must be at least 8 characters
+    InternalServerError:
+      description: Internal Server Error - Something went wrong on the server
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CodedError"
+          example:
+            code: SYS001
+            message: An unexpected error occurred

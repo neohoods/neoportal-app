@@ -1,0 +1,140 @@
+<tos-table
+  [addActionRoute]="'/admin/users/add'"
+  [addActionIcon]="'@tui.user'"
+  [getDataFunction]="getDataFunction"
+  [columns]="columns"
+>
+  <div add-action-content>
+    {{ 'users.addUser' | translate }}
+  </div>
+
+
+  <ng-template #cardTemplate let-item="item">
+    <div class="card-content">
+      <div class="user-content">
+        <div class="user-details">
+          <div class="user-info">
+            <tui-avatar
+              [src]="item.username | tuiInitials"
+              [style.background]="item.username | tuiAutoColor"
+              size="s"
+            ></tui-avatar>
+            <h2>{{ item.username }}</h2>
+          </div>
+
+          <div class="user-details-top-right">
+            <span class="email">
+              <tui-icon icon="@tui.mail" />
+              {{ item.email }}
+            </span>
+            <span class="flatNumber">
+              <tui-icon icon="@tui.home" />
+              {{ item.flatNumber }} - {{ item.streetAddress }}
+            </span>
+    
+          </div>
+
+        </div>
+        <div class="stats">
+          <span class="borrowedItems">
+            <tui-icon icon="/borrow.png" />
+            {{ item.borrowedItems }}
+          </span>
+          <span class="returnedLate">
+            <tui-icon icon="@tui.clock" />
+            {{ item.returnedLate }} %
+          </span>
+          <span class="successRate">
+            <tui-icon icon="@tui.check" />
+            {{ item.successRate }} %
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+
+  <ng-template #itemActionsTemplate let-item="item">
+    <div class="user-actions">
+      <div class="action">
+        <button [routerLink]="['/admin/users/', item.id, 'activity']" appearance="outline" iconStart="@tui.activity" size="s" tuiIconButton type="button"
+          [style.border-radius.%]="100">
+          {{ 'users.activity' | translate }}
+        </button>
+      </div>
+    <button
+      (click)="setPassword(item)"
+      appearance="outline"
+      iconStart="@tui.key"
+      size="s"
+      tuiIconButton
+      type="button"
+      [style.border-radius.%]="100"
+    >
+      {{ 'users.password' | translate }}
+    </button>
+    <button
+      [routerLink]="['/admin/users', item.id, 'edit']"
+      appearance="outline"
+      iconStart="@tui.pen"
+      size="s"
+      tuiIconButton
+      type="button"
+      [style.border-radius.%]="100"
+    >
+      {{ 'users.edit' | translate }}
+    </button>
+    <button
+      (click)="deleteUser(item)"
+      appearance="outline"
+      iconStart="@tui.trash-2"
+      size="s"
+      tuiIconButton
+      type="button"
+      [style.border-radius.%]="100"
+    >
+      {{ 'users.delete' | translate }}
+    </button>
+    <button
+      (click)="disableUser(item)"
+      appearance="outline"
+      iconStart="@tui.shield-ban"
+      size="s"
+      tuiIconButton
+      type="button"
+      [style.border-radius.%]="100"
+      >
+        {{ 'users.disable' | translate }}
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #itemRowTemplate let-item="item" let-column="column">
+    @if (column.key === "username") {
+      <div class="user-info">
+        <tui-avatar
+          [src]="item.username | tuiInitials"
+          [style.background]="item.username | tuiAutoColor"
+          size="s"
+        ></tui-avatar>
+        <span class="username ellipsis">{{ item.username }}</span>
+      </div>
+    }
+  </ng-template>
+</tos-table>
+
+<ng-template
+  let-observer
+  [tuiDialogOptions]="{
+    label: 'Set user ' + currentUser?.username + ' password',
+    size: isMobile ? 'fullscreen' : 's',
+  }"
+  [(tuiDialog)]="openPasswordDialog"
+>
+  <form class="password-form" [formGroup]="passwordForm" (ngSubmit)="setUserPassword()">
+    <tui-input formControlName="userPasswordControl" tuiAutoFocus> </tui-input>
+    <p>
+      <button class="password-form-button" tuiButton type="submit">{{ 'users.changePassword' | translate }}</button>
+    </p>
+  </form>
+</ng-template>

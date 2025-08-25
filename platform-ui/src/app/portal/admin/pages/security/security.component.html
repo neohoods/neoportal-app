@@ -1,0 +1,92 @@
+<h2>
+    {{ 'security.registrationSettings' | translate }}
+</h2>
+<form (ngSubmit)="onSubmit()">
+    <div class="section">
+        <input
+            tuiSwitch
+            type="checkbox"
+            [(ngModel)]="securitySettings.isRegistrationEnabled"
+            [showIcons]="true"
+            name="registrationToggle"
+        >
+        <label>
+            {{ 'security.enableUserRegistration' | translate }}
+        </label>
+    </div>
+
+    <div class="section">
+        <input
+            tuiSwitch
+            type="checkbox"
+            [(ngModel)]="securitySettings.ssoEnabled"
+            [showIcons]="true"
+            name="ssoToggle"
+        >
+        <label>{{ 'security.enableSSO' | translate }}</label>
+    </div>
+
+    <div
+        class="section"
+        *ngIf="securitySettings.ssoEnabled"
+    >
+        <label>
+            {{ 'security.ssoClientId' | translate }}
+        </label>
+        <input
+            tuiTextfield
+            [(ngModel)]="securitySettings.ssoClientId"
+            name="ssoClientId"
+            type="text"
+        >
+
+        <label>
+            {{ 'security.ssoClientSecret' | translate }}
+        </label>
+        <input
+            tuiTextfield
+            [(ngModel)]="securitySettings.ssoClientSecret"
+            name="ssoClientSecret"
+            type="password"
+        >
+
+        <label>
+            {{ 'security.ssoTokenEndpoint' | translate }}
+        </label>
+        <input
+            tuiTextfield
+            [(ngModel)]="securitySettings.ssoTokenEndpoint"
+            name="ssoTokenEndpoint"
+            type="text"
+        >
+
+        <label>
+            {{ 'security.ssoAuthorizationEndpoint' | translate }}
+        </label>
+        <input
+            tuiTextfield
+            [(ngModel)]="securitySettings.ssoAuthorizationEndpoint"
+            name="ssoAuthorizationEndpoint"
+            type="text"
+        >
+
+        <label>{{ 'security.ssoScope' | translate }}</label>
+        <input
+            tuiTextfield
+            [(ngModel)]="securitySettings.ssoScope"
+            name="ssoScope"
+            type="text"
+        >
+    </div>
+
+    <div>
+        <button
+            tuiButton
+            size="m"
+            type="submit"
+            appearance="accent"
+        >
+            {{ 'security.save' | translate }}
+        </button>
+    </div>
+</form>

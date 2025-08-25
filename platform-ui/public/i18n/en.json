@@ -1,0 +1,238 @@
+{
+  "signIn": {
+    "welcomeBack": "Welcome back.",
+    "username": "Username",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "logIn": "Log In",
+    "signUp": "Sign Up",
+    "dontHaveAccount": "Don't have an account?",
+    "email": "Email",
+    "send": "Send",
+    "returnToSignIn": "Return to sign-in",
+    "emailSent": "Email sent"
+  },
+  "footer": {
+    "brandingAlt": "portal NeoHoods",
+    "usefulLinks": "Useful links",
+    "needHelp": "Need help?",
+    "helpCenter": "Help center",
+    "copyright": "2025 portal NeoHoods",
+    "poweredBy": "Powered by"
+  },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "send": "Send",
+    "returnToSignIn": "Return to sign-in",
+    "emailSent": "Email sent"
+  },
+  "signUp": {
+    "title": "Sign Up",
+    "alreadyRegistered": "Already registered?",
+    "signIn": "Sign In",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "streetAddress": "Street Address",
+    "city": "City",
+    "postalCode": "Postal Code",
+    "country": "Country",
+    "signUp": "Sign Up"
+  },
+  "hubLayout": {
+    "settings": "Settings",
+    "adminPanel": "Admin panel",
+    "logOut": "Log out",
+    "items": "Items",
+    "borrowedItems": "Borrowed",
+    "libraries": "Libraries",
+    "communities": "Communities"
+  },
+  "search": {
+    "placeholder": "What object are you looking for?"
+  },
+  "dateRange": {
+    "filter": "When do you need it?"
+  },
+  "sortBy": {
+    "filter": "Sort by"
+  },
+
+  "profile": {
+    "editTitle": "Edit your profile",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "streetAddress": "Street Address",
+    "streetAddressPlaceholder": "Enter your street address",
+    "city": "City",
+    "cityPlaceholder": "Enter your city",
+    "postalCode": "Postal Code",
+    "postalCodePlaceholder": "Enter your postal code",
+    "country": "Country",
+    "countryPlaceholder": "Enter your country",
+    "saveButton": "Save",
+    "saveSuccess": "Profile saved successfully",
+    "saveError": "Profile save failed"
+  },
+  "adminLayout": {
+    "logoText": "portal NeoHoods",
+    "hubPortal": "Hub portal",
+    "logOut": "Log out",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "items": "Items",
+    "more": "More",
+    "categories": "Categories",
+    "security": "Security",
+    "pages": "Pages"
+  },
+  
+  "editUser": {
+    "editTitle": "Edit User",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "flatNumber": "Flat number",
+    "streetAddress": "Street Address",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel"
+  },
+  "security": {
+    "registrationSettings": "Registration settings",
+    "enableUserRegistration": "Enable User Registration",
+    "save": "Save"
+  },
+  "users": {
+    "addUser": "Add User",
+    "activity": "Activity",
+    "password": "Password",
+    "edit": "Edit",
+    "delete": "Delete",
+    "disable": "Disable",
+    "changePassword": "Change password",
+    "confirmDeleteContent": "Are you sure you want to delete this user?",
+    "confirmDeleteYes": "Yes, Delete",
+    "confirmDeleteNo": "Cancel",
+    "confirmDeleteLabel": "Delete user '{{username}}'",
+    "deleteSuccess": "User <strong>{{username}}</strong> deleted successfully",
+    "confirmDisableContent": "Are you sure you want to disable this user?",
+    "confirmDisableYes": "Yes, Disable",
+    "confirmDisableNo": "Cancel",
+    "confirmDisableLabel": "Disable user '{{username}}'",
+    "disableSuccess": "User <strong>{{username}}</strong> disabled successfully",
+    "passwordSetSuccess": "User <strong>{{username}}</strong> password set successfully",
+    "columns": {
+      "username": "Username",
+      "email": "Email",
+      "flatNumber": "Flat Number",
+      "address": "Address",
+    }
+  },
+  
+  "emailConfirmation": {
+    "title": "Email Confirmation",
+    "message": "Verifying your email...",
+    "success": "Email verified successfully",
+    "error": "Email verification failed",
+    "signIn": "Sign in"
+  },
+  "errors": {
+    "unexpected": "An unexpected error occurred",
+    "supportReference": "For support assistance, please reference: {{traceId}}",
+    "title": "Error",
+    "learnMore": "Learn more",
+    "unauthorized": "You are not authorized to access this page. Please log in again.",
+    "auth001": {
+      "title": "User Not Found",
+      "message": "The specified user could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "auth002": {
+      "title": "Invalid Credentials",
+      "message": "The provided username or password is incorrect.",
+      "action": "Please check your credentials and try again."
+    },
+    "auth003": {
+      "title": "Email Already Verified",
+      "message": "This email address has already been verified.",
+      "action": "You can proceed to sign in."
+    },
+    "auth004": {
+      "title": "Invalid Verification",
+      "message": "The verification token is invalid or has expired.",
+      "action": "Please request a new verification email."
+    },
+    "auth005": {
+      "title": "Insufficient Permissions",
+      "message": "You don't have sufficient permissions to perform this action.",
+      "action": "Please contact an administrator if you need access."
+    },
+   
+    "res011": {
+      "title": "Settings Not Found",
+      "message": "The system settings could not be found.",
+      "action": "Please contact an administrator to set up the system settings."
+    },
+    "val001": {
+      "title": "Invalid Input",
+      "message": "The provided input is invalid.",
+      "action": "Please check the form and correct any errors."
+    },
+    "val002": {
+      "title": "Missing Required Field",
+      "message": "A required field is missing.",
+      "action": "Please fill in all required fields."
+    },
+    "val003": {
+      "title": "Invalid Status Transition",
+      "message": "The requested status transition is not allowed.",
+      "action": "Please check the current status and allowed transitions."
+    },
+    "val004": {
+      "title": "Approval Not Required",
+      "message": "Approval is not required for this operation.",
+      "action": "You can proceed without approval."
+    },
+    
+    "sys001": {
+      "title": "Internal Error",
+      "message": "An internal error occurred. Our team has been notified.",
+      "action": "Please try again later."
+    },
+    "sys002": {
+      "title": "External Service Error",
+      "message": "We're having trouble connecting to an external service.",
+      "action": "Please try again later."
+    },
+    "sys003": {
+      "title": "Email Sending Error",
+      "message": "We encountered an error while sending the email.",
+      "action": "Please try again later or contact support if the problem persists."
+    },
+    "client_error": {
+      "title": "Client Error",
+      "message": "An error occurred in your browser.",
+      "action": "Please refresh the page and try again."
+    },
+    "unknown_error": {
+      "title": "Unknown Error",
+      "message": "An unexpected error occurred.",
+      "action": "Please try again later."
+    }
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Submit",
+    "success": "Password reset successfully",
+    "error": "Password reset failed",
+    "unexpected": "An unexpected error occurred",
+    "returnToSignIn": "Return to sign-in"
+  }
+}

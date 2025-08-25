@@ -1,0 +1,7 @@
+{
+  "/api": {
+    "target": "http://local.portal.neohoods.com:8486",
+    "secure": false,
+    "changeOrigin": true
+  }
+} 

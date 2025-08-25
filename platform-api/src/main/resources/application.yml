@@ -1,0 +1,50 @@
+server:
+  port: 8486
+  ssl:
+    enabled: false
+  servlet:
+    context-path: /api
+  session:
+    cookie:
+      secure: true
+      same-site: none
+      http-only: true
+
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+openapi:
+  portalNeoHoods:
+    base-path: /api
+
+neohoods:
+  portal:
+    base-url: http://local.portal.neohoods.com:4200
+    frontend-url: http://local.portal.neohoods.com:4200
+    email:
+      template:
+        logo-url: http://local.portal.neohoods.com:4200/logo-simple.png
+        app-name: portal NeoHoods
+sendgrid:
+  api-key: ${SENDGRID_API_KEY}
+  from:
+    email: dev@mail.portal.neohoods.com
+    name: portal NeoHoods dev environment
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:8433/neohoods-portal
+    username: local
+    password: local
+  jpa:
+    hibernate:
+      ddl-auto: none # "update" pour dev, "validate" ou "none" pour prod
+    show-sql: true # Affiche les requêtes SQL dans les logs
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # This shows the parameter values

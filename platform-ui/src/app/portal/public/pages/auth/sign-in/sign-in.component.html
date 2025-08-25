@@ -1,0 +1,44 @@
+<div id="login-container">
+  <div id="login-form-section">
+    <img class="logo" src="/logo-bright.png" alt="portal NeoHoods" />
+    <h2>{{ 'signIn.welcomeBack' | translate }}</h2>
+    @if (config.isRegistrationEnabled) {
+      <p>
+        {{ 'signIn.dontHaveAccount' | translate }}
+        <a routerLink="/sign-up">{{ 'signIn.signUp' | translate }}</a>
+      </p>
+    }
+
+    <form [formGroup]="signInForm" (ngSubmit)="onSubmit()">
+      <tui-textfield>
+        <label tuiLabel>{{ 'signIn.username' | translate }}</label>
+        <input formControlName="username" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signIn.password' | translate }}</label>
+        <input formControlName="password" type="password" tuiTextfield />
+        <tui-icon tuiPassword />
+      </tui-textfield>
+
+      <p class="forgot-password-link">
+        <a routerLink="/forgot-password">{{ 'signIn.forgotPassword' | translate }}</a>
+      </p>
+
+      <button appearance="accent" tuiButton size="l" type="submit">
+        {{ 'signIn.logIn' | translate }}
+      </button>
+    </form>
+
+    @if (config.ssoEnabled) {
+    <div class="sso-login-section">
+      <button appearance="accent" tuiButton size="l" (click)="loginWithSSO()">
+        {{ 'signIn.loginWithSSO' | translate }}
+      </button>
+    </div>
+    }
+  </div>
+  <div id="login-welcome-section">
+    <app-welcome></app-welcome>
+  </div>
+</div>

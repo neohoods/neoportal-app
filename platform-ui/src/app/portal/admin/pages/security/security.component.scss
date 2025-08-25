@@ -1,0 +1,28 @@
+.section {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+label {
+    font-size: 16px;
+    color: #333;
+    margin: 0;
+}
+
+input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+h2 {
+    font-size: 24px;
+    color: #444;
+    margin-bottom: 10px;
+}

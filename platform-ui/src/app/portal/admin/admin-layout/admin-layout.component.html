@@ -1,0 +1,82 @@
+<tui-root>
+  <!-- Ignore this part, it is only here to position drawer inside the example block -->
+  <div class="custom-portal"><ng-container #viewContainer /></div>
+  <header tuiNavigationHeader>
+    <span tuiNavigationLogo>
+      <img id="logo" src="/logo-simple.png" />
+      <span tuiFade>{{ 'adminLayout.logoText' | translate }}</span>
+    </span>
+    <hr />
+
+
+    <button iconStart="@tui.ellipsis" tuiIconButton type="button" tuiChevron tuiDropdownOpen [tuiDropdown]="settings">
+      <ng-template #settings>
+        <tui-data-list size="s">
+          <button routerLink="/hub" class="dropdown" iconStart="@tui.users" tuiButton type="button">
+            {{ 'adminLayout.hubPortal' | translate }}
+          </button>
+        </tui-data-list>
+        <tui-data-list size="s">
+          <button routerLink="/auth/sign-out" class="dropdown" iconStart="@tui.log-out" tuiButton type="button">
+            {{ 'adminLayout.logOut' | translate }}
+          </button>
+        </tui-data-list>
+      </ng-template>
+    </button>
+  </header>
+
+  <nav id="menu" class="horizontal-menu">
+
+
+    <a routerLink="/admin/users/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.users"
+      type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.users" />
+      {{ 'adminLayout.users' | translate }}
+    </a>
+    @if (mobile) {
+    <button
+    tuiButton
+    tuiChevron
+    type="button"
+    appearance="flat"
+    class="more-button"
+    [tuiDropdown]="dropdownContent"
+    [tuiDropdownManual]="openMore"
+    (click)="onClickMore()"
+    (tuiActiveZoneChange)="onActiveZone($event)"
+    (tuiObscured)="onObscured($event)"
+>
+    {{ 'adminLayout.more' | translate }}
+    <ng-template #dropdownContent>
+        <div class="dropdown">
+
+    
+        <a (click)="closeMore()" routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
+          type="button" i18n="@@borrowItemButton">
+          <tui-icon icon="@tui.shield" />
+          {{ 'adminLayout.security' | translate }}
+        </a>
+
+        </div>
+    </ng-template>
+</button>
+} @else {
+
+  <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
+    type="button" i18n="@@borrowItemButton">
+    <tui-icon icon="@tui.shield" />
+    {{ 'adminLayout.security' | translate }}
+  </a>
+
+}
+  </nav>
+
+
+  <div [style.display]="'flex'">
+    <main tuiNavigationMain>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <tos-footer></tos-footer>
+</tui-root>

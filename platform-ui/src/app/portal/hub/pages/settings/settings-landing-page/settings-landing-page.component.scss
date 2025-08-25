@@ -1,0 +1,155 @@
+@use 'styles' as *;
+
+/* Layout */
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    /* Ensures header is at the top */
+    height: 100vh;
+    padding: 0 30px;
+    padding-top: 20px;
+
+}
+
+/* Header */
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* portal between avatar and text */
+    padding: 16px;
+    width: 100%;
+    border-bottom: solid #e6e6e6 1px;
+    margin-bottom: 10px;
+}
+
+/* User info inside the header */
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.username {
+    font-size: 14px;
+    color: #888;
+    /* Lighter color for username */
+}
+
+/* Body */
+.settings-body {
+    display: flex;
+    flex: 1;
+}
+
+/* Sidebar */
+.settings-menu {
+    width: 200px;
+    padding: 0 16px;
+    height: calc(100vh - 64px);
+    /* Adjust height to account for header */
+    overflow-y: auto;
+    /* Scrollable menu if content overflows */
+}
+
+.settings-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.settings-menu li {
+    margin: 8px 0;
+}
+
+.settings-menu a {
+    text-decoration: none;
+    color: var(--tos-background-accent-1);
+    /* GitHub's blue color for links */
+    font-weight: bold;
+    padding: 8px 12px;
+    display: block;
+    border-radius: 4px;
+    position: relative;
+    /* Required for the vertical marker */
+}
+
+/* Hover effect */
+.settings-menu a:hover {
+    background-color: var(--tos-background-neutral-1);
+    /* Light blue background on hover */
+}
+
+/* Active link styling */
+.settings-menu a.active {
+    background-color: var(--tos-background-neutral-1);
+    /* Subtle blue background for the active link */
+    color: var(--tos-background-accent-1);
+    /* Ensure text remains GitHub blue */
+    border-radius: 4px;
+    font-weight: bold;
+    position: relative;
+}
+
+/* Vertical marker for active link */
+.settings-menu a.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    /* Thickness of the vertical marker */
+    height: 100%;
+    background-color: var(--tos-background-accent-1);
+    /* GitHub blue for the marker */
+    border-radius: 2px;
+    /* Rounding for the marker */
+}
+
+.settings-menu a tui-icon {
+    color: var(--tos-background-accent-1);
+}
+
+.settings-menu tui-icon {
+    margin-right: 10px;
+}
+
+/* Main content */
+.settings-content {
+    flex: 1;
+    padding: 0 16px;
+    overflow-y: auto;
+    /* Optional: make the content scrollable */
+    background-color: var(--tos-background-base);
+    border: 0px solid rgb(226, 232, 240);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+/* Add media query for phone-sized screens */
+@media (max-width: 768px) {
+    .settings-menu {
+        display: none;
+        visibility: visible !important; // Hide the phone menu by default
+        // Hide the regular menu on smaller screens
+    }
+
+    .settings-menu-phone {
+        margin-left: auto;
+        margin-right: 15px;
+    }
+}
+
+/* Default styles for larger screens */
+@media (min-width: 768px) {
+
+    .settings-menu-phone {
+        visibility: hidden; // Hide the phone menu by default
+    }
+}

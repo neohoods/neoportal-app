@@ -1,0 +1,55 @@
+<div id="login-container">
+  <div id="login-form-section">
+    <img class="logo" src="/logo-bright.png" alt="L'Étagère Ouverte" />
+    <h2>{{ 'signUp.title' | translate }}</h2>
+    <p>
+      {{ 'signUp.alreadyRegistered' | translate }}
+      <a routerLink="/login">{{ 'signUp.signIn' | translate }}</a>
+    </p>
+
+    <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.username' | translate }}</label>
+        <input formControlName="username" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.email' | translate }}</label>
+        <input formControlName="email" type="email" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.password' | translate }}</label>
+        <input formControlName="password" type="password" tuiTextfield />
+        <tui-icon tuiPassword />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.streetAddress' | translate }}</label>
+        <input formControlName="streetAddress" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.city' | translate }}</label>
+        <input formControlName="city" type="text" tuiTextfield />
+      </tui-textfield>
+      
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.postalCode' | translate }}</label>
+        <input formControlName="postalCode" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.country' | translate }}</label>
+        <input formControlName="country" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <button appearance="accent" tuiButton size="l" type="submit">
+        {{ 'signUp.signUp' | translate }}
+      </button>
+    </form>
+  </div>
+  <div id="login-welcome-section">
+    <app-welcome></app-welcome>
+  </div>
+</div>
