@@ -46,7 +46,7 @@
     <scm>
         <connection>scm:git:${project.scm.url}</connection>
         <developerConnection>scm:git:${project.scm.url}</developerConnection>
-        <url>git@github.com:neohoods/neoportal.git</url>
+        <url>git@github.com:neohoods/neoportal-app.git</url>
         <tag>HEAD</tag>
     </scm>
 
