@@ -1,0 +1,71 @@
+<div id="edit-application-container">
+    <h2>
+        {{ 'editApplication.editTitle' | translate }}
+    </h2>
+
+    <form
+        [formGroup]="editApplicationForm"
+        (ngSubmit)="onSubmit()"
+    >
+        <tui-textfield>
+            <label tuiLabel>
+                {{ 'editApplication.name' | translate }}
+            </label>
+            <input
+                formControlName="name"
+                type="text"
+                tuiTextfield
+            >
+        </tui-textfield>
+
+        <tui-textfield>
+            <label tuiLabel>{{ 'editApplication.url' | translate }}</label>
+            <input
+                formControlName="url"
+                type="text"
+                tuiTextfield
+            >
+        </tui-textfield>
+
+        <tui-textfield>
+            <label tuiLabel>
+                {{ 'editApplication.icon' | translate }}
+            </label>
+            <input
+                formControlName="icon"
+                type="text"
+                tuiTextfield
+            >
+        </tui-textfield>
+
+        <tui-textfield>
+            <label tuiLabel>
+                {{ 'editApplication.helpText' | translate }}
+            </label>
+            <input
+                formControlName="helpText"
+                type="text"
+                tuiTextfield
+            >
+        </tui-textfield>
+
+        <button
+            type="submit"
+            class="add-user"
+            appearance="accent"
+            size="m"
+            tuiButton
+        >
+            {{ 'editApplication.saveChanges' | translate }}
+        </button>
+        <button
+            class="add-application"
+            routerLink="/admin/applications"
+            appearance="secondary"
+            size="m"
+            tuiButton
+        >
+            {{ 'editApplication.cancel' | translate }}
+        </button>
+    </form>
+</div>

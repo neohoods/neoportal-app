@@ -115,28 +115,7 @@ export class UsersComponent {
         visible: false,
         sortable: false,
         size: 'l',
-      },
-      {
-        key: 'borrowedItems',
-        label: this.translate.instant('users.columns.borrowedItems'),
-        visible: true,
-        sortable: true,
-        size: 's',
-      },
-      {
-        key: 'returnedLate',
-        label: this.translate.instant('users.columns.returnedLate'),
-        visible: true,
-        sortable: true,
-        size: 's',
-      },
-      {
-        key: 'successRate',
-        label: this.translate.instant('users.columns.successRate'),
-        visible: true,
-        sortable: true,
-        size: 's',
-      },
+      }
     ];
     this.usersService.getUsers().subscribe((users) => (this.users = users));
 

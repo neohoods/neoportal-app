@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 import { getGlobalProviders } from '../../global.provider';
 import HubLayoutComponent from './hub-layout/hub-layout.component';
 import { hubProviders } from './hub.provider';
+import { WallComponent } from './pages/wall/wall.component';
+import { CustomPageComponent } from './pages/custom-page/custom-page.component';
+import { HelpCenterComponent } from './pages/help-center/help-center.component';
 
 
 export const COMMUNITY_ROUTES: Routes = [
@@ -10,7 +13,13 @@ export const COMMUNITY_ROUTES: Routes = [
     component: HubLayoutComponent,
     providers: [...hubProviders, ...getGlobalProviders()],
     children: [
-      { path: '', redirectTo: 'items', pathMatch: 'full' },
+      { path: '', redirectTo: 'wall', pathMatch: 'full' },
+      { path: 'help-center', component: HelpCenterComponent },
+      { path: 'page/:ref', component: CustomPageComponent },
+      {
+        path: 'wall',
+        component: WallComponent,
+      },
       {
         path: 'settings',
         loadChildren: () =>

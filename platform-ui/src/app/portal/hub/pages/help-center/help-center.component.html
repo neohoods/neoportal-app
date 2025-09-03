@@ -1,0 +1,58 @@
+<div class="help-center-container">
+
+    <div class="search-bar">
+        <div class="search-input">
+            <tui-icon icon="@tui.search" />
+            <input
+            [value]="searchText()"
+            [placeholder]="'helpCenter.searchPlaceholder' | translate"
+            (input)="onTextFilterChange($event)"
+                        />
+          </div>
+    </div>
+
+    <div class="content-container">
+        <aside>
+            <ul>
+                @for (category of categories(); track category.id) {
+                <li [class.active]="selectedCategoryId() === category.id" (click)="selectCategory(category.id)">
+                    <tui-icon
+                        class="category-icon"
+                        [icon]="category.icon"
+                    ></tui-icon>
+                    {{ category.name }}
+                    <tui-icon
+                        class="arrow-right"
+                        icon="@tui.chevron-right"
+                    ></tui-icon>
+                </li>
+                }
+            </ul>
+        </aside>
+
+        <main #mainElement>
+            <h2>
+                {{ selectedCategoryId() ? categoriesPerId()[selectedCategoryId()!].name : ('helpCenter.searchResults' | translate) }}
+            </h2>
+            @if (articles().length === 0) {
+                <div class="no-items">
+                    <p><tui-icon icon="@tui.search-x" /> {{ 'helpCenter.noArticlesFound' | translate }}</p>
+                </div>
+            }
+            <div class="container-faq">
+                <tui-accordion>
+                    @for (article of articles(); track article.id) {
+                    <tui-accordion-item>
+                        {{ article.title }}
+                        <ng-template tuiAccordionItemContent>
+                            <div class="article-content-container">
+                                <div class="article-content" [innerHTML]="article.content"></div>
+                              </div>
+                        </ng-template>
+                    </tui-accordion-item>
+                    }   
+                </tui-accordion>
+            </div>
+        </main>
+    </div>
+</div>

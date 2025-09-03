@@ -1,0 +1,95 @@
+package com.neohoods.portal.platform.services;
+
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.neohoods.portal.platform.entities.AnnouncementCategory;
+import com.neohoods.portal.platform.entities.AnnouncementEntity;
+import com.neohoods.portal.platform.exceptions.CodedError;
+import com.neohoods.portal.platform.exceptions.CodedException;
+import com.neohoods.portal.platform.model.Announcement;
+import com.neohoods.portal.platform.repositories.AnnouncementRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AnnouncementsService {
+    private final AnnouncementRepository announcementRepository;
+
+    public Mono<Announcement> createAnnouncement(String title, String content, AnnouncementCategory category) {
+        log.info("Creating announcement: {} with category: {}", title, category);
+
+        AnnouncementEntity entity = AnnouncementEntity.builder()
+                .id(UUID.randomUUID())
+                .title(title)
+                .content(content)
+                .category(category != null ? category : AnnouncementCategory.OTHER)
+                .build();
+
+        AnnouncementEntity savedEntity = announcementRepository.save(entity);
+        log.info("Created announcement: {} with ID: {}", savedEntity.getTitle(), savedEntity.getId());
+        return Mono.just(savedEntity.toAnnouncement());
+    }
+
+    public Flux<Announcement> getAnnouncements() {
+        log.info("Retrieving all announcements");
+        return Flux.fromIterable(announcementRepository.findAllByOrderByCreatedAtDesc())
+                .map(AnnouncementEntity::toAnnouncement)
+                .doOnComplete(() -> log.info("Retrieved all announcements"));
+    }
+
+    public Mono<Announcement> getAnnouncement(UUID announcementId) {
+        log.info("Retrieving announcement: {}", announcementId);
+        return Mono.justOrEmpty(announcementRepository.findById(announcementId))
+                .map(entity -> {
+                    log.info("Found announcement: {}", entity.getTitle());
+                    return entity.toAnnouncement();
+                })
+                .switchIfEmpty(Mono.error(new CodedException(
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getCode(),
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getDefaultMessage(),
+                        Map.of("announcementId", announcementId),
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getDocumentationUrl())));
+    }
+
+    public Mono<Announcement> updateAnnouncement(UUID announcementId, String title, String content) {
+        log.info("Updating announcement: {}", announcementId);
+
+        AnnouncementEntity existingEntity = announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new CodedException(
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getCode(),
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getDefaultMessage(),
+                        Map.of("announcementId", announcementId),
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getDocumentationUrl()));
+
+        existingEntity.setTitle(title);
+        existingEntity.setContent(content);
+        // Note: updatedAt will be set automatically by @PreUpdate
+
+        AnnouncementEntity updatedEntity = announcementRepository.save(existingEntity);
+        log.info("Updated announcement: {}", updatedEntity.getTitle());
+        return Mono.just(updatedEntity.toAnnouncement());
+    }
+
+    public Mono<Void> deleteAnnouncement(UUID announcementId) {
+        log.info("Deleting announcement: {}", announcementId);
+
+        AnnouncementEntity entity = announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new CodedException(
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getCode(),
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getDefaultMessage(),
+                        Map.of("announcementId", announcementId),
+                        CodedError.ANNOUNCEMENT_NOT_FOUND.getDocumentationUrl()));
+
+        announcementRepository.delete(entity);
+        log.info("Deleted announcement: {}", entity.getTitle());
+        return Mono.empty();
+    }
+}

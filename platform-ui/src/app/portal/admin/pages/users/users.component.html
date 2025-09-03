@@ -35,20 +35,6 @@
           </div>
 
         </div>
-        <div class="stats">
-          <span class="borrowedItems">
-            <tui-icon icon="/borrow.png" />
-            {{ item.borrowedItems }}
-          </span>
-          <span class="returnedLate">
-            <tui-icon icon="@tui.clock" />
-            {{ item.returnedLate }} %
-          </span>
-          <span class="successRate">
-            <tui-icon icon="@tui.check" />
-            {{ item.successRate }} %
-          </span>
-        </div>
       </div>
     </div>
   </ng-template>
@@ -56,12 +42,7 @@
 
   <ng-template #itemActionsTemplate let-item="item">
     <div class="user-actions">
-      <div class="action">
-        <button [routerLink]="['/admin/users/', item.id, 'activity']" appearance="outline" iconStart="@tui.activity" size="s" tuiIconButton type="button"
-          [style.border-radius.%]="100">
-          {{ 'users.activity' | translate }}
-        </button>
-      </div>
+      
     <button
       (click)="setPassword(item)"
       appearance="outline"

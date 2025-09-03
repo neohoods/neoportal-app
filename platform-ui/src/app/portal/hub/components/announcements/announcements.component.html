@@ -1,0 +1,82 @@
+<div class="announcements-create-form">
+    <form
+        [formGroup]="pageForm"
+        (ngSubmit)="onPostCreate()"
+    >
+        <tui-tabs [(activeItemIndex)]="activeItemIndex">
+            <button
+                *ngFor="let category of categoryInfo; trackBy: trackByCategory"
+                tuiTab
+                type="button"
+                (click)="changePostCategory(category.category)"
+            >
+                <tui-icon
+                    [style.font-size.rem]="1"
+                    [icon]="category.icon"
+                    [style.color]="activePostCategory === category.category ? category.color : null"
+                    class="announcement-icon"
+                ></tui-icon>
+                {{ category.translationKey | translate }}
+            </button>
+        </tui-tabs>
+
+        <tui-textfield>
+            <label tuiLabel>
+                {{ 'announcement-post-form.title' | translate }}
+            </label>
+            <input
+                id="title"
+                formControlName="title"
+                type="text"
+                placeholder="{{ 'announcement-post-form.title-placeholder' | translate }}"
+                tuiTextfield
+                (focus)="onInputFocus()"
+                (click)="onInputFocus()"
+            >
+        </tui-textfield>
+
+        <tui-expand [expanded]="!collapsed()">
+
+            <quill-editor
+                formControlName="content"
+                [modules]="editorConfig"
+                style="height: 200px"
+            ></quill-editor>
+
+            <div class="announcement-post-form-actions">
+                <button
+                    class="save-button"
+                    type="submit"
+                    appearance="accent"
+                    size="m"
+                    tuiButton
+                    [disabled]="pageForm.invalid"
+                >
+                    {{ 'announcement-post-form.save' | translate }}
+                </button>
+            </div>
+        </tui-expand>
+
+    </form>
+
+</div>
+
+<div
+    class="announcements-container"
+    *ngIf="announcements() as announcements; else loading"
+>
+
+    <div
+        class="announcement"
+        *ngFor="let announcement of announcements"
+    >
+        <announcement
+            [announcement]="announcement"
+            (announcementDeleted)="loadAnnouncements()"
+            (announcementUpdated)="loadAnnouncements()"
+        ></announcement>
+    </div>
+</div>
+<ng-template #loading>
+    <p>Loading announcements...</p>
+</ng-template>

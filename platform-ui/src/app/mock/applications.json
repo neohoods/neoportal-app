@@ -1,0 +1,33 @@
+[
+    {
+        "id": "1",
+        "name": "Chat",
+        "url": "https://chat.neohoods.com",
+        "icon": "/assets/applications/element.png",
+        "helpText": "Communication with the community"
+    },
+    {
+        "id": "2",
+        "name": "Documents",
+        "disabled": true,
+        "url": "https://docs.neohoods.com",
+        "icon": "/assets/applications/bookstack.png",
+        "helpText": "Documents for the community"
+    },
+    {
+        "id": "3",
+        "name": "Incidents",
+        "disabled": true,
+        "url": "https://incidents.neohoods.com",
+        "icon": "/assets/applications/zammad.png",
+        "helpText": "Incidents for the community"
+    },
+    {
+        "id": "4",
+        "name": "Space",
+        "disabled": true,
+        "url": "https://space.neohoods.com",
+        "icon": "/assets/applications/space.png",
+        "helpText": "Reservation of spaces for the community"
+    }
+]

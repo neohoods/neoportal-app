@@ -1,0 +1,103 @@
+<div class="profile-container">
+
+    <form
+        [formGroup]="profileForm"
+        (ngSubmit)="onSave()"
+    >
+        <h1>
+            {{ 'profile.propertiesTitle' | translate }}
+        </h1>
+        <tui-notification
+            class="property-description"
+            size="l"
+        >
+            {{ 'profile.properties.description' | translate }}
+        </tui-notification>
+        <!-- Properties Section -->
+        <div formArrayName="properties">
+            <h3>
+                {{ 'profile.properties.title' | translate }}
+            </h3>
+            <div
+                *ngFor="let property of properties.controls; let i = index"
+                [formGroupName]="i"
+                class="property-card"
+            >
+                <div class="property-header">
+                    <h4>
+                        {{ 'profile.property' | translate }} {{i + 1}}
+                    </h4>
+                    <button
+                        type="button"
+                        tuiButton
+                        size="s"
+                        appearance="destructive"
+                        (click)="removeProperty(i)"
+                    >
+                        {{ 'profile.remove' | translate }}
+                    </button>
+                </div>
+
+                <div class="row">
+                    <div class="column">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'profile.propertyName' | translate }}
+                            </label>
+                            <input
+                                formControlName="name"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+                    </div>
+                    <div class="column">
+                        <tui-select
+                            tuiTextfieldSize="s"
+                            formControlName="type"
+                            [stringify]="stringifyPropertyType"
+                        >
+                            {{ 'profile.propertyType' | translate }}
+                            <input
+                                placeholder="{{ 'profile.propertyTypePlaceholder' | translate }}"
+                                tuiTextfieldLegacy
+                            >
+                            <tui-data-list-wrapper
+                                *tuiDataList
+                                [items]="propertyTypes"
+                                [itemContent]="propertyTypeContent"
+                            ></tui-data-list-wrapper>
+                        </tui-select>
+
+                        <ng-template
+                            #propertyTypeContent
+                            let-item
+                        >
+                            {{ 'property.type.' + item | translate }}
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                tuiButton
+                size="m"
+                appearance="secondary"
+                (click)="addProperty()"
+                class="add-property-btn"
+            >
+                {{ 'profile.addProperty' | translate }}
+            </button>
+        </div>
+
+        <button
+            appearance="accent"
+            tuiButton
+            size="l"
+            type="submit"
+        >
+            {{ 'profile.saveButton' | translate }}
+        </button>
+    </form>
+</div>

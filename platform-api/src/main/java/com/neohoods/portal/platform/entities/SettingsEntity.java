@@ -1,5 +1,7 @@
 package com.neohoods.portal.platform.entities;
 
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "settings")
 public class SettingsEntity {
     @Id
-    private String id;
+    private UUID id;
     @Column(name = "is_registration_enabled")
     private boolean isRegistrationEnabled;
     @Column(name = "sso_enabled")

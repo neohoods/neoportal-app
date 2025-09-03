@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { AuthApiService } from '../../api-client';
-import { UIUser } from '../../models/UIUser';
+import { UIUser, UIUserType } from '../../models/UIUser';
+import { MockUsersService } from '../../portal/admin/services/mock/users.service';
 import { AuthService, UserInfo } from '../auth.service';
 
 @Injectable({
@@ -27,19 +28,19 @@ export class MockAuthService implements AuthService {
       avatarUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
       disabled: false,
       isEmailVerified: true,
-      borrowedItems: 0,
-      returnedLate: 0,
-      successRate: 0,
       streetAddress: '123 Main St',
       city: 'Anytown',
       postalCode: '12345',
       country: 'USA',
+      type: UIUserType.ADMIN,
+      properties: []
     },
   };
 
   constructor(
     private router: Router,
     private authApiService: AuthApiService,
+    private usersService: MockUsersService,
   ) {
     this.userInfo.user = {
       "id": "11",
@@ -56,10 +57,16 @@ export class MockAuthService implements AuthService {
       "city": "Somewhere",
       "postalCode": "12345",
       "country": "USA",
-      "borrowedItems": 0,
-      "returnedLate": 0,
-      "successRate": 0
+      "type": UIUserType.ADMIN,
+      "properties": [],
     };
+    this.usersService.getUsers().subscribe((users) => {
+      this.userInfo.user = users.find((user) => user.username === 'me') as UIUser;
+      if (!this.userInfo.user.avatarUrl) {
+        this.userInfo.user.avatarUrl = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
+      }
+    });
+
   }
 
   async initializeSession(): Promise<void> {
@@ -94,6 +101,13 @@ export class MockAuthService implements AuthService {
           email: 'admin@example.com',
           user: this.userInfo.user,
         }
+        this.usersService.getUsers().subscribe((users) => {
+          this.userInfo.user = users.find((user) => user.username === username) as UIUser;
+          if (!this.userInfo.user.avatarUrl) {
+            this.userInfo.user.avatarUrl = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
+          }
+        });
+
         observer.next(true);
         observer.complete();
       }
@@ -107,6 +121,13 @@ export class MockAuthService implements AuthService {
           email: 'me@example.com',
           user: this.userInfo.user,
         }
+        this.usersService.getUsers().subscribe((users) => {
+          this.userInfo.user = users.find((user) => user.username === "me") as UIUser;
+          if (!this.userInfo.user.avatarUrl) {
+            this.userInfo.user.avatarUrl = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
+          }
+        });
+
         observer.next(true);
         observer.complete();
       } else if (username === 'alice' && password === 'password') {
@@ -119,6 +140,12 @@ export class MockAuthService implements AuthService {
           email: 'alice@example.com',
           user: this.userInfo.user,
         }
+        this.usersService.getUsers().subscribe((users) => {
+          this.userInfo.user = users.find((user) => user.username === username) as UIUser;
+          if (!this.userInfo.user.avatarUrl) {
+            this.userInfo.user.avatarUrl = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
+          }
+        });
         observer.next(true);
         observer.complete();
       } else if (username === 'bob' && password === 'password') {
@@ -131,6 +158,12 @@ export class MockAuthService implements AuthService {
           email: 'bob@example.com',
           user: this.userInfo.user,
         }
+        this.usersService.getUsers().subscribe((users) => {
+          this.userInfo.user = users.find((user) => user.username === username) as UIUser;
+          if (!this.userInfo.user.avatarUrl) {
+            this.userInfo.user.avatarUrl = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
+          }
+        });
         observer.next(true);
         observer.complete();
       }
@@ -148,16 +181,15 @@ export class MockAuthService implements AuthService {
   }
 
   signUp(
-    email: string,
     username: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    type: UIUserType,
     password: string,
-    streetAddress: string,
-    city: string,
-    postalCode: string,
-    country: string,
   ): Observable<boolean> {
     // Mock sign up logic (replace with backend API call)
-    console.log('User registered:', { email, password });
+    console.log('User registered:', { username, firstName, lastName, email, type, password });
     return new Observable<boolean>((observer) => {
       observer.next(true);
       observer.complete();

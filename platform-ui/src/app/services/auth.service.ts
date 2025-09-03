@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { UIUser } from '../models/UIUser';
+import { UIUser, UIUserType } from '../models/UIUser';
 
 export interface UserInfo {
   firstName: string;
@@ -18,13 +18,12 @@ export interface AuthService {
   signIn(username: string, password: string): Observable<boolean>;
   hasRole(role: string): boolean;
   signUp(
-    email: string,
     username: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    type: UIUserType,
     password: string,
-    streetAddress: string,
-    city: string,
-    postalCode: string,
-    country: string,
   ): Observable<boolean>;
   signOut(): Observable<boolean>;
   isAuthenticated(): Observable<boolean>;

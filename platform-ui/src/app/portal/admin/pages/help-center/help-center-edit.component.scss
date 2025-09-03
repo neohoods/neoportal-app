@@ -1,0 +1,174 @@
+@use 'styles' as *;
+
+
+.content-container {
+    padding: 2rem 0;
+    display: grid;
+    flex-direction: column;
+    grid-template-columns: 3fr 9fr;
+    gap: 2rem;
+
+    aside {
+
+        width: 100%;
+
+        .categories-container {
+            background-color: var(--tos-background-base);
+            border-radius: 12px;
+            overflow: hidden;
+            text-align: left;
+            border: 0px solid rgb(226, 232, 240);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1),
+                0 1px 2px -1px rgb(0 0 0 / .1) !important;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+
+            li {
+                padding: 1rem;
+                width: 100%;
+                border-bottom: 1px solid var(--tos-border-base);
+                display: flex;
+
+                .category-icon {
+                    color: var(--tos-text-secondary);
+                    margin-right: 10px;
+                }
+
+
+                .category-actions {
+                    margin-left: auto;
+                    margin-right: 30px;
+
+                    button {
+                        margin-left: 5px;
+                    }
+
+                }
+
+                .edit-button {
+                    border-radius: 100%;
+                    padding: 5px;
+                }
+
+
+                .arrow-right {
+                    color: var(--tos-text-tertiary);
+                    margin-left: auto;
+                    margin-right: 20px;
+                }
+            }
+
+            li.active,
+            li:hover {
+                cursor: pointer;
+                padding-left: 10px;
+                border-left: 5px solid var(--tos-text-primary);
+
+                .category-icon {
+                    color: var(--tos-text-primary);
+                }
+
+                .arrow-right {
+                    color: var(--tos-text-primary);
+                }
+            }
+        }
+
+        .add-category-button {
+            width: 100%;
+            margin-top: 10px;
+        }
+    }
+
+    .container-faq {
+        color: var(--tos-text-primary);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column; // Change to column for vertical layout
+        justify-content: space-between;
+        background-color: var(--tos-background-base);
+        border-radius: 12px;
+        overflow: hidden;
+        text-align: left;
+        border: 0px solid rgb(226, 232, 240);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.037), 0 1px 2px -1px rgba(0, 0, 0, 0.037) !important;
+        width: 100%;
+
+        .edit-button {
+            border-radius: 100%;
+            padding: 5px;
+        }
+
+        .article-actions {
+            margin-right: 15px;
+            display: inline-block;
+
+            button {
+                margin-left: 5px;
+            }
+        }
+
+        .article-content-container {
+            display: flex;
+            /* Ensures it behaves responsively in the grid */
+            max-width: 70vw;
+            ; // Set to full screen width
+            /* Prevents overflow */
+        }
+
+        .article-content {
+            width: 100%;
+            /* Ensures it takes full width of the container */
+            max-width: 100%;
+            /* Prevents unintended overflows */
+            overflow-wrap: break-word;
+            /* Prevents long words from breaking the layout */
+        }
+
+    }
+
+    .add-article-button-container {
+        margin-top: 10px;
+
+        .add-article-button {
+            width: 100%;
+        }
+    }
+}
+
+.category-form {
+    box-shadow: none !important;
+    margin-top: 40px !important;
+    margin-bottom: 0 !important;
+    padding: 0;
+
+    button {
+        width: 100%;
+    }
+}
+
+.article-form {
+    box-shadow: none !important;
+    margin-top: 40px !important;
+    margin-bottom: 0 !important;
+    padding: 0;
+
+    quill-editor {
+        height: 100%;
+    }
+
+    button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 800px) {
+    .content-container {
+        display: block;
+    }
+
+}

@@ -1,0 +1,63 @@
+<tos-table
+    [addActionRoute]="'/admin/applications/add'"
+    [addActionIcon]="'@tui.plus'"
+    [getDataFunction]="getDataFunction"
+    [columns]="columns"
+>
+    <div add-action-content>Add application</div>
+
+    <ng-template
+        #cardTemplate
+        let-item="item"
+    >
+        <div class="page-content">
+            <h3>{{ item.name }}</h3>
+            <img
+                [src]="item.icon"
+                [alt]="item.name"
+            >
+            <p>{{ item.helpText }}</p>
+        </div>
+    </ng-template>
+
+    <ng-template
+        #itemActionsTemplate
+        let-item="item"
+    >
+        <div class="page-actions">
+
+            <button
+                [routerLink]="['/admin/applications', item.id, 'edit']"
+                appearance="outline"
+                iconStart="@tui.pen"
+                size="s"
+                tuiIconButton
+                type="button"
+                [style.border-radius.%]="100"
+            >
+                Edit
+            </button>
+            <button
+                (click)="deleteApplication(item)"
+                appearance="outline"
+                iconStart="@tui.trash-2"
+                size="s"
+                tuiIconButton
+                type="button"
+                [style.border-radius.%]="100"
+            >
+                Delete
+            </button>
+        </div>
+    </ng-template>
+
+    <ng-template #itemRowTemplate let-item="item" let-column="column">
+        @if (column.key === "icon") {
+          <img
+            class="icon"
+            [src]="item.icon"
+            [alt]="item.name"
+          />
+        }
+      </ng-template>
+</tos-table>

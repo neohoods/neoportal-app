@@ -13,15 +13,38 @@ export interface UIUser {
     disabled: boolean;
     preferredLanguage?: string;
 
+    type: UIUserType;
+    properties: UIProperty[];
+
     //address
     flatNumber?: string;
     streetAddress: string;
     city: string;
     postalCode: string;
     country: string;
+}
 
-    //statistics
-    borrowedItems: number;
-    returnedLate: number;
-    successRate: number;
+export interface UIProperty {
+    type: UIPropertyType;
+    name: string;
+}
+
+export enum UIUserType {
+    ADMIN = 'ADMIN',
+    OWNER = 'OWNER',
+    LANDLORD = 'LANDLORD',
+    TENANT = 'TENANT',
+    SYNDIC = 'SYNDIC',
+    EXTERNAL = 'EXTERNAL',
+    CONTRACTOR = 'CONTRACTOR',
+    COMMERCIAL_PROPERTY_OWNER = 'COMMERCIAL_PROPERTY_OWNER',
+    GUEST = 'GUEST',
+}
+
+export enum UIPropertyType {
+    APARTMENT = 'APARTMENT',
+    GARAGE = 'GARAGE',
+    PARKING = 'PARKING',
+    COMMERCIAL = 'COMMERCIAL',
+    OTHER = 'OTHER',
 }

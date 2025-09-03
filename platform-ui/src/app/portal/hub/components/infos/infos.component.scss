@@ -1,0 +1,57 @@
+.infos-container {
+
+
+    h2 {
+        margin-top: 0;
+    }
+
+    td {
+        padding-right: 16px;
+    }
+
+    .infos-next-ag-date,
+    .infos-rules-url,
+    .infos-delegates,
+    .infos-contact-numbers-syndic,
+    .infos-contact-numbers-emergency {
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        text-align: left;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 0px solid rgb(226, 232, 240);
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+        margin: 16px;
+        padding: 10px;
+    }
+
+    .infos-delegates-delegate-title,
+    .infos-contact-numbers-syndic-title,
+    .infos-contact-numbers-emergency-title {
+        display: grid;
+        grid-template-columns: 90% 10%;
+        gap: 16px;
+        padding-right: 8px;
+    }
+
+    .infos-delegates ul,
+    .infos-contact-numbers-emergency ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    .infos-delegates li,
+    .infos-contact-numbers-emergency li {
+        list-style: none;
+        margin-bottom: 8px;
+    }
+
+    tui-expand._expanded {
+        background-color: #eeeeee;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 8px;
+    }
+}

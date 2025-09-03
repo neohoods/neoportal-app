@@ -1,0 +1,122 @@
+<div
+    class="announcement"
+>
+
+    <div class="announcement-header">
+        <div class="announcement-icon">
+            <tui-icon
+                [style.font-size.rem]="3"
+                [style.color]="getColorForCategory(announcement.category)"
+                [icon]="getIconForCategory(announcement.category)"
+            ></tui-icon>
+        </div>
+        <div>
+            <div class="announcement-title">
+                {{ announcement.title }}
+            </div>
+            <div class="announcement-subtitle">
+                <span class="announcement-date">
+                    <tui-icon icon="@tui.calendar" [style.width.px]="16" />
+                {{ announcement.createdAt | date: 'd MMMM yyyy \'at\' HH:mm' }}
+                </span>
+            </div>
+        </div>
+
+<div class="announcement-actions">
+
+    <button
+    appearance="flat"
+    iconStart="@tui.ellipsis"
+    size="m"
+    tuiButton
+    tuiDropdownAlign="right"
+    type="button"
+    [tuiDropdown]="dropdown"
+    [tuiDropdownSided]="true"
+    [(tuiDropdownOpen)]="open"
+    >
+    </button>
+    <ng-template
+    #dropdown
+    let-close
+    >
+    <tui-data-list>
+        <tui-opt-group>
+            <button
+                tuiOption
+                type="button"
+                (click)="onEdit()"
+            >
+              {{ 'announcement-category.edit' | translate }}
+            </button>
+            <button
+            tuiOption
+            type="button"
+            (click)="onDelete()"
+        >
+        {{ 'announcement-category.delete' | translate }}
+        </button>
+        </tui-opt-group>
+        
+    </tui-data-list>
+    </ng-template>
+    
+
+
+</div>
+
+    </div>
+    
+    <!-- Display Mode -->
+    <div class="announcement-content" *ngIf="!isEditing">
+        <div [innerHTML]="announcement.content"></div>
+    </div>
+    
+    <!-- Edit Mode -->
+    <div class="announcement-edit-form" *ngIf="isEditing">
+        <form [formGroup]="editForm" (ngSubmit)="onSaveEdit()">
+            <tui-textfield>
+                <label tuiLabel>
+                    {{ 'announcement-post-form.title' | translate }}
+                </label>
+                <input
+                    formControlName="title"
+                    type="text"
+                    placeholder="{{ 'announcement-post-form.title-placeholder' | translate }}"
+                    tuiTextfield
+                >
+            </tui-textfield>
+
+            <quill-editor
+                formControlName="content"
+                [modules]="editorConfig"
+            ></quill-editor>
+
+            <div class="edit-form-actions">
+                <button
+                    type="submit"
+                    appearance="accent"
+                    size="m"
+                    tuiButton
+                    [disabled]="editForm.invalid"
+                >
+                    {{ 'announcement.saveChanges' | translate }}
+                </button>
+                <button
+                    type="button"
+                    appearance="secondary"
+                    size="m"
+                    tuiButton
+                    (click)="onCancelEdit()"
+                >
+                    {{ 'announcement.cancel' | translate }}
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="announcement-footer">
+        <small>{{ 'announcement.category' | translate }}: {{ ('announcement-category.' + announcement.category) | translate }}</small>
+    </div>
+</div>
+

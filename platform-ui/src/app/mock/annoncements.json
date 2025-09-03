@@ -1,0 +1,34 @@
+[
+    {
+        "id": "1",
+        "title": "New Announcement",
+        "content": "This is the content of the announcement.",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01",
+        "category": "CommunityEvent"
+    },
+    {
+        "id": "2",
+        "title": "New Announcement",
+        "content": "This is the content of the announcement.",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01",
+        "category": "CommunityEvent"
+    },
+    {
+        "id": "3",
+        "title": "New Announcement",
+        "content": "This is the content of the announcement.",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01",
+        "category": "CommunityEvent"
+    },
+    {
+        "id": "4",
+        "title": "New Announcement",
+        "content": "This is the content of the announcement.",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01",
+        "category": "CommunityEvent"
+    }
+]

@@ -8,11 +8,20 @@
     </div>
     <div class="footer-links">
       <h3 class="footer-help-title">{{ 'footer.usefulLinks' | translate }}</h3>
-      
+      <ul>
+        @for (page of customPages.get('footer-links') || []; track page.ref + '-' + $index) {
+          <li><a [routerLink]="['/hub/page', page.ref]">{{ page.title }}</a></li>
+        }
+      </ul>
     </div>
     <div class="footer-help">
       <h3 class="footer-help-title">{{ 'footer.needHelp' | translate }}</h3>
-      
+      <ul>
+        <li><a routerLink="/hub/help-center">{{ 'footer.helpCenter' | translate }}</a></li>
+        @for (page of customPages.get('footer-help') || []; track page.ref) {
+          <li><a [routerLink]="['/hub/page', page.ref]">{{ page.title }}</a></li>
+        }
+      </ul>
       <language-switcher />
     </div>
   </div>
@@ -20,7 +29,7 @@
   <div class="footer-copyright">
     <div class="footer-copyright-left">
       <span class="copyright"
-        ><tui-icon icon="@tui.copyright" />2025 portal NeoHoods</span
+        ><tui-icon icon="@tui.copyright" /> 2025 portal NeoHoods</span
       >
      
     </div>
@@ -33,7 +42,7 @@
         <tui-icon icon="@tui.github" />
       </a>
       <span class="powered-by"
-        >{{ 'footer.poweredBy' | translate }} <tui-icon icon="@tui.heart" /> portal NeoHoods</span
+        >{{ 'footer.poweredBy' | translate }} <tui-icon icon="@tui.heart" /> NeoHoods</span
       >
     </div>
   </div>

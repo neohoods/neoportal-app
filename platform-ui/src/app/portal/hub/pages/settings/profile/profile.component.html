@@ -3,7 +3,67 @@
   <form [formGroup]="profileForm" (ngSubmit)="onSave()">
     <h1>{{ 'profile.editTitle' | translate }}</h1>
 
-    <tui-textfield>
+    <!-- Basic Information -->
+    <h3>{{ 'profile.basicInfo' | translate }}</h3>
+    
+    <tui-textfield class="form-field">
+      <label tuiLabel>{{ 'profile.username' | translate }}</label>
+      <input
+        formControlName="username"
+        type="text"
+        placeholder="{{ 'profile.usernamePlaceholder' | translate }}"
+        tuiTextfield
+      />
+    </tui-textfield>
+
+    <div class="row form-field">
+      <div class="column">
+        <tui-textfield>
+          <label tuiLabel>{{ 'profile.firstName' | translate }}</label>
+          <input
+            formControlName="firstName"
+            type="text"
+            placeholder="{{ 'profile.firstNamePlaceholder' | translate }}"
+            tuiTextfield
+          />
+        </tui-textfield>
+      </div>
+      <div class="column">
+        <tui-textfield>
+          <label tuiLabel>{{ 'profile.lastName' | translate }}</label>
+          <input
+            formControlName="lastName"
+            type="text"
+            placeholder="{{ 'profile.lastNamePlaceholder' | translate }}"
+            tuiTextfield
+          />
+        </tui-textfield>
+      </div>
+    </div>
+
+    <tui-select
+      tuiTextfieldSize="s"
+      formControlName="type"
+      class="form-field"
+      [stringify]="stringifyUserType"
+    >
+      {{ 'profile.userType' | translate }}
+      <input
+        placeholder="{{ 'profile.userTypePlaceholder' | translate }}"
+        tuiTextfieldLegacy
+      />
+      <tui-data-list-wrapper
+        *tuiDataList
+        [items]="userTypes"
+        [itemContent]="userTypeContent"
+      ></tui-data-list-wrapper>
+    </tui-select>
+
+    <ng-template #userTypeContent let-item>
+      {{ 'user.type.' + item | translate }}
+    </ng-template>
+
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'profile.email' | translate }}</label>
       <input
         formControlName="email"
@@ -13,7 +73,7 @@
       />
     </tui-textfield>
 
-    <tui-textfield>
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'profile.password' | translate }}</label>
       <input
         formControlName="password"
@@ -25,7 +85,19 @@
     </tui-textfield>
 
     <!-- Address Fields -->
-    <tui-textfield>
+    <h3>{{ 'profile.addressInfo' | translate }}</h3>
+    
+    <tui-textfield class="form-field">
+      <label tuiLabel>{{ 'profile.flatNumber' | translate }}</label>
+      <input
+        formControlName="flatNumber"
+        type="text"
+        placeholder="{{ 'profile.flatNumberPlaceholder' | translate }}"
+        tuiTextfield
+      />
+    </tui-textfield>
+
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'profile.streetAddress' | translate }}</label>
       <input
         formControlName="streetAddress"
@@ -35,7 +107,7 @@
       />
     </tui-textfield>
 
-    <div class="row">
+    <div class="row form-field">
       <div class="column">
         <tui-textfield>
           <label tuiLabel>{{ 'profile.city' | translate }}</label>
@@ -60,7 +132,7 @@
       </div>
     </div>
 
-    <tui-textfield>
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'profile.country' | translate }}</label>
       <input
         formControlName="country"
@@ -69,7 +141,6 @@
         tuiTextfield
       />
     </tui-textfield>
-
     <button appearance="accent" tuiButton size="l" type="submit">
       {{ 'profile.saveButton' | translate }}
     </button>

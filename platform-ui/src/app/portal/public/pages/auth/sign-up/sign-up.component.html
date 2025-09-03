@@ -14,9 +14,39 @@
       </tui-textfield>
 
       <tui-textfield>
+        <label tuiLabel>{{ 'signUp.firstName' | translate }}</label>
+        <input formControlName="firstName" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'signUp.lastName' | translate }}</label>
+        <input formControlName="lastName" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
         <label tuiLabel>{{ 'signUp.email' | translate }}</label>
         <input formControlName="email" type="email" tuiTextfield />
       </tui-textfield>
+
+      <tui-select
+        formControlName="type"
+        tuiTextfieldSize="s"
+        tuiTextfieldLegacy
+        [stringify]="stringifyUserType"
+      >
+        {{ 'signUp.userType' | translate }}
+        <ng-template tuiDataList>
+          <tui-data-list>
+            <button
+              *ngFor="let userType of userTypes"
+              tuiOption
+              [value]="userType"
+            >
+              {{ stringifyUserType(userType) }}
+            </button>
+          </tui-data-list>
+        </ng-template>
+      </tui-select>
 
       <tui-textfield>
         <label tuiLabel>{{ 'signUp.password' | translate }}</label>
@@ -24,25 +54,7 @@
         <tui-icon tuiPassword />
       </tui-textfield>
 
-      <tui-textfield>
-        <label tuiLabel>{{ 'signUp.streetAddress' | translate }}</label>
-        <input formControlName="streetAddress" type="text" tuiTextfield />
-      </tui-textfield>
 
-      <tui-textfield>
-        <label tuiLabel>{{ 'signUp.city' | translate }}</label>
-        <input formControlName="city" type="text" tuiTextfield />
-      </tui-textfield>
-      
-      <tui-textfield>
-        <label tuiLabel>{{ 'signUp.postalCode' | translate }}</label>
-        <input formControlName="postalCode" type="text" tuiTextfield />
-      </tui-textfield>
-
-      <tui-textfield>
-        <label tuiLabel>{{ 'signUp.country' | translate }}</label>
-        <input formControlName="country" type="text" tuiTextfield />
-      </tui-textfield>
 
       <button appearance="accent" tuiButton size="l" type="submit">
         {{ 'signUp.signUp' | translate }}

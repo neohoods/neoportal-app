@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { TuiAlertService } from '@taiga-ui/core';
 import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AuthApiService, ProfileHubApiService, SsoPublicApiService, User } from '../../api-client';
-import { UIUser } from '../../models/UIUser';
+import { AuthApiService, ProfileHubApiService, Property, SsoPublicApiService, User } from '../../api-client';
+import { UIProperty, UIPropertyType, UIUser, UIUserType } from '../../models/UIUser';
 import { AuthService, UserInfo } from '../auth.service';
 
 @Injectable({
@@ -28,13 +28,12 @@ export class APIAuthService implements AuthService {
       isEmailVerified: false,
       firstName: 'unknown',
       lastName: 'unknown',
-      borrowedItems: 0,
-      returnedLate: 0,
-      successRate: 0,
       streetAddress: 'unknown',
       city: 'unknown',
       postalCode: 'unknown',
       country: 'unknown',
+      type: UIUserType.EXTERNAL,
+      properties: [],
     },
   };
 
@@ -86,9 +85,11 @@ export class APIAuthService implements AuthService {
       map((user: User) => {
         return {
           ...user,
-          borrowedItems: 0,
-          returnedLate: 0,
-          successRate: 0,
+          type: user.type as UIUserType,
+          properties: (user.properties ?? []).map((property: Property) => ({
+            ...property,
+            type: property.type as UIPropertyType,
+          })) as UIProperty[],
         } as UIUser;
       })
     );
@@ -115,7 +116,7 @@ export class APIAuthService implements AuthService {
         .subscribe({
           next: (user: User) => {
             this.isAuthenticated$.next(true);
-            this.userRoles = user.roles; // Assuming the user object has a roles property
+            this.userRoles = user.roles ?? []; // Assuming the user object has a roles property
             this.userInfo.firstName = user.firstName;
             this.userInfo.lastName = user.lastName;
             this.userInfo.username = user.username;
@@ -129,11 +130,13 @@ export class APIAuthService implements AuthService {
               isEmailVerified: user.isEmailVerified ?? false,
               firstName: user.firstName ?? 'unknown',
               lastName: user.lastName ?? 'unknown',
-              borrowedItems: 0,
-              returnedLate: 0,
-              successRate: 0,
               streetAddress: user.streetAddress ?? 'unknown',
               city: user.city ?? 'unknown',
+              type: user.type as UIUserType,
+              properties: (user.properties ?? []).map((property: Property) => ({
+                ...property,
+                type: property.type as UIPropertyType,
+              })) as UIProperty[],
               postalCode: user.postalCode ?? 'unknown',
               country: user.country ?? 'unknown',
             };
@@ -154,25 +157,23 @@ export class APIAuthService implements AuthService {
   }
 
   signUp(
-    email: string,
     username: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    type: UIUserType,
     password: string,
-    streetAddress: string,
-    city: string,
-    postalCode: string,
-    country: string,
   ): Observable<boolean> {
     // Mock sign up logic (replace with backend API call)
     return new Observable<boolean>((observer) => {
       this.authApiService
         .signUp({
-          email: email,
           username: username,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          type: type,
           password: password,
-          streetAddress: streetAddress,
-          city: city,
-          postalCode: postalCode,
-          country: country,
         })
         .subscribe({
           next: (response) => {

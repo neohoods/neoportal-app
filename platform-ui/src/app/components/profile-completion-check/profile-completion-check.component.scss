@@ -1,0 +1,44 @@
+.profile-completion-dialog {
+    .dialog-header {
+        margin-bottom: 16px;
+
+
+        .message {
+            margin: 0;
+            color: #666;
+            line-height: 1.4;
+        }
+    }
+
+    .missing-fields-card {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 16px 0;
+
+        .missing-fields-title {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .missing-fields-list {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+
+            .missing-field {
+                margin: 4px 0;
+            }
+        }
+    }
+
+    .dialog-footer {
+        margin-top: 16px;
+
+        .hint {
+            color: #888;
+        }
+    }
+}

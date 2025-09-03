@@ -6,6 +6,14 @@ main[tuiNavigationMain] {
     padding: 0 0;
 }
 
+#userSettingsMenu {
+    cursor: pointer;
+}
+
+.logo-container {
+    cursor: pointer;
+}
+
 #logo {
     width: 40px;
 }
@@ -122,6 +130,15 @@ button.dropdown {
     /* Underline color (match active link color) */
     border-radius: 0;
     /* No border radius for the line */
+}
+
+.horizontal-menu applications {
+    //center the applications container
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 5px;
 }
 
 /* Unread Notifications Count */

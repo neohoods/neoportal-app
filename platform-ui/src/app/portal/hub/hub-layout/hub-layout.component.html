@@ -4,55 +4,46 @@
 
   <!-- Header -->
   <header tuiNavigationHeader>
-    <span tuiNavigationLogo routerLink="/hub/">
+    <span class="logo-container" tuiNavigationLogo routerLink="/hub/">
       <img id="logo" src="/logo-simple.png" />
-      <span tuiFade>Space NeoHoods</span>
+      <span tuiFade>Portal NeoHoods</span>
     </span>
     <hr />
 
-    
+    <notifications-popup></notifications-popup>
 
-    <button
-      iconStart="@tui.heart"
-      tuiIconButton
-      class="wishlist-button"
-      routerLink="/hub/wishlist"
-      size="m"
-      type="button"
-    ></button>
-
-
-    @if (user.user.avatarUrl) {
-      <tui-avatar
-        tuiChevron
-        tuiDropdownOpen
-        [tuiDropdown]="settings" 
-         class="tui-space_horizontal-4">
-        <picture>
-            <source
-                media="(min-width: 600px)"
-                [srcset]="user.user.avatarUrl"
-            />
-            <img
-                alt="Alex Inkin"
-                [src]="user.user.avatarUrl"
-            />
-        </picture>
-    </tui-avatar>
-    } @else {
-    <tui-avatar 
-        class="user-avatar"      
-        tuiChevron
-        tuiDropdownOpen
-        [tuiDropdown]="settings" 
-        [src]="user.username | tuiInitials"
-        [style.background]="
-          user.username | tuiAutoColor
-        "
-        size="s">
+    <div id="userSettingsMenu">
+      @if (user.user.avatarUrl) {
+        <tui-avatar
+          tuiChevron
+          tuiDropdownOpen
+          [tuiDropdown]="settings" 
+          class="tui-space_horizontal-4">
+          <picture>
+              <source
+                  media="(min-width: 600px)"
+                  [srcset]="user.user.avatarUrl"
+              />
+              <img
+                  alt="Alex Inkin"
+                  [src]="user.user.avatarUrl"
+              />
+          </picture>
       </tui-avatar>
-    }
-
+      } @else {
+      <tui-avatar 
+          class="user-avatar"      
+          tuiChevron
+          tuiDropdownOpen
+          [tuiDropdown]="settings" 
+          [src]="user.username | tuiInitials"
+          [style.background]="
+            user.username | tuiAutoColor
+          "
+          size="s">
+        </tui-avatar>
+      }
+    </div>
     <ng-template #settings>
       <tui-data-list size="s">
           <button
@@ -104,7 +95,7 @@
   <!-- Horizontal Menu -->
   <nav id="menu" class="horizontal-menu">
     <!-- Buttons -->
-   
+    <applications></applications>
   
   </nav>
 
@@ -117,4 +108,7 @@
   </div>
 
   <tos-footer></tos-footer>
+
+  <!-- Profile Completion Check -->
+  <app-profile-completion-check></app-profile-completion-check>
 </tui-root>

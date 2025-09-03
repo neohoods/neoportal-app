@@ -1,0 +1,75 @@
+.section {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tab-description {
+    margin-bottom: 10px;
+}
+
+label {
+    font-size: 16px;
+    color: #333;
+    margin: 0;
+}
+
+input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+h2 {
+    font-size: 24px;
+    color: #444;
+    margin-bottom: 10px;
+}
+
+/* Tabs container */
+.tabs-container {
+    margin-bottom: 24px;
+}
+
+/* Form field spacing */
+.form-field {
+    margin-bottom: 16px;
+}
+
+/* Card styling */
+.card {
+    border: 1px solid #ddd;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+}
+
+/* Card header */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+/* Auto margin left for buttons */
+.auto-margin-left {
+    margin-left: auto;
+}
+
+/* Grid two columns */
+.grid-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Full width for grid items */
+.full-width {
+    grid-column: 1 / -1;
+}

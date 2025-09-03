@@ -1,5 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { TuiPortals } from '@taiga-ui/cdk';
 import {
   TuiButton,
@@ -26,6 +27,7 @@ import { AuthService, UserInfo } from '../../../../../services/auth.service';
     TuiDataList,
     TuiDropdown,
     UserAvatarComponent,
+    TranslateModule,
   ],
   providers: [
     ...getGlobalProviders(),

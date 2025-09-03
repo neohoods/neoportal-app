@@ -32,6 +32,9 @@ public enum CodedError {
     HELP_CATEGORY_NOT_FOUND("RES010", "Help category not found", "resources/help-category-not-found"),
     SETTINGS_NOT_FOUND("RES011", "Settings not found", "resources/settings-not-found"),
     CATEGORY_NOT_FOUND("RES012", "Category not found", "resources/category-not-found"),
+    APPLICATION_NOT_FOUND("RES013", "Application not found", "resources/application-not-found"),
+    INFOS_NOT_FOUND("RES014", "Community infos not found", "resources/infos-not-found"),
+    ANNOUNCEMENT_NOT_FOUND("RES015", "Announcement not found", "resources/announcement-not-found"),
 
     // Validation errors (4000-4999)
     INVALID_INPUT("VAL001", "Invalid input provided", "validation/invalid-input"),

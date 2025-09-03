@@ -7,12 +7,18 @@ import { MockPublicSettingsService } from './services/mock/settings.service';
 import { APIAuthService } from './services/real-api/auth.service';
 import { APIPublicSettingsService } from './services/real-api/settings.service';
 import { PublicSettingsService } from './services/settings.service';
+import { MockNotificationsService } from './services/mock/notifications.service';
+import { NotificationsService } from './services/notifications.service';
+import { APINotificationsService } from './services/real-api/notifications.service';
 
 export const AUTH_SERVICE_TOKEN = new InjectionToken<AuthService>(
   'AuthService',
 );
 export const PUBLIC_SETTINGS_SERVICE_TOKEN =
   new InjectionToken<PublicSettingsService>('PublicSettingsService');
+
+export const NOTIFICATIONS_SERVICE_TOKEN =
+  new InjectionToken<NotificationsService>('NotificationsService');
 
 export function getGlobalProviders(): Provider[] {
   return [
@@ -25,6 +31,12 @@ export function getGlobalProviders(): Provider[] {
       useExisting: ConfigService.configuration.useMockApi
         ? MockPublicSettingsService
         : APIPublicSettingsService,
+    },
+    {
+      provide: NOTIFICATIONS_SERVICE_TOKEN,
+      useExisting: ConfigService.configuration.useMockApi
+        ? MockNotificationsService
+        : APINotificationsService,
     },
   ];
 }

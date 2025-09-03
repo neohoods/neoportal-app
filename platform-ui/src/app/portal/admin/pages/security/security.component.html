@@ -1,92 +1,116 @@
-<h2>
-    {{ 'security.registrationSettings' | translate }}
-</h2>
-<form (ngSubmit)="onSubmit()">
-    <div class="section">
-        <input
-            tuiSwitch
-            type="checkbox"
-            [(ngModel)]="securitySettings.isRegistrationEnabled"
-            [showIcons]="true"
-            name="registrationToggle"
-        >
-        <label>
-            {{ 'security.enableUserRegistration' | translate }}
-        </label>
-    </div>
+<div class="security-container">
+    <h2>
+        {{ 'security.registrationSettings' | translate }}
+    </h2>
 
-    <div class="section">
-        <input
-            tuiSwitch
-            type="checkbox"
-            [(ngModel)]="securitySettings.ssoEnabled"
-            [showIcons]="true"
-            name="ssoToggle"
-        >
-        <label>{{ 'security.enableSSO' | translate }}</label>
-    </div>
-
-    <div
-        class="section"
-        *ngIf="securitySettings.ssoEnabled"
+    <form
+        [formGroup]="securityForm"
+        (ngSubmit)="onSubmit()"
+        class="security-form"
     >
-        <label>
-            {{ 'security.ssoClientId' | translate }}
-        </label>
-        <input
-            tuiTextfield
-            [(ngModel)]="securitySettings.ssoClientId"
-            name="ssoClientId"
-            type="text"
-        >
+        <div class="form-section">
+            <div class="switch-field">
+                <input
+                    tuiSwitch
+                    type="checkbox"
+                    formControlName="isRegistrationEnabled"
+                    [showIcons]="true"
+                >
+                <label class="switch-label">
+                    {{ 'security.enableUserRegistration' | translate }}
+                </label>
+            </div>
+        </div>
 
-        <label>
-            {{ 'security.ssoClientSecret' | translate }}
-        </label>
-        <input
-            tuiTextfield
-            [(ngModel)]="securitySettings.ssoClientSecret"
-            name="ssoClientSecret"
-            type="password"
-        >
+        <div class="form-section">
+            <div class="switch-field">
+                <input
+                    tuiSwitch
+                    type="checkbox"
+                    formControlName="ssoEnabled"
+                    [showIcons]="true"
+                >
+                <label class="switch-label">{{ 'security.enableSSO' | translate }}</label>
+            </div>
+        </div>
 
-        <label>
-            {{ 'security.ssoTokenEndpoint' | translate }}
-        </label>
-        <input
-            tuiTextfield
-            [(ngModel)]="securitySettings.ssoTokenEndpoint"
-            name="ssoTokenEndpoint"
-            type="text"
+        <div
+            class="form-section sso-fields"
+            *ngIf="formControls['ssoEnabled'].value"
         >
+            <h3>
+                {{ 'security.ssoConfiguration' | translate }}
+            </h3>
 
-        <label>
-            {{ 'security.ssoAuthorizationEndpoint' | translate }}
-        </label>
-        <input
-            tuiTextfield
-            [(ngModel)]="securitySettings.ssoAuthorizationEndpoint"
-            name="ssoAuthorizationEndpoint"
-            type="text"
-        >
+            <tui-textfield class="form-field">
+                <label tuiLabel>
+                    {{ 'security.ssoClientId' | translate }}
+                </label>
+                <input
+                    formControlName="ssoClientId"
+                    type="text"
+                    tuiTextfield
+                    placeholder="Enter SSO Client ID"
+                >
+            </tui-textfield>
 
-        <label>{{ 'security.ssoScope' | translate }}</label>
-        <input
-            tuiTextfield
-            [(ngModel)]="securitySettings.ssoScope"
-            name="ssoScope"
-            type="text"
-        >
-    </div>
+            <tui-textfield class="form-field">
+                <label tuiLabel>
+                    {{ 'security.ssoClientSecret' | translate }}
+                </label>
+                <input
+                    formControlName="ssoClientSecret"
+                    type="password"
+                    tuiTextfield
+                    placeholder="Enter SSO Client Secret"
+                >
+            </tui-textfield>
 
-    <div>
-        <button
-            tuiButton
-            size="m"
-            type="submit"
-            appearance="accent"
-        >
-            {{ 'security.save' | translate }}
-        </button>
-    </div>
-</form>
+            <tui-textfield class="form-field">
+                <label tuiLabel>
+                    {{ 'security.ssoTokenEndpoint' | translate }}
+                </label>
+                <input
+                    formControlName="ssoTokenEndpoint"
+                    type="text"
+                    tuiTextfield
+                    placeholder="https://your-provider.com/oauth/token"
+                >
+            </tui-textfield>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel>
+                    {{ 'security.ssoAuthorizationEndpoint' | translate }}
+                </label>
+                <input
+                    formControlName="ssoAuthorizationEndpoint"
+                    type="text"
+                    tuiTextfield
+                    placeholder="https://your-provider.com/oauth/authorize"
+                >
+            </tui-textfield>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel>{{ 'security.ssoScope' | translate }}</label>
+                <input
+                    formControlName="ssoScope"
+                    type="text"
+                    tuiTextfield
+                    placeholder="openid profile email"
+                >
+            </tui-textfield>
+        </div>
+
+        <div class="form-actions">
+            <button
+                tuiButton
+                size="m"
+                type="submit"
+                appearance="accent"
+                [disabled]="securityForm.invalid"
+            >
+                {{ 'security.save' | translate }}
+            </button>
+        </div>
+    </form>
+</div>

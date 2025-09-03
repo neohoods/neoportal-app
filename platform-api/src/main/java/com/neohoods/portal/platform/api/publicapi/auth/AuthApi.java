@@ -20,11 +20,9 @@ import org.springframework.security.web.server.context.ServerSecurityContextRepo
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jwt.JWTClaimsSet;
-
 import com.neohoods.portal.platform.api.AuthApiApiDelegate;
 import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.model.ConfirmResetPasswordRequest;
 import com.neohoods.portal.platform.model.LoginRequest;
 import com.neohoods.portal.platform.model.ResetPasswordRequest;
@@ -35,6 +33,9 @@ import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.JwtService;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.UsersService;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.JWTClaimsSet;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -65,7 +66,9 @@ public class AuthApi implements AuthApiApiDelegate {
                                                                                 request.getPassword())))
                                 .flatMap(authentication -> {
                                         log.info("User authenticated successfully: {}", authentication.getName());
-                                        return usersRepository.findById(UUID.fromString(authentication.getName()))
+                                        return usersRepository
+                                                        .findByIdWithProperties(
+                                                                        UUID.fromString(authentication.getName()))
                                                         .map(userEntity -> {
                                                                 SecurityContext context = SecurityContextHolder
                                                                                 .createEmptyContext();
@@ -119,11 +122,8 @@ public class AuthApi implements AuthApiApiDelegate {
                         String encodedPassword = passwordEncoder.encode(request.getPassword());
                         newUser.setPassword(encodedPassword);
                         newUser.setEmail(request.getEmail());
-                        newUser.setCity(request.getCity());
-                        newUser.setPostalCode(request.getPostalCode());
-                        newUser.setCountry(request.getCountry());
-                        newUser.setStreetAddress(request.getStreetAddress());
                         newUser.setRoles(Set.of("hub-user", "admin"));
+                        newUser.setType(UserType.fromOpenApiUserType(request.getType()));
 
                         log.debug("Created new user entity with ID: {}", newUser.getId());
                         usersRepository.save(newUser);
@@ -153,12 +153,11 @@ public class AuthApi implements AuthApiApiDelegate {
                                                 .build();
 
                                 mailService.sendTemplatedEmail(
-                                        newUser,
-                                        "Welcome to portal NeoHoods",
-                                        "email/signup-email-verif",
-                                        Arrays.asList(usernameVar, verifUrlVar),
-                                        newUser.getLocale()
-                                );
+                                                newUser,
+                                                "Welcome to portal NeoHoods",
+                                                "email/signup-email-verif",
+                                                Arrays.asList(usernameVar, verifUrlVar),
+                                                newUser.getLocale());
 
                                 log.info("Sent verification email to: {}", request.getEmail());
                                 return Mono.just(ResponseEntity.status(HttpStatus.CREATED).build());
@@ -249,12 +248,11 @@ public class AuthApi implements AuthApiApiDelegate {
                                                         .build();
 
                                         mailService.sendTemplatedEmail(
-                                                user,
-                                                "Reset Your Password - portal NeoHoods",
-                                                "email/reset-password",
-                                                Arrays.asList(usernameVar, resetUrlVar),
-                                                user.getLocale()
-                                        );
+                                                        user,
+                                                        "Reset Your Password - portal NeoHoods",
+                                                        "email/reset-password",
+                                                        Arrays.asList(usernameVar, resetUrlVar),
+                                                        user.getLocale());
 
                                 } catch (Exception e) {
                                         log.error("Failed to process password reset", e);

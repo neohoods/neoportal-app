@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { tuiAsPortal, TuiObscured, TuiPortals } from '@taiga-ui/cdk';
@@ -59,7 +59,7 @@ const ICON =
   styleUrl: './admin-layout.component.scss',
   providers: [TuiDropdownService, tuiAsPortal(TuiDropdownService)],
 })
-export class AdminLayoutComponent extends TuiPortals {
+export class AdminLayoutComponent extends TuiPortals implements OnInit {
   protected expanded = false;
   protected open = false;
   protected switch = false;
@@ -78,6 +78,11 @@ export class AdminLayoutComponent extends TuiPortals {
     this.breakpointObserver.observe([Breakpoints.XSmall]).subscribe((result) => {
       this.mobile = result.matches;
     });
+
+    // Force layout recalculation when switching from hub to admin
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 0);
   }
 
   protected onClickMore(): void {

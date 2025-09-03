@@ -17,17 +17,25 @@
         type="button"
         [tuiDropdown]="menu"
       >
-        More
+        {{ 'settings.more' | translate }}
         <ng-template #menu>
           <tui-data-list>
-            <a
-              tuiOption
-              routerLink="/hub/settings/profile"
-              routerLinkActive="active"
-            >
-              <tui-icon icon="@tui.user" [style.width.px]="16" />
-              Profile
-            </a>
+              <a
+                tuiOption
+                routerLink="/hub/settings/profile"
+                routerLinkActive="active"
+              >
+                <tui-icon icon="@tui.user" [style.width.px]="16" />
+                {{ 'settings.profile' | translate }}
+              </a>
+              <a
+                tuiOption
+                routerLink="/hub/settings/properties"
+                routerLinkActive="active"
+              >
+                <tui-icon icon="@tui.home" [style.width.px]="16" />
+                {{ 'settings.properties' | translate }}
+              </a>
           </tui-data-list>
         </ng-template>
       </button>
@@ -40,13 +48,19 @@
         <li>
           <a routerLink="/hub/settings/profile" routerLinkActive="active">
             <tui-icon icon="@tui.user" [style.width.px]="16" />
-            Profile
+            {{ 'settings.profile' | translate }}
+          </a>
+        </li>
+        <li>
+          <a routerLink="/hub/settings/properties" routerLinkActive="active">
+            <tui-icon icon="@tui.home" [style.width.px]="16" />
+            {{ 'settings.properties' | translate }}
           </a>
         </li>
         <li>
           <a routerLink="/hub/settings/notifications" routerLinkActive="active">
             <tui-icon icon="@tui.bell" [style.width.px]="16" />
-            Notifications
+            {{ 'settings.notifications' | translate }}
           </a>
         </li>
       </ul>

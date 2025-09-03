@@ -27,48 +27,62 @@
 
   <nav id="menu" class="horizontal-menu">
 
-
+    <a (click)="closeMore()" routerLink="/admin/infos/" routerLinkActive="active"
+      appearance="secondary-grayscale" iconStart="@tui.info" type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.info" />
+      {{ 'adminLayout.infos' | translate }}
+    </a>
+    
     <a routerLink="/admin/users/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.users"
       type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.users" />
       {{ 'adminLayout.users' | translate }}
     </a>
+    <a (click)="closeMore()" routerLink="/admin/pages/" routerLinkActive="active" appearance="secondary-grayscale"
+      iconStart="@tui.book-open-text" type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.book-open-text" />
+      {{ 'adminLayout.pages' | translate }}
+    </a>
+
+
+
     @if (mobile) {
-    <button
-    tuiButton
-    tuiChevron
-    type="button"
-    appearance="flat"
-    class="more-button"
-    [tuiDropdown]="dropdownContent"
-    [tuiDropdownManual]="openMore"
-    (click)="onClickMore()"
-    (tuiActiveZoneChange)="onActiveZone($event)"
-    (tuiObscured)="onObscured($event)"
->
-    {{ 'adminLayout.more' | translate }}
-    <ng-template #dropdownContent>
+    <button tuiButton tuiChevron type="button" appearance="flat" class="more-button" [tuiDropdown]="dropdownContent"
+      [tuiDropdownManual]="openMore" (click)="onClickMore()" (tuiActiveZoneChange)="onActiveZone($event)"
+      (tuiObscured)="onObscured($event)">
+      {{ 'adminLayout.more' | translate }}
+      <ng-template #dropdownContent>
         <div class="dropdown">
 
-    
-        <a (click)="closeMore()" routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
-          type="button" i18n="@@borrowItemButton">
-          <tui-icon icon="@tui.shield" />
-          {{ 'adminLayout.security' | translate }}
-        </a>
+
+          <a (click)="closeMore()" routerLink="/admin/security/" routerLinkActive="active"
+            appearance="secondary-grayscale" iconStart="@tui.shield" type="button" i18n="@@borrowItemButton">
+            <tui-icon icon="@tui.shield" />
+            {{ 'adminLayout.security' | translate }}
+          </a>
+          <a (click)="closeMore()" routerLink="/admin/applications/" routerLinkActive="active"
+            appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
+            <tui-icon icon="@tui.app-window-mac" />
+            {{ 'adminLayout.applications' | translate }}
+          </a>
 
         </div>
-    </ng-template>
-</button>
-} @else {
+      </ng-template>
+    </button>
+    } @else {
 
-  <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
-    type="button" i18n="@@borrowItemButton">
-    <tui-icon icon="@tui.shield" />
-    {{ 'adminLayout.security' | translate }}
+    <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
+      type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.shield" />
+      {{ 'adminLayout.security' | translate }}
+    </a>
+    <a (click)="closeMore()" routerLink="/admin/applications/" routerLinkActive="active"
+    appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
+    <tui-icon icon="@tui.app-window-mac" />
+    {{ 'adminLayout.applications' | translate }}
   </a>
 
-}
+    }
   </nav>
 
 

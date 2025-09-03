@@ -1,11 +1,15 @@
 package com.neohoods.portal.platform.entities;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.neohoods.portal.platform.model.User;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -15,6 +19,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,8 +54,10 @@ public class UserEntity {
     private String preferredLanguage;
     @Column(name = "avatar_url")
     private String avatarUrl;
+    @Builder.Default
     private boolean disabled = false;
     @Column(name = "is_email_verified")
+    @Builder.Default
     private boolean isEmailVerified = false;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -59,7 +66,15 @@ public class UserEntity {
     private Set<String> roles;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private UserStatus status = UserStatus.WAITING_FOR_EMAIL;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_type")
+    private UserType type;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<PropertyEntity> properties;
 
     public User.UserBuilder toUser() {
         return User.builder()
@@ -77,7 +92,11 @@ public class UserEntity {
                 .avatarUrl(avatarUrl)
                 .disabled(disabled)
                 .isEmailVerified(isEmailVerified)
-                .roles(Arrays.asList("hub")); // TODO
+                .roles(Arrays.asList("hub")) // TODO
+                .type(type != null ? type.toOpenApiUserType() : null)
+                .properties(properties != null
+                        ? properties.stream().map(PropertyEntity::toProperty).collect(Collectors.toList())
+                        : List.of());
     }
 
     public Locale getLocale() {
@@ -87,7 +106,7 @@ public class UserEntity {
         // Handle both formats: "en" and "en-US"
         String[] parts = preferredLanguage.split("-");
         return parts.length > 1
-                ? new Locale(parts[0], parts[1])
-                : new Locale(parts[0]);
+                ? Locale.of(parts[0], parts[1])
+                : Locale.of(parts[0]);
     }
 }

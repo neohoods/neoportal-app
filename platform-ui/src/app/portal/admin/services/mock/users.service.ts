@@ -13,11 +13,11 @@ export class MockUsersService implements UsersService {
   public allUsers = users;
 
   getUsers(): Observable<UIUser[]> {
-    return of(users);
+    return of(users as UIUser[]);
   }
 
   getUser(id: string): Observable<UIUser> {
-    return of(users.find((user) => user.id === id) || ({} as UIUser));
+    return of(users.find((user) => user.id === id) as UIUser || ({} as UIUser));
   }
 
   saveUser(user: UIUser): Observable<UIUser> {

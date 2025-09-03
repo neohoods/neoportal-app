@@ -1,8 +1,11 @@
 @use 'styles' as *;
 
 /* General styling for main navigation */
-main {
+main[tuiNavigationMain] {
     border: none;
+    padding: 0 20px;
+    margin: 0;
+    /* Reset any inherited styles from hub layout */
 }
 
 #logo {

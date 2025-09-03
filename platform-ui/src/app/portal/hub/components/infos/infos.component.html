@@ -1,0 +1,193 @@
+<div class="infos-container">
+    <div class="infos-next-ag-date">
+        <h2>
+            <tui-icon icon="@tui.calendar" [style.width.px]="16" />
+
+            {{ 'infos.nextAGDate' | translate }}
+        </h2>
+        <p>
+            {{ infos().nextAGDate | date:'dd/MM/yyyy' }}
+        </p>
+    </div>
+    <div class="infos-rules-url">
+        <h2>
+            <tui-icon icon="@tui.scale" [style.width.px]="16" />
+
+            {{ 'infos.rulesUrl' | translate }}</h2>
+        <a
+            [href]="infos().rulesUrl"
+            target="_blank"
+        >
+            {{ infos().rulesUrl }}
+        </a>
+    </div>
+    <div class="infos-delegates">
+        <h2>
+            <tui-icon icon="@tui.users" [style.width.px]="16" />
+            {{ 'infos.delegates' | translate }}
+        </h2>
+        <ul>
+            <li *ngFor="let delegate of infos().delegates; let i = index">
+                <div class="infos-delegates-delegate-title">
+                    <span>
+                        {{ delegate.firstName }} {{ delegate.lastName }}
+                    </span>
+                    <button
+                        appearance="secondary"
+                        size="xs"
+                        tuiIconButton
+                        type="button"
+                        [tuiChevron]="!getDelegateSignal(i)()"
+                        (click)="toggleDelegate(i)"
+                    >
+                        Expand
+                    </button>
+                </div>
+
+                <tui-expand [expanded]="!getDelegateSignal(i)()">
+                    <table tuiTable>
+                        <tbody>
+                            <tr>
+                                <td tuiTd>
+                                    <b>
+                                        {{ 'infos.delegate.email' | translate }}
+                                    </b>
+                                </td>
+                                <td tuiTd>{{ delegate.email }}</td>
+                            </tr>
+                            <tr>
+                                <td tuiTd>
+                                    <b>
+                                        {{ 'infos.delegate.matrixUser' | translate }}
+                                    </b>
+                                </td>
+                                <td tuiTd>{{ delegate.matrixUser }}</td>
+                            </tr>
+                            <tr>
+                                <td tuiTd>
+                                    <b>
+                                        {{ 'infos.delegate.building' | translate }}
+                                    </b>
+                                </td>
+                                <td tuiTd>{{ delegate.building }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </tui-expand>
+
+            </li>
+        </ul>
+    </div>
+    <div class="infos-contact-numbers">
+        <div
+            *ngIf="infos().contactNumbers.syndic"
+            class="infos-contact-numbers-syndic"
+        >
+            <h2>
+                <tui-icon icon="@tui.building-2" [style.width.px]="16" />
+                {{ 'infos.contactNumbers.syndic.title' | translate }}
+            </h2>
+            <div class="infos-contact-numbers-syndic-title">
+                <span>{{ infos().contactNumbers.syndic?.name }}</span>
+                <button
+                    appearance="secondary"
+                    size="xs"
+                    tuiIconButton
+                    type="button"
+                    [tuiChevron]="!collapsedSyndic()"
+                    (click)="toggleSyndic()"
+                >
+                    Expand
+                </button>
+            </div>
+            <tui-expand [expanded]="!collapsedSyndic()">
+                <table tuiTable>
+                    <tbody>
+                        <tr>
+                            <td tuiTd>
+                                <b>
+                                    {{ 'infos.contactNumbers.syndic.email' | translate }}
+                                </b>
+                            </td>
+                            <td tuiTd>{{ infos().contactNumbers.syndic?.email }}</td>
+                        </tr>
+                        <tr>
+                            <td tuiTd>
+                                <b>
+                                    {{ 'infos.contactNumbers.syndic.officeHours' | translate }}
+                                </b>
+                            </td>
+                            <td tuiTd>
+                                {{ infos().contactNumbers.syndic?.officeHours }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td tuiTd>
+                                <b>
+                                    {{ 'infos.contactNumbers.syndic.address' | translate }}
+                                </b>
+                            </td>
+                            <td tuiTd>
+                                {{ infos().contactNumbers.syndic?.address }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </tui-expand>
+        </div>
+        <div
+            *ngIf="infos().contactNumbers.emergency"
+            class="infos-contact-numbers-emergency"
+        >
+            
+            <h2><tui-icon icon="@tui.phone" [style.width.px]="16" /> {{ 'infos.contactNumbers.emergency.title' | translate }}</h2>
+            <ul>
+                <li *ngFor="let emergency of infos().contactNumbers.emergency; let i = index">
+                    <div class="infos-contact-numbers-emergency-title">
+                        <span>{{ emergency.type | titlecase }}</span>
+                        <button
+                            appearance="secondary"
+                            size="xs"
+                            tuiIconButton
+                            type="button"
+                            [tuiChevron]="!getEmergencySignal(i)()"
+                            (click)="toggleEmergency(i)"
+                        >
+                            Expand
+                        </button>
+                    </div>
+                    <tui-expand [expanded]="!getEmergencySignal(i)()">
+                        <table tuiTable>
+                            <tbody>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.emergency.name' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.emergency.officeHours' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.officeHours }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.emergency.address' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.address }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </tui-expand>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

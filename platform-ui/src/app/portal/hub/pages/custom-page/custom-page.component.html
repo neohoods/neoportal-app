@@ -1,0 +1,19 @@
+@if (currentPage()) {
+  <div class="custom-page-wrapper">
+    <div class="custom-page-container">
+      <header class="custom-page-header">
+        <h1 class="custom-page-title">{{ currentPage()?.title }}</h1>
+      </header>
+      <div class="custom-page-content" [innerHTML]="(currentPage()?.content || '') | translate"></div>
+    </div>
+  </div>
+} @else {
+  <div class="custom-page-wrapper">
+    <div class="custom-page-container">
+      <div class="custom-page-not-found">
+        <h2>{{ 'customPage.pageNotFound' | translate }}</h2>
+      </div>
+    </div>
+  </div>
+}
+

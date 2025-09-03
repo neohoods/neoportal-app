@@ -13,9 +13,17 @@
         "city": "Anytown",
         "postalCode": "12345",
         "country": "USA",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment A502"
+            },
+            {
+                "type": "GARAGE",
+                "name": "83"
+            }
+        ]
     },
     {
         "id": "2",
@@ -31,9 +39,17 @@
         "city": "Othertown",
         "postalCode": "67890",
         "country": "USA",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment B404"
+            },
+            {
+                "type": "GARAGE",
+                "name": "81"
+            }
+        ]
     },
     {
         "id": "3",
@@ -49,9 +65,17 @@
         "city": "Somewhere",
         "postalCode": "54321",
         "country": "Canada",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment A602"
+            },
+            {
+                "type": "GARAGE",
+                "name": "63"
+            }
+        ]
     },
     {
         "id": "4",
@@ -67,9 +91,17 @@
         "city": "Nowhere",
         "postalCode": "98765",
         "country": "Mexico",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "LANDLORD",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment C703"
+            },
+            {
+                "type": "GARAGE",
+                "name": "53"
+            }
+        ]
     },
     {
         "id": "5",
@@ -86,9 +118,17 @@
         "city": "Anothertown",
         "postalCode": "24680",
         "country": "Germany",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "TENANT",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment C703"
+            },
+            {
+                "type": "GARAGE",
+                "name": "53"
+            }
+        ]
     },
     {
         "id": "6",
@@ -104,9 +144,21 @@
         "city": "Somecity",
         "postalCode": "13579",
         "country": "Spain",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "TENANT",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment B501"
+            },
+            {
+                "type": "GARAGE",
+                "name": "41"
+            },
+            {
+                "type": "GARAGE",
+                "name": "42"
+            }
+        ]
     },
     {
         "id": "7",
@@ -122,9 +174,17 @@
         "city": "Anothercity",
         "postalCode": "24680",
         "country": "France",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "Apartment B402"
+            },
+            {
+                "type": "GARAGE",
+                "name": "23"
+            }
+        ]
     },
     {
         "id": "8",
@@ -140,9 +200,13 @@
         "city": "Somewhere",
         "postalCode": "12345",
         "country": "China",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "LANDLORD",
+        "properties": [
+            {
+                "type": "GARAGE",
+                "name": "102"
+            }
+        ]
     },
     {
         "id": "9",
@@ -158,9 +222,13 @@
         "city": "Nowhere",
         "postalCode": "67890",
         "country": "Spain",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "TENANT",
+        "properties": [
+            {
+                "type": "GARAGE",
+                "name": "102"
+            }
+        ]
     },
     {
         "id": "10",
@@ -176,9 +244,17 @@
         "city": "Anothertown",
         "postalCode": "54321",
         "country": "Mexico",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "GARAGE",
+                "name": "103"
+            },
+            {
+                "type": "GARAGE",
+                "name": "104"
+            }
+        ]
     },
     {
         "id": "11",
@@ -195,9 +271,21 @@
         "city": "Somewhere",
         "postalCode": "12345",
         "country": "USA",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "A701"
+            },
+            {
+                "type": "GARAGE",
+                "name": "133"
+            },
+            {
+                "type": "GARAGE",
+                "name": "134"
+            }
+        ]
     },
     {
         "id": "12",
@@ -213,9 +301,21 @@
         "city": "Anothertown",
         "postalCode": "67890",
         "country": "USA",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "B701"
+            },
+            {
+                "type": "GARAGE",
+                "name": "123"
+            },
+            {
+                "type": "GARAGE",
+                "name": "124"
+            }
+        ]
     },
     {
         "id": "13",
@@ -231,9 +331,17 @@
         "city": "Nowhere",
         "postalCode": "54321",
         "country": "USA",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "OWNER",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "C201"
+            },
+            {
+                "type": "GARAGE",
+                "name": "23"
+            }
+        ]
     },
     {
         "id": "14",
@@ -249,9 +357,17 @@
         "city": "Somewhere",
         "postalCode": "12345",
         "country": "USA",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "LANDLORD",
+        "properties": [
+            {
+                "type": "APARTMENT",
+                "name": "C301"
+            },
+            {
+                "type": "GARAGE",
+                "name": "33"
+            }
+        ]
     },
     {
         "id": "15",
@@ -267,9 +383,8 @@
         "city": "Mignaloux-Beauvoir",
         "postalCode": "86550",
         "country": "France",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "SYNDIC",
+        "properties": []
     },
     {
         "id": "16",
@@ -285,8 +400,7 @@
         "city": "Haut-Savoie",
         "postalCode": "74100",
         "country": "France",
-        "borrowedItems": 0,
-        "returnedLate": 0,
-        "successRate": 0
+        "type": "EXTERNAL",
+        "properties": []
     }
 ]

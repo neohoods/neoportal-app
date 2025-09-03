@@ -2,33 +2,151 @@
   <h2>{{ 'editUser.editTitle' | translate }}</h2>
 
   <form [formGroup]="editUserForm" (ngSubmit)="onSubmit()">
-    <tui-textfield>
-      <label tuiLabel>{{ 'editUser.username' | translate }}</label>
-      <input formControlName="username" type="text" tuiTextfield />
-    </tui-textfield>
+    <!-- Basic Information -->
+    <h3>{{ 'editUser.basicInfo' | translate }}</h3>
+    
+    <div class="grid-two-columns form-field">
+      <tui-textfield>
+        <label tuiLabel>{{ 'editUser.username' | translate }}</label>
+        <input formControlName="username" type="text" tuiTextfield />
+      </tui-textfield>
 
-    <tui-textfield>
+      <tui-select
+        tuiTextfieldSize="s"
+        formControlName="type"
+        [stringify]="stringifyUserType"
+      >
+        {{ 'editUser.userType' | translate }}
+        <input
+          placeholder="{{ 'editUser.userTypePlaceholder' | translate }}"
+          tuiTextfieldLegacy
+        />
+        <tui-data-list-wrapper
+          *tuiDataList
+          [items]="userTypes"
+          [itemContent]="userTypeContent"
+        ></tui-data-list-wrapper>
+      </tui-select>
+
+      <ng-template #userTypeContent let-item>
+        {{ 'user.type.' + item | translate }}
+      </ng-template>
+    </div>
+
+    <div class="grid-two-columns form-field">
+      <tui-textfield>
+        <label tuiLabel>{{ 'editUser.firstName' | translate }}</label>
+        <input formControlName="firstName" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'editUser.lastName' | translate }}</label>
+        <input formControlName="lastName" type="text" tuiTextfield />
+      </tui-textfield>
+    </div>
+
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'editUser.email' | translate }}</label>
       <input formControlName="email" type="email" tuiTextfield />
     </tui-textfield>
 
     @if (!userId) {
-      <tui-textfield>
+      <tui-textfield class="form-field">
         <label tuiLabel>{{ 'editUser.password' | translate }}</label>
         <input formControlName="password" type="password" tuiTextfield />
         <tui-icon tuiPassword />
       </tui-textfield>
     }
-    <!-- Address Fields -->
-    <tui-textfield>
+
+    <!-- Address Information -->
+    <h3>{{ 'editUser.addressInfo' | translate }}</h3>
+    
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'editUser.flatNumber' | translate }}</label>
       <input formControlName="flatNumber" type="text" tuiTextfield />
     </tui-textfield>
 
-    <tui-textfield>
+    <tui-textfield class="form-field">
       <label tuiLabel>{{ 'editUser.streetAddress' | translate }}</label>
-      <input formControlName="address" type="text" tuiTextfield />
+      <input formControlName="streetAddress" type="text" tuiTextfield />
     </tui-textfield>
+
+    <div class="grid-two-columns form-field">
+      <tui-textfield>
+        <label tuiLabel>{{ 'editUser.city' | translate }}</label>
+        <input formControlName="city" type="text" tuiTextfield />
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel>{{ 'editUser.postalCode' | translate }}</label>
+        <input formControlName="postalCode" type="text" tuiTextfield />
+      </tui-textfield>
+    </div>
+
+    <tui-textfield class="form-field">
+      <label tuiLabel>{{ 'editUser.country' | translate }}</label>
+      <input formControlName="country" type="text" tuiTextfield />
+    </tui-textfield>
+
+    <!-- Properties Section -->
+    <div formArrayName="properties">
+      <h3>{{ 'editUser.ownedProperties' | translate }}</h3>
+      
+      <div *ngFor="let property of properties.controls; let i = index" [formGroupName]="i" 
+           class="property-card">
+        <div class="property-header">
+          <h4>{{ 'editUser.property' | translate }} {{i + 1}}</h4>
+          <button
+            type="button"
+            tuiButton
+            size="s"
+            appearance="destructive"
+            (click)="removeProperty(i)"
+          >
+            {{ 'editUser.remove' | translate }}
+          </button>
+        </div>
+        
+        <div class="grid-two-columns">
+          <tui-textfield>
+            <label tuiLabel>{{ 'editUser.propertyName' | translate }}</label>
+            <input formControlName="name" type="text" tuiTextfield />
+          </tui-textfield>
+          
+          <tui-select
+            tuiTextfieldSize="s"
+            formControlName="type"
+            [stringify]="stringifyPropertyType"
+          >
+            {{ 'editUser.propertyType' | translate }}
+            <input
+              placeholder="{{ 'editUser.propertyTypePlaceholder' | translate }}"
+              tuiTextfieldLegacy
+            />
+            <tui-data-list-wrapper
+              *tuiDataList
+              [items]="propertyTypes"
+              [itemContent]="propertyTypeContent"
+            ></tui-data-list-wrapper>
+          </tui-select>
+
+          <ng-template #propertyTypeContent let-item>
+            {{ 'property.type.' + item | translate }}
+          </ng-template>
+        </div>
+      </div>
+      
+      <button
+        type="button"
+        tuiButton
+        size="m"
+        appearance="secondary"
+        (click)="addProperty()"
+        class="form-field"
+      >
+        {{ 'editUser.addProperty' | translate }}
+      </button>
+    </div>
 
     <button
       type="submit"

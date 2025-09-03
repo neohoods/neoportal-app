@@ -8,6 +8,7 @@ import com.neohoods.portal.platform.api.SettingsAdminApiApiDelegate;
 import com.neohoods.portal.platform.model.GetSecuritySettings200Response;
 import com.neohoods.portal.platform.model.SaveSecuritySettingsRequest;
 import com.neohoods.portal.platform.services.SettingsService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -30,8 +31,29 @@ public class SettingsAdminApi implements SettingsAdminApiApiDelegate {
             Mono<SaveSecuritySettingsRequest> request,
             ServerWebExchange exchange) {
         return request
-                .flatMap(settingsService::saveSecuritySettings)
-                .then(request)
-                .map(ResponseEntity::ok);
+                .doOnNext(req -> log.info("Received security settings save request: {}", req))
+                .switchIfEmpty(Mono
+                        .error(new IllegalArgumentException("Request body is required for saving security settings")))
+                .flatMap(req -> {
+                    return settingsService.saveSecuritySettings(req)
+                            .map(savedEntity -> {
+                                log.info("Security settings saved successfully");
+                                // Convert saved entity back to request format for response
+                                return SaveSecuritySettingsRequest.builder()
+                                        .isRegistrationEnabled(savedEntity.isRegistrationEnabled())
+                                        .ssoEnabled(savedEntity.isSsoEnabled())
+                                        .ssoClientId(savedEntity.getSsoClientId())
+                                        .ssoClientSecret(savedEntity.getSsoClientSecret())
+                                        .ssoTokenEndpoint(savedEntity.getSsoTokenEndpoint())
+                                        .ssoAuthorizationEndpoint(savedEntity.getSsoAuthorizationEndpoint())
+                                        .ssoScope(savedEntity.getSsoScope())
+                                        .build();
+                            });
+                })
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> {
+                    log.error("Error saving security settings", e);
+                    return Mono.just(ResponseEntity.badRequest().build());
+                });
     }
 }

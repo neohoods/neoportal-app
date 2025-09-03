@@ -13,4 +13,32 @@
     flex-direction: column;
     gap: 15px;
   }
+
+  /* Form field spacing */
+  .form-field {
+    margin-bottom: 16px;
+  }
+
+  /* Grid layouts */
+  .grid-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Property card styling */
+  .property-card {
+    border: 1px solid #ddd;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+
+  /* Property header styling */
+  .property-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
 }

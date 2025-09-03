@@ -1,0 +1,15 @@
+<div class="application-container">
+    <button
+    type="button"
+    [disabled]="application.disabled"
+    (click)="!application.disabled && openLink(application.url)"
+    class="link-button"
+    tuiHintAppearance="dark"
+    tuiHintDirection="bottom"
+    [tuiHint]="tooltip"
+  >
+    <img [src]="application.icon" [alt]="application.name">
+    <div class="application-name">{{ application.name }}</div>
+  </button>
+    <ng-template #tooltip>{{ application.helpText }}</ng-template>
+</div>

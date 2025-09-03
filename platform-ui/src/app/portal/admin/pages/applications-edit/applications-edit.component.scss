@@ -1,0 +1,16 @@
+@use 'styles' as *;
+
+#edit-application-container {
+  h2 {
+    width: 100%;
+    font-size: 1.8rem;
+    color: var(--tos-background-accent-1);
+    margin-bottom: 10px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+}

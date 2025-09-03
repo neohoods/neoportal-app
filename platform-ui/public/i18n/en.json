@@ -63,10 +63,22 @@
 
   "profile": {
     "editTitle": "Edit your profile",
+    "basicInfo": "Basic Information",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Enter your first name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Enter your last name",
+    "userType": "User Type",
+    "userTypePlaceholder": "Select user type",
     "email": "Email",
     "emailPlaceholder": "Enter your email",
     "password": "Password",
     "passwordPlaceholder": "Enter your password",
+    "addressInfo": "Address Information",
+    "flatNumber": "Flat Number",
+    "flatNumberPlaceholder": "Enter your flat number",
     "streetAddress": "Street Address",
     "streetAddressPlaceholder": "Enter your street address",
     "city": "City",
@@ -75,6 +87,13 @@
     "postalCodePlaceholder": "Enter your postal code",
     "country": "Country",
     "countryPlaceholder": "Enter your country",
+    "ownedProperties": "Owned Properties",
+    "property": "Property",
+    "propertyName": "Property Name",
+    "propertyType": "Property Type",
+    "propertyTypePlaceholder": "Select property type",
+    "addProperty": "Add Property",
+    "remove": "Remove",
     "saveButton": "Save",
     "saveSuccess": "Profile saved successfully",
     "saveError": "Profile save failed"
@@ -94,18 +113,42 @@
   
   "editUser": {
     "editTitle": "Edit User",
+    "basicInfo": "Basic Information",
     "username": "Username",
+    "userType": "User Type",
+    "userTypePlaceholder": "Select user type",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "email": "Email",
     "password": "Password",
-    "flatNumber": "Flat number",
+    "addressInfo": "Address Information",
+    "flatNumber": "Flat Number",
     "streetAddress": "Street Address",
+    "city": "City",
+    "postalCode": "Postal Code",
+    "country": "Country",
+    "ownedProperties": "Owned Properties",
+    "property": "Property",
+    "propertyName": "Property Name",
+    "propertyType": "Property Type",
+    "propertyTypePlaceholder": "Select property type",
+    "addProperty": "Add Property",
+    "remove": "Remove",
     "saveChanges": "Save Changes",
     "cancel": "Cancel"
   },
   "security": {
-    "registrationSettings": "Registration settings",
+    "registrationSettings": "Registration Settings",
     "enableUserRegistration": "Enable User Registration",
-    "save": "Save"
+    "enableSSO": "Enable Single Sign-On (SSO)",
+    "ssoConfiguration": "SSO Configuration",
+    "ssoClientId": "SSO Client ID",
+    "ssoClientSecret": "SSO Client Secret",
+    "ssoTokenEndpoint": "Token Endpoint",
+    "ssoAuthorizationEndpoint": "Authorization Endpoint",
+    "ssoScope": "OAuth Scope",
+    "save": "Save",
+    "saveSuccess": "Security settings saved successfully!"
   },
   "users": {
     "addUser": "Add User",
@@ -234,5 +277,102 @@
     "error": "Password reset failed",
     "unexpected": "An unexpected error occurred",
     "returnToSignIn": "Return to sign-in"
+  },
+  "user": {
+    "type": {
+      "ADMIN": "Administrator",
+      "OWNER": "Owner",
+      "LANDLORD": "Landlord",
+      "TENANT": "Tenant",
+      "SYNDIC": "Property Manager",
+      "EXTERNAL": "External User",
+      "CONTRACTOR": "Contractor",
+      "COMMERCIAL_PROPERTY_OWNER": "Commercial Property Owner",
+      "GUEST": "Guest"
+    }
+  },
+  "property": {
+    "type": {
+      "APARTMENT": "Apartment",
+      "GARAGE": "Garage",
+      "PARKING": "Parking Space",
+      "COMMERCIAL": "Commercial Property",
+      "OTHER": "Other"
+    }
+  },
+  "infos": {
+    "contactNumbers": {
+      "emergency": {
+        "name": "Name",
+        "email": "Email",
+        "phoneNumber": "Phone Number"
+      }
+    }
+  },
+  "signUp": {
+    "title": "Sign Up",
+    "alreadyRegistered": "Already registered?",
+    "signIn": "Sign In",
+    "username": "Username",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "userType": "User Type",
+    "password": "Password",
+    "signUp": "Sign Up"
+  },
+  "profileCompletion": {
+    "title": "Complete Your Profile",
+    "message": "Your profile is incomplete. Please fill in the missing information to enjoy our full services.",
+    "missingFields": "Missing fields:",
+    "completeProfile": "Complete Profile",
+    "later": "Later",
+    "propertiesHint": "We'll redirect you to your properties management page",
+    "profileHint": "We'll redirect you to your profile page",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "type": "User Type",
+      "streetAddress": "Street Address",
+      "city": "City",
+      "postalCode": "Postal Code",
+      "country": "Country",
+      "properties": "Properties"
+    }
+  },
+  "announcement": {
+    "category": "Category",
+    "deleteTitle": "Delete Announcement",
+    "confirmDelete": "Are you sure you want to delete this announcement?",
+    "confirmYes": "Yes, Delete",
+    "confirmNo": "Cancel",
+    "deleteSuccess": "Announcement deleted successfully!",
+    "deleteError": "Failed to delete announcement. Please try again.",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "updateSuccess": "Announcement updated successfully!",
+    "updateError": "Failed to update announcement. Please try again."
+  },
+  "announcement-category": {
+    "community-event": "Community Event",
+    "lost-and-found": "Lost and Found",
+    "safety-alert": "Safety Alert",
+    "maintenance-notice": "Maintenance Notice",
+    "social-gathering": "Social Gathering",
+    "other": "Other",
+    "CommunityEvent": "Community Event",
+    "LostAndFound": "Lost and Found",
+    "SafetyAlert": "Safety Alert", 
+    "MaintenanceNotice": "Maintenance Notice",
+    "SocialGathering": "Social Gathering",
+    "Other": "Other",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "announcement-post-form": {
+    "title": "Title",
+    "title-placeholder": "Enter announcement title...",
+    "save": "Post Announcement"
   }
 }

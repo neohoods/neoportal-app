@@ -13,8 +13,8 @@
     "emailSent": "Email envoyé"
   },
   "welcome": {
-    "rentSpace": "Réservez n'importe quel espace communautaire dont vous avez besoin pour vous, votre famille ou un événement spécial.",
-    "rentSpaceDescription": "Nos espaces sont parfaits pour toute occasion. Nous avons tout ce dont vous avez besoin pour un événement mémorable."
+    "rentPortal": "Bienvenue sur votre portail communautaire",
+    "rentPortalDescription": "Gérez votre communauté, vos propriétés et vos services en toute simplicité. Connectez-vous avec vos voisins et profitez d'une vie communautaire harmonieuse."
   },
   "timeline": {
     "reservation": "Réservation",
@@ -48,12 +48,11 @@
     "alreadyRegistered": "Déjà enregistré?",
     "signIn": "Se connecter",
     "username": "Nom d'utilisateur",
+    "firstName": "Prénom",
+    "lastName": "Nom de famille",
     "email": "Email",
+    "userType": "Type d'utilisateur",
     "password": "Mot de passe",
-    "streetAddress": "Adresse",
-    "city": "Ville",
-    "postalCode": "Code postal",
-    "country": "Pays",
     "signUp": "S'inscrire"
   },
   "hubLayout": {
@@ -76,10 +75,22 @@
   },
   "profile": {
     "editTitle": "Modifier votre profil",
+    "basicInfo": "Informations de base",
+    "username": "Nom d'utilisateur",
+    "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+    "firstName": "Prénom",
+    "firstNamePlaceholder": "Entrez votre prénom",
+    "lastName": "Nom de famille",
+    "lastNamePlaceholder": "Entrez votre nom de famille",
+    "userType": "Type d'utilisateur",
+    "userTypePlaceholder": "Sélectionnez le type d'utilisateur",
     "email": "Email",
     "emailPlaceholder": "Entrez votre email",
     "password": "Mot de passe",
     "passwordPlaceholder": "Entrez votre mot de passe",
+    "addressInfo": "Adresse",
+    "flatNumber": "Numéro d'appartement",
+    "flatNumberPlaceholder": "Entrez votre numéro d'appartement",
     "streetAddress": "Adresse",
     "streetAddressPlaceholder": "Entrez votre adresse",
     "city": "Ville",
@@ -88,6 +99,18 @@
     "postalCodePlaceholder": "Entrez votre code postal",
     "country": "Pays",
     "countryPlaceholder": "Entrez votre pays",
+    "propertiesTitle": "Gérer vos propriétés",
+    "properties": {
+      "title": "Propriétés",
+      "description": "Ajoutez les biens que vous possédez en tant que propriétaire ou que vous occupez en tant que locataire."
+    } ,
+    "ownedProperties": "Propriétés possédées",
+    "property": "Propriété",
+    "propertyName": "Nom de la propriété",
+    "propertyType": "Type de propriété",
+    "propertyTypePlaceholder": "Sélectionnez le type de propriété",
+    "addProperty": "Ajouter une propriété",
+    "remove": "Supprimer",
     "saveButton": "Enregistrer",
     "saveSuccess": "Profil enregistré avec succès",
     "saveError": "Profil non enregistré"
@@ -102,22 +125,57 @@
     "more": "Plus",
     "categories": "Catégories",
     "security": "Sécurité",
-    "pages": "Pages"
+    "pages": "Pages",
+    "applications": "Applications",
+    "infos": "Infos"
   },
   "editUser": {
     "editTitle": "Modifier l'utilisateur",
+    "basicInfo": "Informations de base",
     "username": "Nom d'utilisateur",
+    "userType": "Type d'utilisateur",
+    "userTypePlaceholder": "Sélectionnez le type d'utilisateur",
+    "firstName": "Prénom",
+    "lastName": "Nom de famille",
     "email": "Email",
     "password": "Mot de passe",
+    "addressInfo": "Informations d'adresse",
     "flatNumber": "Numéro d'appartement",
     "streetAddress": "Adresse",
+    "city": "Ville",
+    "postalCode": "Code postal",
+    "country": "Pays",
+    "ownedProperties": "Propriétés possédées",
+    "property": "Propriété",
+    "propertyName": "Nom de la propriété",
+    "propertyType": "Type de propriété",
+    "propertyTypePlaceholder": "Sélectionnez le type de propriété",
+    "addProperty": "Ajouter une propriété",
+    "remove": "Supprimer",
+    "saveChanges": "Enregistrer les modifications",
+    "cancel": "Annuler"
+  },
+  "editApplication": {
+    "editTitle": "Modifier l'application",
+    "name": "Nom",
+    "url": "URL",
+    "icon": "Icône",
+    "helpText": "Texte d'aide",
     "saveChanges": "Enregistrer les modifications",
     "cancel": "Annuler"
   },
   "security": {
     "registrationSettings": "Paramètres d'inscription",
     "enableUserRegistration": "Activer l'inscription des utilisateurs",
-    "save": "Enregistrer"
+    "enableSSO": "Activer l'authentification unique (SSO)",
+    "ssoConfiguration": "Configuration SSO",
+    "ssoClientId": "ID Client SSO",
+    "ssoClientSecret": "Secret Client SSO",
+    "ssoTokenEndpoint": "Point de terminaison du token",
+    "ssoAuthorizationEndpoint": "Point de terminaison d'autorisation",
+    "ssoScope": "Portée OAuth",
+    "save": "Enregistrer",
+    "saveSuccess": "Paramètres de sécurité enregistrés avec succès !"
   },
   "users": {
     "addUser": "Ajouter un utilisateur",
@@ -243,5 +301,161 @@
     "error": "Mot de passe non réinitialisé",
     "unexpected": "Une erreur inattendue est survenue",
     "returnToSignIn": "Retour à la connexion"
+  },
+  "announcement-category": {
+    "community-event": "Événement",
+    "lost-and-found": "Objet trouvé",
+    "safety-alert": "Alerte",
+    "maintenance-notice": "Maintenance",
+    "social-gathering": "Social",
+    "other": "Autre",
+    "CommunityEvent": "Événement communautaire",
+    "LostAndFound": "Objet trouvé",
+    "SafetyAlert": "Alerte de sécurité",
+    "MaintenanceNotice": "Avis de maintenance",
+    "SocialGathering": "Rassemblement social",
+    "Other": "Autre",
+    "edit": "Modifier",
+    "delete": "Supprimer"
+  },
+  "announcement-post-form": {
+    "title": "Titre",
+    "title-placeholder": "Saisissez le titre de l'annonce...",
+    "save": "Publier l'annonce"
+  },
+  "announcement": {
+    "category": "Catégorie",
+    "deleteTitle": "Supprimer l'annonce",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette annonce ?",
+    "confirmYes": "Oui, Supprimer",
+    "confirmNo": "Annuler",
+    "deleteSuccess": "Annonce supprimée avec succès !",
+    "deleteError": "Échec de la suppression de l'annonce. Veuillez réessayer.",
+    "saveChanges": "Enregistrer les modifications",
+    "cancel": "Annuler",
+    "updateSuccess": "Annonce mise à jour avec succès !",
+    "updateError": "Échec de la mise à jour de l'annonce. Veuillez réessayer."
+  },
+  "infos": {
+    "settings": "Informations",
+    "tabs": {
+      "general": {
+        "title": "Général",
+        "description": "Informations générales de la copropriété"
+      },
+      "delegates": {
+        "title": "Délégués syndicaux",
+        "description": "Délégués syndicaux de la copropriété"
+      },
+      "contactNumbers": {
+        "title": "Contacts",
+        "description": "Contacts syndicaux et d'urgence"
+      }
+    },
+    "nextAGDate": "Prochaine AG",
+    "rulesUrl": "URL des règles",
+    "delegates": "Délégués syndicaux",
+    "delegate": {
+      "title": "Délégué",
+      "building": "Bâtiment",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille", 
+      "email": "Email",
+      "matrixUser": "Utilisateur Matrix"
+    },
+    "building": "Bâtiment",
+    "firstName": "Prénom",
+    "lastName": "Nom de famille",
+    "email": "Email",
+    "matrixUser": "Utilisateur Matrix",
+    "addDelegate": "Ajouter un délégué",
+    "remove": "Supprimer",
+    "save": "Enregistrer",
+    "contactNumbers": {
+      "title": "Numéros de contact",
+      "type": "Type",
+      "number": "Numéro",
+      "description": "Description",
+      "availability": "Disponibilité",
+      "responseTime": "Temps de réponse",
+      "syndic": {
+        "title": "Contact Syndic",
+        "name": "Nom",
+        "email": "Email",
+        "phoneNumber": "Numéro de téléphone",
+        "officeHours": "Horaires d'ouverture",
+        "address": "Adresse"
+      },
+      "emergency": {
+        "title": "Contacts d'urgence",
+        "contact": "Contact d'urgence",
+        "addContact": "Ajouter un contact d'urgence",
+        "name": "Nom",
+        "email": "Email",
+        "phoneNumber": "Numéro de téléphone",
+        "officeHours": "Horaires d'ouverture",
+        "address": "Adresse"
+      }
+    }
+  },
+  "settings": {
+    "more": "Plus",
+    "profile": "Profil",
+    "properties": "Propriétés",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "editTitle": "Paramètres de notifications",
+    "enableNotifications": "Activer les notifications",
+    "adminNewUser": "Nouvel utilisateur enregistré",
+    "moreButton": "Plus",
+    "saveButton": "Enregistrer"
+  },
+  "tosTable": {
+    "columnsVisibility": "Visibilité des colonnes",
+    "filterPlaceholder": "Filtrer les résultats..."
+  },
+  "user": {
+    "type": {
+      "ADMIN": "Administrateur",
+      "OWNER": "Propriétaire",
+      "LANDLORD": "Bailleur",
+      "TENANT": "Locataire",
+      "SYNDIC": "Syndic de copropriété",
+      "EXTERNAL": "Personne exterieure",
+      "CONTRACTOR": "Artisans",
+      "COMMERCIAL_PROPERTY_OWNER": "Propriétaire commercial",
+      "GUEST": "Invité"
+    }
+  },
+  "property": {
+    "type": {
+      "APARTMENT": "Appartement",
+      "GARAGE": "Garage",
+      "PARKING": "Place de parking",
+      "COMMERCIAL": "Local commercial",
+      "OTHER": "Autre"
+    }
+  },
+  "profileCompletion": {
+    "title": "Complétez votre profil",
+    "message": "Votre profil n'est pas complet. Veuillez remplir les informations manquantes pour profiter pleinement de nos services.",
+    "missingFields": "Champs manquants :",
+    "completeProfile": "Compléter le profil",
+    "later": "Plus tard",
+    "propertiesHint": "Nous vous redirigerons vers la page de gestion des propriétés",
+    "profileHint": "Nous vous redirigerons vers votre page de profil",
+    "fields": {
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "email": "Email",
+      "type": "Type d'utilisateur",
+      "streetAddress": "Adresse",
+      "city": "Ville",
+      "postalCode": "Code postal",
+      "country": "Pays",
+      "properties": "Propriétés"
+    }
   }
 }

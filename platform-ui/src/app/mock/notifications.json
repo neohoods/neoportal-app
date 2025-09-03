@@ -1,0 +1,43 @@
+[
+    {
+      "id": "4",
+      "author": "Platform",
+      "date": "2024-11-21",
+      "type": "admin-new-user",
+      "alreadyRead": false,
+      "payload": {
+        "itemId": "12"
+      }
+    },
+    {
+      "id": "3",
+      "author": "Platform",
+      "date": "2024-11-20",
+      "type": "admin-new-user",
+      "alreadyRead": false,
+      "payload": {
+        "itemId": "14"
+      }
+    },
+    {
+      "id": "2",
+      "author": "Platform",
+      "date": "2024-11-19",
+      "type": "admin-new-user",
+      "alreadyRead": true,
+      "payload": {
+        "itemId": "18"
+
+      }
+    },
+    {
+      "id": "1",
+      "author": "Platform",
+      "date": "2024-11-19",
+      "type": "admin-new-user",
+      "alreadyRead": true,
+      "payload": {
+        "itemId": "1"
+      }
+    }
+  ]

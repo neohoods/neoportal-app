@@ -8,7 +8,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.UsersAdminApiApiDelegate;
 import com.neohoods.portal.platform.model.SetUserPasswordRequest;
-import com.neohoods.portal.platform.model.UserWithStats;
+import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.services.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,21 +22,22 @@ public class UsersAdminApi implements UsersAdminApiApiDelegate {
     private final UsersService usersService;
 
     @Override
-    public Mono<ResponseEntity<UserWithStats>> getUser(UUID userId, ServerWebExchange exchange) {
-        return usersService.getUserWithStats(userId)
+    public Mono<ResponseEntity<User>> getUser(UUID userId, ServerWebExchange exchange) {
+        return usersService.getUserById(userId)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @Override
-    public Mono<ResponseEntity<Flux<UserWithStats>>> getUsers(ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok(usersService.getUsersWithStats()));
+    public Mono<ResponseEntity<Flux<User>>> getUsers(ServerWebExchange exchange) {
+        return Mono.just(ResponseEntity.ok(usersService.getUsers()));
     }
 
     @Override
-    public Mono<ResponseEntity<UserWithStats>> saveUser(Mono<UserWithStats> userWithStats, ServerWebExchange exchange) {
-        return userWithStats.flatMap(usersService::saveUser)
+    public Mono<ResponseEntity<User>> saveUser(Mono<User> user, ServerWebExchange exchange) {
+        return user.flatMap(usersService::saveUser)
                 .map(ResponseEntity::ok);
+
     }
 
     @Override

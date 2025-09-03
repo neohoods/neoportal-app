@@ -1,4 +1,4 @@
-import { Component, computed, effect, Inject, OnDestroy, ViewChild } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -16,15 +16,17 @@ import {
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
-  TuiBadgeNotification,
   TuiChevron,
   TuiFade,
   TuiTabs
 } from '@taiga-ui/kit';
 import { tuiLayoutIconsProvider, TuiNavigation } from '@taiga-ui/layout';
 import { FooterComponent } from '../../../components/footer/footer.component';
+import { NotificationsPopupComponent } from '../../../components/notifications-popup/notifications-popup.component';
+import { ProfileCompletionCheckComponent } from '../../../components/profile-completion-check/profile-completion-check.component';
 import { AUTH_SERVICE_TOKEN } from '../../../global.provider';
 import { AuthService, UserInfo } from '../../../services/auth.service';
+import { ApplicationsComponent } from '../components/applications/applications.component';
 
 
 @Component({
@@ -47,11 +49,13 @@ import { AuthService, UserInfo } from '../../../services/auth.service';
     TuiIcon,
     TuiNavigation,
     TuiTabs,
-    TuiBadgeNotification,
+    NotificationsPopupComponent,
+    ProfileCompletionCheckComponent,
     TranslateModule,
     TuiAvatar,
     TuiInitialsPipe,
     TuiAutoColorPipe,
+    ApplicationsComponent,
   ],
   templateUrl: './hub-layout.component.html',
   styleUrl: './hub-layout.component.scss',
@@ -61,7 +65,7 @@ import { AuthService, UserInfo } from '../../../services/auth.service';
     tuiAsPortal(TuiDropdownService),
   ],
 })
-export default class HubLayoutComponent extends TuiPortals implements OnDestroy {
+export default class HubLayoutComponent extends TuiPortals implements OnInit, OnDestroy {
   protected expanded = false;
   protected open = false;
   protected switch = false;
@@ -82,6 +86,10 @@ export default class HubLayoutComponent extends TuiPortals implements OnDestroy 
   }
 
   ngOnInit() {
+    // Force layout recalculation when switching from admin to hub
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 0);
   }
 
   ngOnDestroy() {

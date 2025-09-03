@@ -1,0 +1,32 @@
+<ng-template #dialogTemplate>
+    <div class="profile-completion-dialog">
+        <div class="dialog-header">
+            <p class="message">
+                {{ 'profileCompletion.message' | translate }}
+            </p>
+        </div>
+
+        <div class="missing-fields-card">
+            <h4 class="missing-fields-title">
+                {{ 'profileCompletion.missingFields' | translate }}
+            </h4>
+            <div class="missing-fields-list">
+                <div
+                    *ngFor="let field of missingFields"
+                    class="missing-field"
+                >
+                    • {{ ('profileCompletion.fields.' + field) | translate }}
+                </div>
+            </div>
+        </div>
+
+        <div class="dialog-footer">
+            <small class="hint">
+                {{ hasProperties ? 
+            ('profileCompletion.propertiesHint' | translate) : 
+            ('profileCompletion.profileHint' | translate) 
+        }}
+            </small>
+        </div>
+    </div>
+</ng-template>
