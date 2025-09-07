@@ -26,7 +26,6 @@ export class CustomPageComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // If we have an input page, use it
     if (this.page()) {
@@ -40,6 +39,8 @@ export class CustomPageComponent implements OnInit {
       this.customPageService.getCustomPage(this.pageRef).subscribe({
         next: (page) => {
           this.currentPage.set(page);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
         },
         error: (error) => {
           console.error('Failed to load custom page:', error);

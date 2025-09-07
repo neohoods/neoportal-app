@@ -36,7 +36,6 @@ export class HelpCenterComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     this.loadCategories();
   }
 
@@ -56,7 +55,7 @@ export class HelpCenterComponent implements OnInit {
         this.selectedCategoryId.set(firstCategoryId);
         this.selectCategory(firstCategoryId);
       }
-
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       this.cdr.detectChanges();
     });
   }
@@ -75,11 +74,12 @@ export class HelpCenterComponent implements OnInit {
         const updatedArticlesByCategory = { ...currentArticlesByCategory };
         updatedArticlesByCategory[categoryId] = sortedArticles;
         this.articlesByCategory.set(updatedArticlesByCategory);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
         this.cdr.detectChanges();
       });
     }
-    this.scrollToMain();
+    //this.scrollToMain();
   }
 
   private scrollToMain() {
