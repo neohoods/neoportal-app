@@ -61,6 +61,20 @@
 
 </div>
 
+<!-- Pagination Info -->
+<div
+    class="pagination-info"
+    *ngIf="paginationData()"
+>
+    <span class="pagination-text">
+        {{ 'announcements.showing' | translate }}
+        {{ ((paginationData()!.currentPage - 1) * paginationParams().pageSize!) + 1 }} - 
+        {{ Math.min(paginationData()!.currentPage * paginationParams().pageSize!, paginationData()!.totalItems) }}
+        {{ 'announcements.of' | translate }} {{ paginationData()!.totalItems }}
+        {{ 'announcements.results' | translate }}
+    </span>
+</div>
+
 <div
     class="announcements-container"
     *ngIf="announcements() as announcements; else loading"
@@ -75,6 +89,36 @@
             (announcementDeleted)="loadAnnouncements()"
             (announcementUpdated)="loadAnnouncements()"
         ></announcement>
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+<div
+    class="pagination-controls"
+    *ngIf="paginationData() && paginationData()!.totalPages > 1"
+>
+    <tui-pagination
+        [length]="paginationData()!.totalPages"
+        [index]="paginationData()!.currentPage - 1"
+        (indexChange)="onPageChange($event + 1)"
+        [sidePadding]="2"
+        [activePadding]="1"
+    ></tui-pagination>
+
+    <div class="page-size-selector">
+        <label tuiLabel>
+            {{ 'announcements.items-per-page' | translate }}
+        </label>
+        <select
+            tuiSelect
+            (ngModelChange)="onPageSizeChange($event)"
+            [ngModel]="paginationParams().pageSize"
+        >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
     </div>
 </div>
 <ng-template #loading>

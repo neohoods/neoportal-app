@@ -10,12 +10,12 @@ import org.springframework.web.server.ServerWebExchange;
 import com.neohoods.portal.platform.api.AnnouncementsHubApiApiDelegate;
 import com.neohoods.portal.platform.model.Announcement;
 import com.neohoods.portal.platform.model.CreateAnnouncementRequest;
+import com.neohoods.portal.platform.model.PaginatedAnnouncementsResponse;
 import com.neohoods.portal.platform.model.UpdateAnnouncementRequest;
 import com.neohoods.portal.platform.services.AnnouncementsService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -45,8 +45,21 @@ public class AnnouncementsHubApi implements AnnouncementsHubApiApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<Flux<Announcement>>> getAnnouncements(ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok(announcementsService.getAnnouncements()));
+    public Mono<ResponseEntity<PaginatedAnnouncementsResponse>> getAnnouncements(
+            Integer page,
+            Integer pageSize,
+            ServerWebExchange exchange) {
+
+        // Set default values
+        int pageNum = page != null ? page : 1;
+        int pageSizeNum = pageSize != null ? pageSize : 10;
+
+        return announcementsService.getAnnouncementsPaginated(pageNum, pageSizeNum)
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> {
+                    log.error("Error retrieving paginated announcements", e);
+                    return Mono.just(ResponseEntity.badRequest().build());
+                });
     }
 
     @Override

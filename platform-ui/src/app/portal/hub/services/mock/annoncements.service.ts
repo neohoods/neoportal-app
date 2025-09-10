@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable, of } from "rxjs";
 import { CreateAnnouncementRequest } from "../../../../api-client/model/createAnnouncementRequest";
 import { loadAnnouncementsData } from "../../../../mock/annoncements-loader";
-import { UIAnnouncement } from "../../../../models/UIAnnoncements";
+import { UIAnnouncement, UIPaginatedAnnouncementsResponse, UIPaginationParams } from "../../../../models/UIAnnoncements";
 import { AnnouncementsService } from "../annoncements.service";
 
 @Injectable({
@@ -33,6 +33,30 @@ export class MockAnnouncementsService implements AnnouncementsService {
 
   getAnnouncements(): Observable<UIAnnouncement[]> {
     return of(loadAnnouncementsData());
+  }
+
+  getAnnouncementsPaginated(params: UIPaginationParams): Observable<UIPaginatedAnnouncementsResponse> {
+    let announcements = loadAnnouncementsData();
+
+    // Apply sorting by creation date (newest first)
+    announcements.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Apply pagination
+    const page = params.page || 1;
+    const pageSize = params.pageSize || 10;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedAnnouncements = announcements.slice(startIndex, endIndex);
+
+    const response: UIPaginatedAnnouncementsResponse = {
+      totalPages: Math.ceil(announcements.length / pageSize),
+      totalItems: announcements.length,
+      currentPage: page,
+      itemsPerPage: pageSize,
+      announcements: paginatedAnnouncements
+    };
+
+    return of(response);
   }
 
   getAnnouncement(id: string): Observable<UIAnnouncement> {

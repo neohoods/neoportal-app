@@ -374,5 +374,24 @@
     "title": "Title",
     "title-placeholder": "Enter announcement title...",
     "save": "Post Announcement"
+  },
+  "announcements": {
+    "search": "Search",
+    "search-placeholder": "Search announcements...",
+    "filter-category": "Filter by Category",
+    "all-categories": "All Categories",
+    "sort-by": "Sort by",
+    "sort-created": "Date Created",
+    "sort-updated": "Date Updated",
+    "sort-title": "Title",
+    "sort-order": "Order",
+    "sort-asc": "Ascending",
+    "sort-desc": "Descending",
+    "showing": "Showing",
+    "of": "of",
+    "results": "results",
+    "previous": "Previous",
+    "next": "Next",
+    "items-per-page": "Items per page"
   }
 }

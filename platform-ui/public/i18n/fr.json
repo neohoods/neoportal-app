@@ -323,6 +323,25 @@
     "title-placeholder": "Saisissez le titre de l'annonce...",
     "save": "Publier l'annonce"
   },
+  "announcements": {
+    "search": "Rechercher",
+    "search-placeholder": "Rechercher dans les annonces...",
+    "filter-category": "Filtrer par catégorie",
+    "all-categories": "Toutes les catégories",
+    "sort-by": "Trier par",
+    "sort-created": "Date de création",
+    "sort-updated": "Date de mise à jour",
+    "sort-title": "Titre",
+    "sort-order": "Ordre",
+    "sort-asc": "Croissant",
+    "sort-desc": "Décroissant",
+    "showing": "Affichage",
+    "of": "sur",
+    "results": "résultats",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "items-per-page": "Éléments par page"
+  },
   "announcement": {
     "category": "Catégorie",
     "deleteTitle": "Supprimer l'annonce",

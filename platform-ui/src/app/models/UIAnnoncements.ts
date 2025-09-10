@@ -57,3 +57,16 @@ export interface UIAnnouncement {
     updatedAt: string;
     category: UIAnnouncementCategory;
 }
+
+export interface UIPaginatedAnnouncementsResponse {
+    totalPages: number;
+    totalItems: number;
+    currentPage: number;
+    itemsPerPage: number;
+    announcements: UIAnnouncement[];
+}
+
+export interface UIPaginationParams {
+    page?: number;
+    pageSize?: number;
+}
