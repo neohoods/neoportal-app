@@ -10,7 +10,8 @@
     "email": "Email",
     "send": "Envoyer",
     "returnToSignIn": "Retour à la connexion",
-    "emailSent": "Email envoyé"
+    "emailSent": "Email envoyé",
+    "redirectingToSSO": "Redirection vers la connexion SSO..."
   },
   "welcome": {
     "rentPortal": "Bienvenue sur votre portail communautaire",
@@ -169,11 +170,11 @@
     "enableUserRegistration": "Activer l'inscription des utilisateurs",
     "enableSSO": "Activer l'authentification unique (SSO)",
     "ssoConfiguration": "Configuration SSO",
-    "ssoClientId": "ID Client SSO",
-    "ssoClientSecret": "Secret Client SSO",
-    "ssoTokenEndpoint": "Point de terminaison du token",
-    "ssoAuthorizationEndpoint": "Point de terminaison d'autorisation",
-    "ssoScope": "Portée OAuth",
+    "ssoClientId": "Client ID",
+    "ssoClientSecret": "Client secret",
+    "ssoTokenEndpoint": "Token Endpoint",
+    "ssoAuthorizationEndpoint": "Authorization Endpoint",
+    "ssoScope": "Scope",
     "save": "Enregistrer",
     "saveSuccess": "Paramètres de sécurité enregistrés avec succès !"
   },

@@ -7,7 +7,23 @@
         [formGroup]="securityForm"
         (ngSubmit)="onSubmit()"
         class="security-form"
+        autocomplete="off"
+        data-form-type="other"
     >
+        <!-- Hidden fields to confuse password managers -->
+        <input
+            type="text"
+            style="display:none"
+            tabindex="-1"
+            autocomplete="off"
+        >
+        <input
+            type="password"
+            style="display:none"
+            tabindex="-1"
+            autocomplete="off"
+        >
+
         <div class="form-section">
             <div class="switch-field">
                 <input
@@ -51,6 +67,8 @@
                     type="text"
                     tuiTextfield
                     placeholder="Enter SSO Client ID"
+                    autocomplete="off"
+                    data-lpignore="true"
                 >
             </tui-textfield>
 
@@ -63,6 +81,8 @@
                     type="password"
                     tuiTextfield
                     placeholder="Enter SSO Client Secret"
+                    autocomplete="new-password"
+                    data-lpignore="true"
                 >
             </tui-textfield>
 
@@ -75,6 +95,8 @@
                     type="text"
                     tuiTextfield
                     placeholder="https://your-provider.com/oauth/token"
+                    autocomplete="off"
+                    data-lpignore="true"
                 >
             </tui-textfield>
 
@@ -87,6 +109,8 @@
                     type="text"
                     tuiTextfield
                     placeholder="https://your-provider.com/oauth/authorize"
+                    autocomplete="off"
+                    data-lpignore="true"
                 >
             </tui-textfield>
 
@@ -97,6 +121,8 @@
                     type="text"
                     tuiTextfield
                     placeholder="openid profile email"
+                    autocomplete="off"
+                    data-lpignore="true"
                 >
             </tui-textfield>
         </div>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { TuiAlertService } from '@taiga-ui/core';
 import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { AuthApiService, ProfileHubApiService, Property, SsoPublicApiService, User } from '../../api-client';
 import { UIProperty, UIPropertyType, UIUser, UIUserType } from '../../models/UIUser';
 import { AuthService, UserInfo } from '../auth.service';
@@ -58,8 +58,12 @@ export class APIAuthService implements AuthService {
       state: state,
       authorizationCode: code,
     }).pipe(
-      map((response) => {
-        return 'success';
+      switchMap((response) => {
+        // Initialize session after successful token exchange
+        return this.initializeSession().then(() => 'success').catch((error) => {
+          console.error('Failed to initialize session after SSO token exchange:', error);
+          return 'error';
+        });
       })
     );
   }

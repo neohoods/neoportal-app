@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -39,7 +39,7 @@ import {
   styleUrl: './sign-in.component.scss',
   providers: [...getGlobalProviders()],
 })
-export class SignInComponent {
+export class SignInComponent implements OnInit {
   signInForm: FormGroup;
   config: UISettings;
 
@@ -60,6 +60,13 @@ export class SignInComponent {
         username: 'demo',
         password: 'password',
       });
+    }
+  }
+
+  ngOnInit() {
+    // Auto-redirect to SSO if enabled
+    if (this.config.ssoEnabled) {
+      this.loginWithSSO();
     }
   }
 

@@ -8,25 +8,14 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-}
 
-.form-section {
-    padding: 20px;
-    border: 1px solid var(--tui-base-03);
-    border-radius: 8px;
-    background-color: var(--tui-base-01);
-
-    &.sso-fields {
-        background-color: var(--tui-base-02);
-
-        h3 {
-            margin: 0 0 20px 0;
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--tui-text-01);
-        }
+    // Prevent password managers from detecting this as a login form
+    &[data-form-type="other"] {
+        // Additional styles to discourage password manager detection
     }
 }
+
+
 
 .switch-field {
     display: flex;
@@ -41,14 +30,7 @@
     }
 }
 
-.form-field {
-    margin-bottom: 16px;
-    width: 100%;
 
-    &:last-child {
-        margin-bottom: 0;
-    }
-}
 
 .form-actions {
     display: flex;
@@ -65,7 +47,6 @@ h2 {
 
 // Ensure Taiga UI textfields have proper spacing
 tui-textfield {
-    display: block;
     margin-bottom: 16px;
 
     &:last-child {

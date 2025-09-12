@@ -61,7 +61,12 @@ export class TokenExchangeComponent {
     if (state && code) {
       this.authService.exchangeSSOToken(state, code).subscribe((result: string) => {
         if (result === 'success') {
-          this.router.navigate(['/']); // Redirect to home page on success
+          // Check user role and redirect accordingly, same as sign-in flow
+          if (this.authService.hasRole('hub')) {
+            this.router.navigate(['/hub']);
+          } else {
+            this.router.navigate(['/']);
+          }
         } else {
           this.alerts.open(
             'Failed to exchange SSO token',

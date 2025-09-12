@@ -10,7 +10,8 @@
     "email": "Email",
     "send": "Send",
     "returnToSignIn": "Return to sign-in",
-    "emailSent": "Email sent"
+    "emailSent": "Email sent",
+    "redirectingToSSO": "Redirecting to SSO login..."
   },
   "footer": {
     "brandingAlt": "portal NeoHoods",

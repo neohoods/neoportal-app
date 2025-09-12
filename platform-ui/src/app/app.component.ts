@@ -35,7 +35,7 @@ const ICON =
   ],
 })
 export class AppComponent extends TuiPortals implements OnInit {
-  constructor(private translate: TranslateService, private themeService: ThemeService) {
+  constructor(private translate: TranslateService, private themeService: ThemeService, private configService: ConfigService) {
     super();
     this.translate.addLangs(['fr', 'en']);
     this.translate.setDefaultLang(ConfigService.configuration.defaultLocale);
@@ -44,5 +44,6 @@ export class AppComponent extends TuiPortals implements OnInit {
 
   ngOnInit() {
     this.themeService.loadTheme();
+    this.configService.loadConfig();
   }
 }
