@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.entities.UserType;
 
 public interface UsersRepository extends CrudRepository<UserEntity, UUID> {
     UserEntity findByUsername(String login);
@@ -27,4 +28,6 @@ public interface UsersRepository extends CrudRepository<UserEntity, UUID> {
 
     @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.properties")
     List<UserEntity> findAllWithProperties();
+
+    List<UserEntity> findByType(UserType type);
 }

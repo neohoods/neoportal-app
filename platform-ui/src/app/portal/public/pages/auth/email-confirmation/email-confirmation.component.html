@@ -1,34 +1,44 @@
-<div id="email-confirmation-container">
-    <div id="email-confirmation-form-section">
+<div class="email-confirmation-container">
+    <div class="confirmation-card">
         <img
-            class="logo"
             src="/logo-bright.png"
-            alt="portal NeoHoods"
+            alt="NeoHoods"
+            class="logo"
         >
-        <h2>
-            {{ 'emailConfirmation.title' | translate }}
-        </h2>
 
-        @if (isLoading) {
+        <div
+            class="content"
+            *ngIf="!isVerified"
+        >
+            <h1>
+                {{ 'emailConfirmation.error' | translate }}
+            </h1>
             <p>
-                {{ 'emailConfirmation.message' | translate }}
-                <tui-loader />
+                {{ error || ('emailConfirmation.errorMessage' | translate) }}
             </p>
-        } @else {
-            @if (isSuccess) {    
-                <p>
-                    {{ 'emailConfirmation.success' | translate }}
-                    <button appearance="accent" tuiButton size="l" type="button" (click)="router.navigate(['/sign-in'])">{{ 'emailConfirmation.signIn' | translate }}</button>
-                </p>
-            } @else {
-                <p>
-                    {{ 'emailConfirmation.error' | translate }}
-                    <button appearance="accent" tuiButton size="l" type="button">{{ 'emailConfirmation.resentEmailVerification' | translate }}</button>
-                </p>
-            }
-        }
-    </div>
-    <div id="email-confirmation-welcome-section">
-        <app-welcome></app-welcome>
+
+            <div class="actions">
+                <button
+                    appearance="primary"
+                    tuiButton
+                    size="l"
+                    (click)="goToLogin()"
+                >
+                    {{ 'emailConfirmation.tryAgain' | translate }}
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="content"
+            *ngIf="isVerified"
+        >
+            <h1>
+                {{ 'emailConfirmation.redirecting' | translate }}
+            </h1>
+            <p>
+                {{ 'emailConfirmation.redirectingMessage' | translate }}
+            </p>
+        </div>
     </div>
 </div>

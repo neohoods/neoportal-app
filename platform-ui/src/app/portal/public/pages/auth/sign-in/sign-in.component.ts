@@ -6,7 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiTextfield } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
@@ -48,6 +48,7 @@ export class SignInComponent implements OnInit {
     @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
     private configService: ConfigService,
     private router: Router,
+    private route: ActivatedRoute,
     private alerts: TuiAlertService,
   ) {
     this.signInForm = this.fb.group({
@@ -64,6 +65,16 @@ export class SignInComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Check if user just verified their email
+    this.route.queryParams.subscribe(params => {
+      if (params['verified'] === 'true' && params['message'] === 'email-verified') {
+        this.alerts.open(
+          'Email vérifié avec succès ! Vous pouvez maintenant vous connecter.',
+          { appearance: 'positive' }
+        ).subscribe();
+      }
+    });
+
     // Auto-redirect to SSO if enabled
     if (this.config.ssoEnabled) {
       this.loginWithSSO();

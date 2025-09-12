@@ -14,7 +14,7 @@ export class APIPublicSettingsService implements PublicSettingsService {
       map((response) => {
         return {
           ...response,
-          isRegistrationEnabled: response.isRegistrationEnabled ?? false,
+          isRegistrationEnabled: response.isRegistrationEnabled ?? true,
           ssoEnabled: response.ssoEnabled ?? false,
         } as UIPublicSettings;
       }),

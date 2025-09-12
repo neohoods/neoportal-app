@@ -1,97 +1,69 @@
-@use 'styles' as *;
+.email-confirmation-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--tos-background-base) 0%, var(--tos-background-accent-2) 100%);
+    padding: 2rem;
+}
 
-#email-confirmation-container {
-    display: grid;
-    grid-template-columns: 3fr 4fr;
+.confirmation-card {
+    background: var(--tos-background-base);
+    border-radius: 16px;
+    padding: 3rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
 
-    #email-confirmation-form-section {
-        background-color: var(--tos-background-base);
+    .logo {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 2rem;
+        object-fit: contain;
+    }
 
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        background-color: var(--tos-background-base);
-        padding: 20px;
-
-        h2 {
-            width: 100%;
-            font-size: 1.8rem;
-            color: var(--tos-background-accent-1);
-            margin-bottom: 10px;
+    .content {
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--tos-text-primary);
+            margin-bottom: 1rem;
         }
 
         p {
-            width: 100%;
-            font-size: 0.9rem;
-            color: var(--tos-background-accent-1);
-            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: var(--tos-text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
         }
 
-        .forgot-password-link {
-            width: 100%;
-            text-align: right;
-            margin: 0;
-            margin-bottom: 15px;
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
+    }
+}
 
-        form {
-            box-shadow: none;
-            width: 100%;
-            padding: 0;
-        }
+@media (max-width: 768px) {
+    .email-confirmation-container {
+        padding: 1rem;
+    }
 
-        a {
-            color: var(--tos-text-action);
-            transition: color 0.3s;
-            font-weight: 600;
+    .confirmation-card {
+        padding: 2rem;
 
-
-            &:hover {
-                color: var(--tos-text-action-hover);
+        .content {
+            h1 {
+                font-size: 1.5rem;
             }
-        }
-    }
 
-    #email-confirmation-welcome-section {
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: var(--tos-background-accent-1);
-        color: var(--tos-text-primary-on-accent-1);
-        position: relative;
-        overflow: hidden;
-    }
-}
-
-.logo {
-    display: none;
-    width: 170px;
-}
-
-@media (max-width: 800px) {
-    #email-confirmation-container {
-        grid-template-columns: 1fr;
-        margin-top: 50px;
-
-
-        #email-confirmation-welcome-section {
-            display: none !important;
-        }
-
-        .logo {
-            display: block !important;
-        }
-
-        #email-confirmation-form-section {
-            padding: 10px;
-            width: calc(100% - 20px);
-            height: 100vh;
-        }
-
-
-        form {
-            text-align: left;
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     }
 }

@@ -1,0 +1,130 @@
+@use 'styles' as *;
+
+#email-pending-container {
+    display: grid;
+    grid-template-columns: 3fr 4fr;
+
+    #email-pending-form-section {
+        background-color: var(--tos-background-base);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 20px;
+
+        h2 {
+            width: 100%;
+            font-size: 1.8rem;
+            color: var(--tos-background-accent-1);
+            margin-bottom: 10px;
+        }
+
+        p {
+            width: 100%;
+            font-size: 0.9rem;
+            color: var(--tos-background-accent-1);
+            margin-bottom: 15px;
+        }
+
+        .email-info {
+            background-color: var(--tos-background-accent-2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--tos-text-action);
+
+            .email-address {
+                font-family: monospace;
+                font-size: 1.1rem;
+                color: var(--tos-text-action);
+                font-weight: 600;
+            }
+        }
+
+        .instructions {
+            background-color: var(--tos-background-accent-2);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+
+            h3 {
+                color: var(--tos-background-accent-1);
+                margin-bottom: 15px;
+                font-size: 1.2rem;
+            }
+
+            ol {
+                color: var(--tos-background-accent-1);
+                padding-left: 20px;
+
+                li {
+                    margin-bottom: 8px;
+                    line-height: 1.4;
+                }
+            }
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .help-text {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--tos-background-accent-2);
+            border-radius: 8px;
+            border-left: 4px solid var(--tos-text-warning);
+
+            p {
+                color: var(--tos-background-accent-1);
+                font-size: 0.85rem;
+                margin: 0;
+                line-height: 1.4;
+            }
+        }
+    }
+
+    #email-pending-welcome-section {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--tos-background-accent-1);
+        color: var(--tos-text-primary-on-accent-1);
+        position: relative;
+        overflow: hidden;
+    }
+}
+
+.logo {
+    display: none;
+    width: 170px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 800px) {
+    #email-pending-container {
+        grid-template-columns: 1fr;
+        margin-top: 50px;
+
+        #email-pending-welcome-section {
+            display: none !important;
+        }
+
+        .logo {
+            display: block !important;
+        }
+
+        #email-pending-form-section {
+            padding: 10px;
+            width: calc(100% - 20px);
+            height: 100vh;
+        }
+    }
+}

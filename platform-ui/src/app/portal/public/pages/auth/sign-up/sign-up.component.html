@@ -33,6 +33,8 @@
         tuiTextfieldSize="s"
         tuiTextfieldLegacy
         [stringify]="stringifyUserType"
+        [tuiHint]="'signUp.userTypeHelp' | translate"
+        tuiHintDirection="right"
       >
         {{ 'signUp.userType' | translate }}
         <ng-template tuiDataList>

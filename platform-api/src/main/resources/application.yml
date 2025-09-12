@@ -32,8 +32,8 @@ neohoods:
       client-secret: ${AUTH0_CLIENT_SECRET}
       audience: ${AUTH0_AUDIENCE:https://terresdelaya.eu.auth0.com/api/v2/}
       connection: ${AUTH0_CONNECTION:Username-Password-Authentication}
-sendgrid:
-  api-key: ${SENDGRID_API_KEY}
+mailersend:
+  api-key: ${MAILERSEND_API_KEY}
   from:
     email: dev@mail.portal.neohoods.com
     name: portal NeoHoods dev environment

@@ -199,9 +199,30 @@
   "emailConfirmation": {
     "title": "Email Confirmation",
     "message": "Verifying your email...",
-    "success": "Email verified successfully",
-    "error": "Email verification failed",
-    "signIn": "Sign in"
+    "success": "Email verified successfully!",
+    "successMessage": "Your email address has been successfully verified. You can now sign in to your account.",
+    "redirecting": "Redirecting...",
+    "redirectingMessage": "Your email has been verified. You will be redirected to the login page.",
+    "error": "Verification Error",
+    "errorMessage": "An error occurred while verifying your email. Please try again.",
+    "signIn": "Sign In",
+    "goHome": "Go Home",
+    "tryAgain": "Try Again"
+  },
+  "emailPending": {
+    "title": "Email Verification Pending",
+    "message": "Your account has been created successfully! Please verify your email address to activate your account.",
+    "sentTo": "Email sent to:",
+    "instructions": {
+      "title": "Instructions:",
+      "step1": "Check your email inbox (and spam folder)",
+      "step2": "Click the verification link in the email",
+      "step3": "Come back here to sign in"
+    },
+    "resendEmail": "Resend Email",
+    "backToSignIn": "Back to Sign In",
+    "backToHome": "Back to Home",
+    "helpText": "If you don't receive the email within 5 minutes, check your spam folder or contact support."
   },
   "errors": {
     "unexpected": "An unexpected error occurred",
@@ -392,6 +413,7 @@
     "lastName": "Last Name",
     "email": "Email",
     "userType": "User Type",
+    "userTypeHelp": "Select your role in the residence (owner, tenant, etc.)",
     "password": "Password",
     "signUp": "Sign Up"
   },

@@ -1,6 +1,5 @@
 package com.neohoods.portal.platform.services;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -8,24 +7,19 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import com.nimbusds.jose.util.Pair;
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-
 import com.neohoods.portal.platform.entities.UserEntity;
-import com.neohoods.portal.platform.exceptions.CodedException;
-import com.neohoods.portal.platform.exceptions.CodedError;
-import com.neohoods.portal.platform.exceptions.CodedErrorException;
+import com.nimbusds.jose.util.Pair;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -38,15 +32,16 @@ public class MailService {
 
     private final SpringTemplateEngine templateEngine;
     private final MessageSource messageSource;
+    private final RestTemplate restTemplate;
 
-    @Value("${sendgrid.api-key}")
-    private String sendgridApiKey;
+    @Value("${mailersend.api-key}")
+    private String mailerSendApiKey;
 
-    @Value("${sendgrid.from.email}")
-    private String sendgridFromEmail;
+    @Value("${mailersend.from.email}")
+    private String mailerSendFromEmail;
 
-    @Value("${sendgrid.from.name}")
-    private String sendgridFromName;
+    @Value("${mailersend.from.name}")
+    private String mailerSendFromName;
 
     @Value("${neohoods.portal.email.template.logo-url}")
     private String logoUrl;
@@ -54,39 +49,49 @@ public class MailService {
     @Value("${neohoods.portal.email.template.app-name}")
     private String appName;
 
-    public void sendMail(String to, String subject, String text) {
-        log.info("Sending email to: {}, subject: {}", to, subject);
+    public void sendMail(String to, String subject, String htmlContent) {
+        log.info("Sending email via MailerSend to: {}, subject: {}", to, subject);
 
-        Email from = new Email(sendgridFromEmail, sendgridFromName);
-        Email toMail = new Email(to);
-        Content content = new Content("text/html", text);
-        Mail mail = new Mail(from, subject, toMail, content);
-
-        SendGrid sg = new SendGrid(sendgridApiKey);
-        Request request = new Request();
         try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sg.api(request);
+            // Prepare the request body
+            Map<String, Object> requestBody = Map.of(
+                    "from", Map.of(
+                            "email", mailerSendFromEmail,
+                            "name", mailerSendFromName),
+                    "to", List.of(Map.of(
+                            "email", to,
+                            "name", "")),
+                    "subject", subject,
+                    "html", htmlContent);
 
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                log.info("Email sent successfully to: {}, status: {}", to, response.getStatusCode());
+            // Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(mailerSendApiKey);
+
+            // Create request entity
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            // Send request
+            ResponseEntity<String> response = restTemplate.exchange(
+                    "https://api.mailersend.com/v1/email",
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Email sent successfully via MailerSend to: {}, status: {}", to, response.getStatusCode());
             } else {
-                log.error("Failed to send email to: {}, status: {}, body: {}",
+                log.error("Failed to send email via MailerSend to: {}, status: {}, body: {}. " +
+                        "User signup will continue, but email verification may need to be requested manually.",
                         to, response.getStatusCode(), response.getBody());
-                throw new CodedException(CodedError.EMAIL_SENDING_ERROR.getCode(),
-                        "Failed to send email: " + response.getBody(),
-                        Map.of("to", to, "status", response.getStatusCode(), "error", response.getBody()),
-                        CodedError.EMAIL_SENDING_ERROR.getDocumentationUrl());
+                // Don't throw exception - let signup continue
             }
-        } catch (IOException ex) {
-            log.error("IOException while sending email to: {}", to, ex);
-            throw new CodedException(CodedError.EMAIL_SENDING_ERROR.getCode(),
-                    "Failed to send email due to IO error",
-                    Map.of("to", to, "error", ex.getMessage()),
-                    CodedError.EMAIL_SENDING_ERROR.getDocumentationUrl(),
-                    ex);
+
+        } catch (Exception ex) {
+            log.error("Exception while sending email via MailerSend to: {}. " +
+                    "User signup will continue, but email verification may need to be requested manually.", to, ex);
+            // Don't throw exception - let signup continue
         }
     }
 
@@ -136,12 +141,10 @@ public class MailService {
             String translatedSubject = messageSource.getMessage(subject, null, locale);
             sendMail(user.getEmail(), translatedSubject, htmlContent);
         } catch (Exception e) {
-            log.error("Failed to process template: {}", templateName, e);
-            throw new CodedException(CodedError.EMAIL_SENDING_ERROR.getCode(),
-                    "Failed to process email template",
-                    Map.of("to", user.getEmail(), "template", templateName, "error", e.getMessage()),
-                    CodedError.EMAIL_SENDING_ERROR.getDocumentationUrl(),
-                    e);
+            log.error("Failed to process template: {} for user: {}. " +
+                    "User signup will continue, but email verification may need to be requested manually.",
+                    templateName, user.getEmail(), e);
+            // Don't throw exception - let signup continue
         }
     }
 

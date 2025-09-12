@@ -13,11 +13,13 @@ import org.springframework.stereotype.Service;
 import com.neohoods.portal.platform.entities.NotificationEntity;
 import com.neohoods.portal.platform.entities.NotificationType;
 import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedException;
 import com.neohoods.portal.platform.model.GetUnreadNotificationsCount200Response;
 import com.neohoods.portal.platform.model.Notification;
 import com.neohoods.portal.platform.repositories.NotificationRepository;
+import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.MailService.TemplateVariable;
 import com.neohoods.portal.platform.services.MailService.TemplateVariableType;
 
@@ -33,6 +35,7 @@ public class NotificationsService {
 
     public static final String PLATFORM_AUTHOR = "Platform";
     private final NotificationRepository notificationRepository;
+    private final UsersRepository usersRepository;
     private final MailService mailService;
     private final MessageSource messageSource;
 
@@ -138,26 +141,130 @@ public class NotificationsService {
             log.info("Successfully send {} notification", notification);
             return Mono.empty();
         } catch (Exception e) {
-            log.error("Failed to send notification", e);
-            return Mono.error(new CodedException(
-                    CodedError.INTERNAL_ERROR.getCode(),
-                    "Failed to send notification",
-                    Map.of("userId", user.getId(), "error", e.getMessage()),
-                    CodedError.INTERNAL_ERROR.getDocumentationUrl(),
-                    e));
+            log.error("Failed to send notification to user: {}. " +
+                    "Notification will be skipped, but user operations will continue.",
+                    user.getUsername(), e);
+            return Mono.empty(); // Don't fail for notification errors
         }
     }
 
-    private Object[] getMessageArgs(NotificationEntity entity) {
-        // Extract arguments from the notification payload based on type
-        switch (entity.getType()) {
-            default:
-                return new Object[] {};
+    /**
+     * Send notification to all admin users when a new user registers
+     */
+    public Mono<Void> notifyAdminsNewUser(UserEntity newUser) {
+        log.info("Notifying admins about new user registration: {}", newUser.getUsername());
+
+        try {
+            // Find all admin users
+            List<UserEntity> adminUsers = usersRepository.findByType(UserType.ADMIN);
+
+            if (adminUsers.isEmpty()) {
+                log.warn("No admin users found to notify about new user registration");
+                return Mono.empty();
+            }
+
+            // Create notification payload
+            Map<String, Object> payload = Map.of(
+                    "newUserUsername", newUser.getUsername(),
+                    "newUserEmail", newUser.getEmail(),
+                    "newUserType", newUser.getType().toString(),
+                    "newUserFirstName", newUser.getFirstName() != null ? newUser.getFirstName() : "",
+                    "newUserLastName", newUser.getLastName() != null ? newUser.getLastName() : "");
+
+            // Create notification entity
+            NotificationEntity notification = NotificationEntity.builder()
+                    .type(NotificationType.ADMIN_NEW_USER)
+                    .author(PLATFORM_AUTHOR)
+                    .date(java.time.Instant.now())
+                    .alreadyRead(false)
+                    .payload(payload)
+                    .build();
+
+            // Send notification to each admin
+            return Flux.fromIterable(adminUsers)
+                    .flatMap(admin -> sendNotifications(admin, notification)
+                            .onErrorResume(error -> {
+                                log.error("Failed to send notification to admin: {} for new user: {}. " +
+                                        "User signup will continue, but admin notification failed.",
+                                        admin.getUsername(), newUser.getUsername(), error);
+                                return Mono.empty(); // Continue with other admins
+                            }))
+                    .then();
+
+        } catch (Exception e) {
+            log.error("Failed to notify admins about new user registration: {}. " +
+                    "User signup will continue, but admin notification failed.", newUser.getUsername(), e);
+            return Mono.empty(); // Don't fail signup for notification errors
         }
     }
 
     private List<TemplateVariable> getTemplateVariables(NotificationType type, NotificationEntity notification) {
         List<TemplateVariable> variables = new ArrayList<>();
+
+        switch (type) {
+            case ADMIN_NEW_USER:
+                // Add variables for admin new user notification
+                if (notification.getPayload() != null) {
+                    Map<String, Object> payload = notification.getPayload();
+
+                    // New user username
+                    if (payload.containsKey("newUserUsername")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("newUserUsername")
+                                .value(payload.get("newUserUsername").toString())
+                                .build());
+                    }
+
+                    // New user email
+                    if (payload.containsKey("newUserEmail")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("newUserEmail")
+                                .value(payload.get("newUserEmail").toString())
+                                .build());
+                    }
+
+                    // New user type
+                    if (payload.containsKey("newUserType")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("newUserType")
+                                .value(payload.get("newUserType").toString())
+                                .build());
+                    }
+
+                    // New user first name
+                    if (payload.containsKey("newUserFirstName")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("newUserFirstName")
+                                .value(payload.get("newUserFirstName").toString())
+                                .build());
+                    }
+
+                    // New user last name
+                    if (payload.containsKey("newUserLastName")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("newUserLastName")
+                                .value(payload.get("newUserLastName").toString())
+                                .build());
+                    }
+
+                    // Admin URL for viewing users
+                    variables.add(TemplateVariable.builder()
+                            .type(TemplateVariableType.RAW)
+                            .ref("adminUrl")
+                            .value(frontendUrl + "/admin/users")
+                            .build());
+                }
+                break;
+            default:
+                // No additional variables for other notification types
+                break;
+        }
+
         return variables;
     }
 }

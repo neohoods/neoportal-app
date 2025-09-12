@@ -7,9 +7,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiDataList, TuiIcon, TuiOption, TuiTextfield } from '@taiga-ui/core';
+import { TuiAlertService, TuiButton, TuiDataList, TuiHint, TuiIcon, TuiOption, TuiTextfield } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiPassword } from '@taiga-ui/kit';
 import { TuiSelectModule } from '@taiga-ui/legacy';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
@@ -33,6 +33,7 @@ import { AuthService } from '../../../../../services/auth.service';
     TuiDataList,
     TuiDataListWrapper,
     TuiOption,
+    TuiHint,
     RouterLink,
     ReactiveFormsModule,
     FormsModule,
@@ -45,13 +46,15 @@ import { AuthService } from '../../../../../services/auth.service';
 })
 export class SignUpComponent {
   signUpForm: FormGroup;
-  userTypes = Object.values(UIUserType);
+  // Filter out ADMIN role from signup - only other admins can assign this role
+  userTypes = Object.values(UIUserType).filter(type => type !== UIUserType.ADMIN);
 
   constructor(
     private fb: FormBuilder,
     @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
     private alerts: TuiAlertService,
     private translate: TranslateService,
+    private router: Router,
   ) {
     this.signUpForm = this.fb.group({
       username: ['', Validators.required],
@@ -89,10 +92,10 @@ export class SignUpComponent {
         password,
       ).subscribe({
         next: () => {
-          this.alerts.open(
-            'Registration successful! Please check your email for confirmation.',
-            { appearance: 'positive' }
-          ).subscribe();
+          // Redirect to email pending page with email parameter
+          this.router.navigate(['/email-pending'], {
+            queryParams: { email: email }
+          });
         },
         error: () => {
           this.alerts.open(

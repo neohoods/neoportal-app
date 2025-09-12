@@ -1,0 +1,72 @@
+<div id="email-pending-container">
+    <div id="email-pending-form-section">
+        <img
+            class="logo"
+            src="/logo-bright.png"
+            alt="NeoHoods"
+        >
+        <h2>{{ 'emailPending.title' | translate }}</h2>
+        <p>
+            {{ 'emailPending.message' | translate }}
+        </p>
+
+        <div
+            class="email-info"
+            *ngIf="email"
+        >
+            <p>
+                <strong>{{ 'emailPending.sentTo' | translate }}</strong>
+                <br>
+                <span class="email-address">{{ email }}</span>
+            </p>
+        </div>
+
+        <div class="instructions">
+            <h3>
+                {{ 'emailPending.instructions.title' | translate }}
+            </h3>
+            <ol>
+                <li>
+                    {{ 'emailPending.instructions.step1' | translate }}
+                </li>
+                <li>
+                    {{ 'emailPending.instructions.step2' | translate }}
+                </li>
+                <li>
+                    {{ 'emailPending.instructions.step3' | translate }}
+                </li>
+            </ol>
+        </div>
+
+        <div class="actions">
+
+            <button
+                appearance="primary"
+                tuiButton
+                size="l"
+                (click)="goToSignIn()"
+            >
+                {{ 'emailPending.backToSignIn' | translate }}
+            </button>
+
+            <button
+                appearance="secondary"
+                tuiButton
+                size="l"
+                (click)="goToHome()"
+            >
+                {{ 'emailPending.backToHome' | translate }}
+            </button>
+        </div>
+
+        <div class="help-text">
+            <p>
+                {{ 'emailPending.helpText' | translate }}
+            </p>
+        </div>
+    </div>
+
+    <div id="email-pending-welcome-section">
+        <app-welcome></app-welcome>
+    </div>
+</div>

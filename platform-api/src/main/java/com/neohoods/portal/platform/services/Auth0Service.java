@@ -17,6 +17,7 @@ import com.neohoods.portal.platform.exceptions.CodedErrorException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +91,10 @@ public class Auth0Service {
             userData.put("user_metadata", userMetadata);
             userData.put("connection", connection);
 
+            // Note: returnTo is not supported in Auth0 user creation API
+            // Email verification redirect URL should be configured in Auth0 Dashboard
+            // under Applications > Settings > Advanced Settings > URLs
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
@@ -119,32 +124,33 @@ public class Auth0Service {
     /**
      * Check if a user exists in Auth0 by email
      */
-    public boolean userExists(String email) {
-        try {
-            String accessToken = getAccessToken();
-            String searchUrl = "https://" + auth0Domain + "/api/v2/users-by-email?email=" + email;
+    public Mono<Boolean> userExists(String email) {
+        return Mono.fromCallable(() -> {
+            try {
+                String accessToken = getAccessToken();
+                String searchUrl = "https://" + auth0Domain + "/api/v2/users-by-email?email=" + email;
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(accessToken);
 
-            HttpEntity<String> request = new HttpEntity<>(headers);
+                HttpEntity<String> request = new HttpEntity<>(headers);
 
-            ResponseEntity<Map[]> response = restTemplate.exchange(
-                    searchUrl,
-                    HttpMethod.GET,
-                    request,
-                    Map[].class);
+                ResponseEntity<Map[]> response = restTemplate.exchange(
+                        searchUrl,
+                        HttpMethod.GET,
+                        request,
+                        Map[].class);
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody().length > 0;
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    return response.getBody().length > 0;
+                }
+                return false;
+            } catch (Exception e) {
+                log.error("Error checking if user exists in Auth0: {}", email, e);
+                throw new CodedErrorException(CodedError.INTERNAL_ERROR,
+                        Map.of("email", email), e);
             }
-            return false;
-        } catch (Exception e) {
-            log.error("Error checking if user exists in Auth0: {}", email, e);
-            // Return false for user existence check to avoid blocking signup on Auth0
-            // errors
-            return false;
-        }
+        });
     }
 
     /**

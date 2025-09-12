@@ -71,6 +71,7 @@
     "lastName": "Nom de famille",
     "email": "Email",
     "userType": "Type d'utilisateur",
+    "userTypeHelp": "Sélectionnez votre rôle dans la résidence (propriétaire, locataire, etc.)",
     "password": "Mot de passe",
     "signUp": "S'inscrire"
   },
@@ -225,9 +226,30 @@
   "emailConfirmation": {
     "title": "Confirmation d'email",
     "message": "Vérification de votre email...",
-    "success": "Email vérifié avec succès",
-    "error": "Email non vérifié",
-    "signIn": "Se connecter"
+    "success": "Email vérifié avec succès !",
+    "successMessage": "Votre adresse email a été vérifiée avec succès. Vous pouvez maintenant vous connecter à votre compte.",
+    "redirecting": "Redirection en cours...",
+    "redirectingMessage": "Votre email a été vérifié. Vous allez être redirigé vers la page de connexion.",
+    "error": "Erreur de vérification",
+    "errorMessage": "Une erreur est survenue lors de la vérification de votre email. Veuillez réessayer.",
+    "signIn": "Se connecter",
+    "goHome": "Retour à l'accueil",
+    "tryAgain": "Réessayer"
+  },
+  "emailPending": {
+    "title": "Vérification d'email en attente",
+    "message": "Votre compte a été créé avec succès ! Veuillez vérifier votre adresse email pour activer votre compte.",
+    "sentTo": "Email envoyé à :",
+    "instructions": {
+      "title": "Instructions :",
+      "step1": "Vérifiez votre boîte email (et le dossier spam)",
+      "step2": "Cliquez sur le lien de vérification dans l'email",
+      "step3": "Revenez ici pour vous connecter"
+    },
+    "resendEmail": "Renvoyer l'email",
+    "backToSignIn": "Retour à la connexion",
+    "backToHome": "Retour à l'accueil",
+    "helpText": "Si vous ne recevez pas l'email dans les 5 minutes, vérifiez votre dossier spam ou contactez le support."
   },
   "errors": {
     "unexpected": "Une erreur inattendue est survenue",

@@ -1,58 +1,62 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { TuiButton, TuiLoader, TuiTextfield } from '@taiga-ui/core';
-import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
-import { AUTH_SERVICE_TOKEN, getGlobalProviders } from '../../../../../global.provider';
-import { AuthService } from '../../../../../services/auth.service';
+import { TuiAlertService, TuiButton } from '@taiga-ui/core';
 
 @Component({
   standalone: true,
   selector: 'app-email-confirmation',
   imports: [
-    WelcomeComponent,
     TuiButton,
-    TuiLoader,
-    TuiTextfield,
-    ReactiveFormsModule,
-    FormsModule,
     TranslateModule,
+    NgIf
   ],
   templateUrl: './email-confirmation.component.html',
-  styleUrl: './email-confirmation.component.scss',
-  providers: [...getGlobalProviders()],
-  changeDetection: ChangeDetectionStrategy.Default
+  styleUrl: './email-confirmation.component.scss'
 })
-export class EmailConfirmationComponent {
+export class EmailConfirmationComponent implements OnInit {
+  isVerified = false;
+  source = '';
+  error = '';
 
-  isLoading = false;
-  isSuccess = false;
   constructor(
-    @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
-    public router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private router: Router,
+    private alerts: TuiAlertService
   ) { }
 
   ngOnInit() {
-    this.isLoading = true;
-    const token = this.route.snapshot.queryParams['token'];
-    this.verifyEmail(token);
-  }
+    // Check URL parameters
+    this.route.queryParams.subscribe(params => {
+      this.isVerified = params['verified'] === 'true';
+      this.source = params['source'] || '';
 
-  verifyEmail(token: string) {
-    this.authService.verifyEmail(token).subscribe({
-      next: (success: boolean) => {
-        this.isSuccess = success;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isSuccess = false;
-        this.isLoading = false;
-        this.cdr.detectChanges();
+      if (this.isVerified) {
+        // Show success message and redirect to login
+        this.alerts.open(
+          'Email vérifié avec succès ! Vous pouvez maintenant vous connecter.',
+          { appearance: 'positive' }
+        ).subscribe(() => {
+          // Redirect to login after showing the message
+          this.router.navigate(['/login'], {
+            queryParams: {
+              verified: 'true',
+              message: 'email-verified'
+            }
+          });
+        });
+      } else {
+        this.error = 'Erreur lors de la vérification de l\'email';
       }
     });
+  }
+
+  goToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  goToHome() {
+    this.router.navigate(['/']);
   }
 }
