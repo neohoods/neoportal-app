@@ -13,6 +13,24 @@
     "emailSent": "Email sent",
     "redirectingToSSO": "Redirecting to SSO login..."
   },
+  "home": {
+    "heroTitle": "Welcome to NeoHoods Portal",
+    "heroSubtitle": "Your Community, Connected",
+    "heroDescription": "Join your neighborhood's digital community platform. Manage properties, connect with neighbors, and access community services all in one place.",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "featuresTitle": "Everything You Need",
+    "featuresSubtitle": "Powerful tools to manage your community life",
+    "feature1Title": "Community Management",
+    "feature1Description": "Connect with your neighbors, share announcements, and participate in community discussions.",
+    "feature2Title": "Property Management",
+    "feature2Description": "Manage your properties, track maintenance, and coordinate with property managers.",
+    "feature3Title": "Shared Resources",
+    "feature3Description": "Access shared community resources, book facilities, and borrow items from neighbors.",
+    "ctaTitle": "Ready to Get Started?",
+    "ctaDescription": "Join your community today and experience the future of neighborhood living.",
+    "getStarted": "Get Started"
+  },
   "footer": {
     "brandingAlt": "portal NeoHoods",
     "usefulLinks": "Useful links",
@@ -215,6 +233,61 @@
       "title": "Insufficient Permissions",
       "message": "You don't have sufficient permissions to perform this action.",
       "action": "Please contact an administrator if you need access."
+    },
+    "auth006": {
+      "title": "User Already Exists",
+      "message": "A user with this {{field}} already exists.",
+      "action": "Please use a different {{field}} or try signing in instead."
+    },
+    "auth007": {
+      "title": "Auth0 Registration Failed",
+      "message": "Failed to register user in Auth0. Please try again later.",
+      "action": "If the problem persists, please contact support."
+    },
+    "auth008": {
+      "title": "Auth0 Token Error",
+      "message": "Failed to get access token from Auth0. Please try again later.",
+      "action": "If the problem persists, please contact support."
+    },
+    "auth009": {
+      "title": "Invalid Email Format",
+      "message": "The email address format is invalid.",
+      "action": "Please enter a valid email address."
+    },
+    "auth010": {
+      "title": "Weak Password",
+      "message": "Password does not meet security requirements: {{reason}}",
+      "action": "Please choose a stronger password."
+    },
+    "auth011": {
+      "title": "Username Too Short",
+      "message": "Username must be at least 3 characters long.",
+      "action": "Please choose a longer username."
+    },
+    "auth012": {
+      "title": "Invalid Username Characters",
+      "message": "Username contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed.",
+      "action": "Please choose a username with valid characters only."
+    },
+    "auth013": {
+      "title": "Database Save Error",
+      "message": "Failed to save user to database. Please try again.",
+      "action": "If the problem persists, please contact support."
+    },
+    "auth014": {
+      "title": "Email Verification Token Error",
+      "message": "Failed to create email verification token. Please try again.",
+      "action": "If the problem persists, please contact support."
+    },
+    "auth015": {
+      "title": "Email Send Error",
+      "message": "Failed to send verification email. Please try again later.",
+      "action": "You can request a new verification email from your profile."
+    },
+    "auth016": {
+      "title": "Auth0 User Delete Error",
+      "message": "Failed to delete user from Auth0 during rollback. Please contact support.",
+      "action": "Please contact support to resolve this issue."
     },
    
     "res011": {

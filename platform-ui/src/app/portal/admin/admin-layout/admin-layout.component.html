@@ -54,16 +54,15 @@
       <ng-template #dropdownContent>
         <div class="dropdown">
 
-
-          <a (click)="closeMore()" routerLink="/admin/security/" routerLinkActive="active"
-            appearance="secondary-grayscale" iconStart="@tui.shield" type="button" i18n="@@borrowItemButton">
-            <tui-icon icon="@tui.shield" />
-            {{ 'adminLayout.security' | translate }}
-          </a>
           <a (click)="closeMore()" routerLink="/admin/applications/" routerLinkActive="active"
             appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
             <tui-icon icon="@tui.app-window-mac" />
             {{ 'adminLayout.applications' | translate }}
+          </a>
+          <a (click)="closeMore()" routerLink="/admin/security/" routerLinkActive="active"
+            appearance="secondary-grayscale" iconStart="@tui.shield" type="button" i18n="@@borrowItemButton">
+            <tui-icon icon="@tui.shield" />
+            {{ 'adminLayout.security' | translate }}
           </a>
 
         </div>
@@ -71,15 +70,15 @@
     </button>
     } @else {
 
-    <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
-      type="button" i18n="@@borrowItemButton">
-      <tui-icon icon="@tui.shield" />
-      {{ 'adminLayout.security' | translate }}
-    </a>
     <a (click)="closeMore()" routerLink="/admin/applications/" routerLinkActive="active"
-    appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
-    <tui-icon icon="@tui.app-window-mac" />
-    {{ 'adminLayout.applications' | translate }}
+      appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.app-window-mac" />
+      {{ 'adminLayout.applications' | translate }}
+    </a>
+    <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
+    type="button" i18n="@@borrowItemButton">
+    <tui-icon icon="@tui.shield" />
+    {{ 'adminLayout.security' | translate }}
   </a>
 
     }

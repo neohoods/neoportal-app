@@ -88,20 +88,6 @@
 
             <tui-textfield class="form-field">
                 <label tuiLabel>
-                    {{ 'security.ssoTokenEndpoint' | translate }}
-                </label>
-                <input
-                    formControlName="ssoTokenEndpoint"
-                    type="text"
-                    tuiTextfield
-                    placeholder="https://your-provider.com/oauth/token"
-                    autocomplete="off"
-                    data-lpignore="true"
-                >
-            </tui-textfield>
-
-            <tui-textfield class="form-field">
-                <label tuiLabel>
                     {{ 'security.ssoAuthorizationEndpoint' | translate }}
                 </label>
                 <input
@@ -109,6 +95,20 @@
                     type="text"
                     tuiTextfield
                     placeholder="https://your-provider.com/oauth/authorize"
+                    autocomplete="off"
+                    data-lpignore="true"
+                >
+            </tui-textfield>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel>
+                    {{ 'security.ssoTokenEndpoint' | translate }}
+                </label>
+                <input
+                    formControlName="ssoTokenEndpoint"
+                    type="text"
+                    tuiTextfield
+                    placeholder="https://your-provider.com/oauth/token"
                     autocomplete="off"
                     data-lpignore="true"
                 >

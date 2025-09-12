@@ -2,7 +2,9 @@ package com.neohoods.portal.platform.api.publicapi.auth;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,6 +25,8 @@ import org.springframework.web.server.ServerWebExchange;
 import com.neohoods.portal.platform.api.AuthApiApiDelegate;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
+import com.neohoods.portal.platform.exceptions.CodedError;
+import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.ConfirmResetPasswordRequest;
 import com.neohoods.portal.platform.model.LoginRequest;
 import com.neohoods.portal.platform.model.ResetPasswordRequest;
@@ -30,10 +34,11 @@ import com.neohoods.portal.platform.model.SignUpRequest;
 import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.model.VerifyEmail200Response;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.services.Auth0Service;
 import com.neohoods.portal.platform.services.JwtService;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.UsersService;
-import com.nimbusds.jose.JOSEException;
+import com.neohoods.portal.platform.services.ValidationService;
 import com.nimbusds.jwt.JWTClaimsSet;
 
 import lombok.RequiredArgsConstructor;
@@ -52,6 +57,8 @@ public class AuthApi implements AuthApiApiDelegate {
         private final MailService mailService;
         private final JwtService jwtService;
         private final UsersService usersService;
+        private final Auth0Service auth0Service;
+        private final ValidationService validationService;
 
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;
@@ -110,63 +117,143 @@ public class AuthApi implements AuthApiApiDelegate {
                 return signUpRequest.flatMap(request -> {
                         log.info("Processing signup request for username: {}", request.getUsername());
 
-                        UserEntity user = usersRepository.findByUsername(request.getUsername());
-                        if (user != null) {
-                                log.warn("Signup failed: Username already exists: {}", request.getUsername());
-                                return Mono.error(new BadCredentialsException("User already exists"));
-                        }
-
-                        UserEntity newUser = new UserEntity();
-                        newUser.setId(UUID.randomUUID());
-                        newUser.setUsername(request.getUsername());
-                        String encodedPassword = passwordEncoder.encode(request.getPassword());
-                        newUser.setPassword(encodedPassword);
-                        newUser.setEmail(request.getEmail());
-                        newUser.setRoles(Set.of("hub-user", "admin"));
-                        newUser.setType(UserType.fromOpenApiUserType(request.getType()));
-
-                        log.debug("Created new user entity with ID: {}", newUser.getId());
-                        usersRepository.save(newUser);
-                        log.info("Saved new user: {}", newUser.getUsername());
-
                         try {
-                                JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
-                                                .subject(newUser.getUsername())
-                                                .expirationTime(new Date(
-                                                                System.currentTimeMillis() + 1000 * 60 * 60 * 24))
-                                                .claim("type", "E_VERIFY")
-                                                .claim("email", newUser.getEmail());
+                                // Step 1: Validate input
+                                validationService.validateSignUpRequest(request);
+                                log.debug("Input validation passed for username: {}", request.getUsername());
 
-                                String token = jwtService.createToken(claimsBuilder);
-                                log.debug("Created verification token for user: {}", newUser.getUsername());
+                                // Step 2: Check if user already exists locally
+                                UserEntity existingUser = usersRepository.findByUsername(request.getUsername());
+                                if (existingUser != null) {
+                                        log.warn("Signup failed: Username already exists: {}", request.getUsername());
+                                        return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
+                                                        "username", request.getUsername()));
+                                }
 
-                                var usernameVar = MailService.TemplateVariable.builder()
-                                                .type(MailService.TemplateVariableType.RAW)
-                                                .ref("username")
-                                                .value(newUser.getUsername())
-                                                .build();
+                                // Step 3: Check if user exists in Auth0
+                                if (auth0Service.userExists(request.getEmail())) {
+                                        log.warn("Signup failed: User already exists in Auth0: {}", request.getEmail());
+                                        return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
+                                                        "email", request.getEmail()));
+                                }
 
-                                var verifUrlVar = MailService.TemplateVariable.builder()
-                                                .type(MailService.TemplateVariableType.RAW)
-                                                .ref("verif_url")
-                                                .value(frontendUrl + "/email-confirmation?token=" + token)
-                                                .build();
+                                // Step 4: Register user in Auth0
+                                Map<String, Object> userMetadata = new HashMap<>();
+                                userMetadata.put("username", request.getUsername());
+                                userMetadata.put("type", request.getType().toString());
+                                userMetadata.put("firstName", request.getFirstName());
+                                userMetadata.put("lastName", request.getLastName());
 
-                                mailService.sendTemplatedEmail(
-                                                newUser,
-                                                "Welcome to portal NeoHoods",
-                                                "email/signup-email-verif",
-                                                Arrays.asList(usernameVar, verifUrlVar),
-                                                newUser.getLocale());
+                                try {
+                                        auth0Service.registerUser(
+                                                        request.getEmail(),
+                                                        request.getPassword(),
+                                                        request.getUsername(),
+                                                        userMetadata);
+                                        log.info("Successfully registered user in Auth0: {}", request.getEmail());
+                                } catch (CodedErrorException e) {
+                                        log.error("Failed to register user in Auth0: {}", request.getEmail(), e);
+                                        return Mono.error(e);
+                                }
 
-                                log.info("Sent verification email to: {}", request.getEmail());
+                                // Step 5: Save user to local database
+                                UserEntity newUser = createUserEntity(request);
+
+                                try {
+                                        usersRepository.save(newUser);
+                                        log.info("Successfully saved user to local database: {}",
+                                                        newUser.getUsername());
+                                } catch (Exception e) {
+                                        log.error("Failed to save user to local database: {}", newUser.getUsername(),
+                                                        e);
+
+                                        // Rollback: Delete user from Auth0
+                                        try {
+                                                auth0Service.deleteUser(request.getEmail());
+                                                log.info("Successfully rolled back Auth0 user: {}", request.getEmail());
+                                        } catch (Exception rollbackException) {
+                                                log.error("Failed to rollback Auth0 user: {}", request.getEmail(),
+                                                                rollbackException);
+                                        }
+
+                                        return Mono.error(new CodedErrorException(CodedError.DATABASE_SAVE_ERROR,
+                                                        Map.of("username", request.getUsername()), e));
+                                }
+
+                                // Step 6: Send verification email
+                                try {
+                                        sendVerificationEmail(newUser);
+                                        log.info("Successfully sent verification email to: {}", request.getEmail());
+                                } catch (Exception e) {
+                                        log.error("Failed to send verification email to: {}", request.getEmail(), e);
+
+                                        // Don't rollback the user creation for email failures
+                                        // The user can request a new verification email later
+                                        return Mono.error(new CodedErrorException(CodedError.EMAIL_SEND_ERROR,
+                                                        Map.of("email", request.getEmail()), e));
+                                }
+
                                 return Mono.just(ResponseEntity.status(HttpStatus.CREATED).build());
-                        } catch (JOSEException e) {
-                                log.error("Failed to create email verification token for user: {}",
-                                                newUser.getUsername(), e);
-                                return Mono.error(new InternalError("Failed to create email verification token"));
+
+                        } catch (CodedErrorException e) {
+                                // Re-throw coded exceptions as-is
+                                return Mono.error(e);
+                        } catch (Exception e) {
+                                log.error("Unexpected error during signup for username: {}", request.getUsername(), e);
+                                return Mono.error(new CodedErrorException(CodedError.INTERNAL_ERROR,
+                                                Map.of("username", request.getUsername()), e));
                         }
                 });
+        }
+
+        /**
+         * Creates a new UserEntity from the signup request
+         */
+        private UserEntity createUserEntity(SignUpRequest request) {
+                UserEntity newUser = new UserEntity();
+                newUser.setId(UUID.randomUUID());
+                newUser.setUsername(request.getUsername());
+                String encodedPassword = passwordEncoder.encode(request.getPassword());
+                newUser.setPassword(encodedPassword);
+                newUser.setEmail(request.getEmail());
+                newUser.setFirstName(request.getFirstName());
+                newUser.setLastName(request.getLastName());
+                newUser.setRoles(Set.of("hub-user"));
+                newUser.setType(UserType.fromOpenApiUserType(request.getType()));
+                return newUser;
+        }
+
+        /**
+         * Sends verification email to the user
+         */
+        private void sendVerificationEmail(UserEntity user) throws Exception {
+                JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
+                                .subject(user.getUsername())
+                                .expirationTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                                .claim("type", "E_VERIFY")
+                                .claim("email", user.getEmail());
+
+                String token = jwtService.createToken(claimsBuilder);
+                log.debug("Created verification token for user: {}", user.getUsername());
+
+                var usernameVar = MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("username")
+                                .value(user.getUsername())
+                                .build();
+
+                var verifUrlVar = MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("verif_url")
+                                .value(frontendUrl + "/email-confirmation?token=" + token)
+                                .build();
+
+                mailService.sendTemplatedEmail(
+                                user,
+                                "Welcome to portal NeoHoods",
+                                "email/signup-email-verif",
+                                Arrays.asList(usernameVar, verifUrlVar),
+                                user.getLocale());
         }
 
         @Override

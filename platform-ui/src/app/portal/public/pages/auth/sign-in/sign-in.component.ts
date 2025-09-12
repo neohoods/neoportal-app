@@ -96,7 +96,10 @@ export class SignInComponent implements OnInit {
   loginWithSSO() {
     this.authService.generateSSOLoginUrl().subscribe((url: string) => {
       if (url) {
-        window.location.href = url;
+        // Add a 2-second delay to show the redirecting message
+        setTimeout(() => {
+          window.location.href = url;
+        }, 2000);
       } else {
         this.alerts.open(
           'Failed to generate SSO login URL',

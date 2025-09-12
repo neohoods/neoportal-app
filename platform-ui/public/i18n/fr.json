@@ -17,6 +17,24 @@
     "rentPortal": "Bienvenue sur votre portail communautaire",
     "rentPortalDescription": "Gérez votre communauté, vos propriétés et vos services en toute simplicité. Connectez-vous avec vos voisins et profitez d'une vie communautaire harmonieuse."
   },
+  "home": {
+    "heroTitle": "Bienvenue sur le Portail NeoHoods",
+    "heroSubtitle": "Votre Communauté, Connectée",
+    "heroDescription": "Rejoignez la plateforme communautaire numérique de votre quartier. Gérez vos propriétés, connectez-vous avec vos voisins et accédez aux services communautaires en un seul endroit.",
+    "signIn": "Se connecter",
+    "createAccount": "Créer un compte",
+    "featuresTitle": "Tout ce dont vous avez besoin",
+    "featuresSubtitle": "Des outils puissants pour gérer votre vie communautaire",
+    "feature1Title": "Gestion Communautaire",
+    "feature1Description": "Connectez-vous avec vos voisins, partagez des annonces et participez aux discussions communautaires.",
+    "feature2Title": "Gestion Immobilière",
+    "feature2Description": "Gérez vos propriétés, suivez la maintenance et coordonnez-vous avec les gestionnaires immobiliers.",
+    "feature3Title": "Ressources Partagées",
+    "feature3Description": "Accédez aux ressources communautaires partagées, réservez des équipements et empruntez des objets à vos voisins.",
+    "ctaTitle": "Prêt à commencer ?",
+    "ctaDescription": "Rejoignez votre communauté dès aujourd'hui et découvrez l'avenir de la vie de quartier.",
+    "getStarted": "Commencer"
+  },
   "timeline": {
     "reservation": "Réservation",
     "reservation-unconfirmed": "En attente de confirmation de la réservation",
@@ -241,6 +259,61 @@
       "title": "Permissions insuffisantes",
       "message": "Vous n'avez pas les permissions suffisantes pour effectuer cette action.",
       "action": "Veuillez contacter un administrateur si vous avez besoin d'accès."
+    },
+    "auth006": {
+      "title": "Utilisateur déjà existant",
+      "message": "Un utilisateur avec ce {{field}} existe déjà.",
+      "action": "Veuillez utiliser un {{field}} différent ou essayer de vous connecter."
+    },
+    "auth007": {
+      "title": "Échec de l'inscription Auth0",
+      "message": "Échec de l'inscription de l'utilisateur dans Auth0. Veuillez réessayer plus tard.",
+      "action": "Si le problème persiste, veuillez contacter le support."
+    },
+    "auth008": {
+      "title": "Erreur de jeton Auth0",
+      "message": "Échec de l'obtention du jeton d'accès depuis Auth0. Veuillez réessayer plus tard.",
+      "action": "Si le problème persiste, veuillez contacter le support."
+    },
+    "auth009": {
+      "title": "Format d'email invalide",
+      "message": "Le format de l'adresse email est invalide.",
+      "action": "Veuillez saisir une adresse email valide."
+    },
+    "auth010": {
+      "title": "Mot de passe faible",
+      "message": "Le mot de passe ne respecte pas les exigences de sécurité : {{reason}}",
+      "action": "Veuillez choisir un mot de passe plus fort."
+    },
+    "auth011": {
+      "title": "Nom d'utilisateur trop court",
+      "message": "Le nom d'utilisateur doit contenir au moins 3 caractères.",
+      "action": "Veuillez choisir un nom d'utilisateur plus long."
+    },
+    "auth012": {
+      "title": "Caractères de nom d'utilisateur invalides",
+      "message": "Le nom d'utilisateur contient des caractères invalides. Seules les lettres, chiffres, tirets bas et tirets sont autorisés.",
+      "action": "Veuillez choisir un nom d'utilisateur avec des caractères valides uniquement."
+    },
+    "auth013": {
+      "title": "Erreur de sauvegarde en base",
+      "message": "Échec de la sauvegarde de l'utilisateur en base de données. Veuillez réessayer.",
+      "action": "Si le problème persiste, veuillez contacter le support."
+    },
+    "auth014": {
+      "title": "Erreur de jeton de vérification email",
+      "message": "Échec de la création du jeton de vérification email. Veuillez réessayer.",
+      "action": "Si le problème persiste, veuillez contacter le support."
+    },
+    "auth015": {
+      "title": "Erreur d'envoi d'email",
+      "message": "Échec de l'envoi de l'email de vérification. Veuillez réessayer plus tard.",
+      "action": "Vous pouvez demander un nouvel email de vérification depuis votre profil."
+    },
+    "auth016": {
+      "title": "Erreur de suppression d'utilisateur Auth0",
+      "message": "Échec de la suppression de l'utilisateur d'Auth0 lors du rollback. Veuillez contacter le support.",
+      "action": "Veuillez contacter le support pour résoudre ce problème."
     },
     "res011": {
       "title": "Paramètres non trouvés",
