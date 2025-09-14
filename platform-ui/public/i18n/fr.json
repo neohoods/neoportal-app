@@ -284,8 +284,8 @@
     },
     "auth006": {
       "title": "Utilisateur déjà existant",
-      "message": "Un utilisateur avec ce {{field}} existe déjà.",
-      "action": "Veuillez utiliser un {{field}} différent ou essayer de vous connecter."
+      "message": "Un utilisateur avec ces informations existe déjà.",
+      "action": "Veuillez utiliser des informations différentes ou essayer de vous connecter."
     },
     "auth007": {
       "title": "Échec de l'inscription Auth0",
@@ -544,6 +544,14 @@
       "GUEST": "Invité"
     }
   },
+  "password": {
+    "validation": {
+      "tooShort": "Le mot de passe doit contenir au moins 8 caractères",
+      "missingUppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
+      "missingLowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
+      "missingNumber": "Le mot de passe doit contenir au moins un chiffre"
+    }
+  },
   "property": {
     "type": {
       "APARTMENT": "Appartement",
@@ -572,5 +580,10 @@
       "country": "Pays",
       "properties": "Propriétés"
     }
+  },
+  "helpCenter": {
+    "searchPlaceholder": "Rechercher dans l'aide...",
+    "searchResults": "Résultats de recherche",
+    "noArticlesFound": "Aucun article trouvé"
   }
 }

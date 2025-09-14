@@ -13,6 +13,20 @@
     "emailSent": "Email sent",
     "redirectingToSSO": "Redirecting to SSO login..."
   },
+  "welcome": {
+    "rentPortal": "Welcome to your community portal",
+    "rentPortalDescription": "Manage your community, properties and services with ease. Connect with your neighbors and enjoy harmonious community living."
+  },
+  "timeline": {
+    "reservation": "Reservation",
+    "reservation-unconfirmed": "Pending reservation confirmation",
+    "start": "Start",
+    "pickup": "Pickup",
+    "pickup-unconfirmed": "Pending pickup confirmation",
+    "end": "End",
+    "return": "Return",
+    "return-unconfirmed": "Pending return confirmation"
+  },
   "home": {
     "heroTitle": "Welcome to NeoHoods Portal",
     "heroSubtitle": "Your Community, Connected",
@@ -106,6 +120,11 @@
     "postalCodePlaceholder": "Enter your postal code",
     "country": "Country",
     "countryPlaceholder": "Enter your country",
+    "propertiesTitle": "Manage your properties",
+    "properties": {
+      "title": "Properties",
+      "description": "Add properties you own as an owner or occupy as a tenant."
+    },
     "ownedProperties": "Owned Properties",
     "property": "Property",
     "propertyName": "Property Name",
@@ -127,7 +146,9 @@
     "more": "More",
     "categories": "Categories",
     "security": "Security",
-    "pages": "Pages"
+    "pages": "Pages",
+    "applications": "Applications",
+    "infos": "Info"
   },
   
   "editUser": {
@@ -192,7 +213,7 @@
       "username": "Username",
       "email": "Email",
       "flatNumber": "Flat Number",
-      "address": "Address",
+      "address": "Address"
     }
   },
   
@@ -489,5 +510,107 @@
     "previous": "Previous",
     "next": "Next",
     "items-per-page": "Items per page"
+  },
+  "password": {
+    "validation": {
+      "tooShort": "Password must be at least 8 characters long",
+      "missingUppercase": "Password must contain at least one uppercase letter",
+      "missingLowercase": "Password must contain at least one lowercase letter",
+      "missingNumber": "Password must contain at least one number"
+    }
+  },
+  "helpCenter": {
+    "searchPlaceholder": "Search help articles...",
+    "searchResults": "Search Results",
+    "noArticlesFound": "No articles found"
+  },
+  "settings": {
+    "more": "More",
+    "profile": "Profile",
+    "properties": "Properties",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "editTitle": "Notification Settings",
+    "enableNotifications": "Enable notifications",
+    "adminNewUser": "New user registered",
+    "moreButton": "More",
+    "saveButton": "Save"
+  },
+  "editApplication": {
+    "editTitle": "Edit Application",
+    "name": "Name",
+    "url": "URL",
+    "icon": "Icon",
+    "helpText": "Help Text",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel"
+  },
+  "tosTable": {
+    "columnsVisibility": "Columns Visibility",
+    "filterPlaceholder": "Filter results..."
+  },
+  "infos": {
+    "settings": "Information",
+    "tabs": {
+      "general": {
+        "title": "General",
+        "description": "General information about the building"
+      },
+      "delegates": {
+        "title": "Board Members",
+        "description": "Building board members"
+      },
+      "contactNumbers": {
+        "title": "Contacts",
+        "description": "Board and emergency contacts"
+      }
+    },
+    "nextAGDate": "Next AGM",
+    "rulesUrl": "Rules URL",
+    "delegates": "Board members",
+    "delegate": {
+      "title": "Delegate",
+      "building": "Building",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "matrixUser": "Matrix User"
+    },
+    "building": "Building",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "matrixUser": "Matrix User",
+    "addDelegate": "Add delegate",
+    "remove": "Remove",
+    "save": "Save",
+    "contactNumbers": {
+      "title": "Contact Numbers",
+      "type": "Type",
+      "number": "Number",
+      "description": "Description",
+      "availability": "Availability",
+      "responseTime": "Response Time",
+      "syndic": {
+        "title": "Property Manager Contact",
+        "name": "Name",
+        "email": "Email",
+        "phoneNumber": "Phone Number",
+        "officeHours": "Office Hours",
+        "address": "Address"
+      },
+      "emergency": {
+        "title": "Emergency Contacts",
+        "contact": "Emergency contact",
+        "addContact": "Add emergency contact",
+        "name": "Name",
+        "email": "Email",
+        "phoneNumber": "Phone Number",
+        "officeHours": "Office Hours",
+        "address": "Address"
+      }
+    }
   }
 }

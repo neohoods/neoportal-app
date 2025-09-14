@@ -20,11 +20,11 @@ openapi:
 
 neohoods:
   portal:
-    base-url: http://local.portal.neohoods.com:4200
-    frontend-url: http://local.portal.neohoods.com:4200
+    base-url: https://local.portal.neohoods.com:4200
+    frontend-url: https://local.portal.neohoods.com:4200
     email:
       template:
-        logo-url: http://local.portal.neohoods.com:4200/logo-simple.png
+        logo-url: https://local.portal.neohoods.com:4200/logo-simple.png
         app-name: portal NeoHoods
     auth0:
       domain: ${AUTH0_DOMAIN:terresdelaya.eu.auth0.com}
@@ -35,7 +35,7 @@ neohoods:
 mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:
-    email: dev@mail.portal.neohoods.com
+    email: dev@mail.neohoods.com
     name: portal NeoHoods dev environment
 spring:
   datasource:

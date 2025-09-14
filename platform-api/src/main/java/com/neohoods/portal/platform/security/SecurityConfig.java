@@ -3,6 +3,7 @@ package com.neohoods.portal.platform.security;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,9 @@ import reactor.core.publisher.Mono;
 public class SecurityConfig {
     @Autowired
     private ReactiveUserDetailsService userDetailsService;
+
+    @Value("${neohoods.portal.frontend-url}")
+    private String frontendUrl;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -70,11 +74,10 @@ public class SecurityConfig {
         return resolver;
     }
 
-    // CORS configuration to allow requests from http://localhost:4200
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("http://local.portal.neohoods.com:4200"); // Allow only requests from this origin
+        corsConfiguration.addAllowedOrigin(frontendUrl); // Allow only requests from this origin
         corsConfiguration.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
         corsConfiguration.addAllowedHeader("*"); // Allow all headers
         corsConfiguration.setAllowCredentials(true); // Allow credentials (cookies, authentication headers, etc.)

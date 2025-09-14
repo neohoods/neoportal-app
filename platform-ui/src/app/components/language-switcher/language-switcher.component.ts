@@ -1,18 +1,18 @@
 import { NgForOf, TitleCasePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { TUI_DOC_ICONS } from '@taiga-ui/addon-doc/tokens';
 import { TuiButton } from '@taiga-ui/core/components/button';
-import { TuiDataList } from '@taiga-ui/core/components/data-list';
+import { TuiDataList, TuiOptGroup, TuiOption } from '@taiga-ui/core/components/data-list';
 import { tuiScrollbarOptionsProvider } from '@taiga-ui/core/components/scrollbar';
 import { TuiTextfield } from '@taiga-ui/core/components/textfield';
+import { TuiDropdown } from '@taiga-ui/core/directives/dropdown';
 import { TuiFlagPipe } from '@taiga-ui/core/pipes/flag';
 import type { TuiCountryIsoCode, TuiLanguageName } from '@taiga-ui/i18n/types';
 import { TuiLanguageSwitcherService } from '@taiga-ui/i18n/utils';
 import { TuiBadge } from '@taiga-ui/kit/components/badge';
 import { TuiBadgedContent } from '@taiga-ui/kit/components/badged-content';
-import { TuiButtonSelect } from '@taiga-ui/kit/directives/button-select';
 
 @Component({
   selector: 'language-switcher',
@@ -23,8 +23,10 @@ import { TuiButtonSelect } from '@taiga-ui/kit/directives/button-select';
     TuiBadge,
     TuiBadgedContent,
     TuiButton,
-    TuiButtonSelect,
     TuiDataList,
+    TuiOption,
+    TuiOptGroup,
+    TuiDropdown,
     TuiFlagPipe,
     TuiTextfield,
   ], templateUrl: './language-switcher.component.html',
@@ -32,14 +34,24 @@ import { TuiButtonSelect } from '@taiga-ui/kit/directives/button-select';
   providers: [tuiScrollbarOptionsProvider({ mode: 'hover' })],
 
 })
-export class LanguageSwitcherComponent {
+export class LanguageSwitcherComponent implements OnInit {
   protected readonly icons = inject(TUI_DOC_ICONS);
   protected readonly switcher = inject(TuiLanguageSwitcherService);
-  protected readonly language = new FormControl(capitalize(this.switcher.language));
+  protected readonly language = new FormControl('');
 
-  constructor(private translate: TranslateService) {
+  constructor(public translate: TranslateService) {
     this.translate.addLangs(['fr', 'en']);
-    this.translate.setDefaultLang(this.translate.defaultLang ?? 'en');
+    this.translate.setDefaultLang('en');
+  }
+
+  ngOnInit(): void {
+    // Initialize language based on current translation service language
+    const currentLang = this.translate.currentLang || this.translate.defaultLang || 'en';
+    const languageName = this.getLanguageNameFromCode(currentLang);
+    this.language.setValue(capitalize(languageName));
+
+    // Set the UI language switcher to match
+    this.switcher.setLanguage(languageName);
   }
 
   protected open = false;
@@ -57,10 +69,16 @@ export class LanguageSwitcherComponent {
   public readonly names: TuiLanguageName[] = Array.from(this.flags.keys());
 
   public setLang(lang: TuiLanguageName): void {
-    this.language.setValue(lang);
+    this.language.setValue(capitalize(lang));
     this.switcher.setLanguage(lang);
     this.open = false;
-    this.translate.use(this.languageCodes.get(lang) ?? 'en');
+    const langCode = this.languageCodes.get(lang) ?? 'en';
+    this.translate.use(langCode);
+  }
+
+  public getLanguageNameFromCode(code: string): TuiLanguageName {
+    const entry = Array.from(this.languageCodes.entries()).find(([, c]) => c === code);
+    return entry ? entry[0] : 'english';
   }
 }
 

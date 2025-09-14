@@ -82,22 +82,22 @@ public class ValidationService {
 
         if (password.length() < 8) {
             throw new CodedErrorException(CodedError.WEAK_PASSWORD, "reason",
-                    "Password must be at least 8 characters long");
+                    "Le mot de passe doit contenir au moins 8 caractères");
         }
 
         if (!password.matches(".*[A-Z].*")) {
             throw new CodedErrorException(CodedError.WEAK_PASSWORD, "reason",
-                    "Password must contain at least one uppercase letter");
+                    "Le mot de passe doit contenir au moins une lettre majuscule");
         }
 
         if (!password.matches(".*[a-z].*")) {
             throw new CodedErrorException(CodedError.WEAK_PASSWORD, "reason",
-                    "Password must contain at least one lowercase letter");
+                    "Le mot de passe doit contenir au moins une lettre minuscule");
         }
 
         if (!password.matches(".*\\d.*")) {
             throw new CodedErrorException(CodedError.WEAK_PASSWORD, "reason",
-                    "Password must contain at least one number");
+                    "Le mot de passe doit contenir au moins un chiffre");
         }
     }
 

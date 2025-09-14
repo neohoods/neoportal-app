@@ -115,7 +115,7 @@
               "host": "local.portal.neohoods.com",
               "port": 4200,
               "proxyConfig": "proxy.conf.json",
-              "ssl": false,
+              "ssl": true,
               "sslKey": "ssl/server.key",
               "sslCert": "ssl/server.crt"
             },
@@ -123,7 +123,7 @@
               "host": "local.portal.neohoods.com",
               "port": 4200,
               "buildTarget": "platform-ui:build:mock-test",
-              "ssl": false,
+              "ssl": true,
               "sslKey": "ssl/server.key",
               "sslCert": "ssl/server.crt"
             }

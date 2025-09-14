@@ -78,14 +78,14 @@ function showError(alertService: TuiAlertService, translate: TranslateService, e
 
             let message = errorTranslation.message;
 
-            // Add documentation link if available
-            if (error.documentationUrl) {
-                message += `<a href="${error.documentationUrl}" target="_blank">${translate.instant('errors.learnMore')}</a><br><br>`;
-            }
+            // Add documentation link if available (disabled for now)
+            // if (error.documentationUrl) {
+            //     message += `<a href="${error.documentationUrl}" target="_blank">${translate.instant('errors.learnMore')}</a><br><br>`;
+            // }
 
             // Add trace ID if available
             if (error.traceId) {
-                message += `\n\n${translate.instant('errors.supportReference', { traceId: error.traceId })}`;
+                message += `<br><br>${translate.instant('errors.supportReference', { traceId: error.traceId })}`;
             }
 
             // Add action if available
