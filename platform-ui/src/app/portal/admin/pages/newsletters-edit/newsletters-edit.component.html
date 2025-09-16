@@ -28,12 +28,12 @@
             </div>
 
             <div class="form-field">
-                <label tuiLabel>{{ 'newsletters.audience.title' | translate }}</label>
                 <tui-select
                     formControlName="audienceType"
                     [readOnly]="!canEdit"
                     [stringify]="stringifyAudienceType"
                 >
+                {{ 'newsletters.audience.title' | translate }}
                     <input
                         tuiTextfieldLegacy
                         [placeholder]="'newsletters.audience.selectType' | translate"
@@ -50,53 +50,47 @@
                 {{ item.label | translate }}
             </ng-template>
 
-            <ng-template #userTypeContent let-item>
-                {{ item.label | translate }}
-            </ng-template>
 
-            <ng-template #userContent let-item>
-                {{ item.firstName }} {{ item.lastName }} ({{ item.email }})
-            </ng-template>
 
             @if (newsletterForm.get('audienceType')?.value?.value === 'USER_TYPES') {
                 <div class="form-field">
                     <label tuiLabel>{{ 'newsletters.audience.userTypes' | translate }}</label>
-                    <tui-multi-select
-                        formControlName="selectedUserTypes"
-                        [readOnly]="!canEdit"
-                        [stringify]="stringifyUserType"
-                    >
+                    <tui-textfield multi tuiChevron [stringify]="stringifyUserType">
                         <input
-                            tuiTextfieldLegacy
-                            [placeholder]="'newsletters.audience.selectUserTypes' | translate"
+                            tuiInputChip
+                            [placeholder]="selectedUserTypes.length ? '' : 'newsletters.audience.selectUserTypes' | translate"
+                            [(ngModel)]="selectedUserTypes"
+                            [ngModelOptions]="{standalone: true}"
+                            [disabled]="!canEdit"
                         />
                         <tui-data-list-wrapper
-                            *tuiDataList
+                            *tuiTextfieldDropdown
+                            new
+                            tuiMultiSelectGroup
                             [items]="userTypes"
-                            [itemContent]="userTypeContent"
-                        ></tui-data-list-wrapper>
-                    </tui-multi-select>
+                        />
+                    </tui-textfield>
                 </div>
             }
 
             @if (newsletterForm.get('audienceType')?.value?.value === 'SPECIFIC_USERS') {
                 <div class="form-field">
                     <label tuiLabel>{{ 'newsletters.audience.specificUsers' | translate }}</label>
-                    <tui-multi-select
-                        formControlName="selectedUserIds"
-                        [readOnly]="!canEdit"
-                        [stringify]="stringifyUser"
-                    >
+                    <tui-textfield multi tuiChevron [stringify]="stringifyUser">
                         <input
-                            tuiTextfieldLegacy
-                            [placeholder]="'newsletters.audience.selectUsers' | translate"
+                            tuiInputChip
+                            [placeholder]="selectedUserIds.length ? '' : 'newsletters.audience.selectUsers' | translate"
+                            [(ngModel)]="selectedUserIds"
+                            [ngModelOptions]="{standalone: true}"
+                            [disabled]="!canEdit"
                         />
                         <tui-data-list-wrapper
-                            *tuiDataList
+                            *tuiTextfieldDropdown
+                            new
+                            tuiMultiSelectGroup
                             [items]="availableUsers"
-                            [itemContent]="userContent"
-                        ></tui-data-list-wrapper>
-                    </tui-multi-select>
+                        />
+                    </tui-textfield>
                     <small class="help-text">{{ 'newsletters.audience.specificUsersHelp' | translate }}</small>
                 </div>
             }

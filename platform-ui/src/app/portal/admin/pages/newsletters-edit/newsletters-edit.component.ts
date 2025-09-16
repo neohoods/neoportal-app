@@ -11,7 +11,15 @@ import {
     TuiLoader,
     TuiTextfield
 } from '@taiga-ui/core';
-import { TuiInputModule, TuiMultiSelectModule, TuiSelectModule } from '@taiga-ui/legacy';
+import {
+    TuiChevron,
+    TuiDataListWrapper,
+    TuiFilterByInputPipe,
+    TuiHideSelectedPipe,
+    TuiInputChip,
+    TuiMultiSelect
+} from '@taiga-ui/kit';
+import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
 import { QuillModule } from 'ngx-quill';
 import { CreateNewsletterRequest, NewsletterStatus, UINewsletter, UINewsletterAudience, UpdateNewsletterRequest } from '../../../../models/UINewsletter';
 import { NEWSLETTERS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../admin.providers';
@@ -32,7 +40,12 @@ import { UsersService } from '../../services/users.service';
         TuiTextfield,
         TuiInputModule,
         TuiSelectModule,
-        TuiMultiSelectModule,
+        TuiChevron,
+        TuiInputChip,
+        TuiDataListWrapper,
+        TuiFilterByInputPipe,
+        TuiHideSelectedPipe,
+        TuiMultiSelect,
         TuiLoader,
         QuillModule
     ],
@@ -54,11 +67,9 @@ export class NewslettersEditComponent implements OnInit {
         { value: 'SPECIFIC_USERS', label: 'newsletters.audience.specificUsers' }
     ];
 
-    userTypes = [
-        { value: 'OWNER', label: 'newsletters.userTypes.owner' },
-        { value: 'TENANT', label: 'newsletters.userTypes.tenant' },
-        { value: 'ADMIN', label: 'newsletters.userTypes.admin' }
-    ];
+    userTypes = ['OWNER', 'TENANT', 'ADMIN'];
+    selectedUserTypes: string[] = [];
+    selectedUserIds: string[] = [];
 
     availableUsers: any[] = []; // Will be loaded from API
 
@@ -67,13 +78,13 @@ export class NewslettersEditComponent implements OnInit {
         if (!item || !item.label) return '';
         return this.translate.instant(item.label);
     };
-    stringifyUserType = (item: any) => {
-        if (!item || !item.label) return '';
-        return this.translate.instant(item.label);
+
+    stringifyUserType = (userType: string): string => {
+        return this.translate.instant(`newsletters.userTypes.${userType.toLowerCase()}`);
     };
-    stringifyUser = (item: any) => {
-        if (!item || !item.firstName || !item.lastName || !item.email) return '';
-        return `${item.firstName} ${item.lastName} (${item.email})`;
+
+    stringifyUser = (user: any): string => {
+        return user ? `${user.firstName} ${user.lastName}` : '';
     };
 
     editorConfig = {
@@ -105,8 +116,6 @@ export class NewslettersEditComponent implements OnInit {
             subject: ['', [Validators.required, Validators.maxLength(255)]],
             content: ['', [Validators.required]],
             audienceType: [this.audienceTypes[0], [Validators.required]], // Initialize with the first object
-            selectedUserTypes: [[]],
-            selectedUserIds: [[]]
         });
     }
 
@@ -154,9 +163,12 @@ export class NewslettersEditComponent implements OnInit {
                     subject: newsletter.subject,
                     content: newsletter.content,
                     audienceType: audienceTypeObject,
-                    selectedUserTypes: newsletter.audience?.userTypes || [],
-                    selectedUserIds: newsletter.audience?.userIds || []
                 });
+
+                // Set the selected values for the chips
+                this.selectedUserTypes = newsletter.audience?.userTypes || [];
+                this.selectedUserIds = newsletter.audience?.userIds || [];
+
                 this.isLoading = false;
             },
             error: (error) => {
@@ -188,9 +200,13 @@ export class NewslettersEditComponent implements OnInit {
     private createNewsletter(formValue: any): void {
         this.isLoading = true;
         const audience: UINewsletterAudience = {
-            type: formValue.audienceType,
-            userTypes: formValue.audienceType === 'USER_TYPES' ? formValue.selectedUserTypes : undefined,
-            userIds: formValue.audienceType === 'SPECIFIC_USERS' ? formValue.selectedUserIds : undefined
+            type: formValue.audienceType?.value || formValue.audienceType,
+            userTypes: formValue.audienceType?.value === 'USER_TYPES' || formValue.audienceType === 'USER_TYPES'
+                ? this.selectedUserTypes
+                : undefined,
+            userIds: formValue.audienceType?.value === 'SPECIFIC_USERS' || formValue.audienceType === 'SPECIFIC_USERS'
+                ? this.selectedUserIds
+                : undefined
         };
 
         const request: CreateNewsletterRequest = {
@@ -222,9 +238,13 @@ export class NewslettersEditComponent implements OnInit {
     private updateNewsletter(id: string, formValue: any): void {
         this.isLoading = true;
         const audience: UINewsletterAudience = {
-            type: formValue.audienceType,
-            userTypes: formValue.audienceType === 'USER_TYPES' ? formValue.selectedUserTypes : undefined,
-            userIds: formValue.audienceType === 'SPECIFIC_USERS' ? formValue.selectedUserIds : undefined
+            type: formValue.audienceType?.value || formValue.audienceType,
+            userTypes: formValue.audienceType?.value === 'USER_TYPES' || formValue.audienceType === 'USER_TYPES'
+                ? this.selectedUserTypes
+                : undefined,
+            userIds: formValue.audienceType?.value === 'SPECIFIC_USERS' || formValue.audienceType === 'SPECIFIC_USERS'
+                ? this.selectedUserIds
+                : undefined
         };
 
         const request: UpdateNewsletterRequest = {
@@ -255,6 +275,15 @@ export class NewslettersEditComponent implements OnInit {
 
     onCancel(): void {
         this.router.navigate(['/admin/newsletters']);
+    }
+
+    getUserTypeLabel = (userType: string): string => {
+        return this.translate.instant(`newsletters.userTypes.${userType.toLowerCase()}`);
+    }
+
+    getUserDisplayName = (user: any): string => {
+        if (!user || !user.firstName || !user.lastName || !user.email) return '';
+        return `${user.firstName} ${user.lastName} (${user.email})`;
     }
 
     private markFormGroupTouched(formGroup: FormGroup): void {
@@ -320,9 +349,13 @@ export class NewslettersEditComponent implements OnInit {
     private createNewsletterForTest(formValue: any): void {
         this.isLoading = true;
         const audience: UINewsletterAudience = {
-            type: formValue.audienceType,
-            userTypes: formValue.audienceType === 'USER_TYPES' ? formValue.selectedUserTypes : undefined,
-            userIds: formValue.audienceType === 'SPECIFIC_USERS' ? formValue.selectedUserIds : undefined
+            type: formValue.audienceType?.value || formValue.audienceType,
+            userTypes: formValue.audienceType?.value === 'USER_TYPES' || formValue.audienceType === 'USER_TYPES'
+                ? this.selectedUserTypes
+                : undefined,
+            userIds: formValue.audienceType?.value === 'SPECIFIC_USERS' || formValue.audienceType === 'SPECIFIC_USERS'
+                ? this.selectedUserIds
+                : undefined
         };
 
         const request: CreateNewsletterRequest = {
