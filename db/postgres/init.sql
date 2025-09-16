@@ -138,3 +138,40 @@ CREATE TABLE "custom_pages" (
     "title" varchar(255) NOT NULL,
     "content" text NOT NULL
 );
+
+CREATE TABLE "newsletters" (
+    "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    "title" varchar(255) NOT NULL,
+    "subject" varchar(255) NOT NULL,
+    "content" text,
+    "status" varchar(50) NOT NULL CHECK (status IN ('DRAFT', 'SCHEDULED', 'SENDING', 'SENT', 'CANCELLED', 'FAILED')) DEFAULT 'DRAFT',
+    "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "scheduled_at" timestamp with time zone,
+    "sent_at" timestamp with time zone,
+    "created_by" uuid NOT NULL,
+    "recipient_count" integer,
+    "audience_type" varchar(50) NOT NULL DEFAULT 'ALL' CHECK (audience_type IN ('ALL', 'USER_TYPES', 'SPECIFIC_USERS')),
+    "audience_user_types" jsonb,
+    "audience_user_ids" jsonb,
+    "audience_exclude_user_ids" jsonb,
+    FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE "newsletter_logs" (
+    "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    "newsletter_id" uuid NOT NULL,
+    "user_id" uuid NOT NULL,
+    "user_email" varchar(255) NOT NULL,
+    "status" varchar(50) NOT NULL CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'BOUNCED')) DEFAULT 'PENDING',
+    "sent_at" timestamp with time zone,
+    "error_message" text,
+    "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("newsletter_id") REFERENCES "newsletters"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX "idx_newsletter_logs_newsletter_id" ON "newsletter_logs"("newsletter_id");
+CREATE INDEX "idx_newsletter_logs_user_id" ON "newsletter_logs"("user_id");
+CREATE INDEX "idx_newsletter_logs_status" ON "newsletter_logs"("status");
+CREATE INDEX "idx_newsletter_logs_created_at" ON "newsletter_logs"("created_at");

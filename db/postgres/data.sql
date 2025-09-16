@@ -9,12 +9,11 @@ INSERT INTO users (id, username, email, password, first_name, last_name, flat_nu
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('a42d1145-cb3a-4088-a9f8-eba1310a9e80', 'david_lee', 'david.lee@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'David', 'Lee', '505', '505 Oak St', 'Somewhere', '12345', 'China', 'zh', '', true, false, 'COMMERCIAL_PROPERTY_OWNER');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('26be1301-4121-4497-80d1-e448fdef0532', 'sophia_garcia', 'sophia.garcia@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Sophia', 'Garcia', '606', '606 Pine St', 'Nowhere', '67890', 'Spain', 'es', '', true, false, 'GUEST');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('f336a25e-7bed-4f44-a360-f758aecd7d09', 'charlie_rodriguez', 'charlie.rodriguez@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Charlie', 'Rodriguez', '707', '707 Cedar St', 'Anothertown', '54321', 'Mexico', 'es', '', true, false, 'TENANT');
-INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('f71c870e-9daa-4991-accd-61f3c3c14fa2', 'demo', 'me@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Me', 'Me', '808', '808 Birch St', 'Somewhere', '12345', 'USA', 'en', 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp', true, false, 'ADMIN');
+INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('f71c870e-9daa-4991-accd-61f3c3c14fa2', 'demo', 'quentin.castel@neohoods.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Me', 'Me', '808', '808 Birch St', 'Somewhere', '12345', 'USA', 'en', 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp', true, false, 'ADMIN');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'ava_walker', 'ava.walker@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Ava', 'Walker', '909', '909 Cedar St', 'Anothertown', '67890', 'USA', 'en', '', true, false, 'OWNER');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('ce5578e6-87cf-44a0-877e-87c264dd281c', 'noah_turner', 'noah.turner@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Noah', 'Turner', '1010', '1010 Pine St', 'Nowhere', '54321', 'USA', 'en', '', true, false, 'TENANT');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', 'mia_hall', 'mia.hall@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Mia', 'Hall', '1111', '1111 Oak St', 'Somewhere', '12345', 'USA', 'en', '', true, false, 'LANDLORD');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('ff25a41d-a417-416c-9feb-dd61a7fcb2d6', 'qcastel', 'quentincastel86@gmail.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Quentin', 'Castel', '', '119 route des oriolleres', 'Mignaloux-Beauvoir', '86550', 'France', 'en', '', true, false, 'ADMIN');
-INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('44816124-d6cf-4bb4-a011-4847722c9e60', 'afrancani', 'allan.francani@pm.me', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Allan', 'Francani', '', '', 'Haut-Savoie', '74100', 'France', 'en', '', true, false, 'ADMIN');
 
 -- User Properties
 INSERT INTO user_properties (user_id, property_type, name) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', 'APARTMENT', 'Apartment 123');
@@ -69,25 +68,31 @@ INSERT INTO custom_pages (id, ref, page_order, position, title, content) VALUES 
 INSERT INTO custom_pages (id, ref, page_order, position, title, content) VALUES ('550e8400-e29b-41d4-a716-446655440044', 'help-contact', 1, 'FOOTER_HELP', 'Need Help?', '<h2>Contact Support</h2><p>If you need assistance with the community portal, please don''t hesitate to reach out:</p><ul><li><strong>Email:</strong> support@neohoods.com</li><li><strong>Phone:</strong> +33 1 23 45 67 89</li><li><strong>Office Hours:</strong> Monday-Friday, 9 AM - 6 PM</li></ul><p>For urgent community matters, please contact your building manager or use the emergency contacts in the Info section.</p>');
 
 
+-- Newsletters
+INSERT INTO newsletters (id, title, subject, content, status, created_at, updated_at, scheduled_at, sent_at, created_by, recipient_count) VALUES ('550e8400-e29b-41d4-a716-446655440050', 'Monthly Community Newsletter', 'Your Monthly Community Update - December 2024', '<h2>Welcome to our December Newsletter!</h2><p>This month has been full of exciting community events and updates. Here are the highlights:</p><ul><li>New playground equipment installed in the central courtyard</li><li>Holiday decorations contest winners announced</li><li>Upcoming maintenance schedule for January</li></ul><p>Thank you for being part of our wonderful community!</p>', 'SENT', '2024-12-01 10:00:00+00', '2024-12-01 10:00:00+00', '2024-12-01 12:00:00+00', '2024-12-01 12:00:00+00', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 150);
+
+INSERT INTO newsletters (id, title, subject, content, status, created_at, updated_at, scheduled_at, sent_at, created_by, recipient_count) VALUES ('550e8400-e29b-41d4-a716-446655440051', 'Holiday Safety Reminders', 'Important Safety Information for the Holidays', '<h2>Holiday Safety Tips</h2><p>As we approach the holiday season, here are some important safety reminders to keep our community safe:</p><ul><li>Ensure all holiday decorations are fire-safe</li><li>Keep emergency exits clear of decorations</li><li>Be cautious with candles and open flames</li><li>Report any suspicious activity to security</li></ul><p>Have a safe and happy holiday season!</p>', 'SCHEDULED', '2024-12-15 09:00:00+00', '2024-12-15 09:30:00+00', '2024-12-20 08:00:00+00', null, 'f71c870e-9daa-4991-accd-61f3c3c14fa2', null);
+
+INSERT INTO newsletters (id, title, subject, content, status, created_at, updated_at, scheduled_at, sent_at, created_by, recipient_count) VALUES ('550e8400-e29b-41d4-a716-446655440052', 'New Year Community Events', 'Join Us for New Year Celebrations!', '<h2>New Year Events</h2><p>We are excited to announce our New Year community events. Join us for:</p><ul><li>New Year''s Eve community party in the main hall</li><li>Children''s countdown at 8 PM</li><li>Adult celebration until midnight</li><li>Complimentary refreshments and entertainment</li></ul><p>RSVP by December 28th. Looking forward to celebrating with you!</p>', 'DRAFT', '2024-12-18 14:00:00+00', '2024-12-18 16:00:00+00', null, null, 'f71c870e-9daa-4991-accd-61f3c3c14fa2', null);
+
 -- Default Settings
 INSERT INTO settings (id, is_registration_enabled, sso_enabled, sso_client_id, sso_client_secret, sso_token_endpoint, sso_authorization_endpoint, sso_scope) VALUES ('00000000-0000-0000-0000-000000000001', false, false, '', '', '', '', '');
 
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('c5c180f1-bd25-443e-8f8a-924ddf13f971', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('593e726d-14b1-477e-967c-72bec8478a45', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('331f5b7e-3acd-4e91-b64d-9fee522b5f31', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('56f91978-04c8-4142-93e4-706c5d23dacf', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('d4562dfd-2d98-4db0-9937-33fccd90599a', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('a42d1145-cb3a-4088-a9f8-eba1310a9e80', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('26be1301-4121-4497-80d1-e448fdef0532', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('f336a25e-7bed-4f44-a360-f758aecd7d09', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('f71c870e-9daa-4991-accd-61f3c3c14fa2', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('ce5578e6-87cf-44a0-877e-87c264dd281c', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', true);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('c5c180f1-bd25-443e-8f8a-924ddf13f971', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('593e726d-14b1-477e-967c-72bec8478a45', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('331f5b7e-3acd-4e91-b64d-9fee522b5f31', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('56f91978-04c8-4142-93e4-706c5d23dacf', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('d4562dfd-2d98-4db0-9937-33fccd90599a', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('a42d1145-cb3a-4088-a9f8-eba1310a9e80', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('26be1301-4121-4497-80d1-e448fdef0532', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('f336a25e-7bed-4f44-a360-f758aecd7d09', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('f71c870e-9daa-4991-accd-61f3c3c14fa2', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('ce5578e6-87cf-44a0-877e-87c264dd281c', false);
+INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', false);
 INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('ff25a41d-a417-416c-9feb-dd61a7fcb2d6', true);
-INSERT INTO notification_settings (user_id, enable_notifications) VALUES ('44816124-d6cf-4bb4-a011-4847722c9e60', true);
 
 -- Notifications
 INSERT INTO notifications (

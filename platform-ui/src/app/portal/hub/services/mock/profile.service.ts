@@ -9,7 +9,7 @@ import { ProfileService } from "../profile.service";
 })
 export class MockProfileService implements ProfileService {
   getNotificationsSettings(): Observable<UINotificationsSettings> {
-    return of({ isNotificationsEnabled: true });
+    return of({ isNotificationsEnabled: true, isNewsletterEnabled: true });
   }
   updateNotificationsSettings(settings: UINotificationsSettings): Observable<UINotificationsSettings> {
     return of(settings);

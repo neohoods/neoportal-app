@@ -1,0 +1,2 @@
+# Ignore Thymeleaf templates
+src/main/resources/templates/**/*.html

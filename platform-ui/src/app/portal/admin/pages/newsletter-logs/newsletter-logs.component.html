@@ -1,0 +1,56 @@
+<div class="newsletter-logs-container">
+    <div class="header">
+        <h1>{{ 'newsletters.logs.title' | translate }}</h1>
+        <p>{{ 'newsletters.logs.description' | translate }}</p>
+    </div>
+
+    @if (isLoading) {
+        <div class="loading-container">
+            <tui-loader size="l"></tui-loader>
+        </div>
+    } @else {
+        <div class="logs-table">
+            <div class="table-header">
+                <div class="header-cell">{{ 'newsletters.logs.columns.userEmail' | translate }}</div>
+                <div class="header-cell">{{ 'newsletters.logs.columns.status' | translate }}</div>
+                <div class="header-cell">{{ 'newsletters.logs.columns.sentAt' | translate }}</div>
+                <div class="header-cell">{{ 'newsletters.logs.columns.error' | translate }}</div>
+            </div>
+
+            @for (log of logs; track log.id) {
+                <div class="table-row">
+                    <div class="cell">
+                        <span class="user-email">{{ log.userEmail }}</span>
+                    </div>
+                    <div class="cell">
+                        <tui-badge [appearance]="getStatusBadgeAppearance(log.status)">
+                            {{ getStatusLabel(log.status) }}
+                        </tui-badge>
+                    </div>
+                    <div class="cell">
+                        @if (log.sentAt) {
+                            <span class="timestamp">{{ log.sentAt | date:'short' }}</span>
+                        } @else {
+                            <span class="no-data">-</span>
+                        }
+                    </div>
+                    <div class="cell">
+                        @if (log.errorMessage) {
+                            <span class="error-message">{{ log.errorMessage }}</span>
+                        } @else {
+                            <span class="no-data">-</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (logs.length === 0) {
+            <div class="empty-state">
+                <tui-icon icon="@tui.inbox" size="xl"></tui-icon>
+                <h3>{{ 'newsletters.logs.empty.title' | translate }}</h3>
+                <p>{{ 'newsletters.logs.empty.description' | translate }}</p>
+            </div>
+        }
+    }
+</div>

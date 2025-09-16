@@ -1,0 +1,115 @@
+<!-- Newsletters Table -->
+<tos-table
+    [columns]="columns"
+    [getDataFunction]="getDataFunction"
+    addActionRoute="/admin/newsletters/create"
+    addActionIcon="@tui.plus"
+>
+    <div add-action-content>
+        {{ 'newsletters.createNewsletter' | translate }}
+    </div>
+
+    <ng-template
+        #itemRowTemplate
+        let-item="item"
+        let-column="column"
+    >
+        @if (column.key === 'status') {
+            <tui-badge
+                [appearance]="getStatusBadgeAppearance(item.status)"
+            >
+                {{ item.status || 'NO_STATUS' }}
+            </tui-badge>
+        }
+        @if (column.key === 'audience') {
+            <span class="audience-text">
+                {{ getAudienceDisplayText(item.audience) }}
+            </span>
+        }
+        @if (column.key === 'scheduledOrSent') {
+            <div class="date-info">
+                <div class="date-label">{{ getScheduledOrSentLabel(item) }}</div>
+                <div class="date-value">{{ getScheduledOrSentDate(item) }}</div>
+            </div>
+        }
+    </ng-template>
+
+    <ng-template
+        #itemActionsTemplate
+        let-item="item"
+    >
+        <div class="newsletter-actions">
+            <!-- Edit Button -->
+            <button
+                tuiButton
+                appearance="outline"
+                size="s"
+                [disabled]="item.status !== NewsletterStatus.DRAFT"
+                [routerLink]="['/admin/newsletters', item.id, 'edit']"
+                [tuiHint]="'newsletters.actions.edit' | translate"
+            >
+                <tui-icon icon="@tui.pencil" />
+            </button>
+
+            <!-- Schedule Button -->
+            <button
+                tuiButton
+                appearance="outline"
+                size="s"
+                [disabled]="item.status !== NewsletterStatus.DRAFT"
+                (click)="openScheduleDialog(item)"
+                [tuiHint]="'newsletters.actions.schedule' | translate"
+            >
+                <tui-icon icon="@tui.clock" />
+            </button>
+
+            <!-- Test Button -->
+            <button
+                tuiButton
+                appearance="outline"
+                size="s"
+                [disabled]="item.status === NewsletterStatus.SENT || item.status === NewsletterStatus.CANCELLED"
+                (click)="testNewsletter(item)"
+                [tuiHint]="'newsletters.actions.test' | translate"
+            >
+                <tui-icon icon="@tui.eye" />
+            </button>
+
+            <!-- Send Button -->
+            <button
+                tuiButton
+                appearance="primary"
+                size="s"
+                [disabled]="item.status !== NewsletterStatus.DRAFT && item.status !== NewsletterStatus.SCHEDULED"
+                (click)="sendNewsletter(item)"
+                [tuiHint]="'newsletters.actions.send' | translate"
+            >
+                <tui-icon icon="@tui.send" />
+            </button>
+
+            <!-- View Logs Button -->
+            <button
+                tuiButton
+                appearance="outline"
+                size="s"
+                [disabled]="item.status === NewsletterStatus.DRAFT"
+                [routerLink]="['/admin/newsletters', item.id, 'logs']"
+                [tuiHint]="'newsletters.actions.viewLogs' | translate"
+            >
+                <tui-icon icon="@tui.list" />
+            </button>
+
+            <!-- Delete Button -->
+            <button
+                tuiButton
+                appearance="destructive"
+                size="s"
+                [disabled]="item.status !== NewsletterStatus.DRAFT"
+                (click)="deleteNewsletter(item)"
+                [tuiHint]="'newsletters.actions.delete' | translate"
+            >
+                <tui-icon icon="@tui.trash" />
+            </button>
+        </div>
+    </ng-template>
+</tos-table>

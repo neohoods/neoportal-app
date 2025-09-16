@@ -148,7 +148,8 @@
     "security": "Security",
     "pages": "Pages",
     "applications": "Applications",
-    "infos": "Info"
+    "infos": "Info",
+    "newsletters": "Newsletters"
   },
   
   "editUser": {
@@ -534,9 +535,12 @@
     "title": "Notifications",
     "editTitle": "Notification Settings",
     "enableNotifications": "Enable notifications",
+    "enableNewsletters": "Receive newsletters",
     "adminNewUser": "New user registered",
     "moreButton": "More",
-    "saveButton": "Save"
+    "saveButton": "Save",
+    "saveSuccess": "Settings saved successfully",
+    "saveError": "Error saving settings"
   },
   "editApplication": {
     "editTitle": "Edit Application",
@@ -612,5 +616,184 @@
         "address": "Address"
       }
     }
+  },
+  "newsletters": {
+    "title": "Newsletters",
+    "createNewsletter": "Create Newsletter",
+    "editNewsletter": "Edit Newsletter",
+    "deleteNewsletter": "Delete Newsletter",
+    "scheduleNewsletter": "Schedule Newsletter",
+    "sendNewsletter": "Send Newsletter",
+    "cancelNewsletter": "Cancel Newsletter",
+    "newsletterDetails": "Newsletter Details",
+    "basicInfo": "Basic Information",
+    "title": "Title",
+    "titlePlaceholder": "Enter newsletter title...",
+    "subject": "Subject",
+    "subjectPlaceholder": "Enter email subject...",
+    "content": "Content",
+    "contentPlaceholder": "Enter newsletter content...",
+    "status": "Status",
+    "scheduledAt": "Scheduled for",
+    "sentAt": "Sent at",
+    "recipientCount": "Recipient count",
+    "createdBy": "Created by",
+    "createdAt": "Created at",
+    "updatedAt": "Updated at",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "schedule": "Schedule",
+    "send": "Send",
+    "test": "Test",
+    "cancel": "Cancel",
+    "view": "View",
+    "actions": {
+      "create": "Create",
+      "edit": "Edit",
+      "delete": "Delete",
+      "schedule": "Schedule",
+      "send": "Send",
+      "cancel": "Cancel",
+      "view": "View"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "SCHEDULED": "Scheduled",
+      "SENDING": "Sending",
+      "SENT": "Sent",
+      "CANCELLED": "Cancelled",
+      "FAILED": "Failed"
+    },
+    "columns": {
+      "title": "Title",
+      "subject": "Subject",
+      "audience": "Audience",
+      "status": "Status",
+      "createdAt": "Created at",
+      "scheduledAt": "Scheduled for",
+      "sentAt": "Sent at",
+      "scheduledOrSent": "Scheduled/Sent",
+      "recipientCount": "Recipients",
+      "actions": "Actions"
+    },
+    "table": {
+      "title": "Title",
+      "subject": "Subject",
+      "status": "Status",
+      "createdAt": "Created at",
+      "scheduledAt": "Scheduled for",
+      "sentAt": "Sent at",
+      "recipientCount": "Recipients",
+      "actions": "Actions"
+    },
+    "form": {
+      "create": {
+        "title": "Create New Newsletter",
+        "description": "Create a new newsletter for your community"
+      },
+      "edit": {
+        "title": "Edit Newsletter",
+        "description": "Edit the details of this newsletter"
+      },
+      "schedule": {
+        "title": "Schedule Newsletter",
+        "description": "Choose when to send this newsletter",
+        "scheduledAtLabel": "Send date and time",
+        "scheduledAtPlaceholder": "Select date and time"
+      }
+    },
+    "confirmations": {
+      "delete": "Are you sure you want to delete the newsletter '{{title}}'?",
+      "send": "Are you sure you want to send the newsletter '{{title}}' now?",
+      "cancel": "Are you sure you want to cancel the newsletter '{{title}}'?"
+    },
+    "messages": {
+      "createSuccess": "Newsletter created successfully!",
+      "createError": "Error creating newsletter",
+      "updateSuccess": "Newsletter updated successfully!",
+      "updateError": "Error updating newsletter",
+      "deleteSuccess": "Newsletter deleted successfully!",
+      "deleteError": "Error deleting newsletter",
+      "scheduleSuccess": "Newsletter scheduled successfully!",
+      "scheduleError": "Error scheduling newsletter",
+      "sendSuccess": "Newsletter sent successfully!",
+      "sendError": "Error sending newsletter",
+      "testSuccess": "Test newsletter sent successfully!",
+      "testError": "Error sending test newsletter",
+      "cancelSuccess": "Newsletter cancelled successfully!",
+      "cancelError": "Error cancelling newsletter"
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "subjectRequired": "Subject is required",
+      "contentRequired": "Content is required",
+      "scheduledAtRequired": "Scheduled date is required",
+      "scheduledAtFuture": "Scheduled date must be in the future"
+    },
+    "audience": {
+      "title": "Audience",
+      "all": "All users",
+      "userTypes": "User types",
+      "specificUsers": "Specific users",
+      "selectType": "Select audience type",
+      "selectUserTypes": "Select user types",
+      "selectUsers": "Select users",
+      "specificUsersHelp": "Coming soon: specific user selection"
+    },
+    "userTypes": {
+      "owner": "Owner",
+      "tenant": "Tenant",
+      "admin": "Administrator"
+    },
+    "logs": {
+      "title": "Newsletter logs",
+      "description": "Send history for this newsletter",
+      "columns": {
+        "userEmail": "User email",
+        "status": "Status",
+        "sentAt": "Sent at",
+        "error": "Error"
+      },
+      "status": {
+        "sent": "Sent",
+        "failed": "Failed",
+        "bounced": "Bounced",
+        "pending": "Pending"
+      },
+      "empty": {
+        "title": "No logs found",
+        "description": "This newsletter has not been sent yet."
+      },
+      "loadError": "Error loading logs"
+    },
+    "restrictions": {
+      "cannotEditNonDraft": "Only draft newsletters can be edited",
+      "cannotDeleteNonDraft": "Only draft newsletters can be deleted",
+      "cannotScheduleNonDraft": "Only draft newsletters can be scheduled",
+      "cannotSendNewsletter": "Only draft or scheduled newsletters can be sent",
+      "cannotCancelNewsletter": "Only scheduled newsletters can be cancelled"
+    },
+    "empty": {
+      "title": "No newsletters found",
+      "description": "You haven't created any newsletters yet. Create your first newsletter to get started.",
+      "createButton": "Create Newsletter"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "send": "Send",
+    "schedule": "Schedule",
+    "yes": "Yes",
+    "no": "No",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
   }
 }

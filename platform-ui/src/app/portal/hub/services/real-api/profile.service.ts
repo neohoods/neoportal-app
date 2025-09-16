@@ -38,12 +38,14 @@ export class APIProfileService implements ProfileService {
   private mapToApiNotificationsSettings(settings: UINotificationsSettings): NotificationSettings {
     return {
       enableNotifications: settings.isNotificationsEnabled,
+      newsletterEnabled: settings.isNewsletterEnabled,
     };
   }
 
   private mapToUINotificationsSettings(settings: NotificationSettings): UINotificationsSettings {
     return {
       isNotificationsEnabled: settings.enableNotifications,
+      isNewsletterEnabled: settings.newsletterEnabled,
     };
   }
 }

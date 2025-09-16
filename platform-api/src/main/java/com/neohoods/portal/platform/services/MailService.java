@@ -1,5 +1,6 @@
 package com.neohoods.portal.platform.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -103,20 +104,23 @@ public class MailService {
             return;
         }
 
-        variables.add(
+        // Create a mutable copy of the variables list
+        List<TemplateVariable> mutableVariables = new ArrayList<>(variables);
+
+        mutableVariables.add(
                 TemplateVariable.builder()
                         .type(TemplateVariableType.RAW)
                         .ref("logoUrl")
                         .value(logoUrl)
                         .build());
-        variables.add(
+        mutableVariables.add(
                 TemplateVariable.builder()
                         .type(TemplateVariableType.RAW)
                         .ref("appName")
                         .value(appName)
                         .build());
 
-        Map<String, Object> variablesMap = variables.stream()
+        Map<String, Object> variablesMap = mutableVariables.stream()
                 .map(v -> {
                     switch (v.type) {
                         case TRANSLATABLE_TEXT -> {
@@ -138,8 +142,23 @@ public class MailService {
         try {
             String htmlContent = templateEngine.process(templateName, context);
             log.debug("Template processed successfully");
-            String translatedSubject = messageSource.getMessage(subject, null, locale);
-            sendMail(user.getEmail(), translatedSubject, htmlContent);
+
+            // Only translate subject if it looks like a translation key (contains dots or
+            // underscores)
+            String finalSubject;
+            if (subject.contains(".") || subject.contains("_")) {
+                try {
+                    finalSubject = messageSource.getMessage(subject, null, locale);
+                } catch (Exception e) {
+                    // If translation fails, use the subject as-is
+                    log.debug("Subject '{}' is not a translation key, using as-is", subject);
+                    finalSubject = subject;
+                }
+            } else {
+                finalSubject = subject;
+            }
+
+            sendMail(user.getEmail(), finalSubject, htmlContent);
         } catch (Exception e) {
             log.error("Failed to process template: {} for user: {}. " +
                     "User signup will continue, but email verification may need to be requested manually.",

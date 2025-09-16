@@ -147,7 +147,8 @@
     "security": "Sécurité",
     "pages": "Pages",
     "applications": "Applications",
-    "infos": "Infos"
+    "infos": "Infos",
+    "newsletters": "Newsletters"
   },
   "editUser": {
     "editTitle": "Modifier l'utilisateur",
@@ -523,9 +524,12 @@
     "title": "Notifications",
     "editTitle": "Paramètres de notifications",
     "enableNotifications": "Activer les notifications",
+    "enableNewsletters": "Recevoir les newsletters",
     "adminNewUser": "Nouvel utilisateur enregistré",
     "moreButton": "Plus",
-    "saveButton": "Enregistrer"
+    "saveButton": "Enregistrer",
+    "saveSuccess": "Paramètres sauvegardés avec succès",
+    "saveError": "Erreur lors de la sauvegarde des paramètres"
   },
   "tosTable": {
     "columnsVisibility": "Visibilité des colonnes",
@@ -585,5 +589,185 @@
     "searchPlaceholder": "Rechercher dans l'aide...",
     "searchResults": "Résultats de recherche",
     "noArticlesFound": "Aucun article trouvé"
+  },
+  "newsletters": {
+    "title": "Newsletters",
+    "createNewsletter": "Créer une newsletter",
+    "editNewsletter": "Modifier la newsletter",
+    "deleteNewsletter": "Supprimer la newsletter",
+    "scheduleNewsletter": "Programmer la newsletter",
+    "sendNewsletter": "Envoyer la newsletter",
+    "cancelNewsletter": "Annuler la newsletter",
+    "newsletterDetails": "Détails de la newsletter",
+    "basicInfo": "Informations de base",
+    "title": "Titre",
+    "titlePlaceholder": "Entrez le titre de la newsletter...",
+    "subject": "Sujet",
+    "subjectPlaceholder": "Entrez le sujet de l'email...",
+    "content": "Contenu",
+    "contentPlaceholder": "Entrez le contenu de la newsletter...",
+    "status": "Statut",
+    "scheduledAt": "Programmée pour",
+    "sentAt": "Envoyée le",
+    "recipientCount": "Nombre de destinataires",
+    "createdBy": "Créée par",
+    "createdAt": "Créée le",
+    "updatedAt": "Modifiée le",
+    "create": "Créer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "schedule": "Programmer",
+    "send": "Envoyer",
+    "test": "Tester",
+    "cancel": "Annuler",
+    "view": "Voir",
+    "actions": {
+      "create": "Créer",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "schedule": "Programmer",
+      "send": "Envoyer",
+      "viewLogs": "Voir les logs",
+      "cancel": "Annuler",
+      "view": "Voir"
+    },
+    "status": {
+      "DRAFT": "Brouillon",
+      "SCHEDULED": "Programmée",
+      "SENDING": "En cours d'envoi",
+      "SENT": "Envoyée",
+      "CANCELLED": "Annulée",
+      "FAILED": "Échec"
+    },
+    "columns": {
+      "title": "Titre",
+      "subject": "Sujet",
+      "audience": "Audience",
+      "status": "Statut",
+      "createdAt": "Créée le",
+      "scheduledAt": "Programmée pour",
+      "sentAt": "Envoyée le",
+      "scheduledOrSent": "Programmée/Envoyée",
+      "recipientCount": "Destinataires",
+      "actions": "Actions"
+    },
+    "table": {
+      "title": "Titre",
+      "subject": "Sujet",
+      "status": "Statut",
+      "createdAt": "Créée le",
+      "scheduledAt": "Programmée pour",
+      "sentAt": "Envoyée le",
+      "recipientCount": "Destinataires",
+      "actions": "Actions"
+    },
+    "form": {
+      "create": {
+        "title": "Créer une nouvelle newsletter",
+        "description": "Créez une nouvelle newsletter pour votre communauté"
+      },
+      "edit": {
+        "title": "Modifier la newsletter",
+        "description": "Modifiez les détails de cette newsletter"
+      },
+      "schedule": {
+        "title": "Programmer la newsletter",
+        "description": "Choisissez quand envoyer cette newsletter",
+        "scheduledAtLabel": "Date et heure d'envoi",
+        "scheduledAtPlaceholder": "Sélectionnez la date et l'heure"
+      }
+    },
+    "confirmations": {
+      "delete": "Êtes-vous sûr de vouloir supprimer la newsletter '{{title}}' ?",
+      "send": "Êtes-vous sûr de vouloir envoyer la newsletter '{{title}}' maintenant ?",
+      "cancel": "Êtes-vous sûr de vouloir annuler la newsletter '{{title}}' ?"
+    },
+    "messages": {
+      "createSuccess": "Newsletter créée avec succès !",
+      "createError": "Erreur lors de la création de la newsletter",
+      "updateSuccess": "Newsletter mise à jour avec succès !",
+      "updateError": "Erreur lors de la mise à jour de la newsletter",
+      "deleteSuccess": "Newsletter supprimée avec succès !",
+      "deleteError": "Erreur lors de la suppression de la newsletter",
+      "scheduleSuccess": "Newsletter programmée avec succès !",
+      "scheduleError": "Erreur lors de la programmation de la newsletter",
+      "sendSuccess": "Newsletter envoyée avec succès !",
+      "sendError": "Erreur lors de l'envoi de la newsletter",
+      "testSuccess": "Newsletter de test envoyée avec succès !",
+      "testError": "Erreur lors de l'envoi du test de la newsletter",
+      "cancelSuccess": "Newsletter annulée avec succès !",
+      "cancelError": "Erreur lors de l'annulation de la newsletter"
+    },
+    "validation": {
+      "titleRequired": "Le titre est requis",
+      "subjectRequired": "Le sujet est requis",
+      "contentRequired": "Le contenu est requis",
+      "scheduledAtRequired": "La date de programmation est requise",
+      "scheduledAtFuture": "La date de programmation doit être dans le futur"
+    },
+    "audience": {
+      "title": "Audience",
+      "all": "Tous les utilisateurs",
+      "userTypes": "Types d'utilisateurs",
+      "specificUsers": "Utilisateurs spécifiques",
+      "selectType": "Sélectionner le type d'audience",
+      "selectUserTypes": "Sélectionner les types d'utilisateurs",
+      "selectUsers": "Sélectionner les utilisateurs",
+      "specificUsersHelp": "Fonctionnalité à venir : sélection d'utilisateurs spécifiques"
+    },
+    "userTypes": {
+      "owner": "Propriétaire",
+      "tenant": "Locataire",
+      "admin": "Administrateur"
+    },
+    "logs": {
+      "title": "Logs de newsletter",
+      "description": "Historique des envois de cette newsletter",
+      "columns": {
+        "userEmail": "Email utilisateur",
+        "status": "Statut",
+        "sentAt": "Envoyé le",
+        "error": "Erreur"
+      },
+      "status": {
+        "sent": "Envoyé",
+        "failed": "Échec",
+        "bounced": "Rejeté",
+        "pending": "En attente"
+      },
+      "empty": {
+        "title": "Aucun log trouvé",
+        "description": "Cette newsletter n'a pas encore été envoyée."
+      },
+      "loadError": "Erreur lors du chargement des logs"
+    },
+    "restrictions": {
+      "cannotEditNonDraft": "Seules les newsletters en brouillon peuvent être modifiées",
+      "cannotDeleteNonDraft": "Seules les newsletters en brouillon peuvent être supprimées",
+      "cannotScheduleNonDraft": "Seules les newsletters en brouillon peuvent être programmées",
+      "cannotSendNewsletter": "Seules les newsletters en brouillon ou programmées peuvent être envoyées",
+      "cannotCancelNewsletter": "Seules les newsletters programmées peuvent être annulées"
+    },
+    "empty": {
+      "title": "Aucune newsletter trouvée",
+      "description": "Vous n'avez pas encore créé de newsletter. Créez votre première newsletter pour commencer.",
+      "createButton": "Créer une newsletter"
+    }
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "send": "Envoyer",
+    "schedule": "Programmer",
+    "yes": "Oui",
+    "no": "Non",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Attention",
+    "info": "Information"
   }
 }

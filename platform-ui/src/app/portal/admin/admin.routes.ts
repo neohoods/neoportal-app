@@ -11,6 +11,9 @@ import { CustomPagesEditComponent } from './pages/custom-pages-edit/custom-pages
 import { CustomPagesComponent } from './pages/custom-pages/custom-pages.component';
 import { HelpCenterEditComponent } from './pages/help-center/help-center-edit.component';
 import { InfosComponent } from './pages/infos/infos.component';
+import { NewslettersEditComponent } from './pages/newsletters-edit/newsletters-edit.component';
+import { NewslettersComponent } from './pages/newsletters/newsletters.component';
+import { NewsletterLogsComponent } from './pages/newsletter-logs/newsletter-logs.component';
 import { SecurityComponent } from './pages/security/security.component';
 import { UsersComponent } from './pages/users/users.component';
 
@@ -33,6 +36,10 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'applications/add', component: ApplicationsEditComponent },
       { path: 'applications/:id/edit', component: ApplicationsEditComponent },
       { path: 'infos', component: InfosComponent },
+      { path: 'newsletters', component: NewslettersComponent },
+      { path: 'newsletters/create', component: NewslettersEditComponent },
+      { path: 'newsletters/:id/edit', component: NewslettersEditComponent },
+      { path: 'newsletters/:newsletterId/logs', component: NewsletterLogsComponent },
     ],
   },
 ];

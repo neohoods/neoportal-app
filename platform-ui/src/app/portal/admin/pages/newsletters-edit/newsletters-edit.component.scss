@@ -1,0 +1,83 @@
+.newsletters-edit-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .header {
+        margin-bottom: 2rem;
+
+        h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0;
+            color: var(--tui-text-secondary);
+        }
+    }
+
+    .newsletter-form {
+        .form-section {
+            margin-bottom: 2rem;
+
+            h3 {
+                margin: 0 0 1.5rem 0;
+                font-size: 1.25rem;
+                font-weight: 600;
+            }
+        }
+
+        .form-field {
+            margin-bottom: 1.5rem;
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+
+            tui-textfield,
+            tui-textarea {
+                width: 100%;
+            }
+
+            .error-message {
+                margin-top: 0.5rem;
+                color: var(--tui-status-negative);
+                font-size: 0.875rem;
+            }
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding-top: 2rem;
+            border-top: 1px solid var(--tui-border-normal);
+
+            button {
+                min-width: 120px;
+
+                tui-icon {
+                    margin-right: 0.5rem;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .newsletters-edit-container {
+        padding: 1rem;
+
+        .newsletter-form .form-actions {
+            flex-direction: column;
+
+            button {
+                width: 100%;
+            }
+        }
+    }
+}

@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class AnnouncementsService {
         private final AnnouncementRepository announcementRepository;
+        private final NotificationsService notificationsService;
 
         public Mono<Announcement> createAnnouncement(String title, String content, AnnouncementCategory category) {
                 log.info("Creating announcement: {} with category: {}", title, category);
@@ -40,6 +41,15 @@ public class AnnouncementsService {
 
                 AnnouncementEntity savedEntity = announcementRepository.save(entity);
                 log.info("Created announcement: {} with ID: {}", savedEntity.getTitle(), savedEntity.getId());
+
+                // Send notifications to all users about the new announcement
+                notificationsService.notifyUsersNewAnnouncement(savedEntity)
+                                .doOnError(error -> log.error("Failed to send notifications for new announcement: {}",
+                                                savedEntity.getTitle(), error))
+                                .onErrorResume(error -> Mono.empty()) // Don't fail announcement creation if
+                                                                      // notifications fail
+                                .subscribe(); // Fire and forget - don't block announcement creation
+
                 return Mono.just(savedEntity.toAnnouncement());
         }
 

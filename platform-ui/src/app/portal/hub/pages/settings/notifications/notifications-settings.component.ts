@@ -36,6 +36,7 @@ export class NotificationsSettingsComponent {
   ) {
     this.notificationsForm = this.fb.group({
       isNotificationsEnabled: [true],
+      isNewsletterEnabled: [true],
     });
   }
 

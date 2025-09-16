@@ -149,6 +149,58 @@ public class NotificationsService {
     }
 
     /**
+     * Send notification to all users when a new announcement is created
+     */
+    public Mono<Void> notifyUsersNewAnnouncement(
+            com.neohoods.portal.platform.entities.AnnouncementEntity announcement) {
+        log.info("Notifying all users about new announcement: {}", announcement.getTitle());
+
+        try {
+            // Find all users (we might want to filter by notification preferences later)
+            List<UserEntity> allUsers = usersRepository.findAllWithProperties();
+
+            if (allUsers.isEmpty()) {
+                log.warn("No users found to notify about new announcement");
+                return Mono.empty();
+            }
+
+            // Create notification payload
+            Map<String, Object> payload = Map.of(
+                    "announcementId", announcement.getId().toString(),
+                    "announcementTitle", announcement.getTitle(),
+                    "announcementContent", announcement.getContent(),
+                    "announcementCategory", announcement.getCategory().toString(),
+                    "announcementDate", announcement.getCreatedAt().toString());
+
+            // Create notification entity
+            NotificationEntity notification = NotificationEntity.builder()
+                    .type(NotificationType.NEW_ANNOUNCEMENT)
+                    .author(PLATFORM_AUTHOR)
+                    .date(java.time.Instant.now())
+                    .alreadyRead(false)
+                    .payload(payload)
+                    .build();
+
+            // Send notification to each user
+            return Flux.fromIterable(allUsers)
+                    .flatMap(user -> sendNotifications(user, notification)
+                            .onErrorResume(error -> {
+                                log.error(
+                                        "Failed to send announcement notification to user: {} for announcement: {}. " +
+                                                "Announcement creation will continue, but user notification failed.",
+                                        user.getUsername(), announcement.getTitle(), error);
+                                return Mono.empty(); // Continue with other users
+                            }))
+                    .then();
+
+        } catch (Exception e) {
+            log.error("Failed to notify users about new announcement: {}. " +
+                    "Announcement creation will continue, but user notification failed.", announcement.getTitle(), e);
+            return Mono.empty(); // Don't fail announcement creation for notification errors
+        }
+    }
+
+    /**
      * Send notification to all admin users when a new user registers
      */
     public Mono<Void> notifyAdminsNewUser(UserEntity newUser) {
@@ -202,6 +254,66 @@ public class NotificationsService {
         List<TemplateVariable> variables = new ArrayList<>();
 
         switch (type) {
+            case NEW_ANNOUNCEMENT:
+                // Add variables for new announcement notification
+                if (notification.getPayload() != null) {
+                    Map<String, Object> payload = notification.getPayload();
+
+                    // Announcement ID
+                    if (payload.containsKey("announcementId")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("announcementId")
+                                .value(payload.get("announcementId").toString())
+                                .build());
+                    }
+
+                    // Announcement title
+                    if (payload.containsKey("announcementTitle")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("announcementTitle")
+                                .value(payload.get("announcementTitle").toString())
+                                .build());
+                    }
+
+                    // Announcement content (truncated for email)
+                    if (payload.containsKey("announcementContent")) {
+                        String content = payload.get("announcementContent").toString();
+                        String truncatedContent = content.length() > 200 ? content.substring(0, 200) + "..." : content;
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("announcementContent")
+                                .value(truncatedContent)
+                                .build());
+                    }
+
+                    // Announcement category
+                    if (payload.containsKey("announcementCategory")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("announcementCategory")
+                                .value(payload.get("announcementCategory").toString())
+                                .build());
+                    }
+
+                    // Announcement date
+                    if (payload.containsKey("announcementDate")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("announcementDate")
+                                .value(payload.get("announcementDate").toString())
+                                .build());
+                    }
+
+                    // URL to view announcements
+                    variables.add(TemplateVariable.builder()
+                            .type(TemplateVariableType.RAW)
+                            .ref("announcementsUrl")
+                            .value(frontendUrl + "/announcements")
+                            .build());
+                }
+                break;
             case ADMIN_NEW_USER:
                 // Add variables for admin new user notification
                 if (notification.getPayload() != null) {

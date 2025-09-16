@@ -1152,6 +1152,279 @@ paths:
         "401":
           description: Unauthorized
 
+  /admin/newsletters:
+    get:
+      operationId: getNewsletters
+      summary: Retrieve all newsletters
+      tags:
+        - newsletters-admin-api
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of newsletters per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          description: Filter by newsletter status
+          required: false
+          schema:
+            $ref: "#/components/schemas/NewsletterStatus"
+      responses:
+        "200":
+          description: A paginated list of newsletters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedNewslettersResponse"
+    post:
+      operationId: createNewsletter
+      summary: Create a new newsletter
+      tags:
+        - newsletters-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewsletterRequest"
+      responses:
+        "201":
+          description: Newsletter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Newsletter"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/newsletters/{newsletter-id}:
+    parameters:
+      - name: newsletter-id
+        in: path
+        description: Newsletter ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getNewsletter
+      summary: Retrieve a specific newsletter by ID
+      tags:
+        - newsletters-admin-api
+      responses:
+        "200":
+          description: A single newsletter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Newsletter"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateNewsletter
+      summary: Update an existing newsletter
+      tags:
+        - newsletters-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewsletterRequest"
+      responses:
+        "200":
+          description: Newsletter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Newsletter"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteNewsletter
+      summary: Delete a newsletter
+      tags:
+        - newsletters-admin-api
+      responses:
+        "204":
+          description: Newsletter deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/newsletters/{newsletter-id}/test:
+    parameters:
+      - name: newsletter-id
+        in: path
+        description: Newsletter ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: testNewsletter
+      summary: Send a test newsletter to the current admin user
+      tags:
+        - newsletters-admin-api
+      responses:
+        "200":
+          description: Test newsletter sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Test newsletter sent successfully"
+                  sentTo:
+                    type: string
+                    example: "admin@example.com"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/newsletters/{newsletter-id}/send:
+    parameters:
+      - name: newsletter-id
+        in: path
+        description: Newsletter ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: sendNewsletter
+      summary: Send newsletter immediately or schedule it
+      tags:
+        - newsletters-admin-api
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduledAt:
+                  type: string
+                  format: date-time
+                  description: Optional scheduled send time. If not provided, sends immediately
+                  example: "2024-01-15T10:00:00Z"
+      responses:
+        "200":
+          description: Newsletter sent or scheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Newsletter scheduled successfully"
+                  scheduledAt:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:00:00Z"
+                  recipientCount:
+                    type: integer
+                    example: 150
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/newsletters/{newsletter-id}/cancel:
+    parameters:
+      - name: newsletter-id
+        in: path
+        description: Newsletter ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: cancelNewsletter
+      summary: Cancel a scheduled newsletter
+      tags:
+        - newsletters-admin-api
+      responses:
+        "200":
+          description: Newsletter cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Newsletter cancelled successfully"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          description: Newsletter cannot be cancelled (already sent or not scheduled)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodedError"
+
+  /admin/newsletters/{newsletter-id}/logs:
+    parameters:
+      - name: newsletter-id
+        in: path
+        description: Newsletter ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getNewsletterLogs
+      summary: Get audit logs for a newsletter (simple text logs)
+      tags:
+        - newsletters-admin-api
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of log entries per page
+          required: false
+          schema:
+            type: integer
+            default: 100
+        - name: level
+          in: query
+          description: Filter by log level
+          required: false
+          schema:
+            type: string
+            enum: ["INFO", "WARN", "ERROR"]
+      responses:
+        "200":
+          description: Newsletter audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsletterLogsResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   #####################################################
   # Predefined Components
@@ -1362,8 +1635,13 @@ components:
         enableNotifications:
           type: boolean
           description: Whether notifications are enabled for the user
+        newsletterEnabled:
+          type: boolean
+          description: Whether the user accepts to receive newsletters
+          default: true
       required:
         - enableNotifications
+        - newsletterEnabled
 
     HelpCategory:
       type: object
@@ -1608,6 +1886,253 @@ components:
           type: string
         helpText:
           type: string
+
+    Newsletter:
+      type: object
+      required:
+        - id
+        - title
+        - subject
+        - content
+        - audience
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Monthly Community Update"
+          description: "Internal title for the newsletter"
+        subject:
+          type: string
+          example: "Your Monthly Community Newsletter - January 2024"
+          description: "Email subject line"
+        content:
+          type: string
+          example: "<h1>Welcome to our monthly newsletter</h1><p>Here are the latest updates...</p>"
+          description: "HTML content of the newsletter"
+        audience:
+          $ref: "#/components/schemas/NewsletterAudience"
+        status:
+          $ref: "#/components/schemas/NewsletterStatus"
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-01-15T10:00:00Z"
+          description: "When the newsletter is scheduled to be sent"
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-01-15T10:05:00Z"
+          description: "When the newsletter was actually sent"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-10T14:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-12T09:15:00Z"
+        createdBy:
+          type: string
+          format: uuid
+          description: "ID of the admin user who created the newsletter"
+        recipientCount:
+          type: integer
+          example: 150
+          description: "Number of recipients when sent"
+        openCount:
+          type: integer
+          example: 95
+          description: "Number of times the newsletter was opened"
+        clickCount:
+          type: integer
+          example: 23
+          description: "Number of clicks in the newsletter"
+
+    NewsletterRequest:
+      type: object
+      required:
+        - title
+        - subject
+        - content
+        - audience
+      properties:
+        title:
+          type: string
+          example: "Monthly Community Update"
+        subject:
+          type: string
+          example: "Your Monthly Community Newsletter - January 2024"
+        content:
+          type: string
+          example: "<h1>Welcome to our monthly newsletter</h1><p>Here are the latest updates...</p>"
+        audience:
+          $ref: "#/components/schemas/NewsletterAudience"
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-01-15T10:00:00Z"
+          description: "Optional: Schedule the newsletter for later sending"
+
+    NewsletterAudience:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: ["ALL", "USER_TYPES", "SPECIFIC_USERS"]
+          example: "USER_TYPES"
+          description: "Type of audience selection"
+        userTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserType"
+          example: ["OWNER", "TENANT"]
+          description: "Required when type is USER_TYPES"
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            [
+              "123e4567-e89b-12d3-a456-426614174000",
+              "987fcdeb-51a2-43d1-9f83-123456789abc",
+            ]
+          description: "Required when type is SPECIFIC_USERS"
+        excludeUserIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example: ["456e7890-e89b-12d3-a456-426614174000"]
+          description: "Optional: Users to exclude from the audience"
+
+    NewsletterStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SCHEDULED
+        - SENDING
+        - SENT
+        - CANCELLED
+        - FAILED
+      example: "DRAFT"
+      description: |
+        Newsletter status:
+        - DRAFT: Newsletter is being created/edited
+        - SCHEDULED: Newsletter is scheduled for future sending
+        - SENDING: Newsletter is currently being sent
+        - SENT: Newsletter has been successfully sent
+        - CANCELLED: Scheduled newsletter was cancelled
+        - FAILED: Newsletter sending failed
+
+    PaginatedNewslettersResponse:
+      type: object
+      required:
+        - totalPages
+        - totalItems
+        - currentPage
+        - itemsPerPage
+        - newsletters
+      properties:
+        totalPages:
+          type: integer
+          example: 5
+        totalItems:
+          type: integer
+          example: 42
+        currentPage:
+          type: integer
+          example: 1
+        itemsPerPage:
+          type: integer
+          example: 10
+        newsletters:
+          type: array
+          items:
+            $ref: "#/components/schemas/Newsletter"
+
+    NewsletterLogEntry:
+      type: object
+      required:
+        - id
+        - newsletterId
+        - timestamp
+        - level
+        - message
+      properties:
+        id:
+          type: string
+          format: uuid
+        newsletterId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:05:30Z"
+        level:
+          type: string
+          enum: ["INFO", "WARN", "ERROR"]
+          example: "INFO"
+        message:
+          type: string
+          example: "Newsletter sent successfully to user@example.com"
+        details:
+          type: string
+          nullable: true
+          example: "SMTP response: 250 OK"
+          description: "Additional details or error information"
+
+    NewsletterLogsResponse:
+      type: object
+      required:
+        - totalPages
+        - totalItems
+        - currentPage
+        - itemsPerPage
+        - logs
+        - summary
+      properties:
+        totalPages:
+          type: integer
+          example: 3
+        totalItems:
+          type: integer
+          example: 247
+        currentPage:
+          type: integer
+          example: 1
+        itemsPerPage:
+          type: integer
+          example: 100
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsletterLogEntry"
+        summary:
+          type: object
+          properties:
+            totalSent:
+              type: integer
+              example: 150
+            totalFailed:
+              type: integer
+              example: 5
+            successRate:
+              type: number
+              format: float
+              example: 96.77
+          description: "Simple summary of the newsletter sending"
 
   responses:
     OK_200_GET_HELLO_WORLD:

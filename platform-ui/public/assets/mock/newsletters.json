@@ -1,0 +1,41 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440050",
+    "title": "Monthly Community Newsletter",
+    "subject": "Your Monthly Community Update - December 2024",
+    "content": "<h2>Welcome to our December Newsletter!</h2><p>This month has been full of exciting community events and updates. Here are the highlights:</p><ul><li>New playground equipment installed in the central courtyard</li><li>Holiday decorations contest winners announced</li><li>Upcoming maintenance schedule for January</li></ul><p>Thank you for being part of our wonderful community!</p>",
+    "status": "SENT",
+    "createdAt": "2024-12-01T10:00:00Z",
+    "updatedAt": "2024-12-01T10:00:00Z",
+    "scheduledAt": "2024-12-01T12:00:00Z",
+    "sentAt": "2024-12-01T12:00:00Z",
+    "createdBy": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+    "recipientCount": 150
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440051",
+    "title": "Holiday Safety Reminders",
+    "subject": "Important Safety Information for the Holidays",
+    "content": "<h2>Holiday Safety Tips</h2><p>As we approach the holiday season, here are some important safety reminders to keep our community safe:</p><ul><li>Ensure all holiday decorations are fire-safe</li><li>Keep emergency exits clear of decorations</li><li>Be cautious with candles and open flames</li><li>Report any suspicious activity to security</li></ul><p>Have a safe and happy holiday season!</p>",
+    "status": "SCHEDULED",
+    "createdAt": "2024-12-15T09:00:00Z",
+    "updatedAt": "2024-12-15T09:30:00Z",
+    "scheduledAt": "2024-12-20T08:00:00Z",
+    "sentAt": null,
+    "createdBy": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+    "recipientCount": null
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440052",
+    "title": "New Year Community Events",
+    "subject": "Join Us for New Year Celebrations!",
+    "content": "<h2>New Year Events</h2><p>We are excited to announce our New Year community events. Join us for:</p><ul><li>New Year's Eve community party in the main hall</li><li>Children's countdown at 8 PM</li><li>Adult celebration until midnight</li><li>Complimentary refreshments and entertainment</li></ul><p>RSVP by December 28th. Looking forward to celebrating with you!</p>",
+    "status": "DRAFT",
+    "createdAt": "2024-12-18T14:00:00Z",
+    "updatedAt": "2024-12-18T16:00:00Z",
+    "scheduledAt": null,
+    "sentAt": null,
+    "createdBy": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+    "recipientCount": null
+  }
+]

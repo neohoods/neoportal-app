@@ -1,0 +1,177 @@
+<div class="newsletters-edit-container">
+    <div class="header">
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ pageDescription }}</p>
+    </div>
+
+    <form [formGroup]="newsletterForm" (ngSubmit)="onSubmit()" class="newsletter-form">
+        <div class="form-section">
+            <h3>{{ 'newsletters.basicInfo' | translate }}</h3>
+            
+            <div class="form-field">
+                <tui-textfield>
+                    <label tuiLabel>{{ 'newsletters.title' | translate }}</label>
+                    <input
+                        tuiTextfield
+                        formControlName="title"
+                        [placeholder]="'newsletters.titlePlaceholder' | translate"
+                        [readOnly]="!canEdit"
+                    />
+                </tui-textfield>
+                @if (newsletterForm.get('title')?.invalid && newsletterForm.get('title')?.touched) {
+                    <div class="error-message">
+                        @if (newsletterForm.get('title')?.errors?.['required']) {
+                            <span>{{ 'newsletters.validation.titleRequired' | translate }}</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>{{ 'newsletters.audience.title' | translate }}</label>
+                <tui-select
+                    formControlName="audienceType"
+                    [readOnly]="!canEdit"
+                    [stringify]="stringifyAudienceType"
+                >
+                    <input
+                        tuiTextfieldLegacy
+                        [placeholder]="'newsletters.audience.selectType' | translate"
+                    />
+                    <tui-data-list-wrapper
+                        *tuiDataList
+                        [items]="audienceTypes"
+                        [itemContent]="audienceTypeContent"
+                    ></tui-data-list-wrapper>
+                </tui-select>
+            </div>
+
+            <ng-template #audienceTypeContent let-item>
+                {{ item.label | translate }}
+            </ng-template>
+
+            <ng-template #userTypeContent let-item>
+                {{ item.label | translate }}
+            </ng-template>
+
+            <ng-template #userContent let-item>
+                {{ item.firstName }} {{ item.lastName }} ({{ item.email }})
+            </ng-template>
+
+            @if (newsletterForm.get('audienceType')?.value?.value === 'USER_TYPES') {
+                <div class="form-field">
+                    <label tuiLabel>{{ 'newsletters.audience.userTypes' | translate }}</label>
+                    <tui-multi-select
+                        formControlName="selectedUserTypes"
+                        [readOnly]="!canEdit"
+                        [stringify]="stringifyUserType"
+                    >
+                        <input
+                            tuiTextfieldLegacy
+                            [placeholder]="'newsletters.audience.selectUserTypes' | translate"
+                        />
+                        <tui-data-list-wrapper
+                            *tuiDataList
+                            [items]="userTypes"
+                            [itemContent]="userTypeContent"
+                        ></tui-data-list-wrapper>
+                    </tui-multi-select>
+                </div>
+            }
+
+            @if (newsletterForm.get('audienceType')?.value?.value === 'SPECIFIC_USERS') {
+                <div class="form-field">
+                    <label tuiLabel>{{ 'newsletters.audience.specificUsers' | translate }}</label>
+                    <tui-multi-select
+                        formControlName="selectedUserIds"
+                        [readOnly]="!canEdit"
+                        [stringify]="stringifyUser"
+                    >
+                        <input
+                            tuiTextfieldLegacy
+                            [placeholder]="'newsletters.audience.selectUsers' | translate"
+                        />
+                        <tui-data-list-wrapper
+                            *tuiDataList
+                            [items]="availableUsers"
+                            [itemContent]="userContent"
+                        ></tui-data-list-wrapper>
+                    </tui-multi-select>
+                    <small class="help-text">{{ 'newsletters.audience.specificUsersHelp' | translate }}</small>
+                </div>
+            }
+
+            <div class="form-field">
+                <tui-textfield>
+                    <label tuiLabel>{{ 'newsletters.subject' | translate }}</label>
+                    <input
+                        tuiTextfield
+                        formControlName="subject"
+                        [placeholder]="'newsletters.subjectPlaceholder' | translate"
+                        [readOnly]="!canEdit"
+                    />
+                </tui-textfield>
+                @if (newsletterForm.get('subject')?.invalid && newsletterForm.get('subject')?.touched) {
+                    <div class="error-message">
+                        @if (newsletterForm.get('subject')?.errors?.['required']) {
+                            <span>{{ 'newsletters.validation.subjectRequired' | translate }}</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>{{ 'newsletters.content' | translate }}</label>
+                <quill-editor
+                    formControlName="content"
+                    [modules]="editorConfig"
+                    [readOnly]="!canEdit"
+                    style="height: 300px; margin-top: 8px;"
+                    [placeholder]="'newsletters.contentPlaceholder' | translate"
+                ></quill-editor>
+                @if (newsletterForm.get('content')?.invalid && newsletterForm.get('content')?.touched) {
+                    <div class="error-message">
+                        @if (newsletterForm.get('content')?.errors?.['required']) {
+                            <span>{{ 'newsletters.validation.contentRequired' | translate }}</span>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button
+                tuiButton
+                type="button"
+                appearance="secondary"
+                (click)="onCancel()"
+            >
+                {{ 'common.cancel' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                type="button"
+                appearance="accent"
+                [disabled]="!canEdit || newsletterForm.invalid"
+                (click)="onTestNewsletter()"
+            >
+                <tui-icon icon="@tui.eye" />
+                {{ 'newsletters.test' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                type="submit"
+                appearance="primary"
+                [disabled]="!canEdit || newsletterForm.invalid || isLoading"
+            >
+                @if (isLoading) {
+                    <tui-loader size="s"></tui-loader>
+                }
+                {{ (isEditMode ? 'common.save' : 'common.create') | translate }}
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,140 @@
+.newsletter-logs-container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .header {
+        margin-bottom: 32px;
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0;
+            color: var(--tui-text-02);
+            font-size: 16px;
+        }
+    }
+
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+    }
+
+    .logs-table {
+        background: var(--tui-base-01);
+        border-radius: 12px;
+        border: 1px solid var(--tui-base-03);
+        overflow: hidden;
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 2fr;
+            gap: 16px;
+            padding: 16px 24px;
+            background: var(--tui-base-02);
+            border-bottom: 1px solid var(--tui-base-03);
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--tui-text-02);
+
+            .header-cell {
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 2fr;
+            gap: 16px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--tui-base-03);
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background: var(--tui-base-02);
+            }
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .cell {
+                display: flex;
+                align-items: center;
+                font-size: 14px;
+
+                .user-email {
+                    font-weight: 500;
+                    color: var(--tui-text-01);
+                }
+
+                .timestamp {
+                    color: var(--tui-text-02);
+                }
+
+                .error-message {
+                    color: var(--tui-error);
+                    font-size: 13px;
+                }
+
+                .no-data {
+                    color: var(--tui-text-03);
+                    font-style: italic;
+                }
+            }
+        }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 64px 24px;
+        color: var(--tui-text-02);
+
+        tui-icon {
+            margin-bottom: 16px;
+            color: var(--tui-text-03);
+        }
+
+        h3 {
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0;
+            font-size: 16px;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .newsletter-logs-container {
+        padding: 16px;
+
+        .logs-table {
+            .table-header,
+            .table-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+
+                .header-cell,
+                .cell {
+                    padding: 8px 0;
+                    border-bottom: 1px solid var(--tui-base-03);
+
+                    &:last-child {
+                        border-bottom: none;
+                    }
+                }
+            }
+        }
+    }
+}

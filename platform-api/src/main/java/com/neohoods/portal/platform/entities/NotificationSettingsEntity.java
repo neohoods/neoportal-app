@@ -3,6 +3,7 @@ package com.neohoods.portal.platform.entities;
 import java.util.UUID;
 
 import com.neohoods.portal.platform.model.NotificationSettings;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -31,9 +32,13 @@ public class NotificationSettingsEntity {
     @Column(nullable = false)
     private boolean enableNotifications;
 
+    @Column(nullable = false)
+    private boolean newsletterEnabled;
+
     public NotificationSettings toNotificationSettings() {
         return NotificationSettings.builder()
                 .enableNotifications(enableNotifications)
+                .newsletterEnabled(newsletterEnabled)
                 .build();
     }
-} 
+}
