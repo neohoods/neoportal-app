@@ -25,6 +25,8 @@
         <openapi.tool.version>0.2.6</openapi.tool.version>
         <nimbus.oauth2.version>11.22.2</nimbus.oauth2.version>
         <nimbus.jwt.version>10.0.1</nimbus.jwt.version>
+        <opentelemetry.version>1.43.0</opentelemetry.version>
+        <opentelemetry.spring.boot.version>2.4.0</opentelemetry.spring.boot.version>
 
         <swagger.core.v3.version>2.2.28</swagger.core.v3.version>
         <swagger.version>1.6.15</swagger.version>
@@ -41,6 +43,18 @@
         <logback.version>1.5.17</logback.version>
         <logstash-logback.version>7.4</logstash-logback.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${opentelemetry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <scm>
         <connection>scm:git:${project.scm.url}</connection>
@@ -113,10 +127,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-tracing-bridge-brave</artifactId>
         </dependency>
 
 
@@ -220,6 +230,19 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- Micrometer OTLP for OpenTelemetry -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-otlp</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- Micrometer tracing -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
     </dependencies>
 

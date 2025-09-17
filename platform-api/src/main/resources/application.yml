@@ -11,9 +11,28 @@ server:
       http-only: true
 
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0 # Trace everything (reduce in production)
   endpoints:
     web:
       base-path: /api/actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  otlp:
+    metrics:
+      url: http://otel-collector.observability.svc.cluster.local:4317/v1/metrics
+    tracing:
+      url: http://otel-collector.observability.svc.cluster.local:4317/v1/traces
+  metrics:
+    export:
+      otlp:
+        url: http://otel-collector.observability.svc.cluster.local:4317/v1/metrics
+    tags:
+      application: neohoods-platform-api
+      version: ${project.version:unknown}
+      environment: ${SPRING_PROFILES_ACTIVE:development}
 openapi:
   portalNeoHoods:
     base-path: /api
@@ -54,3 +73,5 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE # This shows the parameter values
+  pattern:
+    level: "%5p [traceId=%X{trace_id:-}, spanId=%X{span_id:-}] %logger{36} - %msg%n"

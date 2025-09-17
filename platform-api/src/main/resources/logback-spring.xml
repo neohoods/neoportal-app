@@ -1,59 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    </appender>
-
+    <!-- Console appender for development -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] [traceId: %X{traceId}] %-5level %logger{36} - %msg %n</pattern>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [traceId=%X{trace_id:-}, spanId=%X{span_id:-}] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <springProfile name="!json-logging">
-        <logger additivity="false" level="DEBUG" name="reactor.netty.http.client.HttpClient">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger additivity="false" level="DEBUG" name="com.neohoods">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger additivity="false" level="DEBUG" name="org.springframework.cloud.gateway">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger additivity="false" level="DEBUG" name="org.springframework.web.server">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger additivity="false" level="DEBUG" name="org.springframework.web.reactive">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger additivity="false" level="TRACE" name="org.hibernate.type.descriptor.sql.BasicBinder">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <root level="WARN">
+    <!-- JSON appender for production (Loki-compatible) -->
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>timestamp</fieldName>
+                    <pattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</pattern>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <logLevel>
+                    <fieldName>level</fieldName>
+                </logLevel>
+                <loggerName>
+                    <fieldName>logger</fieldName>
+                </loggerName>
+                <message/>
+                <mdc>
+                    <includeMdcKeyName>trace_id</includeMdcKeyName>
+                    <includeMdcKeyName>span_id</includeMdcKeyName>
+                    <includeMdcKeyName>user_id</includeMdcKeyName>
+                    <includeMdcKeyName>request_id</includeMdcKeyName>
+                </mdc>
+                <arguments/>
+                <stackTrace>
+                    <fieldName>stack_trace</fieldName>
+                </stackTrace>
+                <pattern>
+                    <pattern>
+                        {
+                            "service": "neohoods-platform-api",
+                            "environment": "${SPRING_PROFILES_ACTIVE:-development}",
+                            "version": "${project.version:-unknown}",
+                            "hostname": "${HOSTNAME:-unknown}",
+                            "pod_name": "${POD_NAME:-unknown}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- Async appender for better performance -->
+    <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="JSON"/>
+        <queueSize>1024</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- Root logger configuration -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Production profile uses JSON logging -->
+    <springProfile name="production">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+    </springProfile>
+
+    <!-- Development profile uses console logging -->
+    <springProfile name="development">
+        <root level="DEBUG">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 
-    <springProfile name="json-logging">
-        <logger additivity="false" level="DEBUG" name="reactor.netty.http.client.HttpClient">
-            <appender-ref ref="CONSOLE_JSON"/>
+    <!-- Specific logger configurations for development -->
+    <springProfile name="development">
+        <logger name="com.neohoods.portal" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger additivity="false" level="DEBUG" name="com.neohoods">
-            <appender-ref ref="CONSOLE_JSON"/>
+
+        <logger name="io.opentelemetry" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger additivity="false" level="DEBUG" name="org.springframework.cloud.gateway">
-            <appender-ref ref="CONSOLE_JSON"/>
+
+        <logger name="org.springframework.web" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger additivity="false" level="DEBUG" name="org.springframework.web.server">
-            <appender-ref ref="CONSOLE_JSON"/>
+
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger additivity="false" level="DEBUG" name="org.springframework.web.reactive">
-            <appender-ref ref="CONSOLE_JSON"/>
-        </logger>
-        <logger additivity="false" level="TRACE" name="org.hibernate.type.descriptor.sql.BasicBinder">
-            <appender-ref ref="CONSOLE_JSON"/>
-        </logger>
-        <root level="WARN">
-            <appender-ref ref="CONSOLE_JSON"/>
-        </root>
     </springProfile>
+
+    <!-- Specific logger configurations for production -->
+    <springProfile name="production">
+        <logger name="com.neohoods.portal" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_JSON"/>
+        </logger>
+
+        <logger name="io.opentelemetry" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_JSON"/>
+        </logger>
+
+        <logger name="org.springframework.web" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_JSON"/>
+        </logger>
+
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_JSON"/>
+        </logger>
+    </springProfile>
+
+    <!-- Reduce noise from some libraries -->
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+    <logger name="org.springframework.boot.actuate" level="WARN"/>
 </configuration>
