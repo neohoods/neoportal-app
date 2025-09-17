@@ -20,14 +20,18 @@ management:
       base-path: /api/actuator
       exposure:
         include: health,info,metrics,prometheus
+  # OTLP configuration - only enabled in production
   otlp:
     metrics:
+      enabled: false # Disabled in local development
       url: http://otel-collector.observability.svc.cluster.local:4317/v1/metrics
     tracing:
+      enabled: false # Disabled in local development
       url: http://otel-collector.observability.svc.cluster.local:4317/v1/traces
   metrics:
     export:
       otlp:
+        enabled: false # Disabled in local development
         url: http://otel-collector.observability.svc.cluster.local:4317/v1/metrics
     tags:
       application: neohoods-platform-api

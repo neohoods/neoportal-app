@@ -1,5 +1,5 @@
 <div class="applications-container">   
-    <div class="applications-info">
+    <div class="applications-info" *ngIf="showNotification">
         <tui-notification size="l">
             {{ 'applications.info' | translate }}
         </tui-notification>

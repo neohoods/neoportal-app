@@ -6,6 +6,7 @@
 
 .applications-info {
     margin-bottom: 1rem;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .applications-list {
