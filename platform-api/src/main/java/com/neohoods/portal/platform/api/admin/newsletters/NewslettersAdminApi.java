@@ -40,7 +40,7 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                 .flatMap(request -> exchange.getPrincipal()
                         .map(principal -> UUID.fromString(principal.getName()))
                         .flatMap(createdBy -> newsletterService.createNewsletter(
-                                request.getTitle(),
+                                request.getSubject(),
                                 request.getSubject(),
                                 request.getContent(),
                                 createdBy,
@@ -89,7 +89,7 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
         return updateNewsletterRequest
                 .flatMap(request -> newsletterService.updateNewsletter(
                         newsletterId,
-                        request.getTitle(),
+                        request.getSubject(),
                         request.getSubject(),
                         request.getContent(),
                         request.getAudience()))

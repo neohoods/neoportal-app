@@ -32,9 +32,6 @@ public class NewsletterEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private String title;
-
-    @Column(nullable = false)
     private String subject;
 
     @Column(columnDefinition = "text")
@@ -94,9 +91,8 @@ public class NewsletterEntity {
     public Newsletter toNewsletter() {
         Newsletter newsletter = new Newsletter()
                 .id(id)
-                .title(title)
-                .content(content)
                 .subject(subject)
+                .content(content)
                 .status(com.neohoods.portal.platform.model.NewsletterStatus.valueOf(status.name()))
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
@@ -116,7 +112,6 @@ public class NewsletterEntity {
     public static NewsletterEntity fromNewsletter(Newsletter newsletter) {
         return NewsletterEntity.builder()
                 .id(newsletter.getId() != null ? newsletter.getId() : UUID.randomUUID())
-                .title(newsletter.getTitle())
                 .content(newsletter.getContent())
                 .subject(newsletter.getSubject())
                 .status(newsletter.getStatus() != null

@@ -1891,7 +1891,6 @@ components:
       type: object
       required:
         - id
-        - title
         - subject
         - content
         - audience
@@ -1902,14 +1901,10 @@ components:
         id:
           type: string
           format: uuid
-        title:
-          type: string
-          example: "Monthly Community Update"
-          description: "Internal title for the newsletter"
         subject:
           type: string
           example: "Your Monthly Community Newsletter - January 2024"
-          description: "Email subject line"
+          description: "Newsletter title and email subject line"
         content:
           type: string
           example: "<h1>Welcome to our monthly newsletter</h1><p>Here are the latest updates...</p>"
@@ -1958,14 +1953,10 @@ components:
     NewsletterRequest:
       type: object
       required:
-        - title
         - subject
         - content
         - audience
       properties:
-        title:
-          type: string
-          example: "Monthly Community Update"
         subject:
           type: string
           example: "Your Monthly Community Newsletter - January 2024"

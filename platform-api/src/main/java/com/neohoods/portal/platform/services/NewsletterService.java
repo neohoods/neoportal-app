@@ -60,7 +60,6 @@ public class NewsletterService {
 
         NewsletterEntity entity = NewsletterEntity.builder()
                 .id(UUID.randomUUID())
-                .title(title)
                 .subject(subject)
                 .content(content)
                 .status(NewsletterStatus.DRAFT)
@@ -72,7 +71,7 @@ public class NewsletterService {
                 .build();
 
         NewsletterEntity savedEntity = newsletterRepository.save(entity);
-        log.info("Created newsletter: {} with ID: {}", savedEntity.getTitle(), savedEntity.getId());
+        log.info("Created newsletter: {} with ID: {}", savedEntity.getSubject(), savedEntity.getId());
         return Mono.just(savedEntity.toNewsletter());
     }
 
@@ -101,7 +100,7 @@ public class NewsletterService {
         log.info("Retrieving newsletter: {}", newsletterId);
         return Mono.justOrEmpty(newsletterRepository.findById(newsletterId))
                 .map(entity -> {
-                    log.info("Found newsletter: {}", entity.getTitle());
+                    log.info("Found newsletter: {}", entity.getSubject());
                     return entity.toNewsletter();
                 })
                 .switchIfEmpty(Mono.error(new CodedException(
@@ -130,7 +129,6 @@ public class NewsletterService {
                     CodedError.INVALID_NEWSLETTER_STATUS.getDocumentationUrl());
         }
 
-        existingEntity.setTitle(title);
         existingEntity.setSubject(subject);
         existingEntity.setContent(content);
         existingEntity.setAudienceType(audience.getType().toString());
@@ -139,7 +137,7 @@ public class NewsletterService {
         existingEntity.setAudienceExcludeUserIds(listToJson(audience.getExcludeUserIds()));
 
         NewsletterEntity updatedEntity = newsletterRepository.save(existingEntity);
-        log.info("Updated newsletter: {}", updatedEntity.getTitle());
+        log.info("Updated newsletter: {}", updatedEntity.getSubject());
         return Mono.just(updatedEntity.toNewsletter());
     }
 
@@ -162,7 +160,7 @@ public class NewsletterService {
         }
 
         newsletterRepository.delete(entity);
-        log.info("Deleted newsletter: {}", entity.getTitle());
+        log.info("Deleted newsletter: {}", entity.getSubject());
         return Mono.empty();
     }
 
@@ -188,7 +186,7 @@ public class NewsletterService {
         existingEntity.setScheduledAt(scheduledAt);
 
         NewsletterEntity updatedEntity = newsletterRepository.save(existingEntity);
-        log.info("Scheduled newsletter: {} for: {}", updatedEntity.getTitle(), updatedEntity.getScheduledAt());
+        log.info("Scheduled newsletter: {} for: {}", updatedEntity.getSubject(), updatedEntity.getScheduledAt());
         return Mono.just(updatedEntity.toNewsletter());
     }
 
@@ -245,7 +243,7 @@ public class NewsletterService {
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
                                         .ref("newsletterTitle")
-                                        .value(newsletter.getTitle())
+                                        .value(newsletter.getSubject())
                                         .build(),
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
@@ -282,7 +280,7 @@ public class NewsletterService {
                     log.info("Successfully sent newsletter to {} users", allUsers.size());
                 })
                 .onErrorResume(error -> {
-                    log.error("Failed to send newsletter: {}", newsletter.getTitle(), error);
+                    log.error("Failed to send newsletter: {}", newsletter.getSubject(), error);
                     // Optionally, update newsletter status to FAILED or log the error
                     return Mono.empty(); // Don't fail the entire operation
                 });
@@ -308,7 +306,7 @@ public class NewsletterService {
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
                                         .ref("newsletterTitle")
-                                        .value(newsletter.getTitle())
+                                        .value(newsletter.getSubject())
                                         .build(),
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)

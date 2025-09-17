@@ -141,7 +141,6 @@ CREATE TABLE "custom_pages" (
 
 CREATE TABLE "newsletters" (
     "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-    "title" varchar(255) NOT NULL,
     "subject" varchar(255) NOT NULL,
     "content" text,
     "status" varchar(50) NOT NULL CHECK (status IN ('DRAFT', 'SCHEDULED', 'SENDING', 'SENT', 'CANCELLED', 'FAILED')) DEFAULT 'DRAFT',
