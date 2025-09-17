@@ -14,20 +14,19 @@ management:
   tracing:
     enabled: true
     sampling:
-      probability: 1.0 # Trace everything (reduce in production)
+      probability: 1.0
+    otlp:
+      endpoint: http://tempo.observability.svc.cluster.local:4317
   endpoints:
     web:
       base-path: /api/actuator
       exposure:
         include: health,info,metrics,prometheus
-  # OTLP configuration - only enabled in production
   otlp:
     metrics:
-      enabled: false # Disabled in local development
-      url: http://otel-collector.observability.svc.cluster.local:4317/v1/metrics
-    tracing:
-      enabled: false # Disabled in local development
-      url: http://otel-collector.observability.svc.cluster.local:4317/v1/traces
+      export:
+        enabled: true
+        url: http://grafana-k8s-monitoring-alloy-receiver.monitoring.svc.cluster.local:4318/v1/metrics
   metrics:
     export:
       otlp:
