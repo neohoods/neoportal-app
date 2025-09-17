@@ -1,7 +1,5 @@
 package com.neohoods.portal.platform.config;
 
-import java.util.UUID;
-
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -20,11 +18,8 @@ public class TraceIdFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String traceId = UUID.randomUUID().toString();
+        String traceId = MDC.get(TRACE_ID_MDC_KEY);
         exchange.getResponse().getHeaders().add(TRACE_ID_HEADER, traceId);
-        MDC.put(TRACE_ID_MDC_KEY, traceId);
-
-        return chain.filter(exchange)
-                .doFinally(signalType -> MDC.remove(TRACE_ID_MDC_KEY));
+        return chain.filter(exchange);
     }
 }
