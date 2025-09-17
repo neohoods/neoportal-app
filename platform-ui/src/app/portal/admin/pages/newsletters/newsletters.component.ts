@@ -64,15 +64,8 @@ export class NewslettersComponent {
     ) {
         this.columns = [
             {
-                key: 'title',
-                label: this.translate.instant('newsletters.columns.title'),
-                visible: true,
-                sortable: true,
-                size: 'l',
-            },
-            {
                 key: 'subject',
-                label: this.translate.instant('newsletters.columns.subject'),
+                label: this.translate.instant('newsletters.columns.title'),
                 visible: true,
                 sortable: true,
                 size: 'l',
@@ -154,7 +147,7 @@ export class NewslettersComponent {
 
         this.dialogs
             .open<boolean>(TUI_CONFIRM, {
-                label: this.translate.instant('newsletters.confirmDeleteLabel', { title: newsletter.title }),
+                label: this.translate.instant('newsletters.confirmDeleteLabel', { title: newsletter.subject }),
                 size: 'm',
                 data,
             })
@@ -164,7 +157,7 @@ export class NewslettersComponent {
                         .subscribe(() => {
                             this.loadNewsletters();
                             this.alerts.open(
-                                this.translate.instant('newsletters.deleteSuccess', { title: newsletter.title }),
+                                this.translate.instant('newsletters.deleteSuccess', { title: newsletter.subject }),
                                 { appearance: 'positive' }
                             ).subscribe();
                         });
@@ -194,7 +187,7 @@ export class NewslettersComponent {
 
         this.dialogs
             .open<boolean>(TUI_CONFIRM, {
-                label: this.translate.instant('newsletters.confirmSendLabel', { title: newsletter.title }),
+                label: this.translate.instant('newsletters.confirmSendLabel', { title: newsletter.subject }),
                 size: 'm',
                 data,
             })
@@ -204,7 +197,7 @@ export class NewslettersComponent {
                         .subscribe(() => {
                             this.loadNewsletters();
                             this.alerts.open(
-                                this.translate.instant('newsletters.sendSuccess', { title: newsletter.title }),
+                                this.translate.instant('newsletters.sendSuccess', { title: newsletter.subject }),
                                 { appearance: 'positive' }
                             ).subscribe();
                         });
@@ -265,7 +258,7 @@ export class NewslettersComponent {
                 return this.translate.instant('newsletters.audience.all');
             case 'USER_TYPES':
                 if (audience.userTypes && audience.userTypes.length > 0) {
-                    return audience.userTypes.map((type: string) => 
+                    return audience.userTypes.map((type: string) =>
                         this.translate.instant(`newsletters.userTypes.${type.toLowerCase()}`)
                     ).join(', ');
                 }

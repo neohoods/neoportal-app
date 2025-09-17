@@ -1,4 +1,17 @@
 .applications-container {
     display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
 
+.applications-info {
+    margin-bottom: 1rem;
+}
+
+.applications-list {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
 }

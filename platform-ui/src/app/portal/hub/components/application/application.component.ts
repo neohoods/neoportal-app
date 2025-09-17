@@ -1,10 +1,12 @@
+import { CommonModule, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TuiHint } from '@taiga-ui/core';
 import { UIApplication } from '../../../../models/UIApplication';
 
 @Component({
   selector: 'application',
-  imports: [TuiHint],
+  imports: [TuiHint, CommonModule, NgIf, TranslateModule],
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss'
 })

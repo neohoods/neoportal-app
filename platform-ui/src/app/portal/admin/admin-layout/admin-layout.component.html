@@ -11,15 +11,23 @@
 
     <button iconStart="@tui.ellipsis" tuiIconButton type="button" tuiChevron tuiDropdownOpen [tuiDropdown]="settings">
       <ng-template #settings>
-        <tui-data-list size="s">
-          <button routerLink="/hub" class="dropdown" iconStart="@tui.users" tuiButton type="button">
+        <tui-data-list>
+          <a
+            routerLink="/hub"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.users" [style.width.px]="16" />
             {{ 'adminLayout.hubPortal' | translate }}
-          </button>
-        </tui-data-list>
-        <tui-data-list size="s">
-          <button routerLink="/auth/sign-out" class="dropdown" iconStart="@tui.log-out" tuiButton type="button">
+          </a>
+          <a
+            routerLink="/auth/sign-out"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.log-out" [style.width.px]="16" />
             {{ 'adminLayout.logOut' | translate }}
-          </button>
+          </a>
         </tui-data-list>
       </ng-template>
     </button>
@@ -28,24 +36,24 @@
   <nav id="menu" class="horizontal-menu">
 
     <a (click)="closeMore()" routerLink="/admin/infos/" routerLinkActive="active"
-      appearance="secondary-grayscale" iconStart="@tui.info" type="button" i18n="@@borrowItemButton">
+      appearance="secondary-grayscale" type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.info" />
       {{ 'adminLayout.infos' | translate }}
     </a>
     
-    <a routerLink="/admin/users/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.users"
+    <a routerLink="/admin/users/" routerLinkActive="active" appearance="secondary-grayscale"
       type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.users" />
       {{ 'adminLayout.users' | translate }}
     </a>
     <a (click)="closeMore()" routerLink="/admin/pages/" routerLinkActive="active" appearance="secondary-grayscale"
-      iconStart="@tui.book-open-text" type="button" i18n="@@borrowItemButton">
+      type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.book-open-text" />
       {{ 'adminLayout.pages' | translate }}
     </a>
     
     <a (click)="closeMore()" routerLink="/admin/newsletters/" routerLinkActive="active" appearance="secondary-grayscale"
-      iconStart="@tui.mail" type="button" i18n="@@borrowItemButton">
+      type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.mail" />
       {{ 'adminLayout.newsletters' | translate }}
     </a>
@@ -58,30 +66,36 @@
       (tuiObscured)="onObscured($event)">
       {{ 'adminLayout.more' | translate }}
       <ng-template #dropdownContent>
-        <div class="dropdown">
-
-          <a (click)="closeMore()" routerLink="/admin/applications/" routerLinkActive="active"
-            appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
-            <tui-icon icon="@tui.app-window-mac" />
+        <tui-data-list>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/applications/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.app-window-mac" [style.width.px]="16" />
             {{ 'adminLayout.applications' | translate }}
           </a>
-          <a (click)="closeMore()" routerLink="/admin/security/" routerLinkActive="active"
-            appearance="secondary-grayscale" iconStart="@tui.shield" type="button" i18n="@@borrowItemButton">
-            <tui-icon icon="@tui.shield" />
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/security/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.shield" [style.width.px]="16" />
             {{ 'adminLayout.security' | translate }}
           </a>
-
-        </div>
+        </tui-data-list>
       </ng-template>
     </button>
     } @else {
 
     <a (click)="closeMore()" routerLink="/admin/applications/" routerLinkActive="active"
-      appearance="secondary-grayscale" iconStart="@tui.app-window-mac" type="button" i18n="@@borrowItemButton">
+      appearance="secondary-grayscale" type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.app-window-mac" />
       {{ 'adminLayout.applications' | translate }}
     </a>
-    <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale" iconStart="@tui.shield"
+    <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale"
     type="button" i18n="@@borrowItemButton">
     <tui-icon icon="@tui.shield" />
     {{ 'adminLayout.security' | translate }}

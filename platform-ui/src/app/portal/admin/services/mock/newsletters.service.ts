@@ -63,7 +63,6 @@ export class MockNewslettersService implements NewslettersService {
             this.initializeData().then(() => {
                 const newNewsletter: UINewsletter = {
                     id: (this.newsletters.length + 1).toString(),
-                    title: request.title,
                     subject: request.subject,
                     content: request.content,
                     status: NewsletterStatus.DRAFT,
@@ -89,7 +88,6 @@ export class MockNewslettersService implements NewslettersService {
                 } else {
                     this.newsletters[index] = {
                         ...this.newsletters[index],
-                        title: request.title,
                         subject: request.subject,
                         content: request.content,
                         audience: request.audience,
@@ -166,7 +164,7 @@ export class MockNewslettersService implements NewslettersService {
                     observer.error(new Error(`Newsletter with id ${id} not found`));
                 } else {
                     // Simuler l'envoi d'un test
-                    console.log(`Sending test newsletter: ${newsletter.title} to admin email`);
+                    console.log(`Sending test newsletter: ${newsletter.subject} to admin email`);
                     observer.next();
                     observer.complete();
                 }

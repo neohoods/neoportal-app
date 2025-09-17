@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { TuiButton, TuiExpand, TuiIcon, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiExpand, TuiIcon, TuiLabel, TuiLink, TuiNotification, TuiTextfield } from '@taiga-ui/core';
 import { TuiPagination, TuiTabs } from '@taiga-ui/kit';
 import {
   TuiInputColorModule
@@ -30,6 +30,8 @@ import { AnnouncementComponent } from '../announcement/announcement.component';
     AnnouncementComponent,
     CommonModule,
     TuiExpand,
+    TuiButton, TuiLink, TuiNotification,
+    TuiNotification,
     TuiIcon,
     TuiPagination,
     TuiTabs

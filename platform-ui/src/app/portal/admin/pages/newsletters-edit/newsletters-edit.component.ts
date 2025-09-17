@@ -6,6 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
     TuiAlertService,
     TuiButton,
+    TuiCalendar,
     TuiIcon,
     TuiLabel,
     TuiLoader,
@@ -17,6 +18,7 @@ import {
     TuiFilterByInputPipe,
     TuiHideSelectedPipe,
     TuiInputChip,
+    TuiInputDateTime,
     TuiMultiSelect
 } from '@taiga-ui/kit';
 import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
@@ -40,8 +42,10 @@ import { UsersService } from '../../services/users.service';
         TuiTextfield,
         TuiInputModule,
         TuiSelectModule,
+        TuiCalendar,
         TuiChevron,
         TuiInputChip,
+        TuiInputDateTime,
         TuiDataListWrapper,
         TuiFilterByInputPipe,
         TuiHideSelectedPipe,
@@ -112,10 +116,10 @@ export class NewslettersEditComponent implements OnInit {
         private translate: TranslateService
     ) {
         this.newsletterForm = this.fb.group({
-            title: ['', [Validators.required, Validators.maxLength(255)]],
             subject: ['', [Validators.required, Validators.maxLength(255)]],
             content: ['', [Validators.required]],
             audienceType: [this.audienceTypes[0], [Validators.required]], // Initialize with the first object
+            scheduledAt: [null], // Optional scheduled date
         });
     }
 
@@ -159,7 +163,6 @@ export class NewslettersEditComponent implements OnInit {
                 const audienceTypeObject = this.audienceTypes.find(type => type.value === audienceTypeValue) || this.audienceTypes[0];
 
                 this.newsletterForm.patchValue({
-                    title: newsletter.title,
                     subject: newsletter.subject,
                     content: newsletter.content,
                     audienceType: audienceTypeObject,
@@ -210,7 +213,6 @@ export class NewslettersEditComponent implements OnInit {
         };
 
         const request: CreateNewsletterRequest = {
-            title: formValue.title,
             subject: formValue.subject,
             content: formValue.content,
             audience: audience
@@ -248,7 +250,6 @@ export class NewslettersEditComponent implements OnInit {
         };
 
         const request: UpdateNewsletterRequest = {
-            title: formValue.title,
             subject: formValue.subject,
             content: formValue.content,
             audience: audience
@@ -359,7 +360,6 @@ export class NewslettersEditComponent implements OnInit {
         };
 
         const request: CreateNewsletterRequest = {
-            title: formValue.title,
             subject: formValue.subject,
             content: formValue.content,
             audience: audience

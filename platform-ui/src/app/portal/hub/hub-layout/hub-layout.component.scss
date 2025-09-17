@@ -37,7 +37,6 @@ aside[tuiNavigationAside]:after {
 }
 
 header[tuiNavigationHeader][tuiNavigationHeader] {
-    background-color: var(--tos-background-accent-1);
     /* Use primary color for background */
 }
 
@@ -61,6 +60,24 @@ header[tuiNavigationHeader][tuiNavigationHeader] [tuiButton] {
 button.dropdown {
     min-width: 200px;
     justify-content: flex-start;
+}
+
+/* Dropdown links */
+a.dropdown {
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: inherit;
+}
+
+a.dropdown tui-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .wishlist-button {

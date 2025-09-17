@@ -1,6 +1,5 @@
 export interface UINewsletter {
     id: string;
-    title: string;
     subject: string;
     content: string;
     status: NewsletterStatus;
@@ -41,14 +40,12 @@ export enum NewsletterStatus {
 }
 
 export interface CreateNewsletterRequest {
-    title: string;
     subject: string;
     content: string;
     audience: UINewsletterAudience;
 }
 
 export interface UpdateNewsletterRequest {
-    title: string;
     subject: string;
     content: string;
     audience: UINewsletterAudience;

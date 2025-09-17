@@ -20,22 +20,22 @@
         {{ 'settings.more' | translate }}
         <ng-template #menu>
           <tui-data-list>
-              <a
-                tuiOption
-                routerLink="/hub/settings/profile"
-                routerLinkActive="active"
-              >
-                <tui-icon icon="@tui.user" [style.width.px]="16" />
-                {{ 'settings.profile' | translate }}
-              </a>
-              <a
-                tuiOption
-                routerLink="/hub/settings/properties"
-                routerLinkActive="active"
-              >
-                <tui-icon icon="@tui.home" [style.width.px]="16" />
-                {{ 'settings.properties' | translate }}
-              </a>
+            <a
+              routerLink="/hub/settings/profile"
+              class="dropdown"
+              tuiOption
+            >
+              <tui-icon icon="@tui.user" [style.width.px]="16" />
+              {{ 'settings.profile' | translate }}
+            </a>
+            <a
+              routerLink="/hub/settings/properties"
+              class="dropdown"
+              tuiOption
+            >
+              <tui-icon icon="@tui.home" [style.width.px]="16" />
+              {{ 'settings.properties' | translate }}
+            </a>
           </tui-data-list>
         </ng-template>
       </button>

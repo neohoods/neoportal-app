@@ -590,6 +590,13 @@
     "searchResults": "Résultats de recherche",
     "noArticlesFound": "Aucun article trouvé"
   },
+  "applications": {
+    "info": "Cette section contient toutes les applications disponibles dans votre communauté. Vous pouvez accéder aux services, réserver des équipements et utiliser les outils communautaires pour améliorer votre expérience de vie de quartier.",
+    "notAvailable": "Cette application n'est pas encore disponible"
+  },
+  "announcements": {
+    "info": "Cette section vous permet de créer et consulter les annonces de votre communauté. Partagez des informations importantes, des événements, des mises à jour ou toute nouvelle pertinente avec vos voisins."
+  },
   "newsletters": {
     "title": "Newsletters",
     "createNewsletter": "Créer une newsletter",
@@ -608,6 +615,8 @@
     "contentPlaceholder": "Entrez le contenu de la newsletter...",
     "status": "Statut",
     "scheduledAt": "Programmée pour",
+    "scheduledAtPlaceholder": "Sélectionnez une date et heure...",
+    "scheduledAtHelp": "Laissez vide pour envoyer immédiatement",
     "sentAt": "Envoyée le",
     "recipientCount": "Nombre de destinataires",
     "createdBy": "Créée par",

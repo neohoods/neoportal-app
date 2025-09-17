@@ -12,6 +12,7 @@ import {
   TuiDropdownService,
   TuiIcon,
   TuiInitialsPipe,
+  TuiNotification,
   TuiRoot
 } from '@taiga-ui/core';
 import {
@@ -48,6 +49,7 @@ import { ApplicationsComponent } from '../components/applications/applications.c
     TuiFade,
     TuiIcon,
     TuiNavigation,
+    TuiNotification,
     TuiTabs,
     NotificationsPopupComponent,
     ProfileCompletionCheckComponent,

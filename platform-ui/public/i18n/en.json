@@ -617,6 +617,13 @@
       }
     }
   },
+  "applications": {
+    "info": "This section contains all the applications available in your community. You can access services, book equipment and use community tools to enhance your neighborhood living experience.",
+    "notAvailable": "This application is not yet available"
+  },
+  "announcements": {
+    "info": "This section allows you to create and view community announcements. Share important information, events, updates or any relevant news with your neighbors."
+  },
   "newsletters": {
     "title": "Newsletters",
     "createNewsletter": "Create Newsletter",
@@ -635,6 +642,8 @@
     "contentPlaceholder": "Enter newsletter content...",
     "status": "Status",
     "scheduledAt": "Scheduled for",
+    "scheduledAtPlaceholder": "Select date and time...",
+    "scheduledAtHelp": "Leave empty to send immediately",
     "sentAt": "Sent at",
     "recipientCount": "Recipient count",
     "createdBy": "Created by",

@@ -15,8 +15,16 @@
         color: var(--tos-text-primary);
     }
 
+    &.disabled {
+        img {
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
 
-
+        .application-name {
+            color: #999;
+        }
+    }
 }
 
 .link-button {
@@ -36,4 +44,9 @@
 .application-container:hover {
     transform: translateY(-10px);
     transition: transform 0.3s ease;
+}
+
+.disabled-message {
+    margin-bottom: 8px;
+    color: #666;
 }

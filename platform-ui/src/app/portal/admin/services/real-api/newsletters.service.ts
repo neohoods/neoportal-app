@@ -45,7 +45,6 @@ export class ApiNewslettersService implements NewslettersService {
 
     createNewsletter(request: CreateNewsletterRequest): Observable<UINewsletter> {
         const apiRequest: ApiNewsletterRequest = {
-            title: request.title,
             subject: request.subject,
             content: request.content,
             audience: {
@@ -59,7 +58,6 @@ export class ApiNewslettersService implements NewslettersService {
 
     updateNewsletter(id: string, request: UpdateNewsletterRequest): Observable<void> {
         const apiRequest: ApiNewsletterRequest = {
-            title: request.title,
             subject: request.subject,
             content: request.content,
             audience: {
@@ -99,7 +97,6 @@ export class ApiNewslettersService implements NewslettersService {
     private mapToUINewsletter(newsletter: Newsletter): UINewsletter {
         return {
             id: newsletter.id || '',
-            title: newsletter.title || '',
             subject: newsletter.subject || '',
             content: newsletter.content || '',
             status: (newsletter.status as NewsletterStatus) || NewsletterStatus.DRAFT,
