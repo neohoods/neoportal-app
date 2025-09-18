@@ -1,5 +1,5 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiDialog, TuiIcon, TuiTextfield } from '@taiga-ui/core';
@@ -29,20 +29,21 @@ import { CustomPagesService } from '../../services/custom-pages.service';
   styleUrl: './help-center-edit.component.scss'
 })
 export class HelpCenterEditComponent {
-  categoriesPerId: { [key: string]: UIHelpCategory } = {};
-  categories: UIHelpCategory[] = [];
-  articles: UIHelpArticle[] = [];
-  articlesByCategory: { [key: string]: UIHelpArticle[] } = {};
+  // Signals for reactive data
+  categoriesPerId = signal<{ [key: string]: UIHelpCategory }>({});
+  categories = signal<UIHelpCategory[]>([]);
+  articles = signal<UIHelpArticle[]>([]);
+  articlesByCategory = signal<{ [key: string]: UIHelpArticle[] }>({});
 
-  selectedCategoryId: string | null = null;
-  searchText = '';
+  selectedCategoryId = signal<string | null>(null);
+  searchText = signal('');
   categoryForm: FormGroup;
   articleForm: FormGroup;
 
-  protected openCategoryDialog = false;
-  currentCategory: UIHelpCategory | null = null;
-  currentArticle: UIHelpArticle | null = null;
-  openArticleDialog = false;
+  protected openCategoryDialog = signal(false);
+  currentCategory = signal<UIHelpCategory | null>(null);
+  currentArticle = signal<UIHelpArticle | null>(null);
+  openArticleDialog = signal(false);
 
   editorConfig = {
     toolbar: [
@@ -55,7 +56,7 @@ export class HelpCenterEditComponent {
       ['clean'], // Remove formatting
     ],
   };
-  isMobile: boolean = false;
+  isMobile = signal(false);
 
   constructor(@Inject(CUSTOM_PAGES_SERVICE_TOKEN) private customPagesService: CustomPagesService,
     private alerts: TuiAlertService,
@@ -72,75 +73,92 @@ export class HelpCenterEditComponent {
     });
 
     this.customPagesService.getCategories().subscribe(categories => {
-      this.categories = categories.sort((a, b) => a.order - b.order);
-      this.categoriesPerId = categories.reduce((acc, category) => {
+      const sortedCategories = categories.sort((a, b) => a.order - b.order);
+      this.categories.set(sortedCategories);
+      this.categoriesPerId.set(categories.reduce((acc, category) => {
         acc[category.id] = category;
         return acc;
-      }, {} as { [key: string]: UIHelpCategory });
-      this.selectedCategoryId = categories[0].id;
-      this.selectCategory(this.selectedCategoryId!);
+      }, {} as { [key: string]: UIHelpCategory }));
+      this.selectedCategoryId.set(categories[0].id);
+      this.selectCategory(categories[0].id);
     });
 
     this.breakpointObserver
       .observe([Breakpoints.Handset])
       .subscribe((result) => {
-        this.isMobile = result.matches;
+        this.isMobile.set(result.matches);
       });
   }
 
   selectCategory(categoryId: string) {
-    this.selectedCategoryId = categoryId;
-    if (this.articlesByCategory[categoryId]) {
-      this.articles = this.articlesByCategory[categoryId];
+    this.selectedCategoryId.set(categoryId);
+    const currentArticlesByCategory = this.articlesByCategory();
+    if (currentArticlesByCategory[categoryId]) {
+      this.articles.set(currentArticlesByCategory[categoryId]);
     } else {
       this.customPagesService.getArticles(categoryId).subscribe(articles => {
-        this.articles = articles.sort((a, b) => a.order - b.order);
-        this.articlesByCategory[categoryId] = articles;
+        const sortedArticles = articles.sort((a, b) => a.order - b.order);
+        this.articles.set(sortedArticles);
+        this.articlesByCategory.update(current => ({
+          ...current,
+          [categoryId]: sortedArticles
+        }));
       });
     }
   }
 
-  onTextFilterChange() {
-    if (this.searchText.length < 3) {
+  onTextFilterChange(searchText: string) {
+    this.searchText.set(searchText);
+    if (searchText.length < 3) {
       return;
     }
 
-    this.selectedCategoryId = null;
-    this.categories.forEach(category => {
-      if (!this.articlesByCategory[category.id]) {
+    this.selectedCategoryId.set(null);
+    const currentCategories = this.categories();
+    const currentArticlesByCategory = this.articlesByCategory();
+
+    currentCategories.forEach(category => {
+      if (!currentArticlesByCategory[category.id]) {
         this.customPagesService.getArticles(category.id).subscribe(articles => {
-          this.articlesByCategory[category.id] = articles.sort((a, b) => a.order - b.order);
+          const sortedArticles = articles.sort((a, b) => a.order - b.order);
+          this.articlesByCategory.update(current => ({
+            ...current,
+            [category.id]: sortedArticles
+          }));
         });
       }
     });
     this.filterArticles();
-
   }
 
   private filterArticles() {
-    const searchTextLower = this.searchText.toLowerCase();
-    this.articles = [];
+    const searchTextLower = this.searchText().toLowerCase();
+    const currentArticlesByCategory = this.articlesByCategory();
+    const filteredArticles: UIHelpArticle[] = [];
 
-    for (const categoryId in this.articlesByCategory) {
-      const filteredArticles = this.articlesByCategory[categoryId].filter(article =>
+    for (const categoryId in currentArticlesByCategory) {
+      const categoryArticles = currentArticlesByCategory[categoryId].filter(article =>
         article.title.toLowerCase().includes(searchTextLower) ||
         article.content.toLowerCase().includes(searchTextLower)
       );
-      this.articles.push(...filteredArticles);
+      filteredArticles.push(...categoryArticles);
     }
+    this.articles.set(filteredArticles);
   }
 
 
   protected orderUp(category: UIHelpCategory): void {
-    const currentIndex = this.categories.findIndex(cat => cat.id === category.id);
+    const currentCategories = this.categories();
+    const currentIndex = currentCategories.findIndex(cat => cat.id === category.id);
     if (currentIndex > 0) {
-      const aboveCategory = this.categories[currentIndex - 1];
+      const aboveCategory = currentCategories[currentIndex - 1];
       const currentOrder = category.order;
 
       // Swap the order values
       category.order = aboveCategory.order;
       aboveCategory.order = currentOrder;
-      this.categories.sort((a, b) => a.order - b.order);
+      const sortedCategories = [...currentCategories].sort((a, b) => a.order - b.order);
+      this.categories.set(sortedCategories);
 
       // Update both categories
       this.customPagesService.updateCategory(category).subscribe();
@@ -149,14 +167,16 @@ export class HelpCenterEditComponent {
   }
 
   protected orderDown(category: UIHelpCategory): void {
-    const currentIndex = this.categories.findIndex(cat => cat.id === category.id);
-    if (currentIndex < this.categories.length - 1) {
-      const belowCategory = this.categories[currentIndex + 1];
+    const currentCategories = this.categories();
+    const currentIndex = currentCategories.findIndex(cat => cat.id === category.id);
+    if (currentIndex < currentCategories.length - 1) {
+      const belowCategory = currentCategories[currentIndex + 1];
       const currentOrder = category.order;
 
       category.order = belowCategory.order;
       belowCategory.order = currentOrder;
-      this.categories.sort((a, b) => a.order - b.order);
+      const sortedCategories = [...currentCategories].sort((a, b) => a.order - b.order);
+      this.categories.set(sortedCategories);
 
       this.customPagesService.updateCategory(category).subscribe();
       this.customPagesService.updateCategory(belowCategory).subscribe();
@@ -164,8 +184,8 @@ export class HelpCenterEditComponent {
   }
 
   protected editCategory(category: UIHelpCategory): void {
-    this.openCategoryDialog = true;
-    this.currentCategory = category;
+    this.openCategoryDialog.set(true);
+    this.currentCategory.set(category);
     this.categoryForm.patchValue({
       name: category.name,
       icon: category.icon
@@ -173,8 +193,8 @@ export class HelpCenterEditComponent {
   }
 
   protected editArticle(article: UIHelpArticle): void {
-    this.openArticleDialog = true;
-    this.currentArticle = article;
+    this.openArticleDialog.set(true);
+    this.currentArticle.set(article);
     this.articleForm.patchValue({
       title: article.title,
       content: article.content
@@ -182,13 +202,13 @@ export class HelpCenterEditComponent {
   }
 
   addCategory() {
-    this.openCategoryDialog = true;
-    this.currentCategory = {
+    this.openCategoryDialog.set(true);
+    this.currentCategory.set({
       id: 'new',
       name: '',
       icon: '@tui.notebook',
-      order: this.categories.length
-    };
+      order: this.categories().length
+    });
     this.categoryForm.patchValue({
       name: '',
       icon: '@tui.notebook'
@@ -197,14 +217,14 @@ export class HelpCenterEditComponent {
 
 
   addArticle() {
-    this.openArticleDialog = true;
-    this.currentArticle = {
+    this.openArticleDialog.set(true);
+    this.currentArticle.set({
       id: 'new',
       title: '',
       content: '',
-      order: this.articles.length,
-      category: this.categoriesPerId[this.selectedCategoryId!]
-    };
+      order: this.articles().length,
+      category: this.categoriesPerId()[this.selectedCategoryId()!]
+    });
     this.articleForm.patchValue({
       title: '',
       content: ''
@@ -215,36 +235,49 @@ export class HelpCenterEditComponent {
     if (this.categoryForm.valid) {
       const newCategory = this.categoryForm.get('name')?.value;
       const newIcon = this.categoryForm.get('icon')?.value;
-      if (typeof newCategory === 'string' && this.currentCategory?.id) {
-        if (this.currentCategory.id === 'new') {
-          this.customPagesService.createCategory({ ...this.currentCategory, name: newCategory, icon: newIcon })
-            .subscribe((newCategory) => {
-              this.openCategoryDialog = false;
-              this.articlesByCategory[newCategory.id] = [];
-              this.categories.push(newCategory);
-              this.categoriesPerId[newCategory.id] = newCategory;
-              this.selectCategory(newCategory.id);
+      const currentCategory = this.currentCategory();
+      if (typeof newCategory === 'string' && currentCategory?.id) {
+        if (currentCategory.id === 'new') {
+          this.customPagesService.createCategory({ ...currentCategory, name: newCategory, icon: newIcon })
+            .subscribe((createdCategory) => {
+              this.openCategoryDialog.set(false);
+              this.articlesByCategory.update(current => ({
+                ...current,
+                [createdCategory.id]: []
+              }));
+              this.categories.update(current => [...current, createdCategory]);
+              this.categoriesPerId.update(current => ({
+                ...current,
+                [createdCategory.id]: createdCategory
+              }));
+              this.selectCategory(createdCategory.id);
               window.scrollTo({ top: 0, behavior: 'smooth' });
 
               this.alerts
                 .open(
                   'Category <strong>' +
-                  this.currentCategory?.name +
+                  currentCategory?.name +
                   '</strong> created successfully',
                   { appearance: 'positive' },
                 )
                 .subscribe();
             });
         } else {
-          this.customPagesService.updateCategory({ ...this.currentCategory, name: newCategory, icon: newIcon })
-            .subscribe((newCategory) => {
-              this.openCategoryDialog = false;
-              this.categoriesPerId[this.currentCategory!.id] = newCategory;
+          this.customPagesService.updateCategory({ ...currentCategory, name: newCategory, icon: newIcon })
+            .subscribe((updatedCategory) => {
+              this.openCategoryDialog.set(false);
+              this.categoriesPerId.update(current => ({
+                ...current,
+                [currentCategory.id]: updatedCategory
+              }));
+              this.categories.update(current =>
+                current.map(cat => cat.id === currentCategory.id ? updatedCategory : cat)
+              );
               window.scrollTo({ top: 0, behavior: 'smooth' });
               this.alerts
                 .open(
                   'Category <strong>' +
-                  this.currentCategory?.name +
+                  currentCategory?.name +
                   '</strong> edited successfully',
                   { appearance: 'positive' },
                 )
@@ -258,34 +291,57 @@ export class HelpCenterEditComponent {
   setArticle() {
     if (this.articleForm.valid) {
       const newArticle = this.articleForm.value;
-      if (this.currentArticle?.id === 'new') {
-        this.customPagesService.createArticle({ ...newArticle, category: this.categoriesPerId[this.selectedCategoryId!] }).subscribe((newArticle) => {
-          this.openArticleDialog = false;
+      const currentArticle = this.currentArticle();
+      const selectedCategoryId = this.selectedCategoryId();
+
+      if (currentArticle?.id === 'new') {
+        this.customPagesService.createArticle({ ...newArticle, category: this.categoriesPerId()[selectedCategoryId!] }).subscribe((createdArticle) => {
+          this.openArticleDialog.set(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });
-          this.articles.push(newArticle);
-          this.articles.sort((a, b) => a.order - b.order);
+
+          this.articles.update(current => {
+            const updated = [...current, createdArticle];
+            return updated.sort((a, b) => a.order - b.order);
+          });
+
+          // Update articlesByCategory for the current category
+          this.articlesByCategory.update(current => ({
+            ...current,
+            [selectedCategoryId!]: [...(current[selectedCategoryId!] || []), createdArticle].sort((a, b) => a.order - b.order)
+          }));
 
           this.alerts
             .open(
               'Article <strong>' +
-              newArticle.title +
+              createdArticle.title +
               '</strong> created successfully',
               { appearance: 'positive' },
             )
             .subscribe();
         });
       } else {
-        this.customPagesService.updateArticle({ ...this.currentArticle!, title: newArticle.title, content: newArticle.content }).subscribe((newArticle) => {
-          this.openArticleDialog = false;
-          this.articles = this.articles.filter(article => article.id !== this.currentArticle!.id);
-          this.articles.push(newArticle);
-          this.articles.sort((a, b) => a.order - b.order);
+        this.customPagesService.updateArticle({ ...currentArticle!, title: newArticle.title, content: newArticle.content }).subscribe((updatedArticle) => {
+          this.openArticleDialog.set(false);
+
+          this.articles.update(current => {
+            const filtered = current.filter(article => article.id !== currentArticle!.id);
+            const updated = [...filtered, updatedArticle];
+            return updated.sort((a, b) => a.order - b.order);
+          });
+
+          // Update articlesByCategory for the current category
+          this.articlesByCategory.update(current => ({
+            ...current,
+            [selectedCategoryId!]: current[selectedCategoryId!].map(article =>
+              article.id === currentArticle!.id ? updatedArticle : article
+            ).sort((a, b) => a.order - b.order)
+          }));
 
           window.scrollTo({ top: 0, behavior: 'smooth' });
           this.alerts
             .open(
               'Article <strong>' +
-              this.currentArticle?.title +
+              currentArticle?.title +
               '</strong> edited successfully',
               { appearance: 'positive' },
             )
@@ -296,8 +352,10 @@ export class HelpCenterEditComponent {
   }
 
   protected orderUpArticle(article: UIHelpArticle): void {
-    if (this.selectedCategoryId) {
-      var articles = this.articlesByCategory[this.selectedCategoryId];
+    const selectedCategoryId = this.selectedCategoryId();
+    if (selectedCategoryId) {
+      const currentArticlesByCategory = this.articlesByCategory();
+      const articles = currentArticlesByCategory[selectedCategoryId];
       const currentIndex = articles.findIndex(art => art.id === article.id);
       if (currentIndex > 0) {
         const aboveArticle = articles[currentIndex - 1];
@@ -306,7 +364,13 @@ export class HelpCenterEditComponent {
         // Swap the order values
         article.order = aboveArticle.order;
         aboveArticle.order = currentOrder;
-        articles.sort((a, b) => a.order - b.order);
+        const sortedArticles = [...articles].sort((a, b) => a.order - b.order);
+
+        this.articlesByCategory.update(current => ({
+          ...current,
+          [selectedCategoryId]: sortedArticles
+        }));
+        this.articles.set(sortedArticles);
 
         // Update both articles
         this.customPagesService.updateArticle(article).subscribe();
@@ -316,8 +380,10 @@ export class HelpCenterEditComponent {
   }
 
   protected orderDownArticle(article: UIHelpArticle): void {
-    if (this.selectedCategoryId) {
-      var articles = this.articlesByCategory[this.selectedCategoryId];
+    const selectedCategoryId = this.selectedCategoryId();
+    if (selectedCategoryId) {
+      const currentArticlesByCategory = this.articlesByCategory();
+      const articles = currentArticlesByCategory[selectedCategoryId];
       const currentIndex = articles.findIndex(art => art.id === article.id);
       if (currentIndex < articles.length - 1) {
         const belowArticle = articles[currentIndex + 1];
@@ -326,7 +392,13 @@ export class HelpCenterEditComponent {
         // Swap the order values
         article.order = belowArticle.order;
         belowArticle.order = currentOrder;
-        this.articles.sort((a, b) => a.order - b.order);
+        const sortedArticles = [...articles].sort((a, b) => a.order - b.order);
+
+        this.articlesByCategory.update(current => ({
+          ...current,
+          [selectedCategoryId]: sortedArticles
+        }));
+        this.articles.set(sortedArticles);
 
         // Update both articles
         this.customPagesService.updateArticle(article).subscribe();

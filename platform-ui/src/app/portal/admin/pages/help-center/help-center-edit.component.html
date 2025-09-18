@@ -2,17 +2,17 @@
   <aside>
     <div class="categories-container">
       <ul>
-        @for (category of categories; track category.id) {
-        <li [class.active]="selectedCategoryId === category.id" (click)="selectCategory(category.id)">
+        @for (category of categories(); track category.id) {
+        <li [class.active]="selectedCategoryId() === category.id" (click)="selectCategory(category.id)">
           <tui-icon class="category-icon" [icon]="category.icon"></tui-icon>
           {{ category.name }}
 
           <div class="category-actions">
             <button class="order-up" appearance="outline" iconStart="@tui.arrow-up" size="s" tuiIconButton type="button"
-              (click)="orderUp(category)" [disabled]="categories.indexOf(category) === 0">
+              (click)="orderUp(category)" [disabled]="categories().indexOf(category) === 0">
             </button>
             <button class="order-down" appearance="outline" iconStart="@tui.arrow-down" size="s" tuiIconButton
-              type="button" (click)="orderDown(category)" [disabled]="categories.indexOf(category) === categories.length - 1">
+              type="button" (click)="orderDown(category)" [disabled]="categories().indexOf(category) === categories().length - 1">
             </button>
             <button class="edit-button" appearance="primary" iconStart="@tui.pencil" size="s" tuiIconButton
               type="button" (click)="editCategory(category)">
@@ -29,27 +29,36 @@
   </aside>
 
   <main>
+    <div class="search-container">
+      <tui-textfield>
+        <input 
+          type="text" 
+          placeholder="{{ 'helpCenterEdit.searchPlaceholder' | translate }}"
+          (input)="onTextFilterChange($any($event.target).value)"
+          tuiTextfield />
+      </tui-textfield>
+    </div>
     <h2>
-      {{ selectedCategoryId ? categoriesPerId[selectedCategoryId].name : ('helpCenterEdit.searchResults' | translate) }}
+      {{ selectedCategoryId() ? categoriesPerId()[selectedCategoryId()!].name : ('helpCenterEdit.searchResults' | translate) }}
     </h2>
-    @if (articles.length === 0) {
+    @if (articles().length === 0) {
     <div class="no-items">
       <p><tui-icon icon="@tui.search-x" /> {{ 'helpCenterEdit.noArticleFound' | translate }}</p>
     </div>
     }
     <div class="container-faq">
       <tui-accordion>
-        @for (article of articles; track article.id) {
+        @for (article of articles(); track article.id) {
         <tui-accordion-item>
           <div class="article-actions">
             <button class="edit-button" appearance="primary" iconStart="@tui.pencil" size="s" tuiIconButton
               type="button" (click)="editArticle(article)">
             </button>
             <button class="order-up" appearance="outline" iconStart="@tui.arrow-up" size="s" tuiIconButton type="button"
-              (click)="orderUpArticle(article)" [disabled]="articles.indexOf(article) === 0">
+              (click)="orderUpArticle(article)" [disabled]="articles().indexOf(article) === 0">
             </button>
             <button class="order-down" appearance="outline" iconStart="@tui.arrow-down" size="s" tuiIconButton
-              type="button" (click)="orderDownArticle(article)" [disabled]="articles.indexOf(article) === articles.length - 1">
+              type="button" (click)="orderDownArticle(article)" [disabled]="articles().indexOf(article) === articles().length - 1">
             </button>
           </div>
           {{ article.title }}
@@ -73,9 +82,9 @@
 </div>
 
 <ng-template let-observer [tuiDialogOptions]="{
-    label: ('helpCenterEdit.editCategory' | translate) + ' ' + currentCategory?.name,
-    size: isMobile ? 'fullscreen' : 's',
-  }" [(tuiDialog)]="openCategoryDialog">
+    label: ('helpCenterEdit.editCategory' | translate) + ' ' + currentCategory()?.name,
+    size: isMobile() ? 'fullscreen' : 's',
+  }" [tuiDialog]="openCategoryDialog()" (tuiDialogChange)="openCategoryDialog.set($event)">
   <form class="category-form" [formGroup]="categoryForm" (ngSubmit)="setCategory()">
     <tui-textfield>
       <label tuiLabel>{{ 'helpCenterEdit.categoryName' | translate }}</label>
@@ -101,7 +110,7 @@
 <ng-template class="article-dialog" let-observer [tuiDialogOptions]="{
     label: ('helpCenterEdit.editArticle' | translate),
     size: 'fullscreen',
-  }" [(tuiDialog)]="openArticleDialog">
+  }" [tuiDialog]="openArticleDialog()" (tuiDialogChange)="openArticleDialog.set($event)">
   <form class="article-form" [formGroup]="articleForm" (ngSubmit)="setArticle()">
 
     <tui-textfield>

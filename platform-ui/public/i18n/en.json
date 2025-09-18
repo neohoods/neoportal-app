@@ -525,6 +525,22 @@
     "searchResults": "Search Results",
     "noArticlesFound": "No articles found"
   },
+  "helpCenterEdit": {
+    "addCategory": "Add Category",
+    "addArticle": "Add Article",
+    "searchPlaceholder": "Search in articles...",
+    "searchResults": "Search Results",
+    "noArticleFound": "No article found",
+    "editCategory": "Edit Category",
+    "editArticle": "Edit Article",
+    "categoryName": "Category Name",
+    "categoryNamePlaceholder": "Enter category name",
+    "categoryIcon": "Category Icon",
+    "categoryIconPlaceholder": "Enter category icon",
+    "articleTitle": "Article Title",
+    "articleTitlePlaceholder": "Enter article title",
+    "save": "Save"
+  },
   "settings": {
     "more": "More",
     "profile": "Profile",
@@ -572,6 +588,7 @@
       }
     },
     "nextAGDate": "Next AGM",
+    "noDateSet": "No date set",
     "rulesUrl": "Rules URL",
     "delegates": "Board members",
     "delegate": {

@@ -469,6 +469,7 @@
       }
     },
     "nextAGDate": "Prochaine AG",
+    "noDateSet": "Aucune date définie",
     "rulesUrl": "URL des règles",
     "delegates": "Délégués syndicaux",
     "delegate": {
@@ -589,6 +590,22 @@
     "searchPlaceholder": "Rechercher dans l'aide...",
     "searchResults": "Résultats de recherche",
     "noArticlesFound": "Aucun article trouvé"
+  },
+  "helpCenterEdit": {
+    "addCategory": "Ajouter une catégorie",
+    "addArticle": "Ajouter un article",
+    "searchPlaceholder": "Rechercher dans les articles...",
+    "searchResults": "Résultats de recherche",
+    "noArticleFound": "Aucun article trouvé",
+    "editCategory": "Modifier la catégorie",
+    "editArticle": "Modifier l'article",
+    "categoryName": "Nom de la catégorie",
+    "categoryNamePlaceholder": "Entrez le nom de la catégorie",
+    "categoryIcon": "Icône de la catégorie",
+    "categoryIconPlaceholder": "Entrez l'icône de la catégorie",
+    "articleTitle": "Titre de l'article",
+    "articleTitlePlaceholder": "Entrez le titre de l'article",
+    "save": "Enregistrer"
   },
   "applications": {
     "info": "Cette section contient toutes les applications disponibles dans votre communauté. Vous pouvez accéder aux services, réserver des équipements et utiliser les outils communautaires pour améliorer votre expérience de vie de quartier.",

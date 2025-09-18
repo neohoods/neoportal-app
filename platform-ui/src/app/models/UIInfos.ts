@@ -3,7 +3,7 @@
 
 export interface UIInfo {
     id: string;
-    nextAGDate: string;
+    nextAGDate: string | null;
     rulesUrl: string;
     delegates: Array<UIDelegate>;
     contactNumbers: UIInfoContactNumbers;

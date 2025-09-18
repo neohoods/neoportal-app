@@ -16,7 +16,8 @@ import { ApplicationComponent } from '../application/application.component';
 export class ApplicationsComponent implements OnDestroy {
   applications: UIApplication[] = [];
   showNotification = true;
-  private scrollThreshold = 50; // pixels from top
+  private hideThreshold = 200; // pixels from top to hide notification
+  private showThreshold = 100; // pixels from top to show notification
 
   constructor(
     @Inject(APPLICATIONS_SERVICE_TOKEN) private applicationsService: ApplicationsService,
@@ -29,7 +30,13 @@ export class ApplicationsComponent implements OnDestroy {
   @HostListener('window:scroll', ['$event'])
   onWindowScroll() {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    this.showNotification = scrollTop < this.scrollThreshold;
+
+    if (scrollTop >= this.hideThreshold) {
+      this.showNotification = false;
+    } else if (scrollTop <= this.showThreshold) {
+      this.showNotification = true;
+    }
+    // Entre les deux seuils, on garde l'état actuel (hystérésis)
   }
 
   ngOnDestroy() {

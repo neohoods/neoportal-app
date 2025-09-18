@@ -15,6 +15,11 @@ export class APIInfosService implements InfosService {
   }
 
   updateInfos(infos: UIInfo): Observable<UIInfo> {
-    return this.infosApiService.updateInfos(infos);
+    // Convertir UIInfo vers le format attendu par l'API
+    const apiInfos = {
+      ...infos,
+      nextAGDate: infos.nextAGDate || ''
+    };
+    return this.infosApiService.updateInfos(apiInfos as any);
   }
 }

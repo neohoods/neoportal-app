@@ -83,7 +83,7 @@ export class InfosComponent implements OnInit {
       .subscribe((infos) => {
         this.infos = infos;
         this.editInfosForm.patchValue({
-          nextAGDate: this.stringToTuiDay(infos.nextAGDate),
+          nextAGDate: infos.nextAGDate ? this.stringToTuiDay(infos.nextAGDate) : null,
           rulesUrl: infos.rulesUrl
         });
         this.setDelegates(infos.delegates);

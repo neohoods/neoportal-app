@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, OnInit, signal } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiButton, TuiExpand, TuiIcon } from '@taiga-ui/core';
 import { TuiChevron } from '@taiga-ui/kit';
 import { UIInfo } from '../../../../models/UIInfos';
@@ -22,7 +22,7 @@ import { InfosService } from '../../services/infos.service';
 export class InfosComponent implements OnInit {
   infos = signal<UIInfo>({
     id: '1',
-    nextAGDate: '',
+    nextAGDate: null,
     rulesUrl: '',
     delegates: [],
     contactNumbers: {
@@ -53,6 +53,7 @@ export class InfosComponent implements OnInit {
   constructor(
     @Inject(INFOS_SERVICE_TOKEN) private infosService: InfosService,
     private cdr: ChangeDetectorRef,
+    private translateService: TranslateService,
   ) { }
 
   ngOnInit(): void {
@@ -101,5 +102,37 @@ export class InfosComponent implements OnInit {
   toggleEmergency(index: number) {
     const signal = this.getEmergencySignal(index);
     signal.set(!signal());
+  }
+
+  // Méthode pour obtenir la locale actuelle
+  getCurrentLocale(): string {
+    return this.translateService.currentLang || 'fr';
+  }
+
+  // Méthode pour formater la date selon la locale
+  formatDate(dateString: string | null): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const locale = this.getCurrentLocale();
+
+    return date.toLocaleDateString(locale, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  // Méthode pour formater l'heure selon la locale
+  formatTime(dateString: string | null): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const locale = this.getCurrentLocale();
+
+    return date.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   }
 }

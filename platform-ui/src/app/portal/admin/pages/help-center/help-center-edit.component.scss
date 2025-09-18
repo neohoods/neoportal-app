@@ -166,6 +166,15 @@
     }
 }
 
+.search-container {
+    margin-bottom: 1rem;
+
+    tui-textfield {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
 @media (max-width: 800px) {
     .content-container {
         display: block;

@@ -5,11 +5,20 @@
 
             {{ 'infos.nextAGDate' | translate }}
         </h2>
-        <p>
-            {{ infos().nextAGDate | date:'dd/MM/yyyy' }}
-        </p>
+        <div *ngIf="infos().nextAGDate; else noDateTemplate" class="ag-date-time">
+            <span class="ag-date">{{ formatDate(infos().nextAGDate) }}</span>
+            <div class="ag-time-container">
+                <tui-icon icon="@tui.clock" class="time-icon"></tui-icon>
+                <span class="ag-time">{{ formatTime(infos().nextAGDate) }}</span>
+            </div>
+        </div>
+        <ng-template #noDateTemplate>
+            <p class="no-date-message">
+                {{ 'infos.noDateSet' | translate }}
+            </p>
+        </ng-template>
     </div>
-    <div class="infos-rules-url">
+    <div *ngIf="infos().rulesUrl" class="infos-rules-url">
         <h2>
             <tui-icon icon="@tui.scale" [style.width.px]="16" />
 
