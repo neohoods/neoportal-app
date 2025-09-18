@@ -1,4 +1,9 @@
 {
+  "languageSwitcher": {
+    "chooseLanguage": "Choose your language",
+    "english": "English",
+    "french": "French"
+  },
   "signIn": {
     "welcomeBack": "Welcome back.",
     "username": "Username",

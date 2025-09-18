@@ -35,7 +35,7 @@ management:
     tags:
       application: neohoods-platform-api
       version: ${project.version:unknown}
-      environment: ${SPRING_PROFILES_ACTIVE:development}
+      environment: ${SPRING_PROFILES_ACTIVE:production}
 openapi:
   portalNeoHoods:
     base-path: /api

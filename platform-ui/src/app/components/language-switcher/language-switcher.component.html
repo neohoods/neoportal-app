@@ -8,6 +8,7 @@
     >
 
     <button
+        class="language-switcher-button"
         appearance="outline-grayscale"
         size="s"
         tuiButton
@@ -16,12 +17,12 @@
         [tuiDropdown]="dropdown"
         [iconStart]="icons.languages"
     >
-        {{ language.value || 'Language' }}
+        {{ language.value ? ('languageSwitcher.' + language.value.toLowerCase() | translate) : 'Language' }}
     </button>
 
     <ng-template #dropdown>
         <tui-data-list>
-            <tui-opt-group label="Choose your language">
+            <tui-opt-group [label]="'languageSwitcher.chooseLanguage' | translate">
                 <button
                     *ngFor="let name of names"
                     tuiOption
@@ -33,7 +34,7 @@
                         class="t-flag"
                         [src]="flags.get(name) | tuiFlag"
                     >
-                    {{ name | titlecase }}
+                    {{ 'languageSwitcher.' + name | translate }}
                 </button>
             </tui-opt-group>
         </tui-data-list>

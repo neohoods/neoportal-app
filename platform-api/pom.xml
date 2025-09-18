@@ -244,6 +244,13 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
+
+        <!-- OpenTelemetry Spring Boot Starter for automatic trace ID injection -->
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-spring-boot-starter</artifactId>
+            <version>${opentelemetry.spring.boot.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

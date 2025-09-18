@@ -1,7 +1,7 @@
 import { NgForOf, TitleCasePipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TUI_DOC_ICONS } from '@taiga-ui/addon-doc/tokens';
 import { TuiButton } from '@taiga-ui/core/components/button';
 import { TuiDataList, TuiOptGroup, TuiOption } from '@taiga-ui/core/components/data-list';
@@ -20,6 +20,7 @@ import { TuiBadgedContent } from '@taiga-ui/kit/components/badged-content';
     NgForOf,
     ReactiveFormsModule,
     TitleCasePipe,
+    TranslateModule,
     TuiBadge,
     TuiBadgedContent,
     TuiButton,
