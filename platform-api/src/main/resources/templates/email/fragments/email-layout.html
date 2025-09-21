@@ -71,16 +71,49 @@
             .email-masthead {
                 padding: 32px 0;
                 text-align: center;
-                background: #283242;
+                background: #002e23;
+                position: relative;
+                overflow: visible;
             }
 
             .email-masthead_inner {
                 display: inline-block;
                 vertical-align: middle;
+                position: relative;
+                z-index: 2;
+            }
+
+            /* Header decorative leaves */
+            .email-masthead_leafs {
+                width: 180px;
+                height: auto;
+                float: right;
+                margin: 0;
+                filter: brightness(0) invert(1);
+            }
+
+            /* Body decorative leaves */
+            .email-body_leafs {
+                position: relative;
+                width: 140px;
+                height: auto;
+                float: left;
+                margin: 0;
+                bottom: -43px;
+                transform: rotate(180deg);
+            }
+
+            /* Team signature */
+            .email-team-signature {
+                float: right;
+                margin: 20px 0 0 0;
+                font-style: italic;
+                color: rgba(27, 31, 59, 0.6);
+                font-size: 14px;
             }
 
             .email-masthead_logo {
-                width: 140px;
+                width: 100px;
                 height: auto;
                 border: 0;
                 display: inline-block;
@@ -106,7 +139,8 @@
                 margin: 0;
                 padding: 0;
                 border-top: 1px solid #f1f5f9;
-                background-color: #ffffff;
+                position: relative;
+                overflow: visible;
             }
 
             .email-body_inner {
@@ -116,6 +150,7 @@
                 background: #ffffff;
                 border-radius: 12px;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                position: relative;
             }
 
             .email-content-cell {
@@ -243,6 +278,14 @@
                 .email-masthead_name {
                     font-size: 20px;
                 }
+
+                .email-masthead_leafs {
+                    width: 60px;
+                }
+
+                .email-body_leafs {
+                    width: 60px;
+                }
             }
 
             /* Prevent dark mode from affecting emails */
@@ -274,7 +317,7 @@
                             </tr>
                             <!-- Body -->
                             <tr>
-                                <td>
+                                <td class="email-body">
                                     <table class="email-body_inner" role="presentation">
                                         <tr>
                                             <td class="email-content-cell">
@@ -285,6 +328,8 @@
                                                         </td>
                                                     </tr>
                                                 </table>
+                                                <img th:src="${leafsAccentUrl}" alt="Feuilles" class="email-body_leafs" />
+                                                <div class="email-team-signature" th:text="#{email.newsletter.team_signature(${appName})}">L'équipe de Terres de Laya</div>
                                             </td>
                                         </tr>
                                     </table>
@@ -303,6 +348,7 @@
         <!-- Header Fragment -->
         <tr th:fragment="header">
             <td class="email-masthead">
+                <img th:src="${leafsUrl}" alt="Feuilles" class="email-masthead_leafs" />
                 <div class="email-masthead_inner">
                     <img th:src="${logoUrl}" th:alt="${appName}" class="email-masthead_logo" />
                     <span class="email-masthead_name" th:text="${appName}">App Name</span>
@@ -353,9 +399,15 @@
                 <table class="email-footer" role="presentation">
                     <tr>
                         <td class="email-footer_cell">
-                            <p style="margin: 0 0 4px; font-size: 13px;">© 2025 [[${appName}]]. All rights reserved.</p>
-                            <p style="margin: 0; font-size: 13px;">
-                                This email was sent to you because you have an account on [[${appName}]].
+
+                            <p style="margin: 0 0 4px; font-size: 13px;">
+                                <span th:text="#{email.newsletter.unsubscribe_notice}">You received this newsletter because you are subscribed to our updates. If you no longer wish to receive these emails, you can</span>
+                                <a th:href="${notificationsUrl}" style="color: #FB8C02; text-decoration: none;" th:text="#{email.newsletter.unsubscribe_link}">unsubscribe from your account settings</a>.
+                            </p>
+
+                            <p style="margin: 0 0 4px; font-size: 13px;" th:text="#{email.footer.copyright(${appName})}">© 2025 [[${appName}]]. Tous droits réservés.</p>
+                            <p style="margin: 0; font-size: 13px;" th:text="#{email.footer.disclaimer(${appName})}">
+                                Cet email vous a été envoyé car vous avez un compte sur [[${appName}]].
                             </p>
                         </td>
                     </tr>

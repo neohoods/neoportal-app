@@ -10,17 +10,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiTextfield } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
-import { environment } from '../../../../../../environments/environment';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
 import {
   AUTH_SERVICE_TOKEN,
   getGlobalProviders,
 } from '../../../../../global.provider';
 import { AuthService } from '../../../../../services/auth.service';
-import {
-  ConfigService,
-  UISettings,
-} from '../../../../../services/config.service';
+import { ConfigService, UISettings } from '../../../../../services/config.service';
 
 @Component({
   standalone: true,
@@ -43,7 +39,7 @@ import {
 export class SignInComponent implements OnInit {
   signInForm: FormGroup;
   config: UISettings;
-  environment = environment;
+  appConfig = ConfigService.configuration;
 
   constructor(
     private fb: FormBuilder,

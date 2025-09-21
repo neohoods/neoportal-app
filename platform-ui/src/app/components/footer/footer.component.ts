@@ -5,10 +5,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TuiDataList, TuiDropdown, TuiIcon } from '@taiga-ui/core';
 import { TuiTabs } from '@taiga-ui/kit';
 import { TuiNavigation } from '@taiga-ui/layout';
-import { environment } from '../../../environments/environment';
 import { UICustomPage } from '../../models/UICustomPage';
 import { CUSTOM_PAGE_SERVICE_TOKEN, hubProviders } from '../../portal/hub/hub.provider';
 import { CustomPageService } from '../../portal/hub/services/custom-page.service';
+import { ConfigService } from '../../services/config.service';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 
 @Component({
@@ -31,7 +31,7 @@ import { LanguageSwitcherComponent } from '../language-switcher/language-switche
 export class FooterComponent {
 
   customPages: Map<string, UICustomPage[]> = new Map<string, UICustomPage[]>();
-  environment = environment;
+  appConfig = ConfigService.configuration;
 
   constructor(
     @Inject(CUSTOM_PAGE_SERVICE_TOKEN) private customPageService: CustomPageService

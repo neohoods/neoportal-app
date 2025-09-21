@@ -14,6 +14,11 @@ export interface AppConfig {
   useMockApi: boolean;
   demoMode: boolean;
   defaultLocale: string;
+  // Branding configuration
+  brandName: string;
+  brandDisplayName: string;
+  brandCopyright: string;
+  brandLogo: string;
 }
 
 @Injectable({

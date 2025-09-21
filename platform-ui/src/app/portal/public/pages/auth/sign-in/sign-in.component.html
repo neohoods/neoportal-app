@@ -1,6 +1,6 @@
 <div id="login-container">
   <div id="login-form-section">
-    <img class="logo" [src]="environment.brandLogo" [alt]="environment.brandDisplayName" />
+        <img class="logo" [src]="appConfig.brandLogo" [alt]="appConfig.brandDisplayName" />
     <h2>{{ 'signIn.welcomeBack' | translate }}</h2>
     
     @if (config.ssoEnabled) {

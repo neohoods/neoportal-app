@@ -7,7 +7,7 @@
     </div>
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="hero-title">Bienvenue sur {{ environment.brandDisplayName }}</h1>
+        <h1 class="hero-title">Bienvenue sur {{ appConfig.brandDisplayName }}</h1>
         <p class="hero-subtitle">{{ 'home.heroSubtitle' | translate }}</p>
         <p class="hero-description">{{ 'home.heroDescription' | translate }}</p>
         
@@ -24,7 +24,7 @@
       </div>
       
       <div class="hero-visual">
-        <img [src]="environment.brandLogo" [alt]="environment.brandDisplayName" class="hero-logo">
+        <img [src]="appConfig.brandLogo" [alt]="appConfig.brandDisplayName" class="hero-logo">
         <div class="hero-decoration">
           <div class="decoration-circle circle-1"></div>
           <div class="decoration-circle circle-2"></div>

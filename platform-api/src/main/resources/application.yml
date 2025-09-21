@@ -46,8 +46,11 @@ neohoods:
     frontend-url: https://local.portal.neohoods.com:4200
     email:
       template:
-        logo-url: https://local.portal.neohoods.com:4200/logo-simple.png
-        app-name: portal NeoHoods
+        logo-url: ${neohoods.portal.frontend-url}/terres-de-laya-logo-bright.png
+        app-name: Terres de Laya
+        leafs-url: ${neohoods.portal.frontend-url}/leafs-primary-left.png
+        leafs-accent-url: ${neohoods.portal.frontend-url}/leafs-accent.png
+        notifications-url: ${neohoods.portal.frontend-url}/hub/settings/notifications
     auth0:
       domain: ${AUTH0_DOMAIN:terresdelaya.eu.auth0.com}
       client-id: ${AUTH0_CLIENT_ID}

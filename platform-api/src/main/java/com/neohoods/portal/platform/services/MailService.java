@@ -50,6 +50,15 @@ public class MailService {
     @Value("${neohoods.portal.email.template.app-name}")
     private String appName;
 
+    @Value("${neohoods.portal.email.template.leafs-url}")
+    private String leafsUrl;
+
+    @Value("${neohoods.portal.email.template.leafs-accent-url}")
+    private String leafsAccentUrl;
+
+    @Value("${neohoods.portal.email.template.notifications-url}")
+    private String notificationsUrl;
+
     public void sendMail(String to, String subject, String htmlContent) {
         log.info("Sending email via MailerSend to: {}, subject: {}", to, subject);
 
@@ -118,6 +127,24 @@ public class MailService {
                         .type(TemplateVariableType.RAW)
                         .ref("appName")
                         .value(appName)
+                        .build());
+        mutableVariables.add(
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("leafsUrl")
+                        .value(leafsUrl)
+                        .build());
+        mutableVariables.add(
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("leafsAccentUrl")
+                        .value(leafsAccentUrl)
+                        .build());
+        mutableVariables.add(
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("notificationsUrl")
+                        .value(notificationsUrl)
                         .build());
 
         Map<String, Object> variablesMap = mutableVariables.stream()
