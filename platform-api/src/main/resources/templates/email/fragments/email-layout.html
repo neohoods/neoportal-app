@@ -329,7 +329,7 @@
                                                     </tr>
                                                 </table>
                                                 <img th:src="${leafsAccentUrl}" alt="Feuilles" class="email-body_leafs" />
-                                                <div class="email-team-signature" th:text="#{email.newsletter.team_signature(${appName})}">L'équipe de Terres de Laya</div>
+                                                <div class="email-team-signature" th:text="${teamSignature}">L'équipe de Terres de Laya</div>
                                             </td>
                                         </tr>
                                     </table>

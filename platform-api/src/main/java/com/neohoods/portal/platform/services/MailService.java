@@ -113,6 +113,8 @@ public class MailService {
             return;
         }
 
+        log.info("MailService - appName: '{}', logoUrl: '{}', locale: {}", appName, logoUrl, locale);
+
         // Create a mutable copy of the variables list
         List<TemplateVariable> mutableVariables = new ArrayList<>(variables);
 
@@ -145,6 +147,16 @@ public class MailService {
                         .type(TemplateVariableType.RAW)
                         .ref("notificationsUrl")
                         .value(notificationsUrl)
+                        .build());
+
+        // Add pre-translated team signature
+        String teamSignature = messageSource.getMessage("email.newsletter.team_signature", new Object[] { appName },
+                locale);
+        mutableVariables.add(
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("teamSignature")
+                        .value(teamSignature)
                         .build());
 
         Map<String, Object> variablesMap = mutableVariables.stream()
