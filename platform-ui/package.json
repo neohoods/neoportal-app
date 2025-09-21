@@ -7,6 +7,7 @@
     "start": "ng serve",
     "prebuild": "npm run generate:api-client",
     "build": "ng build",
+    "build:terresdelaya": "ng build --configuration=terresdelaya",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "generate:api-client": "openapi-generator-cli generate -i ../openapi.yaml -g typescript-angular -o src/app/api-client --skip-validate-spec --additional-properties=withCredentials=true"

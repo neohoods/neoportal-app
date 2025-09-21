@@ -9,6 +9,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiTextfield } from '@taiga-ui/core';
+import { environment } from '../../../../../../environments/environment';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
 import {
   AUTH_SERVICE_TOKEN,
@@ -36,6 +37,7 @@ import { ConfigService } from '../../../../../services/config.service';
 export class ForgotPasswordComponent {
   forgotPasswordForm: FormGroup;
   config: any;
+  environment = environment;
 
   constructor(
     private fb: FormBuilder,

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiTextfield } from '@taiga-ui/core';
+import { environment } from '../../../../../../environments/environment';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
 import { AUTH_SERVICE_TOKEN, getGlobalProviders } from '../../../../../global.provider';
 import { AuthService } from '../../../../../services/auth.service';
@@ -26,6 +27,7 @@ import { AuthService } from '../../../../../services/auth.service';
 export class ResetPasswordComponent implements OnInit {
   resetPasswordForm: FormGroup;
   token: string | null = null;
+  environment = environment;
 
   constructor(
     private fb: FormBuilder,

@@ -2,5 +2,9 @@
   "API_BASE_PATH": "${API_BASE_PATH}",
   "useMockApi": ${USE_MOCK_API},
   "demoMode": ${DEMO_MODE},
-  "defaultLocale": "${DEFAULT_LOCALE}"
+  "defaultLocale": "${DEFAULT_LOCALE}",
+  "brandName": "${BRAND_NAME}",
+  "brandDisplayName": "${BRAND_DISPLAY_NAME}",
+  "brandCopyright": "${BRAND_COPYRIGHT}",
+  "brandLogo": "${BRAND_LOGO}"
 } 

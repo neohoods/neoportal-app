@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton } from '@taiga-ui/core';
+import { environment } from '../../../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -18,6 +19,7 @@ import { TuiAlertService, TuiButton } from '@taiga-ui/core';
 export class EmailConfirmationComponent implements OnInit {
   isVerified = false;
   source = '';
+  environment = environment;
   error = '';
 
   constructor(

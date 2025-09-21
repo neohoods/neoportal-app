@@ -5,32 +5,37 @@
 // Optionally, define neutral colors and any other common colors
 $black: #000000;
 
+
 $font-family: "Inter var", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
 $background-base: #fff;
 $background-base-alt: #f6f6f6;
 
 // Calculate the lightened color using Sass
-$lightened-action-color: color.adjust(#1b1f3b, $lightness: 20%);
-$lightened-accent-color: color.adjust(#7f9a7b, $lightness: 20%);
+// Calculate the lightened color using Sass
+$lightened-action-color: lighten(#002e23, 20%);
+$lightened-accent-color: lighten(#cf5b40, 20%);
 
 :root {
   // Backgrounds
   --tos-background-base: #FFF;
   --tos-background-base-alt: #f1f5f9;
-  --tos-background-base-alt-2: #fafafabb;
+  --tos-background-home: #002e23;
+
   --tos-background-neutral-1: rgba(0, 0, 0, 0.04);
   --tos-background-neutral-1-hover: rgba(0, 0, 0, 0.08);
   --tos-background-neutral-1-pressed: rgba(0, 0, 0, 0.12);
   --tos-background-neutral-2: rgba(0, 0, 0, 0.08);
   --tos-background-neutral-2-hover: rgba(0, 0, 0, 0.1);
   --tos-background-neutral-2-pressed: rgba(0, 0, 0, 0.14);
-  --tos-background-accent-1: #283242;
-  --tos-background-accent-1-hover: #4d6283;
-  --tos-background-accent-1-pressed: #2b446d;
-  --tos-background-accent-2: #82a47d;
+
+  --tos-background-accent-1: #002e23;
+  --tos-background-accent-1-hover: #026954;
+  --tos-background-accent-1-pressed: #00241c;
+  --tos-background-accent-2: #cf5b40;
   --tos-background-accent-2-hover: #{$lightened-accent-color};
-  --tos-background-accent-2-pressed: #cbe0be;
+  --tos-background-accent-2-pressed: #b04c36;
+  --tos-background-accent-opposite: #000;
   --tos-background-accent-opposite: #000;
   --tos-background-accent-opposite-hover: #333;
   --tos-background-accent-opposite-pressed: #808080;
@@ -45,13 +50,13 @@ $lightened-accent-color: color.adjust(#7f9a7b, $lightness: 20%);
   --tos-border-hover: rgba(0, 0, 0, 0.16);
   --tos-border-focus: rgba(51, 51, 51, 0.64);
   // Statuses
-  --tos-status-negative: #cc1910;
+  --tos-status-negative: #f45725;
   --tos-status-negative-pale: rgba(244, 87, 37, 0.12);
   --tos-status-negative-pale-hover: rgba(244, 87, 37, 0.24);
   --tos-status-positive: #4ac99b;
   --tos-status-positive-pale: rgba(74, 201, 155, 0.12);
   --tos-status-positive-pale-hover: rgba(74, 201, 155, 0.24);
-  --tos-status-warning: #df7f0a;
+  --tos-status-warning: #ffc700;
   --tos-status-warning-pale: rgba(255, 199, 0, 0.12);
   --tos-status-warning-pale-hover: rgba(255, 199, 0, 0.24);
   --tos-status-info: #70b6f6;
@@ -62,8 +67,8 @@ $lightened-accent-color: color.adjust(#7f9a7b, $lightness: 20%);
   --tos-text-primary: #1b1f3b;
   --tos-text-secondary: rgba(27, 31, 59, 0.65);
   --tos-text-tertiary: rgba(27, 31, 59, 0.4);
-  --tos-text-accent: #FB8C02;
-  --tos-text-accent-hover: #FB8C02;
+  --tos-text-accent: #cf5b40;
+  --tos-text-accent-hover: #ad4b35;
   --tos-text-primary-on-accent-1: #fff;
   --tos-text-primary-on-accent-2: #fff;
   --tos-text-action: #1b1f3b;
@@ -73,8 +78,8 @@ $lightened-accent-color: color.adjust(#7f9a7b, $lightness: 20%);
   --tos-text-negative: #dd4c1e;
   --tos-text-negative-hover: #e38163;
   // Charts
-  --tos-chart-categorical-00: #FB8C02;
-  --tos-chart-categorical-01: #3b619d;
+  --tos-chart-categorical-00: var(--tos-background-accent-1);
+  --tos-chart-categorical-01: #ea97c4;
   --tos-chart-categorical-02: #a0c5df;
   --tos-chart-categorical-03: #fee797;
   --tos-chart-categorical-04: #b0b0b0;
@@ -96,22 +101,7 @@ $lightened-accent-color: color.adjust(#7f9a7b, $lightness: 20%);
   --tos-chart-categorical-20: #aadc42;
   --tos-chart-categorical-21: #3682db;
   --tos-chart-categorical-22: #34b41f;
-  // timeline
-  --tos-timeline-dot-accent: #FB8C02;
-  --tos-timeline-dot-primary: #1b1f3b;
-  --tos-timeline-dot-secondary: #79818c;
-  --tos-timeline-dot-success: #43b38a;
-  --tos-timeline-dot-warning: #ff8000;
-  --tos-timeline-dot-danger: #cc1910;
-  --tos-timeline-dot-impossible: #ccc;
 
-  --tos-timeline-line-accent: #FB8C02;
-  --tos-timeline-line-primary: #1b1f3b;
-  --tos-timeline-line-secondary: #79818c;
-  --tos-timeline-line-success: #4ac99b;
-  --tos-timeline-line-warning: #ffc700;
-  --tos-timeline-line-danger: #cc1910;
-  --tos-timeline-line-impossible: #ccc;
 
   // Mapping to tui-theme
   --tui-background-base: var(--tos-background-base);

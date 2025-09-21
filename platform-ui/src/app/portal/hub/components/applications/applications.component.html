@@ -5,9 +5,16 @@
         </tui-notification>
     </div>
     
-    <div class="applications-list">
-        @for (application of applications; track application.id) {
-            <application [application]="application"></application>
-        }
+    <div class="applications-content">
+        <div class="applications-list">
+            @for (application of applications; track application.id) {
+                <application [application]="application"></application>
+            }
+        </div>
+        
+        <!-- Décoration avec les feuilles -->
+        <div class="applications-decoration">
+            <img src="/leafs-primary-left.png" alt="Feuilles" class="leafs-applications" />
+        </div>
     </div>
 </div>

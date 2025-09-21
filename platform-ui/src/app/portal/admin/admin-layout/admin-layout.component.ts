@@ -17,6 +17,7 @@ import {
 } from '@taiga-ui/kit';
 import { TuiNavigation } from '@taiga-ui/layout';
 import { TuiComboBoxModule, TuiSelectModule } from '@taiga-ui/legacy';
+import { environment } from '../../../../environments/environment';
 import { FooterComponent } from '../../../components/footer/footer.component';
 
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -65,6 +66,7 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
   protected switch = false;
   protected readonly routes: any = {};
   protected activeItemIndex = 0;
+  environment = environment;
 
   protected openMore = false;
 

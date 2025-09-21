@@ -22,6 +22,7 @@ import {
   TuiTabs
 } from '@taiga-ui/kit';
 import { tuiLayoutIconsProvider, TuiNavigation } from '@taiga-ui/layout';
+import { environment } from '../../../../environments/environment';
 import { FooterComponent } from '../../../components/footer/footer.component';
 import { NotificationsPopupComponent } from '../../../components/notifications-popup/notifications-popup.component';
 import { ProfileCompletionCheckComponent } from '../../../components/profile-completion-check/profile-completion-check.component';
@@ -74,6 +75,7 @@ export default class HubLayoutComponent extends TuiPortals implements OnInit, On
   protected readonly routes: any = {};
   totalItemsCurrentlyBorrowed: number = 0;
   totalApprovalRequests: number = 0;
+  environment = environment;
 
   user: UserInfo;
 

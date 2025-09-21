@@ -23,19 +23,18 @@
     "rentPortalDescription": "Gérez votre communauté, vos propriétés et vos services en toute simplicité. Connectez-vous avec vos voisins et profitez d'une vie communautaire harmonieuse."
   },
   "home": {
-    "heroTitle": "Bienvenue sur le Portail NeoHoods",
     "heroSubtitle": "Votre Communauté, Connectée",
     "heroDescription": "Rejoignez la plateforme communautaire numérique de votre quartier. Gérez vos propriétés, connectez-vous avec vos voisins et accédez aux services communautaires en un seul endroit.",
     "signIn": "Se connecter",
     "createAccount": "Créer un compte",
-    "featuresTitle": "Tout ce dont vous avez besoin",
-    "featuresSubtitle": "Des outils puissants pour gérer votre vie communautaire",
-    "feature1Title": "Gestion Communautaire",
-    "feature1Description": "Connectez-vous avec vos voisins, partagez des annonces et participez aux discussions communautaires.",
-    "feature2Title": "Gestion Immobilière",
-    "feature2Description": "Gérez vos propriétés, suivez la maintenance et coordonnez-vous avec les gestionnaires immobiliers.",
-    "feature3Title": "Ressources Partagées",
-    "feature3Description": "Accédez aux ressources communautaires partagées, réservez des équipements et empruntez des objets à vos voisins.",
+    "featuresTitle": "Services disponibles",
+    "featuresSubtitle": "Des outils concrets pour votre copropriété",
+    "feature1Title": "Communication & Information",
+    "feature1Description": "Annonces, infos utiles, newsletter et répertoires pour rester informé de la vie de votre copropriété.",
+    "feature2Title": "Applications Communautaires",
+    "feature2Description": "Chat, Drive partagé et applications pour faciliter les échanges entre voisins.",
+    "feature3Title": "Gestion des Espaces Communs",
+    "feature3Description": "Réservation et gestion des espaces partagés, coordination des équipements communs.",
     "ctaTitle": "Prêt à commencer ?",
     "ctaDescription": "Rejoignez votre communauté dès aujourd'hui et découvrez l'avenir de la vie de quartier.",
     "getStarted": "Commencer"
@@ -51,11 +50,9 @@
     "return-unconfirmed": "En attente de confirmation du retour"
   },
   "footer": {
-    "brandingAlt": "Space NeoHoods",
     "usefulLinks": "Liens utiles",
     "needHelp": "Besoin d'aide ?",
     "helpCenter": "Centre d'aide",
-    "copyright": "2025 Space NeoHoods",
     "poweredBy": "Propulsé par"
   },
   "forgotPassword": {
@@ -141,7 +138,6 @@
     "saveError": "Profil non enregistré"
   },
   "adminLayout": {
-    "logoText": "Space NeoHoods",
     "hubPortal": "Portail communautaire",
     "logOut": "Se déconnecter",
     "dashboard": "Tableau de bord",

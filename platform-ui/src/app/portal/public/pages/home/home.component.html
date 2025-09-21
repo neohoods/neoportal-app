@@ -1,14 +1,18 @@
 <div class="home-container">
   <!-- Hero Section -->
   <section class="hero-section">
+    <!-- Background images -->
+    <div class="hero-background">
+      <img src="/background-immeuble.png" alt="Immeubles" class="background-immeuble" />
+    </div>
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="hero-title">{{ 'home.heroTitle' | translate }}</h1>
+        <h1 class="hero-title">Bienvenue sur {{ environment.brandDisplayName }}</h1>
         <p class="hero-subtitle">{{ 'home.heroSubtitle' | translate }}</p>
         <p class="hero-description">{{ 'home.heroDescription' | translate }}</p>
         
         <div class="hero-actions">
-          <a routerLink="/login" appearance="primary" tuiButton size="l">
+          <a routerLink="/login" appearance="accent" tuiButton size="l">
             {{ 'home.signIn' | translate }}
           </a>
           @if (config.isRegistrationEnabled) {
@@ -20,7 +24,7 @@
       </div>
       
       <div class="hero-visual">
-        <img src="/logo-bright.png" alt="NeoHoods Portal" class="hero-logo">
+        <img [src]="environment.brandLogo" [alt]="environment.brandDisplayName" class="hero-logo">
         <div class="hero-decoration">
           <div class="decoration-circle circle-1"></div>
           <div class="decoration-circle circle-2"></div>
@@ -40,10 +44,8 @@
         <div class="feature-card">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
             </svg>
           </div>
           <h3 class="feature-title">{{ 'home.feature1Title' | translate }}</h3>
@@ -53,8 +55,9 @@
         <div class="feature-card">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9,22 9,12 15,12 15,22"></polyline>
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
           </div>
           <h3 class="feature-title">{{ 'home.feature2Title' | translate }}</h3>
@@ -64,14 +67,21 @@
         <div class="feature-card">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+              <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path>
+              <path d="M8 21v-4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"></path>
+              <path d="M12 3v4"></path>
+              <path d="M8 7h8"></path>
             </svg>
           </div>
           <h3 class="feature-title">{{ 'home.feature3Title' | translate }}</h3>
           <p class="feature-description">{{ 'home.feature3Description' | translate }}</p>
         </div>
       </div>
+    </div>
+    
+    <!-- Feuilles en bas à droite de la section features -->
+    <div class="features-decoration">
+      <img src="/leafs-primary-left.png" alt="Feuilles" class="leafs-features" />
     </div>
   </section>
 
@@ -82,7 +92,7 @@
         <h2 class="cta-title">{{ 'home.ctaTitle' | translate }}</h2>
         <p class="cta-description">{{ 'home.ctaDescription' | translate }}</p>
         <div class="cta-actions">
-          <a routerLink="/login" appearance="primary" tuiButton size="l">
+          <a routerLink="/login" appearance="accent" tuiButton size="l">
             {{ 'home.getStarted' | translate }}
           </a>
           @if (config.isRegistrationEnabled) {

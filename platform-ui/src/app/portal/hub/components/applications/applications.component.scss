@@ -9,10 +9,54 @@
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
+.applications-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .applications-list {
     display: flex;
     flex-direction: row;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
+    z-index: 2;
+}
+
+.applications-decoration {
+    position: relative;
+    bottom: -15px;
+    left: 100px;
+    z-index: 1;
+    pointer-events: none;
+
+    .leafs-applications {
+        width: 200px;
+        height: auto;
+        opacity: 0.4;
+    }
+}
+
+@media (max-width: 768px) {
+    .applications-decoration {
+        right: -30px;
+
+        .leafs-applications {
+            width: 150px;
+            opacity: 0.3;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .applications-decoration {
+        right: -20px;
+
+        .leafs-applications {
+            width: 120px;
+            opacity: 0.2;
+        }
+    }
 }

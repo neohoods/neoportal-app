@@ -10,6 +10,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiTextfield } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
+import { environment } from '../../../../../../environments/environment';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
 import {
   AUTH_SERVICE_TOKEN,
@@ -42,6 +43,7 @@ import {
 export class SignInComponent implements OnInit {
   signInForm: FormGroup;
   config: UISettings;
+  environment = environment;
 
   constructor(
     private fb: FormBuilder,

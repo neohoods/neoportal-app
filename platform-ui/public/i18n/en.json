@@ -33,29 +33,26 @@
     "return-unconfirmed": "Pending return confirmation"
   },
   "home": {
-    "heroTitle": "Welcome to NeoHoods Portal",
     "heroSubtitle": "Your Community, Connected",
     "heroDescription": "Join your neighborhood's digital community platform. Manage properties, connect with neighbors, and access community services all in one place.",
     "signIn": "Sign In",
     "createAccount": "Create Account",
-    "featuresTitle": "Everything You Need",
-    "featuresSubtitle": "Powerful tools to manage your community life",
-    "feature1Title": "Community Management",
-    "feature1Description": "Connect with your neighbors, share announcements, and participate in community discussions.",
-    "feature2Title": "Property Management",
-    "feature2Description": "Manage your properties, track maintenance, and coordinate with property managers.",
-    "feature3Title": "Shared Resources",
-    "feature3Description": "Access shared community resources, book facilities, and borrow items from neighbors.",
+    "featuresTitle": "Available services",
+    "featuresSubtitle": "Concrete tools for your condominium",
+    "feature1Title": "Communication & Information",
+    "feature1Description": "Announcements, useful info, newsletter and directories to stay informed about your condominium life.",
+    "feature2Title": "Community Applications",
+    "feature2Description": "Chat, shared Drive and applications to facilitate exchanges between neighbors.",
+    "feature3Title": "Common Areas Management",
+    "feature3Description": "Reservation and management of shared spaces, coordination of common equipment.",
     "ctaTitle": "Ready to Get Started?",
     "ctaDescription": "Join your community today and experience the future of neighborhood living.",
     "getStarted": "Get Started"
   },
   "footer": {
-    "brandingAlt": "portal NeoHoods",
     "usefulLinks": "Useful links",
     "needHelp": "Need help?",
     "helpCenter": "Help center",
-    "copyright": "2025 portal NeoHoods",
     "poweredBy": "Powered by"
   },
   "forgotPassword": {
@@ -142,7 +139,6 @@
     "saveError": "Profile save failed"
   },
   "adminLayout": {
-    "logoText": "portal NeoHoods",
     "hubPortal": "Hub portal",
     "logOut": "Log out",
     "dashboard": "Dashboard",

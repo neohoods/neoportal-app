@@ -2,8 +2,8 @@
     <div id="email-pending-form-section">
         <img
             class="logo"
-            src="/logo-bright.png"
-            alt="NeoHoods"
+            [src]="environment.brandLogo"
+            [alt]="environment.brandDisplayName"
         >
         <h2>{{ 'emailPending.title' | translate }}</h2>
         <p>

@@ -4,5 +4,9 @@ export const environment = {
   useMockApi: true,
   demoMode: true,
   defaultLocale: 'fr',
-
+  // Branding configuration
+  brandName: 'NeoHoods',
+  brandDisplayName: 'portal NeoHoods',
+  brandCopyright: '2025 portal NeoHoods',
+  brandLogo: '/logo-bright.png',
 };

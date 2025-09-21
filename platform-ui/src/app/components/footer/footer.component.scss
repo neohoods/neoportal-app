@@ -17,6 +17,19 @@ footer {
         cursor: pointer;
     }
 
+    .footer-decoration {
+
+        z-index: 1;
+        pointer-events: none;
+        position: relative;
+        top: -40px;
+
+        .leafs-accent {
+            width: 200px;
+            height: auto;
+        }
+    }
+
     .footer-container {
         padding: 20px;
         display: grid;
@@ -30,7 +43,8 @@ footer {
             gap: 10px;
 
             img {
-                width: 140px;
+                height: 140px;
+                width: auto !important;
             }
         }
 
@@ -149,6 +163,12 @@ footer {
 
         .footer-copyright {
             grid-template-columns: 1fr;
+        }
+
+        .footer-decoration {
+            .leafs-accent {
+                width: 100px;
+            }
         }
 
         .footer-copyright-right {

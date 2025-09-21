@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiButton } from '@taiga-ui/core';
+import { environment } from '../../../../../../environments/environment';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
 import { getGlobalProviders } from '../../../../../global.provider';
 
@@ -21,6 +22,7 @@ import { getGlobalProviders } from '../../../../../global.provider';
 })
 export class EmailPendingComponent implements OnInit {
     email: string | null = null;
+    environment = environment;
 
     constructor(private router: Router) { }
 
