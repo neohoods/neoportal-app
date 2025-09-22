@@ -569,6 +569,7 @@
     "url": "URL",
     "icon": "Icon",
     "helpText": "Help Text",
+    "disabled": "Disabled",
     "saveChanges": "Save Changes",
     "cancel": "Cancel"
   },

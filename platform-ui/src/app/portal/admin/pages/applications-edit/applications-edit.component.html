@@ -49,6 +49,18 @@
             >
         </tui-textfield>
 
+        <label
+            tuiLabel
+            class="switch-label"
+        >
+            <input
+                formControlName="disabled"
+                type="checkbox"
+                tuiSwitch
+            >
+            {{ 'editApplication.disabled' | translate }}
+        </label>
+
         <button
             type="submit"
             class="add-user"

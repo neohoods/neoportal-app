@@ -12,6 +12,16 @@
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <!-- Base theme -->
+        <style>
+            /* Critical CSS to prevent header height glitch */
+            header[tuiNavigationHeader] {
+                height: 47px !important;
+                min-height: 47px !important;
+                max-height: 47px !important;
+                transition: none !important;
+                animation: none !important;
+            }
+        </style>
     </head>
     <body>
         <app-root></app-root>

@@ -187,6 +187,7 @@
     "url": "URL",
     "icon": "Icône",
     "helpText": "Texte d'aide",
+    "disabled": "Désactivé",
     "saveChanges": "Enregistrer les modifications",
     "cancel": "Annuler"
   },

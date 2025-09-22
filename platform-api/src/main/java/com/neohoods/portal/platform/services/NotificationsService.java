@@ -201,45 +201,6 @@ public class NotificationsService {
     }
 
     /**
-     * Send welcome notification to new user after successful registration
-     */
-    public Mono<Void> welcomeNewUser(UserEntity newUser) {
-        log.info("Sending welcome notification to new user: {}", newUser.getUsername());
-
-        try {
-            // Create notification payload
-            Map<String, Object> payload = Map.of(
-                    "firstName", newUser.getFirstName() != null ? newUser.getFirstName() : newUser.getUsername(),
-                    "hubUrl", frontendUrl + "/hub",
-                    "settingsUrl", frontendUrl + "/hub/settings",
-                    "supportEmail", "support@neohoods.com"); // You can make this configurable
-
-            // Create notification entity
-            NotificationEntity notification = NotificationEntity.builder()
-                    .type(NotificationType.WELCOME_NEW_USER)
-                    .author(PLATFORM_AUTHOR)
-                    .date(java.time.Instant.now())
-                    .alreadyRead(false)
-                    .payload(payload)
-                    .build();
-
-            // Send notification to the new user
-            return sendNotifications(newUser, notification)
-                    .onErrorResume(error -> {
-                        log.error("Failed to send welcome notification to new user: {}. " +
-                                "User signup will continue, but welcome notification failed.",
-                                newUser.getUsername(), error);
-                        return Mono.empty(); // Don't fail signup for notification errors
-                    });
-
-        } catch (Exception e) {
-            log.error("Failed to send welcome notification to new user: {}. " +
-                    "User signup will continue, but welcome notification failed.", newUser.getUsername(), e);
-            return Mono.empty(); // Don't fail signup for notification errors
-        }
-    }
-
-    /**
      * Send notification to all admin users when a new user registers
      */
     public Mono<Void> notifyAdminsNewUser(UserEntity newUser) {
@@ -409,48 +370,6 @@ public class NotificationsService {
                             .ref("adminUrl")
                             .value(frontendUrl + "/admin/users")
                             .build());
-                }
-                break;
-            case WELCOME_NEW_USER:
-                // Add variables for welcome new user notification
-                if (notification.getPayload() != null) {
-                    Map<String, Object> payload = notification.getPayload();
-
-                    // User first name
-                    if (payload.containsKey("firstName")) {
-                        variables.add(TemplateVariable.builder()
-                                .type(TemplateVariableType.RAW)
-                                .ref("firstName")
-                                .value(payload.get("firstName").toString())
-                                .build());
-                    }
-
-                    // Hub URL
-                    if (payload.containsKey("hubUrl")) {
-                        variables.add(TemplateVariable.builder()
-                                .type(TemplateVariableType.RAW)
-                                .ref("hubUrl")
-                                .value(payload.get("hubUrl").toString())
-                                .build());
-                    }
-
-                    // Settings URL
-                    if (payload.containsKey("settingsUrl")) {
-                        variables.add(TemplateVariable.builder()
-                                .type(TemplateVariableType.RAW)
-                                .ref("settingsUrl")
-                                .value(payload.get("settingsUrl").toString())
-                                .build());
-                    }
-
-                    // Support email
-                    if (payload.containsKey("supportEmail")) {
-                        variables.add(TemplateVariable.builder()
-                                .type(TemplateVariableType.RAW)
-                                .ref("supportEmail")
-                                .value(payload.get("supportEmail").toString())
-                                .build());
-                    }
                 }
                 break;
             default:

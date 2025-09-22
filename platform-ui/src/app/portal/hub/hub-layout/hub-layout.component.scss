@@ -48,6 +48,10 @@ aside[tuiNavigationAside]:after {
 
 header[tuiNavigationHeader][tuiNavigationHeader] {
     /* Use primary color for background */
+    height: 47px !important;
+    min-height: 47px !important;
+    max-height: 47px !important;
+    transition: none !important;
 }
 
 header[tuiNavigationHeader][tuiNavigationHeader]:before {
@@ -95,6 +99,9 @@ button.dropdown tui-icon {
     border-bottom: 1px solid #ccc;
     /* Use theme border color */
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+    transition: none !important;
+    height: auto;
+    min-height: auto;
 }
 
 .horizontal-menu a {

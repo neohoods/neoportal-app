@@ -14,7 +14,7 @@ import {
   TuiIcon,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiPassword } from '@taiga-ui/kit';
+import { TuiPassword, TuiSwitch } from '@taiga-ui/kit';
 import { UIApplication } from '../../../../models/UIApplication';
 import { APPLICATIONS_SERVICE_TOKEN } from '../../admin.providers';
 import { ApplicationsService } from '../../services/applications.service';
@@ -30,6 +30,7 @@ import { ApplicationsService } from '../../services/applications.service';
     TuiTextfield,
     TuiIcon,
     TuiPassword,
+    TuiSwitch,
     TranslateModule
   ],
   templateUrl: './applications-edit.component.html',
@@ -52,6 +53,7 @@ export class ApplicationsEditComponent implements OnInit {
       url: ['', [Validators.required]],
       icon: ['', [Validators.required]],
       helpText: ['', [Validators.required]],
+      disabled: [false],
     });
   }
 
@@ -68,6 +70,7 @@ export class ApplicationsEditComponent implements OnInit {
         url: ['', [Validators.required]],
         icon: ['', [Validators.required]],
         helpText: ['', [Validators.required]],
+        disabled: [false],
       });
     }
   }
@@ -80,6 +83,7 @@ export class ApplicationsEditComponent implements OnInit {
       this.application.url = updatedApplication.url;
       this.application.icon = updatedApplication.icon;
       this.application.helpText = updatedApplication.helpText;
+      this.application.disabled = updatedApplication.disabled;
       if (this.applicationId) {
         this.applicationsService.updateApplication(this.application.id, this.application).subscribe();
       } else {

@@ -11,25 +11,23 @@
 
     <button iconStart="@tui.ellipsis" tuiIconButton type="button" tuiChevron tuiDropdownOpen [tuiDropdown]="settings">
       <ng-template #settings>
-        <tui-data-list tuiDataListDropdownManager>
-          <button
+        <tui-data-list>
+          <a
+            routerLink="/hub"
+            class="dropdown"
             tuiOption
-            new
-            type="button"
-            (click)="navigateTo('/hub')"
           >
             <tui-icon icon="@tui.users" [style.width.px]="16" />
             {{ 'adminLayout.hubPortal' | translate }}
-          </button>
-          <button
+          </a>
+          <a
+            routerLink="/auth/sign-out"
+            class="dropdown"
             tuiOption
-            new
-            type="button"
-            (click)="navigateTo('/auth/sign-out')"
           >
             <tui-icon icon="@tui.log-out" [style.width.px]="16" />
             {{ 'adminLayout.logOut' | translate }}
-          </button>
+          </a>
         </tui-data-list>
       </ng-template>
     </button>
@@ -68,25 +66,25 @@
       (tuiObscured)="onObscured($event)">
       {{ 'adminLayout.more' | translate }}
       <ng-template #dropdownContent>
-        <tui-data-list tuiDataListDropdownManager>
-          <button
+        <tui-data-list>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/applications/"
+            class="dropdown"
             tuiOption
-            new
-            type="button"
-            (click)="closeMore(); navigateTo('/admin/applications/')"
           >
             <tui-icon icon="@tui.app-window-mac" [style.width.px]="16" />
             {{ 'adminLayout.applications' | translate }}
-          </button>
-          <button
+          </a>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/security/"
+            class="dropdown"
             tuiOption
-            new
-            type="button"
-            (click)="closeMore(); navigateTo('/admin/security/')"
           >
             <tui-icon icon="@tui.shield" [style.width.px]="16" />
             {{ 'adminLayout.security' | translate }}
-          </button>
+          </a>
         </tui-data-list>
       </ng-template>
     </button>

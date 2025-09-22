@@ -50,3 +50,9 @@ form {
 button.accent[tuiButton][data-appearance="outline"] {
     color: var(--tos-text-accent);
 }
+
+/* Fix header height glitch between layouts */
+header[tuiNavigationHeader] {
+    height: 47px !important;
+    transition: none !important;
+}

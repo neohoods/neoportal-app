@@ -236,13 +236,11 @@ public class AuthApi implements AuthApiApiDelegate {
                                                                                         log.info("User registration completed. Auth0 will handle email verification for: {}",
                                                                                                         request.getEmail());
 
-                                                                                        // Send welcome notification to
-                                                                                        // new user and notify admins
+                                                                                        // Notify admins about new user
+                                                                                        // registration
                                                                                         return notificationsService
-                                                                                                        .welcomeNewUser(newUser)
-                                                                                                        .then(notificationsService
-                                                                                                                        .notifyAdminsNewUser(
-                                                                                                                                        newUser))
+                                                                                                        .notifyAdminsNewUser(
+                                                                                                                        newUser)
                                                                                                         .then(Mono.just(ResponseEntity
                                                                                                                         .status(HttpStatus.CREATED)
                                                                                                                         .build()));
@@ -273,13 +271,9 @@ public class AuthApi implements AuthApiApiDelegate {
                                                                         log.info("Successfully sent verification email to: {}",
                                                                                         request.getEmail());
 
-                                                                        // Send welcome notification to new user and
-                                                                        // notify admins
+                                                                        // Notify admins about new user registration
                                                                         return notificationsService
-                                                                                        .welcomeNewUser(newUser)
-                                                                                        .then(notificationsService
-                                                                                                        .notifyAdminsNewUser(
-                                                                                                                        newUser))
+                                                                                        .notifyAdminsNewUser(newUser)
                                                                                         .then(Mono.just(ResponseEntity
                                                                                                         .status(HttpStatus.CREATED)
                                                                                                         .build()));

@@ -1,3 +1,38 @@
+/* Force consistent layout for all routes */
+:host {
+    display: block;
+    height: 100vh;
+    overflow: hidden;
+}
+
+router-outlet+* {
+    display: block;
+    height: 100%;
+}
+
+/* Ensure all tui-root elements have consistent behavior */
+::ng-deep tui-root {
+    display: block !important;
+    height: 100% !important;
+}
+
+/* Force header consistency across all layouts */
+::ng-deep header[tuiNavigationHeader] {
+    height: 47px !important;
+    min-height: 47px !important;
+    max-height: 47px !important;
+    transition: none !important;
+    animation: none !important;
+    will-change: auto !important;
+}
+
+/* Prevent any reflow during navigation */
+::ng-deep .horizontal-menu {
+    top: 47px !important;
+    position: sticky !important;
+    will-change: auto !important;
+}
+
 div {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
