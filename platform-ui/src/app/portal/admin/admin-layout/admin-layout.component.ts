@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { tuiAsPortal, TuiObscured, TuiPortals } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
@@ -72,7 +72,10 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
 
   mobile = false;
 
-  constructor(private readonly breakpointObserver: BreakpointObserver) {
+  constructor(
+    private readonly breakpointObserver: BreakpointObserver,
+    private router: Router
+  ) {
     super();
   }
 
@@ -103,6 +106,10 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
 
   protected onActiveZone(active: boolean): void {
     this.openMore = active && this.openMore;
+  }
+
+  navigateTo(path: string) {
+    this.router.navigate([path]);
   }
 
   protected readonly drawer = {

@@ -120,6 +120,7 @@ footer {
     #scrollToTop {
         display: none;
         position: relative;
+        z-index: 1000;
         top: -40px;
         right: 200px;
         width: 40px;

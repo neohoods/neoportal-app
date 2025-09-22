@@ -10,6 +10,16 @@ main[tuiNavigationMain] {
     cursor: pointer;
 }
 
+.user-avatar {
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+    }
+}
+
 .logo-container {
     cursor: pointer;
 }
@@ -48,32 +58,18 @@ header[tuiNavigationHeader][tuiNavigationHeader] [tuiButton] {
     max-inline-size: 12rem;
 }
 
-.user-avatar {
-    cursor: pointer;
-}
-
-.user-avatar:hover {
-    box-shadow: 0 0 5px 3px var(--tos-background-accent-1-hover);
-}
 
 /* Dropdown button */
 button.dropdown {
     min-width: 200px;
     justify-content: flex-start;
-}
-
-/* Dropdown links */
-a.dropdown {
-    min-width: 200px;
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    text-decoration: none;
-    color: inherit;
 }
 
-a.dropdown tui-icon {
+button.dropdown tui-icon {
     flex-shrink: 0;
     display: flex;
     align-items: center;

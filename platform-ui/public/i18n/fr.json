@@ -18,6 +18,9 @@
     "emailSent": "Email envoyé",
     "redirectingToSSO": "Redirection vers la connexion SSO..."
   },
+  "tokenExchange": {
+    "inProgress": "Échange du jeton SSO en cours..."
+  },
   "welcome": {
     "rentPortal": "Bienvenue sur votre portail communautaire",
     "rentPortalDescription": "Gérez votre communauté, vos propriétés et vos services en toute simplicité. Connectez-vous avec vos voisins et profitez d'une vie communautaire harmonieuse."
@@ -81,6 +84,7 @@
     "settings": "Paramètres",
     "adminPanel": "Panneau d'administration",
     "logOut": "Se déconnecter",
+    "signInAs": "Bonjour {{username}} !",
     "items": "Articles",
     "borrowedItems": "Articles empruntés",
     "libraries": "Bibliothèques",

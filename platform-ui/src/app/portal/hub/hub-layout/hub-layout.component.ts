@@ -98,4 +98,8 @@ export default class HubLayoutComponent extends TuiPortals implements OnInit, On
 
   ngOnDestroy() {
   }
+
+  navigateTo(path: string) {
+    this.router.navigate([path]);
+  }
 }

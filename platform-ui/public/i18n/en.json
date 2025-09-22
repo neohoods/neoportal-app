@@ -18,6 +18,9 @@
     "emailSent": "Email sent",
     "redirectingToSSO": "Redirecting to SSO login..."
   },
+  "tokenExchange": {
+    "inProgress": "Exchanging SSO token..."
+  },
   "welcome": {
     "rentPortal": "Welcome to your community portal",
     "rentPortalDescription": "Manage your community, properties and services with ease. Connect with your neighbors and enjoy harmonious community living."
@@ -81,6 +84,7 @@
     "settings": "Settings",
     "adminPanel": "Admin panel",
     "logOut": "Log out",
+    "signInAs": "Hello {{username}} !",
     "items": "Items",
     "borrowedItems": "Borrowed",
     "libraries": "Libraries",
