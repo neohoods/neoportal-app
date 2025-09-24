@@ -1,7 +1,7 @@
 .announcements-info {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     padding: 0 1rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 .save-button {
@@ -45,6 +45,27 @@ tui-tabs button[tuiTab]:hover {
     padding: 1.5rem;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
     margin: 0 1rem;
+}
+
+// Mobile category selector
+.mobile-category-selector {
+    display: none;
+
+    .category-dropdown {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background-color: #fff;
+        font-size: 14px;
+        color: #333;
+
+        &:focus {
+            outline: none;
+            border-color: var(--tos-text-accent);
+            box-shadow: 0 0 0 2px rgba(207, 91, 64, 0.2);
+        }
+    }
 }
 
 .announcements-container {
@@ -134,6 +155,27 @@ quill-editor {
 
 // Responsive design
 @media (max-width: 768px) {
+    .announcements-info {
+        margin-bottom: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .announcements-create-form {
+        margin: 0 0.5rem;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    // Hide desktop tabs on mobile
+    .desktop-tabs {
+        display: none;
+    }
+
+    // Show mobile dropdown on mobile
+    .mobile-category-selector {
+        display: block;
+    }
+
     .announcements-filters .filters-row {
         flex-direction: column;
         align-items: stretch;

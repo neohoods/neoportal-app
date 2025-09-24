@@ -180,7 +180,7 @@
     "propertyTypePlaceholder": "Select property type",
     "addProperty": "Add Property",
     "remove": "Remove",
-    "saveChanges": "Save Changes",
+    "saveChanges": "Save",
     "cancel": "Cancel"
   },
   "security": {
@@ -472,7 +472,7 @@
     "confirmNo": "Cancel",
     "deleteSuccess": "Announcement deleted successfully!",
     "deleteError": "Failed to delete announcement. Please try again.",
-    "saveChanges": "Save Changes",
+    "saveChanges": "Save",
     "cancel": "Cancel",
     "updateSuccess": "Announcement updated successfully!",
     "updateError": "Failed to update announcement. Please try again."
@@ -570,7 +570,7 @@
     "icon": "Icon",
     "helpText": "Help Text",
     "disabled": "Disabled",
-    "saveChanges": "Save Changes",
+    "saveChanges": "Save",
     "cancel": "Cancel"
   },
   "tosTable": {

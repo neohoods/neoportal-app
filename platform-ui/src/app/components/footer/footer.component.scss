@@ -5,7 +5,6 @@ footer {
     position: relative;
     background-color: var(--tos-background-base);
     padding: 20px;
-    margin-top: 30px;
 
     a {
         color: var(--tos-text-primary);
@@ -147,43 +146,74 @@ footer {
 
     footer {
         .footer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+            padding: 10px;
 
             .footer-branding {
                 img {
-                    width: 80px;
+                    margin: auto;
+                    height: 60px;
+                    width: auto !important;
                 }
             }
 
-            gap: 5px;
+            .footer-links,
+            .footer-help {
+                text-align: center;
+            }
+        }
 
-            width: 100%;
-            padding: 0px;
-            grid-template-columns: 1fr 2fr 2fr;
-
+        #scrollToTop {
+            right: calc(50% - 20px) !important;
         }
 
         .footer-copyright {
-            grid-template-columns: 1fr;
+            grid-template-columns: 5fr 1fr;
+            padding: 10px 20px;
+
+            .footer-copyright-left {
+                text-align: left;
+                grid-template-columns: 1fr !important;
+            }
+
+            .footer-copyright-right {
+                text-align: right;
+
+                .powered-by {
+                    display: none;
+                }
+            }
         }
 
         .footer-decoration {
+            height: 50px;
+
             .leafs-accent {
                 width: 100px;
+                position: relative;
+                bottom: -5px;
             }
         }
 
         .footer-copyright-right {
-
             justify-content: left !important;
             gap: 0 !important;
+            grid-template-columns: 1fr !important;
         }
     }
 
-    #scrollToTop {
-        tui-icon {
-            padding: 2px !important;
-            right: 4px !important;
+
+    // Mobile leaf decoration - modify existing footer-decoration
+    .footer-decoration {
+
+
+        .leafs-accent {
+            width: 100px !important;
+            height: auto;
+            transform: rotate(180deg) !important;
         }
     }
-
 }

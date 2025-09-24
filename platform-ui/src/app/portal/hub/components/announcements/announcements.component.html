@@ -7,7 +7,11 @@
         [formGroup]="pageForm"
         (ngSubmit)="onPostCreate()"
     >
-        <tui-tabs [(activeItemIndex)]="activeItemIndex">
+        <!-- Desktop tabs -->
+        <tui-tabs
+            [(activeItemIndex)]="activeItemIndex"
+            class="desktop-tabs"
+        >
             <button
                 *ngFor="let category of categoryInfo; trackBy: trackByCategory"
                 tuiTab
@@ -23,6 +27,24 @@
                 {{ category.translationKey | translate }}
             </button>
         </tui-tabs>
+
+        <!-- Mobile dropdown -->
+        <div class="mobile-category-selector">
+            <label tuiLabel>Category</label>
+            <select
+                [ngModel]="activePostCategory"
+                (ngModelChange)="changePostCategory($event)"
+                [ngModelOptions]="{standalone: true}"
+                class="category-dropdown"
+            >
+                <option
+                    *ngFor="let category of categoryInfo; trackBy: trackByCategory"
+                    [value]="category.category"
+                >
+                    {{ category.translationKey | translate }}
+                </option>
+            </select>
+        </div>
 
         <tui-textfield>
             <label tuiLabel>
@@ -114,9 +136,9 @@
             {{ 'announcements.items-per-page' | translate }}
         </label>
         <select
-            tuiSelect
             (ngModelChange)="onPageSizeChange($event)"
             [ngModel]="paginationParams().pageSize"
+            [ngModelOptions]="{standalone: true}"
         >
             <option value="5">5</option>
             <option value="10">10</option>

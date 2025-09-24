@@ -1,4 +1,14 @@
 .wall-container {
     display: grid;
-    grid-template-columns: 4fr 2fr;
+    grid-template-columns: 2fr 4fr;
+    gap: 1rem;
+}
+
+// Mobile layout - stack vertically with infos first
+@media (max-width: 768px) {
+    .wall-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 }

@@ -178,7 +178,7 @@
     "propertyTypePlaceholder": "Sélectionnez le type de propriété",
     "addProperty": "Ajouter une propriété",
     "remove": "Supprimer",
-    "saveChanges": "Enregistrer les modifications",
+    "saveChanges": "Enregistrer",
     "cancel": "Annuler"
   },
   "editApplication": {
@@ -188,7 +188,7 @@
     "icon": "Icône",
     "helpText": "Texte d'aide",
     "disabled": "Désactivé",
-    "saveChanges": "Enregistrer les modifications",
+    "saveChanges": "Enregistrer",
     "cancel": "Annuler"
   },
   "security": {
@@ -453,7 +453,7 @@
     "confirmNo": "Annuler",
     "deleteSuccess": "Annonce supprimée avec succès !",
     "deleteError": "Échec de la suppression de l'annonce. Veuillez réessayer.",
-    "saveChanges": "Enregistrer les modifications",
+    "saveChanges": "Enregistrer",
     "cancel": "Annuler",
     "updateSuccess": "Annonce mise à jour avec succès !",
     "updateError": "Échec de la mise à jour de l'annonce. Veuillez réessayer."

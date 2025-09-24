@@ -4,7 +4,10 @@
 main[tuiNavigationMain] {
     border: none;
     padding: 0 0;
+    background-color: var(--tos-background-base-alt);
+    padding-bottom: 30px;
 }
+
 
 #userSettingsMenu {
     cursor: pointer;
@@ -29,6 +32,7 @@ main[tuiNavigationMain] {
 }
 
 @media (max-width: 768px) {
+
 
     nav a {
         min-width: 90px !important;
@@ -176,9 +180,6 @@ button.dropdown tui-icon {
         justify-content: space-around;
     }
 
-    .horizontal-menu {
-        top: 60px !important;
-    }
 
     .horizontal-menu a {
         display: flex;
