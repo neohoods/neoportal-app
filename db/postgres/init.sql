@@ -65,7 +65,8 @@ CREATE TABLE settings (
 CREATE TABLE "notification_settings" (
     "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     "user_id" uuid REFERENCES users(id) NOT NULL,
-    "enable_notifications" boolean NOT NULL DEFAULT true
+    "enable_notifications" boolean NOT NULL DEFAULT true,
+    "newsletter_enabled" boolean NOT NULL DEFAULT true
 );
 
 
