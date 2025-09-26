@@ -19,18 +19,30 @@
         }
     ],
     "contactNumbers": {
-        "syndic": {
-            "type": "syndic",
-            "number": "1234567890",
-            "description": "Syndic",
-            "availability": "24/7",
-            "responseTime": "1 hour",
-            "name": "John Doe",
-            "phoneNumber": "1234567890",
-            "email": "john.doe@example.com",
-            "officeHours": "9:00-17:00",
-            "address": "123 Main St, Anytown, USA"
-        },
+        "syndic": [
+            {
+                "type": "syndic",
+                "description": "Syndic principal",
+                "availability": "24/7",
+                "responseTime": "1 hour",
+                "name": "John Doe",
+                "phoneNumber": "1234567890",
+                "email": "john.doe@example.com",
+                "officeHours": "9:00-17:00",
+                "address": "123 Main St, Anytown, USA"
+            },
+            {
+                "type": "syndic",
+                "description": "Syndic secondaire",
+                "availability": "9:00-18:00",
+                "responseTime": "2 hours",
+                "name": "Jane Smith",
+                "phoneNumber": "0987654321",
+                "email": "jane.smith@example.com",
+                "officeHours": "9:00-18:00",
+                "address": "456 Oak Ave, Anytown, USA"
+            }
+        ],
         "emergency": [
             {
                 "type": "cleaner",

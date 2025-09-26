@@ -2,11 +2,16 @@
     margin-bottom: 1rem;
     padding: 0 1rem;
     margin-top: 1rem;
+
+    .notification-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+
+    }
 }
 
-.save-button {
-    margin-top: 50px;
-}
 
 form {
     border: none !important;

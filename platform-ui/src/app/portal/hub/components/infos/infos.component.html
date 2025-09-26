@@ -89,60 +89,112 @@
     </div>
     <div class="infos-contact-numbers">
         <div
-            *ngIf="infos().contactNumbers.syndic"
+            *ngIf="hasSyndicContacts()"
             class="infos-contact-numbers-syndic"
         >
             <h2>
                 <tui-icon icon="@tui.building-2" [style.width.px]="16" />
                 {{ 'infos.contactNumbers.syndic.title' | translate }}
             </h2>
-            <div class="infos-contact-numbers-syndic-title">
-                <span>{{ infos().contactNumbers.syndic?.name }}</span>
-                <button
-                    appearance="secondary"
-                    size="xs"
-                    tuiIconButton
-                    type="button"
-                    [tuiChevron]="!collapsedSyndic()"
-                    (click)="toggleSyndic()"
-                >
-                    Expand
-                </button>
-            </div>
-            <tui-expand [expanded]="!collapsedSyndic()">
-                <table tuiTable>
-                    <tbody>
-                        <tr>
-                            <td tuiTd>
-                                <b>
-                                    {{ 'infos.contactNumbers.syndic.email' | translate }}
-                                </b>
-                            </td>
-                            <td tuiTd>{{ infos().contactNumbers.syndic?.email }}</td>
-                        </tr>
-                        <tr>
-                            <td tuiTd>
-                                <b>
-                                    {{ 'infos.contactNumbers.syndic.officeHours' | translate }}
-                                </b>
-                            </td>
-                            <td tuiTd>
-                                {{ infos().contactNumbers.syndic?.officeHours }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td tuiTd>
-                                <b>
-                                    {{ 'infos.contactNumbers.syndic.address' | translate }}
-                                </b>
-                            </td>
-                            <td tuiTd>
-                                {{ infos().contactNumbers.syndic?.address }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </tui-expand>
+            <ul class="no-bullets">
+                <li *ngFor="let syndic of infos().contactNumbers.syndic; let i = index">
+                    <div class="infos-contact-numbers-syndic-title">
+                        <span>{{ syndic.name }}</span>
+                        <button
+                            appearance="secondary"
+                            size="xs"
+                            tuiIconButton
+                            type="button"
+                            [tuiChevron]="!getSyndicSignal(i)()"
+                            (click)="toggleSyndic(i)"
+                        >
+                            Expand
+                        </button>
+                    </div>
+                    <tui-expand [expanded]="!getSyndicSignal(i)()">
+                        <table tuiTable>
+                            <tbody>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.syndic.email' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ syndic.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.syndic.phoneNumber' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ syndic.phoneNumber }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.syndic.officeHours' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>
+                                        {{ syndic.officeHours }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.syndic.address' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>
+                                        {{ syndic.address }}
+                                    </td>
+                                </tr>
+                                <tr *ngIf="syndic.type">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.type' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>
+                                        {{ syndic.type }}
+                                    </td>
+                                </tr>
+                                <tr *ngIf="syndic.availability">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.availability' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>
+                                        {{ syndic.availability }}
+                                    </td>
+                                </tr>
+                                <tr *ngIf="syndic.responseTime">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.responseTime' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>
+                                        {{ syndic.responseTime }}
+                                    </td>
+                                </tr>
+                                <tr *ngIf="syndic.description">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.description' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>
+                                        {{ syndic.description }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </tui-expand>
+                </li>
+            </ul>
         </div>
         <div
             *ngIf="infos().contactNumbers.emergency"

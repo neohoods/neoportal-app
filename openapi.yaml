@@ -1817,7 +1817,9 @@ components:
           type: object
           properties:
             syndic:
-              $ref: "#/components/schemas/ContactNumber"
+              type: array
+              items:
+                $ref: "#/components/schemas/ContactNumber"
             emergency:
               type: array
               items:

@@ -12,6 +12,7 @@ import { getGlobalProviders } from '../../../../global.provider';
 import { CATEGORY_INFO, CategoryInfo, UIAnnouncement, UIAnnouncementCategory, UIPaginatedAnnouncementsResponse, UIPaginationParams } from '../../../../models/UIAnnoncements';
 import { ANNOUNCEMENTS_SERVICE_TOKEN } from '../../hub.provider';
 import { AnnouncementsService } from '../../services/annoncements.service';
+import { CookieService } from '../../services/cookie.service';
 import { AnnouncementComponent } from '../announcement/announcement.component';
 
 @Component({
@@ -40,6 +41,7 @@ import { AnnouncementComponent } from '../announcement/announcement.component';
 export class AnnouncementsComponent implements OnInit {
   pageForm: FormGroup;
   public readonly collapsed = signal(true);
+  public readonly showNotification = signal(true);
 
   announcements = signal<UIAnnouncement[]>([]);
   paginationData = signal<UIPaginatedAnnouncementsResponse | null>(null);
@@ -68,6 +70,7 @@ export class AnnouncementsComponent implements OnInit {
     @Inject(ANNOUNCEMENTS_SERVICE_TOKEN) private announcementsService: AnnouncementsService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
+    private cookieService: CookieService,
   ) {
     this.pageForm = this.fb.group({
       title: ['', Validators.required],
@@ -77,6 +80,23 @@ export class AnnouncementsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAnnouncements();
+    this.checkNotificationState();
+  }
+
+  /**
+   * Vérifie l'état de la notification depuis les cookies
+   */
+  private checkNotificationState(): void {
+    const isNotificationClosed = this.cookieService.isAnnouncementsNotificationClosed();
+    this.showNotification.set(!isNotificationClosed);
+  }
+
+  /**
+   * Ferme la notification et mémorise le choix dans un cookie
+   */
+  closeNotification(): void {
+    this.showNotification.set(false);
+    this.cookieService.setAnnouncementsNotificationClosed();
   }
 
   public loadAnnouncements(): void {

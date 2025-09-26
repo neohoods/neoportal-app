@@ -503,6 +503,8 @@
       "responseTime": "Temps de réponse",
       "syndic": {
         "title": "Contact Syndic",
+        "contact": "Contact syndic",
+        "addContact": "Ajouter un contact syndic",
         "name": "Nom",
         "email": "Email",
         "phoneNumber": "Numéro de téléphone",

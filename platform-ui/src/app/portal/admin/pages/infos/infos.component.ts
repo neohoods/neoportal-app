@@ -38,17 +38,7 @@ export class InfosComponent implements OnInit {
     rulesUrl: '',
     delegates: [],
     contactNumbers: {
-      syndic: {
-        type: '',
-        description: '',
-        availability: '',
-        responseTime: '',
-        name: '',
-        phoneNumber: '',
-        email: '',
-        officeHours: '',
-        address: '',
-      },
+      syndic: [],
       emergency: [],
     }
   };
@@ -67,7 +57,7 @@ export class InfosComponent implements OnInit {
       rulesUrl: [''],
       delegates: this.fb.array([]),
       contactNumbers: this.fb.group({
-        syndic: this.createContactNumberFormGroup(),
+        syndic: this.fb.array([]),
         emergency: this.fb.array([])
       })
     });
@@ -81,14 +71,39 @@ export class InfosComponent implements OnInit {
     this.infosService
       .getInfos()
       .subscribe((infos) => {
-        this.infos = infos;
+        // Normaliser les données pour gérer la compatibilité avec l'ancienne structure
+        const normalizedInfos = this.normalizeInfosData(infos);
+        this.infos = normalizedInfos;
         this.editInfosForm.patchValue({
-          nextAGDate: infos.nextAGDate ? this.stringToTuiDay(infos.nextAGDate) : null,
-          rulesUrl: infos.rulesUrl
+          nextAGDate: normalizedInfos.nextAGDate ? this.stringToTuiDay(normalizedInfos.nextAGDate) : null,
+          rulesUrl: normalizedInfos.rulesUrl
         });
-        this.setDelegates(infos.delegates);
-        this.setContactNumbers(infos.contactNumbers);
+        this.setDelegates(normalizedInfos.delegates);
+        this.setContactNumbers(normalizedInfos.contactNumbers);
       });
+  }
+
+  /**
+   * Normalise les données pour gérer la compatibilité avec l'ancienne structure
+   * où syndic était un objet unique au lieu d'un tableau
+   */
+  private normalizeInfosData(infos: any): UIInfo {
+    const normalized = { ...infos };
+
+    // Si syndic est un objet unique, le convertir en tableau
+    if (normalized.contactNumbers?.syndic && !Array.isArray(normalized.contactNumbers.syndic)) {
+      normalized.contactNumbers.syndic = [normalized.contactNumbers.syndic];
+    }
+
+    // S'assurer que syndic est un tableau
+    if (!normalized.contactNumbers?.syndic) {
+      normalized.contactNumbers = {
+        ...normalized.contactNumbers,
+        syndic: []
+      };
+    }
+
+    return normalized;
   }
 
   get delegates(): FormArray {
@@ -99,8 +114,8 @@ export class InfosComponent implements OnInit {
     return this.editInfosForm.get('contactNumbers.emergency') as FormArray;
   }
 
-  get syndicContact(): FormGroup {
-    return this.editInfosForm.get('contactNumbers.syndic') as FormGroup;
+  get syndicContacts(): FormArray {
+    return this.editInfosForm.get('contactNumbers.syndic') as FormArray;
   }
 
   createDelegateFormGroup() {
@@ -138,9 +153,15 @@ export class InfosComponent implements OnInit {
   }
 
   setContactNumbers(contactNumbers: any) {
-    // Set syndic contact
-    if (contactNumbers.syndic) {
-      this.syndicContact.patchValue(contactNumbers.syndic);
+    // Set syndic contacts
+    const syndicArray = this.syndicContacts;
+    syndicArray.clear();
+    if (contactNumbers.syndic && contactNumbers.syndic.length > 0) {
+      contactNumbers.syndic.forEach((syndic: any) => {
+        const syndicGroup = this.createContactNumberFormGroup();
+        syndicGroup.patchValue(syndic);
+        syndicArray.push(syndicGroup);
+      });
     }
 
     // Set emergency contacts
@@ -161,6 +182,14 @@ export class InfosComponent implements OnInit {
 
   removeDelegate(index: number) {
     this.delegates.removeAt(index);
+  }
+
+  addSyndicContact() {
+    this.syndicContacts.push(this.createContactNumberFormGroup());
+  }
+
+  removeSyndicContact(index: number) {
+    this.syndicContacts.removeAt(index);
   }
 
   addEmergencyContact() {
@@ -196,8 +225,11 @@ export class InfosComponent implements OnInit {
       contactNumbers: formValue.contactNumbers
     };
 
+    // Normaliser les données avant l'envoi pour s'assurer que syndic est un tableau
+    const normalizedInfos = this.normalizeInfosData(updatedInfos);
+
     this.infosService
-      .updateInfos(updatedInfos)
+      .updateInfos(normalizedInfos)
       .subscribe(() => {
         this.alerts
           .open(this.translate.instant('infos.updateSuccess') || 'Community information updated successfully', {

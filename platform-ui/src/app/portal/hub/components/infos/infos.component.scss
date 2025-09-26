@@ -37,13 +37,16 @@
     }
 
     .infos-delegates ul,
-    .infos-contact-numbers-emergency ul {
+    .infos-contact-numbers-emergency ul,
+    .no-bullets {
         margin: 0;
         padding: 0;
+        list-style: none;
     }
 
     .infos-delegates li,
-    .infos-contact-numbers-emergency li {
+    .infos-contact-numbers-emergency li,
+    .no-bullets li {
         list-style: none;
         margin-bottom: 8px;
     }

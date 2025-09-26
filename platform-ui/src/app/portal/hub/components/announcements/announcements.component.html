@@ -1,5 +1,18 @@
-<div class="announcements-info">
-    <tui-notification size="l">{{ 'announcements.info' | translate }}</tui-notification>
+<div
+    class="announcements-info"
+    *ngIf="showNotification()"
+>
+    <tui-notification size="l">
+        <span>{{ 'announcements.info' | translate }}</span>
+        <button
+            iconStart="@tui.x"
+            tuiIconButton
+            type="button"
+            (click)="closeNotification()"
+        >
+            Close
+        </button>
+    </tui-notification>
 </div>
 
 <div class="announcements-create-form">

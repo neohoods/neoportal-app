@@ -1,7 +1,18 @@
 <div class="applications-container">   
     <div class="applications-info" *ngIf="showNotification">
+
         <tui-notification size="l">
-            {{ 'applications.info' | translate }}
+            <span>{{ 'applications.info' | translate }}</span>
+
+
+            <button
+            iconStart="@tui.x"
+            tuiIconButton
+            type="button"
+            (click)="closeNotification()"
+        >
+            Close
+        </button>
         </tui-notification>
     </div>
     

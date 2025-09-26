@@ -26,17 +26,7 @@ export class InfosComponent implements OnInit {
     rulesUrl: '',
     delegates: [],
     contactNumbers: {
-      syndic: {
-        type: '',
-        description: '',
-        availability: '',
-        responseTime: '',
-        name: '',
-        phoneNumber: '',
-        email: '',
-        officeHours: '',
-        address: '',
-      },
+      syndic: [],
       emergency: [],
     }
   });
@@ -44,8 +34,8 @@ export class InfosComponent implements OnInit {
   // Signaux pour chaque délégué (Map avec l'index comme clé)
   public readonly collapsedDelegates = new Map<number, ReturnType<typeof signal>>();
 
-  // Signal pour le syndic
-  public readonly collapsedSyndic = signal(true);
+  // Signaux pour chaque contact syndic (Map avec l'index comme clé)
+  public readonly collapsedSyndic = new Map<number, ReturnType<typeof signal>>();
 
   // Signaux pour chaque contact d'urgence (Map avec l'index comme clé)
   public readonly collapsedEmergency = new Map<number, ReturnType<typeof signal>>();
@@ -62,16 +52,46 @@ export class InfosComponent implements OnInit {
 
   private loadInfos(): void {
     this.infosService.getInfos().subscribe(infos => {
-      this.infos.set(infos);
+      // Normaliser les données pour gérer la compatibilité avec l'ancienne structure
+      const normalizedInfos = this.normalizeInfosData(infos);
+      this.infos.set(normalizedInfos);
       this.initializeSignals();
       this.cdr.detectChanges(); // Force change detection
     });
+  }
+
+  /**
+   * Normalise les données pour gérer la compatibilité avec l'ancienne structure
+   * où syndic était un objet unique au lieu d'un tableau
+   */
+  private normalizeInfosData(infos: any): UIInfo {
+    const normalized = { ...infos };
+
+    // Si syndic est un objet unique, le convertir en tableau
+    if (normalized.contactNumbers?.syndic && !Array.isArray(normalized.contactNumbers.syndic)) {
+      normalized.contactNumbers.syndic = [normalized.contactNumbers.syndic];
+    }
+
+    // S'assurer que syndic est un tableau
+    if (!normalized.contactNumbers?.syndic) {
+      normalized.contactNumbers = {
+        ...normalized.contactNumbers,
+        syndic: []
+      };
+    }
+
+    return normalized;
   }
 
   private initializeSignals() {
     // Initialiser les signaux pour les délégués
     this.infos().delegates.forEach((_, index) => {
       this.collapsedDelegates.set(index, signal(true));
+    });
+
+    // Initialiser les signaux pour les contacts syndic
+    this.infos().contactNumbers.syndic?.forEach((_, index) => {
+      this.collapsedSyndic.set(index, signal(true));
     });
 
     // Initialiser les signaux pour les contacts d'urgence
@@ -85,6 +105,10 @@ export class InfosComponent implements OnInit {
     return this.collapsedDelegates.get(index) || signal(true);
   }
 
+  getSyndicSignal(index: number) {
+    return this.collapsedSyndic.get(index) || signal(true);
+  }
+
   getEmergencySignal(index: number) {
     return this.collapsedEmergency.get(index) || signal(true);
   }
@@ -95,8 +119,9 @@ export class InfosComponent implements OnInit {
     signal.set(!signal());
   }
 
-  toggleSyndic() {
-    this.collapsedSyndic.set(!this.collapsedSyndic());
+  toggleSyndic(index: number) {
+    const signal = this.getSyndicSignal(index);
+    signal.set(!signal());
   }
 
   toggleEmergency(index: number) {
@@ -134,5 +159,11 @@ export class InfosComponent implements OnInit {
       minute: '2-digit',
       hour12: false
     });
+  }
+
+  // Méthode pour vérifier si des contacts syndic existent
+  hasSyndicContacts(): boolean {
+    const syndic = this.infos().contactNumbers.syndic;
+    return Boolean(syndic && syndic.length > 0);
   }
 }

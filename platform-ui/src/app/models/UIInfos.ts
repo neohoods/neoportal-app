@@ -18,7 +18,7 @@ export interface UIDelegate {
 }
 
 export interface UIInfoContactNumbers {
-    syndic?: UIContactNumber;
+    syndic?: Array<UIContactNumber>;
     emergency?: Array<UIContactNumber>;
 }
 
