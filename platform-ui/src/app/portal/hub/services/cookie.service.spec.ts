@@ -48,3 +48,4 @@ describe('CookieService', () => {
         expect(service.isApplicationsNotificationClosed()).toBeTruthy();
     });
 });
+

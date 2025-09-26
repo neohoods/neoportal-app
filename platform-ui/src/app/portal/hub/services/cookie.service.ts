@@ -89,3 +89,4 @@ export class CookieService {
         return this.getCookie('applications_notification_closed') === 'true';
     }
 }
+

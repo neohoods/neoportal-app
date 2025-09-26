@@ -45,14 +45,13 @@ public class InfoEntity {
         public Info toInfo() {
                 InfoContactNumbers infoContactNumbers = new InfoContactNumbers();
 
-                // Get syndic contact number
-                ContactNumberEntity syndicContact = contactNumbers.stream()
+                // Get syndic contact numbers
+                List<ContactNumberEntity> syndicContacts = contactNumbers.stream()
                                 .filter(c -> "syndic".equals(c.getContactType()))
-                                .findFirst()
-                                .orElse(null);
-                if (syndicContact != null) {
-                        infoContactNumbers.setSyndic(syndicContact.toContactNumber());
-                }
+                                .collect(Collectors.toList());
+                infoContactNumbers.setSyndic(syndicContacts.stream()
+                                .map(ContactNumberEntity::toContactNumber)
+                                .collect(Collectors.toList()));
 
                 // Get emergency contact numbers
                 List<ContactNumberEntity> emergencyContacts = contactNumbers.stream()
@@ -91,10 +90,11 @@ public class InfoEntity {
                 if (info.getContactNumbers() != null) {
                         List<ContactNumberEntity> contacts = new java.util.ArrayList<>();
 
-                        // Add syndic contact
+                        // Add syndic contacts
                         if (info.getContactNumbers().getSyndic() != null) {
-                                contacts.add(ContactNumberEntity.fromContactNumber(
-                                                info.getContactNumbers().getSyndic(), entity, "syndic"));
+                                info.getContactNumbers().getSyndic().forEach(
+                                                contact -> contacts.add(ContactNumberEntity.fromContactNumber(contact,
+                                                                entity, "syndic")));
                         }
 
                         // Add emergency contacts

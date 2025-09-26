@@ -89,11 +89,11 @@ public class InfosService {
                 if (info.getContactNumbers() != null) {
                         List<ContactNumberEntity> newContactNumbers = new java.util.ArrayList<>();
 
-                        // Add syndic contact
+                        // Add syndic contacts
                         if (info.getContactNumbers().getSyndic() != null) {
-                                newContactNumbers.add(ContactNumberEntity.fromContactNumber(
-                                                info.getContactNumbers().getSyndic(), existingEntityWithDelegates,
-                                                "syndic"));
+                                info.getContactNumbers().getSyndic().forEach(
+                                                contact -> newContactNumbers.add(ContactNumberEntity.fromContactNumber(
+                                                                contact, existingEntityWithDelegates, "syndic")));
                         }
 
                         // Add emergency contacts
