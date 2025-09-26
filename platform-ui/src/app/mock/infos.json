@@ -18,45 +18,103 @@
             "matrixUser": "jane.doe"
         }
     ],
-    "contactNumbers": {
-        "syndic": [
-            {
-                "type": "syndic",
-                "number": "1234567890",
-                "description": "Syndic",
-                "availability": "24/7",
-                "responseTime": "1 hour",
-                "name": "John Doe",
-                "phoneNumber": "1234567890",
-                "email": "john.doe@example.com",
-                "officeHours": "9:00-17:00",
-                "address": "123 Main St, Anytown, USA"
-            }
-        ],
-        "emergency": [
-            {
-                "type": "cleaner",
-                "description": "Cleaner",
-                "availability": "24/7",
-                "responseTime": "1 hour",
-                "name": "John Doe",
-                "phoneNumber": "1234567890",
-                "email": "john.doe@example.com",
-                "officeHours": "9:00-17:00",
-                "address": "123 Main St, Anytown, USA"
-            },
-            {
-                "type": "chaufagiste",
-                "description": "Chauffagiste",
-                "availability": "24/7",
-                "responseTime": "1 hour",
-                "name": "Frederic Doe",
-                "phoneNumber": "1234567890",
-                "email": "frederic.doe@example.com",
-                "officeHours": "9:00-17:00",
-                "address": "123 Main St, Anytown, USA"
-            }
-        ]
-    }
+    "contactNumbers": [
+        {
+            "contactType": "maintenance",
+            "type": "Gestion Énergétique",
+            "description": "Services de gestion énergétique ISTA",
+            "availability": "Heures ouvrables",
+            "responseTime": "24 heures",
+            "name": "ISTA SECG - Elodie Perraud",
+            "phoneNumber": "+33 4 72 65 31 10",
+            "email": "elodie.perraud@ista.com",
+            "officeHours": "9:00-17:00",
+            "address": "Parc de la Grive, 16 Rue de Lombardie, 69150 Décines-Charpieu"
+        },
+        {
+            "contactType": "maintenance",
+            "type": "Services de Nettoyage",
+            "description": "Services professionnels de nettoyage et maintenance",
+            "availability": "Heures ouvrables",
+            "responseTime": "24 heures",
+            "name": "LIMPIA LES 2 SAVOIES",
+            "phoneNumber": "+33 6 30 75 37 71",
+            "email": "g.giret@limpia-nettoyage.fr",
+            "officeHours": "9:00-17:00",
+            "address": "490 Rue Nicolas Copernic, 73420 Mery, France"
+        },
+        {
+            "contactType": "maintenance",
+            "type": "Gestion Immobilière",
+            "description": "Services de gestion immobilière et syndic",
+            "availability": "Heures ouvrables",
+            "responseTime": "24 heures",
+            "name": "Agence Savoies",
+            "phoneNumber": null,
+            "email": null,
+            "officeHours": "9:00-17:00",
+            "address": "53 Rue de la République, 73000 Chambéry, France"
+        },
+        {
+            "contactType": "maintenance",
+            "type": "Services Juridiques",
+            "description": "Services juridiques et administratifs",
+            "availability": "Heures ouvrables",
+            "responseTime": "24 heures",
+            "name": "ACAF - Sébastien DREVON",
+            "phoneNumber": "+33 4 76 12 95 80",
+            "email": null,
+            "officeHours": "9:00-17:00",
+            "address": "15 Rue de Belledonne, CS 90612, 38322 Eybens Cedex"
+        },
+        {
+            "contactType": "emergency",
+            "type": "Réparations d'Urgence",
+            "description": "Ligne directe service de réparation d'urgence",
+            "availability": "24h/24 7j/7",
+            "responseTime": "30 minutes",
+            "name": "ACAF Réparations d'Urgence",
+            "phoneNumber": "+33 4 76 12 95 85",
+            "email": null,
+            "officeHours": "24h/24 7j/7",
+            "address": "15 Rue de Belledonne, CS 90612, 38322 Eybens Cedex"
+        },
+        {
+            "contactType": "syndic",
+            "type": "Responsable",
+            "description": "Responsable du syndic",
+            "availability": "Lun-Ven 9h-17h",
+            "responseTime": "24h",
+            "name": "Melle DUCRUET Julie",
+            "phoneNumber": "04.79.33.91.56",
+            "email": "jducruet@savoisienne.com",
+            "officeHours": null,
+            "address": null
+        },
+        {
+            "contactType": "syndic",
+            "type": "Comptable",
+            "description": "Comptable du syndic",
+            "availability": "Lun-Ven 9h-17h",
+            "responseTime": "48h",
+            "name": "Mme ANDRIES Annabelle",
+            "phoneNumber": "04.79.33.91.56",
+            "email": "aandries@savoisienne.com",
+            "officeHours": null,
+            "address": null
+        },
+        {
+            "contactType": "syndic",
+            "type": "Assistante",
+            "description": "Assistante du syndic",
+            "availability": "Lun-Ven 9h-17h",
+            "responseTime": "48h",
+            "name": "Mme VOIRON Maryline",
+            "phoneNumber": "04.79.33.91.54",
+            "email": "mvoiron@savoisienne.com",
+            "officeHours": null,
+            "address": null
+        }
+    ]
     
 }

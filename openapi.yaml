@@ -1814,16 +1814,9 @@ components:
           items:
             $ref: "#/components/schemas/Delegate"
         contactNumbers:
-          type: object
-          properties:
-            syndic:
-              type: array
-              items:
-                $ref: "#/components/schemas/ContactNumber"
-            emergency:
-              type: array
-              items:
-                $ref: "#/components/schemas/ContactNumber"
+          type: array
+          items:
+            $ref: "#/components/schemas/ContactNumber"
 
     Delegate:
       type: object
@@ -1842,6 +1835,9 @@ components:
     ContactNumber:
       type: object
       properties:
+        contactType:
+          type: string
+          enum: ["syndic", "emergency", "maintenance"]
         type:
           type: string
         description:

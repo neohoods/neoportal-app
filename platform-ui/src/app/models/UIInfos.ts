@@ -6,7 +6,7 @@ export interface UIInfo {
     nextAGDate: string | null;
     rulesUrl: string;
     delegates: Array<UIDelegate>;
-    contactNumbers: UIInfoContactNumbers;
+    contactNumbers: Array<UIContactNumber>;
 }
 
 export interface UIDelegate {
@@ -17,12 +17,9 @@ export interface UIDelegate {
     matrixUser?: string;
 }
 
-export interface UIInfoContactNumbers {
-    syndic?: Array<UIContactNumber>;
-    emergency?: Array<UIContactNumber>;
-}
 
 export interface UIContactNumber {
+    contactType?: 'syndic' | 'emergency' | 'maintenance';
     type?: string;
     description?: string;
     availability?: string;

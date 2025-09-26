@@ -97,7 +97,7 @@
                 {{ 'infos.contactNumbers.syndic.title' | translate }}
             </h2>
             <ul class="no-bullets">
-                <li *ngFor="let syndic of infos().contactNumbers.syndic; let i = index">
+                <li *ngFor="let syndic of getSyndicContacts(); let i = index">
                     <div class="infos-contact-numbers-syndic-title">
                         <span>{{ syndic.name }}</span>
                         <button
@@ -197,13 +197,12 @@
             </ul>
         </div>
         <div
-            *ngIf="infos().contactNumbers.emergency"
+            *ngIf="getEmergencyContacts().length > 0"
             class="infos-contact-numbers-emergency"
         >
-            
             <h2><tui-icon icon="@tui.phone" [style.width.px]="16" /> {{ 'infos.contactNumbers.emergency.title' | translate }}</h2>
             <ul>
-                <li *ngFor="let emergency of infos().contactNumbers.emergency; let i = index">
+                <li *ngFor="let emergency of getEmergencyContacts(); let i = index">
                     <div class="infos-contact-numbers-emergency-title">
                         <span>{{ emergency.type | titlecase }}</span>
                         <button
@@ -243,6 +242,107 @@
                                         </b>
                                     </td>
                                     <td tuiTd>{{ emergency.address }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </tui-expand>
+                </li>
+            </ul>
+        </div>
+        <div
+            *ngIf="getMaintenanceContacts().length > 0"
+            class="infos-contact-numbers-maintenance"
+        >
+            <h2><tui-icon icon="@tui.settings" [style.width.px]="16" /> {{ 'infos.contactNumbers.maintenance.title' | translate }}</h2>
+            <ul>
+                <li *ngFor="let maintenance of getMaintenanceContacts(); let i = index">
+                    <div class="infos-contact-numbers-maintenance-title">
+                        <span>{{ maintenance.name }}</span>
+                        <button
+                            appearance="secondary"
+                            size="xs"
+                            tuiIconButton
+                            type="button"
+                            [tuiChevron]="!getMaintenanceSignal(i)()"
+                            (click)="toggleMaintenance(i)"
+                        >
+                            Expand
+                        </button>
+                    </div>
+                    <tui-expand [expanded]="!getMaintenanceSignal(i)()">
+                        <table tuiTable>
+                            <tbody>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.maintenance.name' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.maintenance.email' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.maintenance.phoneNumber' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.phoneNumber }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.maintenance.officeHours' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.officeHours }}</td>
+                                </tr>
+                                <tr>
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.maintenance.address' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.address }}</td>
+                                </tr>
+                                <tr *ngIf="maintenance.type">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.type' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.type }}</td>
+                                </tr>
+                                <tr *ngIf="maintenance.availability">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.availability' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.availability }}</td>
+                                </tr>
+                                <tr *ngIf="maintenance.responseTime">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.responseTime' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.responseTime }}</td>
+                                </tr>
+                                <tr *ngIf="maintenance.description">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.description' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ maintenance.description }}</td>
                                 </tr>
                             </tbody>
                         </table>

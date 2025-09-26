@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.neohoods.portal.platform.model.Info;
-import com.neohoods.portal.platform.model.InfoContactNumbers;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -43,24 +42,6 @@ public class InfoEntity {
         private List<ContactNumberEntity> contactNumbers;
 
         public Info toInfo() {
-                InfoContactNumbers infoContactNumbers = new InfoContactNumbers();
-
-                // Get syndic contact numbers
-                List<ContactNumberEntity> syndicContacts = contactNumbers.stream()
-                                .filter(c -> "syndic".equals(c.getContactType()))
-                                .collect(Collectors.toList());
-                infoContactNumbers.setSyndic(syndicContacts.stream()
-                                .map(ContactNumberEntity::toContactNumber)
-                                .collect(Collectors.toList()));
-
-                // Get emergency contact numbers
-                List<ContactNumberEntity> emergencyContacts = contactNumbers.stream()
-                                .filter(c -> "emergency".equals(c.getContactType()))
-                                .collect(Collectors.toList());
-                infoContactNumbers.setEmergency(emergencyContacts.stream()
-                                .map(ContactNumberEntity::toContactNumber)
-                                .collect(Collectors.toList()));
-
                 return new Info()
                                 .id(id)
                                 .nextAGDate(nextAGDate)
@@ -69,7 +50,10 @@ public class InfoEntity {
                                                 ? delegates.stream().map(DelegateEntity::toDelegate)
                                                                 .collect(Collectors.toList())
                                                 : List.of())
-                                .contactNumbers(infoContactNumbers);
+                                .contactNumbers(contactNumbers != null
+                                                ? contactNumbers.stream().map(ContactNumberEntity::toContactNumber)
+                                                                .collect(Collectors.toList())
+                                                : List.of());
         }
 
         public static InfoEntity fromInfo(Info info) {
@@ -88,22 +72,12 @@ public class InfoEntity {
 
                 // Handle contact numbers
                 if (info.getContactNumbers() != null) {
-                        List<ContactNumberEntity> contacts = new java.util.ArrayList<>();
-
-                        // Add syndic contacts
-                        if (info.getContactNumbers().getSyndic() != null) {
-                                info.getContactNumbers().getSyndic().forEach(
-                                                contact -> contacts.add(ContactNumberEntity.fromContactNumber(contact,
-                                                                entity, "syndic")));
-                        }
-
-                        // Add emergency contacts
-                        if (info.getContactNumbers().getEmergency() != null) {
-                                info.getContactNumbers().getEmergency().forEach(
-                                                contact -> contacts.add(ContactNumberEntity.fromContactNumber(contact,
-                                                                entity, "emergency")));
-                        }
-
+                        List<ContactNumberEntity> contacts = info.getContactNumbers().stream()
+                                        .map(contact -> ContactNumberEntity.fromContactNumber(contact, entity,
+                                                        contact.getContactType() != null
+                                                                        ? contact.getContactType().getValue()
+                                                                        : null))
+                                        .collect(Collectors.toList());
                         entity.setContactNumbers(contacts);
                 }
 

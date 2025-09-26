@@ -471,7 +471,7 @@
       },
       "contactNumbers": {
         "title": "Contacts",
-        "description": "Contacts syndicaux et d'urgence"
+        "description": "Contacts syndicaux, d'urgence et de maintenance"
       }
     },
     "nextAGDate": "Prochaine AG",
@@ -501,6 +501,11 @@
       "description": "Description",
       "availability": "Disponibilité",
       "responseTime": "Temps de réponse",
+      "name": "Nom",
+      "email": "Email",
+      "phoneNumber": "Numéro de téléphone",
+      "officeHours": "Horaires d'ouverture",
+      "address": "Adresse",
       "syndic": {
         "title": "Contact Syndic",
         "contact": "Contact syndic",
@@ -520,7 +525,20 @@
         "phoneNumber": "Numéro de téléphone",
         "officeHours": "Horaires d'ouverture",
         "address": "Adresse"
-      }
+      },
+      "maintenance": {
+        "title": "Contacts de maintenance",
+        "contact": "Contact de maintenance",
+        "addContact": "Ajouter un contact de maintenance",
+        "name": "Nom",
+        "email": "Email",
+        "phoneNumber": "Numéro de téléphone",
+        "officeHours": "Horaires d'ouverture",
+        "address": "Adresse"
+      },
+      "addSyndic": "Ajouter un syndic",
+      "addEmergency": "Ajouter une urgence",
+      "addMaintenance": "Ajouter une maintenance"
     }
   },
   "settings": {

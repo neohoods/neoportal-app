@@ -590,7 +590,7 @@
       },
       "contactNumbers": {
         "title": "Contacts",
-        "description": "Board and emergency contacts"
+        "description": "Board, emergency and maintenance contacts"
       }
     },
     "nextAGDate": "Next AGM",
@@ -620,6 +620,11 @@
       "description": "Description",
       "availability": "Availability",
       "responseTime": "Response Time",
+      "name": "Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "officeHours": "Office Hours",
+      "address": "Address",
       "syndic": {
         "title": "Property Manager Contact",
         "contact": "Property manager contact",
@@ -639,7 +644,20 @@
         "phoneNumber": "Phone Number",
         "officeHours": "Office Hours",
         "address": "Address"
-      }
+      },
+      "maintenance": {
+        "title": "Maintenance Contacts",
+        "contact": "Maintenance contact",
+        "addContact": "Add maintenance contact",
+        "name": "Name",
+        "email": "Email",
+        "phoneNumber": "Phone Number",
+        "officeHours": "Office Hours",
+        "address": "Address"
+      },
+      "addSyndic": "Add Property Manager",
+      "addEmergency": "Add Emergency Contact",
+      "addMaintenance": "Add Maintenance Contact"
     }
   },
   "applications": {

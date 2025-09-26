@@ -4,9 +4,9 @@ import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } f
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiDay } from '@taiga-ui/cdk';
 import { TuiAlertService, TuiButton, TuiNotification, TuiTextfield } from '@taiga-ui/core';
-import { TuiTabs } from '@taiga-ui/kit';
+import { TuiDataListWrapper, TuiSelect, TuiTabs } from '@taiga-ui/kit';
 import { TuiInputDateModule } from '@taiga-ui/legacy';
-import { UIInfo } from '../../../../models/UIInfos';
+import { UIContactNumber, UIInfo } from '../../../../models/UIInfos';
 import { INFOS_SERVICE_TOKEN } from '../../admin.providers';
 import { InfosService } from '../../services/infos.service';
 
@@ -23,7 +23,9 @@ import { InfosService } from '../../services/infos.service';
     TuiTextfield,
     TuiInputDateModule,
     TuiTabs,
-    TuiNotification
+    TuiNotification,
+    TuiSelect,
+    TuiDataListWrapper
   ],
   templateUrl: './infos.component.html',
   styleUrl: './infos.component.scss',
@@ -37,10 +39,7 @@ export class InfosComponent implements OnInit {
     nextAGDate: '',
     rulesUrl: '',
     delegates: [],
-    contactNumbers: {
-      syndic: [],
-      emergency: [],
-    }
+    contactNumbers: []
   };
   editInfosForm: FormGroup;
 
@@ -56,10 +55,9 @@ export class InfosComponent implements OnInit {
       nextAGDate: [''],
       rulesUrl: [''],
       delegates: this.fb.array([]),
-      contactNumbers: this.fb.group({
-        syndic: this.fb.array([]),
-        emergency: this.fb.array([])
-      })
+      syndicContacts: this.fb.array([]),
+      emergencyContacts: this.fb.array([]),
+      maintenanceContacts: this.fb.array([])
     });
   }
 
@@ -71,51 +69,30 @@ export class InfosComponent implements OnInit {
     this.infosService
       .getInfos()
       .subscribe((infos) => {
-        // Normaliser les données pour gérer la compatibilité avec l'ancienne structure
-        const normalizedInfos = this.normalizeInfosData(infos);
-        this.infos = normalizedInfos;
+        this.infos = infos;
         this.editInfosForm.patchValue({
-          nextAGDate: normalizedInfos.nextAGDate ? this.stringToTuiDay(normalizedInfos.nextAGDate) : null,
-          rulesUrl: normalizedInfos.rulesUrl
+          nextAGDate: infos.nextAGDate ? this.stringToTuiDay(infos.nextAGDate) : null,
+          rulesUrl: infos.rulesUrl
         });
-        this.setDelegates(normalizedInfos.delegates);
-        this.setContactNumbers(normalizedInfos.contactNumbers);
+        this.setDelegates(infos.delegates);
+        this.setContactNumbers(infos.contactNumbers);
       });
-  }
-
-  /**
-   * Normalise les données pour gérer la compatibilité avec l'ancienne structure
-   * où syndic était un objet unique au lieu d'un tableau
-   */
-  private normalizeInfosData(infos: any): UIInfo {
-    const normalized = { ...infos };
-
-    // Si syndic est un objet unique, le convertir en tableau
-    if (normalized.contactNumbers?.syndic && !Array.isArray(normalized.contactNumbers.syndic)) {
-      normalized.contactNumbers.syndic = [normalized.contactNumbers.syndic];
-    }
-
-    // S'assurer que syndic est un tableau
-    if (!normalized.contactNumbers?.syndic) {
-      normalized.contactNumbers = {
-        ...normalized.contactNumbers,
-        syndic: []
-      };
-    }
-
-    return normalized;
   }
 
   get delegates(): FormArray {
     return this.editInfosForm.get('delegates') as FormArray;
   }
 
-  get emergencyContacts(): FormArray {
-    return this.editInfosForm.get('contactNumbers.emergency') as FormArray;
+  get syndicContacts(): FormArray {
+    return this.editInfosForm.get('syndicContacts') as FormArray;
   }
 
-  get syndicContacts(): FormArray {
-    return this.editInfosForm.get('contactNumbers.syndic') as FormArray;
+  get emergencyContacts(): FormArray {
+    return this.editInfosForm.get('emergencyContacts') as FormArray;
+  }
+
+  get maintenanceContacts(): FormArray {
+    return this.editInfosForm.get('maintenanceContacts') as FormArray;
   }
 
   createDelegateFormGroup() {
@@ -152,26 +129,28 @@ export class InfosComponent implements OnInit {
     });
   }
 
-  setContactNumbers(contactNumbers: any) {
-    // Set syndic contacts
-    const syndicArray = this.syndicContacts;
-    syndicArray.clear();
-    if (contactNumbers.syndic && contactNumbers.syndic.length > 0) {
-      contactNumbers.syndic.forEach((syndic: any) => {
-        const syndicGroup = this.createContactNumberFormGroup();
-        syndicGroup.patchValue(syndic);
-        syndicArray.push(syndicGroup);
-      });
-    }
+  setContactNumbers(contactNumbers: UIContactNumber[]) {
+    // Clear all contact arrays
+    this.syndicContacts.clear();
+    this.emergencyContacts.clear();
+    this.maintenanceContacts.clear();
 
-    // Set emergency contacts
-    const emergencyArray = this.emergencyContacts;
-    emergencyArray.clear();
-    if (contactNumbers.emergency && contactNumbers.emergency.length > 0) {
-      contactNumbers.emergency.forEach((emergency: any) => {
-        const emergencyGroup = this.createContactNumberFormGroup();
-        emergencyGroup.patchValue(emergency);
-        emergencyArray.push(emergencyGroup);
+    if (contactNumbers && contactNumbers.length > 0) {
+      contactNumbers.forEach((contact: UIContactNumber) => {
+        const contactGroup = this.createContactNumberFormGroup();
+        contactGroup.patchValue(contact);
+
+        switch (contact.contactType) {
+          case 'syndic':
+            this.syndicContacts.push(contactGroup);
+            break;
+          case 'emergency':
+            this.emergencyContacts.push(contactGroup);
+            break;
+          case 'maintenance':
+            this.maintenanceContacts.push(contactGroup);
+            break;
+        }
       });
     }
   }
@@ -188,16 +167,24 @@ export class InfosComponent implements OnInit {
     this.syndicContacts.push(this.createContactNumberFormGroup());
   }
 
-  removeSyndicContact(index: number) {
-    this.syndicContacts.removeAt(index);
-  }
-
   addEmergencyContact() {
     this.emergencyContacts.push(this.createContactNumberFormGroup());
   }
 
+  addMaintenanceContact() {
+    this.maintenanceContacts.push(this.createContactNumberFormGroup());
+  }
+
+  removeSyndicContact(index: number) {
+    this.syndicContacts.removeAt(index);
+  }
+
   removeEmergencyContact(index: number) {
     this.emergencyContacts.removeAt(index);
+  }
+
+  removeMaintenanceContact(index: number) {
+    this.maintenanceContacts.removeAt(index);
   }
 
   private stringToTuiDay(dateString: string): TuiDay | null {
@@ -217,19 +204,24 @@ export class InfosComponent implements OnInit {
 
   onSubmit() {
     const formValue = this.editInfosForm.value;
+
+    // Combine all contact types into a single array with contactType
+    const allContacts: UIContactNumber[] = [
+      ...formValue.syndicContacts.map((contact: any) => ({ ...contact, contactType: 'syndic' })),
+      ...formValue.emergencyContacts.map((contact: any) => ({ ...contact, contactType: 'emergency' })),
+      ...formValue.maintenanceContacts.map((contact: any) => ({ ...contact, contactType: 'maintenance' }))
+    ];
+
     const updatedInfos = {
       ...this.infos,
       nextAGDate: this.tuiDayToString(formValue.nextAGDate),
       rulesUrl: formValue.rulesUrl,
       delegates: formValue.delegates,
-      contactNumbers: formValue.contactNumbers
+      contactNumbers: allContacts
     };
 
-    // Normaliser les données avant l'envoi pour s'assurer que syndic est un tableau
-    const normalizedInfos = this.normalizeInfosData(updatedInfos);
-
     this.infosService
-      .updateInfos(normalizedInfos)
+      .updateInfos(updatedInfos)
       .subscribe(() => {
         this.alerts
           .open(this.translate.instant('infos.updateSuccess') || 'Community information updated successfully', {

@@ -13,7 +13,8 @@
     .infos-rules-url,
     .infos-delegates,
     .infos-contact-numbers-syndic,
-    .infos-contact-numbers-emergency {
+    .infos-contact-numbers-emergency,
+    .infos-contact-numbers-maintenance {
         display: flex;
         flex-direction: column;
         background-color: #fff;
@@ -29,7 +30,8 @@
 
     .infos-delegates-delegate-title,
     .infos-contact-numbers-syndic-title,
-    .infos-contact-numbers-emergency-title {
+    .infos-contact-numbers-emergency-title,
+    .infos-contact-numbers-maintenance-title {
         display: grid;
         grid-template-columns: 90% 10%;
         gap: 16px;
@@ -38,6 +40,7 @@
 
     .infos-delegates ul,
     .infos-contact-numbers-emergency ul,
+    .infos-contact-numbers-maintenance ul,
     .no-bullets {
         margin: 0;
         padding: 0;
@@ -46,6 +49,7 @@
 
     .infos-delegates li,
     .infos-contact-numbers-emergency li,
+    .infos-contact-numbers-maintenance li,
     .no-bullets li {
         list-style: none;
         margin-bottom: 8px;

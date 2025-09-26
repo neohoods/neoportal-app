@@ -155,10 +155,7 @@
     </div>
 
     <!-- Contact Numbers Tab -->
-    <div
-        *ngIf="activeTabIndex === 2"
-        formGroupName="contactNumbers"
-    >
+    <div *ngIf="activeTabIndex === 2">
         <tui-notification
             class="tab-description"
             size="l"
@@ -166,213 +163,276 @@
             {{ 'infos.tabs.contactNumbers.description' | translate }}
         </tui-notification>
 
-        <!-- Syndic Contact -->
-        <div
-            formGroupName="syndic"
-            class="card"
-        >
-            <h4>
+        <!-- Syndic Contacts Section -->
+        <div class="contact-section">
+            <h3>
                 {{ 'infos.contactNumbers.syndic.title' | translate }}
-            </h4>
+            </h3>
+            <div formArrayName="syndicContacts">
+                <div
+                    *ngFor="let contact of syndicContacts.controls; let i = index"
+                    [formGroupName]="i"
+                    class="card"
+                >
+                    <div class="card-header">
+                        <h4>
+                            {{ 'infos.contactNumbers.syndic.title' | translate }} {{i + 1}}
+                        </h4>
+                        <button
+                            type="button"
+                            tuiButton
+                            size="s"
+                            appearance="destructive"
+                            (click)="removeSyndicContact(i)"
+                            class="auto-margin-left"
+                        >
+                            {{ 'infos.remove' | translate }}
+                        </button>
+                    </div>
 
-            <div class="grid-two-columns">
-                <tui-textfield>
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.syndic.name' | translate }}
-                    </label>
-                    <input
-                        formControlName="name"
-                        type="text"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                    <div class="grid-two-columns">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.name' | translate }}
+                            </label>
+                            <input
+                                formControlName="name"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield>
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.syndic.email' | translate }}
-                    </label>
-                    <input
-                        formControlName="email"
-                        type="email"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.email' | translate }}
+                            </label>
+                            <input
+                                formControlName="email"
+                                type="email"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield>
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.syndic.phoneNumber' | translate }}
-                    </label>
-                    <input
-                        formControlName="phoneNumber"
-                        type="tel"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.phoneNumber' | translate }}
+                            </label>
+                            <input
+                                formControlName="phoneNumber"
+                                type="tel"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield>
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.syndic.officeHours' | translate }}
-                    </label>
-                    <input
-                        formControlName="officeHours"
-                        type="text"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.officeHours' | translate }}
+                            </label>
+                            <input
+                                formControlName="officeHours"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield class="full-width">
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.syndic.address' | translate }}
-                    </label>
-                    <input
-                        formControlName="address"
-                        type="text"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield class="full-width">
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.address' | translate }}
+                            </label>
+                            <input
+                                formControlName="address"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield>
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.availability' | translate }}
-                    </label>
-                    <input
-                        formControlName="availability"
-                        type="text"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.type' | translate }}
+                            </label>
+                            <input
+                                formControlName="type"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield>
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.responseTime' | translate }}
-                    </label>
-                    <input
-                        formControlName="responseTime"
-                        type="text"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.availability' | translate }}
+                            </label>
+                            <input
+                                formControlName="availability"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                <tui-textfield class="full-width">
-                    <label tuiLabel>
-                        {{ 'infos.contactNumbers.description' | translate }}
-                    </label>
-                    <input
-                        formControlName="description"
-                        type="text"
-                        tuiTextfield
-                    >
-                </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.responseTime' | translate }}
+                            </label>
+                            <input
+                                formControlName="responseTime"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
+                        <tui-textfield class="full-width">
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.description' | translate }}
+                            </label>
+                            <input
+                                formControlName="description"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+                    </div>
+                </div>
             </div>
+            <button
+                type="button"
+                tuiButton
+                size="m"
+                appearance="secondary"
+                (click)="addSyndicContact()"
+                class="form-field"
+            >
+                {{ 'infos.contactNumbers.addSyndic' | translate }}
+            </button>
         </div>
 
-        <!-- Emergency Contacts -->
-        <div formArrayName="emergency">
-            <h4>
+        <!-- Emergency Contacts Section -->
+        <div class="contact-section">
+            <h3>
                 {{ 'infos.contactNumbers.emergency.title' | translate }}
-            </h4>
-
-            <div
-                *ngFor="let emergency of emergencyContacts.controls; let i = index"
-                [formGroupName]="i"
-                class="card"
-            >
-                <div class="card-header">
-                    <h5>
-                        {{ 'infos.contactNumbers.emergency.contact' | translate }} {{i + 1}}
-                    </h5>
-                    <button
-                        type="button"
-                        tuiButton
-                        size="s"
-                        appearance="destructive"
-                        (click)="removeEmergencyContact(i)"
-                        class="auto-margin-left"
-                    >
-                        {{ 'infos.remove' | translate }}
-                    </button>
-                </div>
-
-                <div class="grid-two-columns">
-                    <tui-textfield>
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.emergency.name' | translate }}
-                        </label>
-                        <input
-                            formControlName="name"
-                            type="text"
-                            tuiTextfield
+            </h3>
+            <div formArrayName="emergencyContacts">
+                <div
+                    *ngFor="let contact of emergencyContacts.controls; let i = index"
+                    [formGroupName]="i"
+                    class="card"
+                >
+                    <div class="card-header">
+                        <h4>
+                            {{ 'infos.contactNumbers.emergency.title' | translate }} {{i + 1}}
+                        </h4>
+                        <button
+                            type="button"
+                            tuiButton
+                            size="s"
+                            appearance="destructive"
+                            (click)="removeEmergencyContact(i)"
+                            class="auto-margin-left"
                         >
-                    </tui-textfield>
+                            {{ 'infos.remove' | translate }}
+                        </button>
+                    </div>
 
-                    <tui-textfield>
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.emergency.email' | translate }}
-                        </label>
-                        <input
-                            formControlName="email"
-                            type="email"
-                            tuiTextfield
-                        >
-                    </tui-textfield>
+                    <div class="grid-two-columns">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.name' | translate }}
+                            </label>
+                            <input
+                                formControlName="name"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                    <tui-textfield>
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.emergency.phoneNumber' | translate }}
-                        </label>
-                        <input
-                            formControlName="phoneNumber"
-                            type="tel"
-                            tuiTextfield
-                        >
-                    </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.email' | translate }}
+                            </label>
+                            <input
+                                formControlName="email"
+                                type="email"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                    <tui-textfield>
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.type' | translate }}
-                        </label>
-                        <input
-                            formControlName="type"
-                            type="text"
-                            tuiTextfield
-                        >
-                    </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.phoneNumber' | translate }}
+                            </label>
+                            <input
+                                formControlName="phoneNumber"
+                                type="tel"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                    <tui-textfield>
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.availability' | translate }}
-                        </label>
-                        <input
-                            formControlName="availability"
-                            type="text"
-                            tuiTextfield
-                        >
-                    </tui-textfield>
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.officeHours' | translate }}
+                            </label>
+                            <input
+                                formControlName="officeHours"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
 
-                    <tui-textfield>
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.responseTime' | translate }}
-                        </label>
-                        <input
-                            formControlName="responseTime"
-                            type="text"
-                            tuiTextfield
-                        >
-                    </tui-textfield>
-                    <tui-textfield class="full-width">
-                        <label tuiLabel>
-                            {{ 'infos.contactNumbers.description' | translate }}
-                        </label>
-                        <input
-                            formControlName="description"
-                            type="text"
-                            tuiTextfield
-                        >
-                    </tui-textfield>
+                        <tui-textfield class="full-width">
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.address' | translate }}
+                            </label>
+                            <input
+                                formControlName="address"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.type' | translate }}
+                            </label>
+                            <input
+                                formControlName="type"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.availability' | translate }}
+                            </label>
+                            <input
+                                formControlName="availability"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.responseTime' | translate }}
+                            </label>
+                            <input
+                                formControlName="responseTime"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield class="full-width">
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.description' | translate }}
+                            </label>
+                            <input
+                                formControlName="description"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+                    </div>
                 </div>
             </div>
-
             <button
                 type="button"
                 tuiButton
@@ -381,7 +441,148 @@
                 (click)="addEmergencyContact()"
                 class="form-field"
             >
-                {{ 'infos.contactNumbers.emergency.addContact' | translate }}
+                {{ 'infos.contactNumbers.addEmergency' | translate }}
+            </button>
+        </div>
+
+        <!-- Maintenance Contacts Section -->
+        <div class="contact-section">
+            <h3>
+                {{ 'infos.contactNumbers.maintenance.title' | translate }}
+            </h3>
+            <div formArrayName="maintenanceContacts">
+                <div
+                    *ngFor="let contact of maintenanceContacts.controls; let i = index"
+                    [formGroupName]="i"
+                    class="card"
+                >
+                    <div class="card-header">
+                        <h4>
+                            {{ 'infos.contactNumbers.maintenance.title' | translate }} {{i + 1}}
+                        </h4>
+                        <button
+                            type="button"
+                            tuiButton
+                            size="s"
+                            appearance="destructive"
+                            (click)="removeMaintenanceContact(i)"
+                            class="auto-margin-left"
+                        >
+                            {{ 'infos.remove' | translate }}
+                        </button>
+                    </div>
+
+                    <div class="grid-two-columns">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.name' | translate }}
+                            </label>
+                            <input
+                                formControlName="name"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.email' | translate }}
+                            </label>
+                            <input
+                                formControlName="email"
+                                type="email"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.phoneNumber' | translate }}
+                            </label>
+                            <input
+                                formControlName="phoneNumber"
+                                type="tel"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.officeHours' | translate }}
+                            </label>
+                            <input
+                                formControlName="officeHours"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield class="full-width">
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.address' | translate }}
+                            </label>
+                            <input
+                                formControlName="address"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.type' | translate }}
+                            </label>
+                            <input
+                                formControlName="type"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.availability' | translate }}
+                            </label>
+                            <input
+                                formControlName="availability"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.responseTime' | translate }}
+                            </label>
+                            <input
+                                formControlName="responseTime"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+
+                        <tui-textfield class="full-width">
+                            <label tuiLabel>
+                                {{ 'infos.contactNumbers.description' | translate }}
+                            </label>
+                            <input
+                                formControlName="description"
+                                type="text"
+                                tuiTextfield
+                            >
+                        </tui-textfield>
+                    </div>
+                </div>
+            </div>
+            <button
+                type="button"
+                tuiButton
+                size="m"
+                appearance="secondary"
+                (click)="addMaintenanceContact()"
+                class="form-field"
+            >
+                {{ 'infos.contactNumbers.addMaintenance' | translate }}
             </button>
         </div>
     </div>

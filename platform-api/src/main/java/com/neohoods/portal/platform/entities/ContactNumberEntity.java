@@ -56,6 +56,7 @@ public class ContactNumberEntity {
 
     public ContactNumber toContactNumber() {
         return new ContactNumber()
+                .contactType(contactType != null ? ContactNumber.ContactTypeEnum.fromValue(contactType) : null)
                 .type(type)
                 .description(description)
                 .availability(availability)

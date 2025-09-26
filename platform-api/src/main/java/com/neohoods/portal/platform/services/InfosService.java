@@ -87,22 +87,13 @@ public class InfosService {
 
                 // Replace contact numbers collection
                 if (info.getContactNumbers() != null) {
-                        List<ContactNumberEntity> newContactNumbers = new java.util.ArrayList<>();
-
-                        // Add syndic contacts
-                        if (info.getContactNumbers().getSyndic() != null) {
-                                info.getContactNumbers().getSyndic().forEach(
-                                                contact -> newContactNumbers.add(ContactNumberEntity.fromContactNumber(
-                                                                contact, existingEntityWithDelegates, "syndic")));
-                        }
-
-                        // Add emergency contacts
-                        if (info.getContactNumbers().getEmergency() != null) {
-                                info.getContactNumbers().getEmergency().forEach(
-                                                contact -> newContactNumbers.add(ContactNumberEntity.fromContactNumber(
-                                                                contact, existingEntityWithDelegates, "emergency")));
-                        }
-
+                        List<ContactNumberEntity> newContactNumbers = info.getContactNumbers().stream()
+                                        .map(contact -> ContactNumberEntity.fromContactNumber(contact,
+                                                        existingEntityWithDelegates,
+                                                        contact.getContactType() != null
+                                                                        ? contact.getContactType().getValue()
+                                                                        : null))
+                                        .collect(Collectors.toList());
                         existingEntityWithDelegates.setContactNumbers(newContactNumbers);
                 }
 

@@ -110,7 +110,7 @@ CREATE TABLE "delegates" (
 CREATE TABLE "contact_numbers" (
     "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     "info_id" uuid REFERENCES infos(id) ON DELETE CASCADE,
-    "contact_type" varchar(50) CHECK (contact_type IN ('syndic', 'emergency')),
+    "contact_type" varchar(50) CHECK (contact_type IN ('syndic', 'emergency', 'maintenance')),
     "type" varchar(255),
     "description" text,
     "availability" varchar(255),
