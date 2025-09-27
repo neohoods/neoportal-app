@@ -114,7 +114,7 @@
                     <tui-expand [expanded]="!getSyndicSignal(i)()">
                         <table tuiTable>
                             <tbody>
-                                <tr>
+                                <tr *ngIf="syndic.email">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.syndic.email' | translate }}
@@ -122,7 +122,7 @@
                                     </td>
                                     <td tuiTd>{{ syndic.email }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="syndic.phoneNumber">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.syndic.phoneNumber' | translate }}
@@ -130,7 +130,7 @@
                                     </td>
                                     <td tuiTd>{{ syndic.phoneNumber }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="syndic.officeHours">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.syndic.officeHours' | translate }}
@@ -140,7 +140,7 @@
                                         {{ syndic.officeHours }}
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="syndic.address">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.syndic.address' | translate }}
@@ -227,7 +227,23 @@
                                     </td>
                                     <td tuiTd>{{ emergency.name }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="emergency.email">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.emergency.email' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.email }}</td>
+                                </tr>
+                                <tr *ngIf="emergency.phoneNumber">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.emergency.phoneNumber' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.phoneNumber }}</td>
+                                </tr>
+                                <tr *ngIf="emergency.officeHours">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.emergency.officeHours' | translate }}
@@ -235,13 +251,45 @@
                                     </td>
                                     <td tuiTd>{{ emergency.officeHours }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="emergency.address">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.emergency.address' | translate }}
                                         </b>
                                     </td>
                                     <td tuiTd>{{ emergency.address }}</td>
+                                </tr>
+                                <tr *ngIf="emergency.type">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.type' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.type }}</td>
+                                </tr>
+                                <tr *ngIf="emergency.availability">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.availability' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.availability }}</td>
+                                </tr>
+                                <tr *ngIf="emergency.responseTime">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.responseTime' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.responseTime }}</td>
+                                </tr>
+                                <tr *ngIf="emergency.description">
+                                    <td tuiTd>
+                                        <b>
+                                            {{ 'infos.contactNumbers.description' | translate }}
+                                        </b>
+                                    </td>
+                                    <td tuiTd>{{ emergency.description }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -272,7 +320,7 @@
                     <tui-expand [expanded]="!getMaintenanceSignal(i)()">
                         <table tuiTable>
                             <tbody>
-                                <tr>
+                                <tr *ngIf="maintenance.name">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.maintenance.name' | translate }}
@@ -280,7 +328,7 @@
                                     </td>
                                     <td tuiTd>{{ maintenance.name }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="maintenance.email">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.maintenance.email' | translate }}
@@ -288,7 +336,7 @@
                                     </td>
                                     <td tuiTd>{{ maintenance.email }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="maintenance.phoneNumber">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.maintenance.phoneNumber' | translate }}
@@ -296,7 +344,7 @@
                                     </td>
                                     <td tuiTd>{{ maintenance.phoneNumber }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="maintenance.officeHours">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.maintenance.officeHours' | translate }}
@@ -304,7 +352,7 @@
                                     </td>
                                     <td tuiTd>{{ maintenance.officeHours }}</td>
                                 </tr>
-                                <tr>
+                                <tr *ngIf="maintenance.address">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.maintenance.address' | translate }}
