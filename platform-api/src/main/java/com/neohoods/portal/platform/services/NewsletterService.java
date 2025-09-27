@@ -1,9 +1,11 @@
 package com.neohoods.portal.platform.services;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -238,23 +240,55 @@ public class NewsletterService {
         return Flux.fromIterable(allUsers)
                 .flatMap(user -> {
                     try {
-                        // Create template variables for the newsletter
-                        List<MailService.TemplateVariable> templateVariables = List.of(
+                        // Create base template variables for processing
+                        List<MailService.TemplateVariable> baseVariables = List.of(
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
-                                        .ref("newsletterTitle")
-                                        .value(newsletter.getSubject())
+                                        .ref("firstName")
+                                        .value(user.getFirstName())
                                         .build(),
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
-                                        .ref("newsletterContent")
-                                        .value(newsletter.getContent())
+                                        .ref("lastName")
+                                        .value(user.getLastName())
+                                        .build(),
+                                MailService.TemplateVariable.builder()
+                                        .type(MailService.TemplateVariableType.RAW)
+                                        .ref("username")
+                                        .value(user.getUsername())
                                         .build());
+
+                        // Create extended variables for processing (including appName)
+                        List<MailService.TemplateVariable> processingVariables = new ArrayList<>(baseVariables);
+                        processingVariables.add(MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("appName")
+                                .value("Terres de Laya") // TODO: Get from configuration
+                                .build());
+
+                        // Process newsletter content with template variables
+                        String processedSubject = processTemplateVariables(newsletter.getSubject(),
+                                processingVariables);
+                        String processedContent = processTemplateVariables(newsletter.getContent(),
+                                processingVariables);
+
+                        // Create final template variables for the email
+                        List<MailService.TemplateVariable> templateVariables = new ArrayList<>(baseVariables);
+                        templateVariables.add(MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("newsletterTitle")
+                                .value(processedSubject)
+                                .build());
+                        templateVariables.add(MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("newsletterContent")
+                                .value(processedContent)
+                                .build());
 
                         // Send email with newsletter template
                         mailService.sendTemplatedEmail(
                                 user,
-                                newsletter.getSubject(),
+                                processedSubject,
                                 "email/newsletter",
                                 templateVariables,
                                 user.getLocale());
@@ -302,16 +336,17 @@ public class NewsletterService {
                     UserEntity user = tuple.getT2();
 
                     try {
-                        List<MailService.TemplateVariable> templateVariables = List.of(
+                        // Create base template variables for processing
+                        List<MailService.TemplateVariable> baseVariables = List.of(
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
-                                        .ref("newsletterTitle")
-                                        .value(newsletter.getSubject())
+                                        .ref("firstName")
+                                        .value(user.getFirstName())
                                         .build(),
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
-                                        .ref("newsletterContent")
-                                        .value(newsletter.getContent())
+                                        .ref("lastName")
+                                        .value(user.getLastName())
                                         .build(),
                                 MailService.TemplateVariable.builder()
                                         .type(MailService.TemplateVariableType.RAW)
@@ -319,9 +354,36 @@ public class NewsletterService {
                                         .value(user.getUsername())
                                         .build());
 
+                        // Create extended variables for processing (including appName)
+                        List<MailService.TemplateVariable> processingVariables = new ArrayList<>(baseVariables);
+                        processingVariables.add(MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("appName")
+                                .value("Terres de Laya") // TODO: Get from configuration
+                                .build());
+
+                        // Process newsletter content with template variables
+                        String processedSubject = processTemplateVariables(newsletter.getSubject(),
+                                processingVariables);
+                        String processedContent = processTemplateVariables(newsletter.getContent(),
+                                processingVariables);
+
+                        // Create final template variables for the email
+                        List<MailService.TemplateVariable> templateVariables = new ArrayList<>(baseVariables);
+                        templateVariables.add(MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("newsletterTitle")
+                                .value(processedSubject)
+                                .build());
+                        templateVariables.add(MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("newsletterContent")
+                                .value(processedContent)
+                                .build());
+
                         mailService.sendTemplatedEmail(
                                 user,
-                                "[TEST] " + newsletter.getSubject(),
+                                "[TEST] " + processedSubject,
                                 "email/newsletter",
                                 templateVariables,
                                 user.getLocale());
@@ -393,5 +455,26 @@ public class NewsletterService {
         } catch (Exception e) {
             log.error("Failed to update newsletter log for user: {} and newsletter: {}", userId, newsletterId, e);
         }
+    }
+
+    /**
+     * Process template variables in a string template
+     */
+    private String processTemplateVariables(String template, List<MailService.TemplateVariable> variables) {
+        String result = template;
+
+        // Create a map of variable references to values
+        Map<String, String> variableMap = variables.stream()
+                .collect(Collectors.toMap(
+                        MailService.TemplateVariable::getRef,
+                        v -> v.getValue() != null ? v.getValue().toString() : ""));
+
+        // Replace {{variableName}} patterns
+        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+            String placeholder = "{{" + entry.getKey() + "}}";
+            result = result.replace(placeholder, entry.getValue());
+        }
+
+        return result;
     }
 }
