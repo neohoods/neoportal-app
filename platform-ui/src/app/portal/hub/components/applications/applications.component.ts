@@ -63,6 +63,13 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Si l'utilisateur a fermé la notification, ne pas la réafficher
+    const isNotificationClosed = this.cookieService.isApplicationsNotificationClosed();
+    if (isNotificationClosed) {
+      this.showNotification = false;
+      return;
+    }
+
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
     if (scrollTop >= this.hideThreshold) {
