@@ -1,0 +1,151 @@
+<div class="email-templates-edit-container">
+    <div class="header">
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ pageDescription }}</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="email-template-form">
+        <div class="form-section">
+            <h3>{{ 'emailTemplates.basicInfo' | translate }}</h3>
+            
+            <div class="form-field">
+                <tui-select
+                    formControlName="type"
+                    [readOnly]="!canEdit"
+                    [stringify]="stringifyTemplateType"
+                >
+                {{ 'emailTemplates.type' | translate }}
+                    <input
+                        tuiTextfieldLegacy
+                        [placeholder]="'emailTemplates.typePlaceholder' | translate"
+                    />
+                    <tui-data-list-wrapper
+                        *tuiDataList
+                        [items]="templateTypes"
+                    ></tui-data-list-wrapper>
+                </tui-select>
+            </div>
+
+            <div class="form-field">
+                <tui-textfield>
+                    <label tuiLabel>{{ 'emailTemplates.name' | translate }}</label>
+                    <input
+                        tuiTextfield
+                        formControlName="name"
+                        [placeholder]="'emailTemplates.namePlaceholder' | translate"
+                        [readOnly]="!canEdit"
+                    />
+                </tui-textfield>
+                @if (form.get('name')?.invalid && form.get('name')?.touched) {
+                    <div class="error-message">
+                        @if (form.get('name')?.errors?.['required']) {
+                            <span>{{ 'emailTemplates.validation.nameRequired' | translate }}</span>
+                        }
+                        @if (form.get('name')?.errors?.['minlength']) {
+                            <span>{{ 'emailTemplates.validation.nameMinLength' | translate }}</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="form-field">
+                <tui-textfield>
+                    <label tuiLabel>{{ 'emailTemplates.subject' | translate }}</label>
+                    <input
+                        tuiTextfield
+                        formControlName="subject"
+                        [placeholder]="'emailTemplates.subjectPlaceholder' | translate"
+                        [readOnly]="!canEdit"
+                    />
+                </tui-textfield>
+                @if (form.get('subject')?.invalid && form.get('subject')?.touched) {
+                    <div class="error-message">
+                        @if (form.get('subject')?.errors?.['required']) {
+                            <span>{{ 'emailTemplates.validation.subjectRequired' | translate }}</span>
+                        }
+                        @if (form.get('subject')?.errors?.['minlength']) {
+                            <span>{{ 'emailTemplates.validation.subjectMinLength' | translate }}</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="form-field">
+                <tui-textfield>
+                    <label tuiLabel>{{ 'emailTemplates.description' | translate }}</label>
+                    <input
+                        tuiTextfield
+                        formControlName="description"
+                        [placeholder]="'emailTemplates.descriptionPlaceholder' | translate"
+                        [readOnly]="!canEdit"
+                    />
+                </tui-textfield>
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>{{ 'emailTemplates.content' | translate }}</label>
+                <quill-editor
+                    formControlName="content"
+                    [modules]="editorConfig"
+                    [readOnly]="!canEdit"
+                    style="height: 300px; margin-top: 8px;"
+                    [placeholder]="'emailTemplates.contentPlaceholder' | translate"
+                ></quill-editor>
+                @if (form.get('content')?.invalid && form.get('content')?.touched) {
+                    <div class="error-message">
+                        @if (form.get('content')?.errors?.['required']) {
+                            <span>{{ 'emailTemplates.validation.contentRequired' | translate }}</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>
+                    <input
+                        type="checkbox"
+                        formControlName="isActive"
+                        [disabled]="!canEdit"
+                    />
+                    {{ 'emailTemplates.isActive' | translate }}
+                </label>
+                <small class="help-text">{{ 'emailTemplates.isActiveHelp' | translate }}</small>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button
+                tuiButton
+                type="button"
+                appearance="secondary"
+                (click)="onCancel()"
+            >
+                {{ 'common.cancel' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                type="button"
+                appearance="accent"
+                [disabled]="!canEdit || form.invalid"
+                (click)="testTemplate()"
+            >
+                <tui-icon icon="@tui.eye" />
+                {{ 'emailTemplates.test' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                type="submit"
+                appearance="primary"
+                [disabled]="!canEdit || form.invalid || isLoading"
+            >
+                @if (isLoading) {
+                    <tui-loader size="s"></tui-loader>
+                }
+                {{ (isEditMode ? 'common.save' : 'common.create') | translate }}
+            </button>
+        </div>
+    </form>
+</div>

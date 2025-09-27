@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,7 @@ import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.model.VerifyEmail200Response;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.Auth0Service;
+import com.neohoods.portal.platform.services.EmailTemplateService;
 import com.neohoods.portal.platform.services.JwtService;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
@@ -64,6 +66,7 @@ public class AuthApi implements AuthApiApiDelegate {
         private final ValidationService validationService;
         private final SettingsService settingsService;
         private final NotificationsService notificationsService;
+        private final EmailTemplateService emailTemplateService;
 
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;
@@ -322,7 +325,7 @@ public class AuthApi implements AuthApiApiDelegate {
         }
 
         /**
-         * Sends verification email to the user
+         * Sends verification email to the user using the active WELCOME template
          */
         private void sendVerificationEmail(UserEntity user) throws Exception {
                 JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
@@ -334,6 +337,64 @@ public class AuthApi implements AuthApiApiDelegate {
                 String token = jwtService.createToken(claimsBuilder);
                 log.debug("Created verification token for user: {}", user.getUsername());
 
+                // Try to get the active WELCOME template
+                try {
+                        var welcomeTemplate = emailTemplateService.getActiveTemplateByType("WELCOME").block();
+                        if (welcomeTemplate != null) {
+                                log.info("Using custom WELCOME template for user: {}", user.getUsername());
+
+                                // Create template variables
+                                var usernameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("username")
+                                                .value(user.getUsername())
+                                                .build();
+
+                                var firstNameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("firstName")
+                                                .value(user.getFirstName())
+                                                .build();
+
+                                var lastNameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("lastName")
+                                                .value(user.getLastName())
+                                                .build();
+
+                                // Process template content with variables (no verif_url for welcome email)
+                                List<MailService.TemplateVariable> processingVariables = Arrays.asList(
+                                                usernameVar, firstNameVar, lastNameVar);
+
+                                String processedSubject = processTemplateVariables(welcomeTemplate.getSubject(),
+                                                processingVariables);
+                                String processedContent = processTemplateVariables(welcomeTemplate.getContent(),
+                                                processingVariables);
+
+                                // Create final template variables for the email
+                                List<MailService.TemplateVariable> templateVariables = new ArrayList<>(
+                                                processingVariables);
+                                templateVariables.add(MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("content")
+                                                .value(processedContent)
+                                                .build());
+
+                                mailService.sendTemplatedEmail(
+                                                user,
+                                                processedSubject,
+                                                "email/custom-template",
+                                                templateVariables,
+                                                user.getLocale());
+                                return;
+                        }
+                } catch (Exception e) {
+                        log.warn("Failed to get WELCOME template, falling back to default template: {}",
+                                        e.getMessage());
+                }
+
+                // Fallback to default template if WELCOME template is not available
+                log.info("Using default verification template for user: {}", user.getUsername());
                 var usernameVar = MailService.TemplateVariable.builder()
                                 .type(MailService.TemplateVariableType.RAW)
                                 .ref("username")
@@ -491,6 +552,27 @@ public class AuthApi implements AuthApiApiDelegate {
                                 throw new IllegalArgumentException("Invalid or expired token");
                         }
                 });
+        }
+
+        /**
+         * Process template variables in a string template
+         */
+        private String processTemplateVariables(String template, List<MailService.TemplateVariable> variables) {
+                String result = template;
+
+                // Create a map of variable references to values
+                Map<String, String> variableMap = variables.stream()
+                                .collect(Collectors.toMap(
+                                                MailService.TemplateVariable::getRef,
+                                                v -> v.getValue() != null ? v.getValue().toString() : ""));
+
+                // Replace {{variableName}} patterns
+                for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+                        String placeholder = "{{" + entry.getKey() + "}}";
+                        result = result.replace(placeholder, entry.getValue());
+                }
+
+                return result;
         }
 
 }

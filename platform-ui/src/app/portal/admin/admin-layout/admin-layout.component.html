@@ -57,6 +57,12 @@
       <tui-icon icon="@tui.mail" />
       {{ 'adminLayout.newsletters' | translate }}
     </a>
+    
+    <a (click)="closeMore()" routerLink="/admin/email-templates/" routerLinkActive="active" appearance="secondary-grayscale"
+      type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.file-text" />
+      {{ 'adminLayout.emailTemplates' | translate }}
+    </a>
 
 
 

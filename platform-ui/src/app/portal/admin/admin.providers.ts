@@ -6,6 +6,7 @@ import { MockUsersService } from './services/mock/users.service';
 
 import { ApplicationsService } from './services/applications.service';
 import { CustomPagesService } from './services/custom-pages.service';
+import { EmailTemplatesService } from './services/email-templates.service';
 import { InfosService } from './services/infos.service';
 import { MockApplicationsService } from './services/mock/applications.service';
 import { MockCustomPagesService } from './services/mock/custom-pages.service';
@@ -38,6 +39,9 @@ export const APPLICATIONS_SERVICE_TOKEN = new InjectionToken<ApplicationsService
 );
 export const NEWSLETTERS_SERVICE_TOKEN = new InjectionToken<NewslettersService>(
   'NewslettersService',
+);
+export const EMAIL_TEMPLATES_SERVICE_TOKEN = new InjectionToken<EmailTemplatesService>(
+  'EmailTemplatesService',
 );
 
 export const adminProviders: Provider[] = [
@@ -75,5 +79,9 @@ export const adminProviders: Provider[] = [
     useExisting: ConfigService.configuration.useMockApi
       ? MockNewslettersService
       : ApiNewslettersService,
+  },
+  {
+    provide: EMAIL_TEMPLATES_SERVICE_TOKEN,
+    useExisting: EmailTemplatesService,
   },
 ];

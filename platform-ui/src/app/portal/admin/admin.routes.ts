@@ -9,11 +9,13 @@ import { ApplicationsEditComponent } from './pages/applications-edit/application
 import { ApplicationsComponent } from './pages/applications/applications.component';
 import { CustomPagesEditComponent } from './pages/custom-pages-edit/custom-pages-edit.component';
 import { CustomPagesComponent } from './pages/custom-pages/custom-pages.component';
+import { EmailTemplatesEditComponent } from './pages/email-templates-edit/email-templates-edit.component';
+import { EmailTemplatesComponent } from './pages/email-templates/email-templates.component';
 import { HelpCenterEditComponent } from './pages/help-center/help-center-edit.component';
 import { InfosComponent } from './pages/infos/infos.component';
+import { NewsletterLogsComponent } from './pages/newsletter-logs/newsletter-logs.component';
 import { NewslettersEditComponent } from './pages/newsletters-edit/newsletters-edit.component';
 import { NewslettersComponent } from './pages/newsletters/newsletters.component';
-import { NewsletterLogsComponent } from './pages/newsletter-logs/newsletter-logs.component';
 import { SecurityComponent } from './pages/security/security.component';
 import { UsersComponent } from './pages/users/users.component';
 
@@ -40,6 +42,9 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'newsletters/create', component: NewslettersEditComponent },
       { path: 'newsletters/:id/edit', component: NewslettersEditComponent },
       { path: 'newsletters/:newsletterId/logs', component: NewsletterLogsComponent },
+      { path: 'email-templates', component: EmailTemplatesComponent },
+      { path: 'email-templates/create', component: EmailTemplatesEditComponent },
+      { path: 'email-templates/:id/edit', component: EmailTemplatesEditComponent },
     ],
   },
 ];

@@ -1425,6 +1425,152 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /admin/email-templates:
+    get:
+      operationId: getEmailTemplates
+      summary: Retrieve all email templates
+      tags:
+        - email-templates-admin-api
+      parameters:
+        - name: type
+          in: query
+          description: Filter by email template type
+          required: false
+          schema:
+            $ref: "#/components/schemas/EmailTemplateType"
+      responses:
+        "200":
+          description: A list of email templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmailTemplate"
+    post:
+      operationId: createEmailTemplate
+      summary: Create a new email template
+      tags:
+        - email-templates-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailTemplateRequest"
+      responses:
+        "201":
+          description: Email template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/email-templates/{template-id}:
+    parameters:
+      - name: template-id
+        in: path
+        description: Email template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getEmailTemplate
+      summary: Retrieve a specific email template by ID
+      tags:
+        - email-templates-admin-api
+      responses:
+        "200":
+          description: A single email template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplate"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateEmailTemplate
+      summary: Update an existing email template
+      tags:
+        - email-templates-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailTemplateRequest"
+      responses:
+        "200":
+          description: Email template updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteEmailTemplate
+      summary: Delete an email template
+      tags:
+        - email-templates-admin-api
+      responses:
+        "204":
+          description: Email template deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/email-templates/{template-id}/test:
+    parameters:
+      - name: template-id
+        in: path
+        description: Email template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: testEmailTemplate
+      summary: Send a test email using the template to the current admin user
+      tags:
+        - email-templates-admin-api
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateVariables:
+                  type: object
+                  additionalProperties: true
+                  description: "Template variables to use for testing (e.g., username, verif_url, etc.)"
+                  example:
+                    username: "testuser"
+                    verif_url: "https://portal.neohoods.com/email-confirmation?token=test123"
+      responses:
+        "200":
+          description: Test email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Test email sent successfully"
+                  sentTo:
+                    type: string
+                    example: "admin@example.com"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
 components:
   #####################################################
   # Predefined Components
@@ -2122,6 +2268,98 @@ components:
               format: float
               example: 96.77
           description: "Simple summary of the newsletter sending"
+
+    EmailTemplate:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - subject
+        - content
+        - isActive
+        - createdAt
+        - updatedAt
+        - createdBy
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier for the email template"
+        type:
+          $ref: "#/components/schemas/EmailTemplateType"
+        name:
+          type: string
+          example: "Welcome Email - Default"
+          description: "Display name for the template in admin interface"
+        subject:
+          type: string
+          example: "Welcome to {{appName}}!"
+          description: "Email subject line with template variables"
+        content:
+          type: string
+          example: "<h1>Welcome {{username}}!</h1><p>Thank you for joining {{appName}}...</p>"
+          description: "HTML content of the email with template variables"
+        isActive:
+          type: boolean
+          example: true
+          description: "Whether this template is currently active (only one per type can be active)"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-10T14:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-12T09:15:00Z"
+        createdBy:
+          type: string
+          format: uuid
+          description: "ID of the admin user who created the template"
+        description:
+          type: string
+          example: "Default welcome email sent to new users after registration"
+          description: "Optional description of the template's purpose"
+
+    EmailTemplateRequest:
+      type: object
+      required:
+        - type
+        - name
+        - subject
+        - content
+      properties:
+        type:
+          $ref: "#/components/schemas/EmailTemplateType"
+        name:
+          type: string
+          example: "Welcome Email - Custom"
+          description: "Display name for the template in admin interface"
+        subject:
+          type: string
+          example: "Welcome to {{appName}}!"
+          description: "Email subject line with template variables"
+        content:
+          type: string
+          example: "<h1>Welcome {{username}}!</h1><p>Thank you for joining {{appName}}...</p>"
+          description: "HTML content of the email with template variables"
+        description:
+          type: string
+          example: "Custom welcome email with company branding"
+          description: "Optional description of the template's purpose"
+        isActive:
+          type: boolean
+          example: false
+          description: "Whether to activate this template (deactivates others of same type)"
+
+    EmailTemplateType:
+      type: string
+      enum:
+        - WELCOME
+      example: "WELCOME"
+      description: |
+        Email template types (currently only WELCOME is supported):
+        - WELCOME: Welcome email sent to new users after registration
 
   responses:
     OK_200_GET_HELLO_WORLD:

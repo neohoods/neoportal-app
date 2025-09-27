@@ -175,3 +175,21 @@ CREATE INDEX "idx_newsletter_logs_newsletter_id" ON "newsletter_logs"("newslette
 CREATE INDEX "idx_newsletter_logs_user_id" ON "newsletter_logs"("user_id");
 CREATE INDEX "idx_newsletter_logs_status" ON "newsletter_logs"("status");
 CREATE INDEX "idx_newsletter_logs_created_at" ON "newsletter_logs"("created_at");
+
+CREATE TABLE "email_templates" (
+    "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    "type" varchar(50) NOT NULL CHECK (type IN ('WELCOME')),
+    "name" varchar(255) NOT NULL,
+    "subject" varchar(255) NOT NULL,
+    "content" text,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "created_by" uuid NOT NULL,
+    "description" text,
+    FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX "idx_email_templates_type" ON "email_templates"("type");
+CREATE INDEX "idx_email_templates_is_active" ON "email_templates"("is_active");
+CREATE INDEX "idx_email_templates_created_at" ON "email_templates"("created_at");

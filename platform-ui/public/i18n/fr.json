@@ -153,7 +153,8 @@
     "pages": "Pages",
     "applications": "Applications",
     "infos": "Infos",
-    "newsletters": "Newsletters"
+    "newsletters": "Newsletters",
+    "emailTemplates": "Modèles d'Email"
   },
   "editUser": {
     "editTitle": "Modifier l'utilisateur",
@@ -804,6 +805,95 @@
       "title": "Aucune newsletter trouvée",
       "description": "Vous n'avez pas encore créé de newsletter. Créez votre première newsletter pour commencer.",
       "createButton": "Créer une newsletter"
+    }
+  },
+  "emailTemplates": {
+    "title": "Modèles d'Email",
+    "createTemplate": "Créer un Modèle d'Email",
+    "editTemplate": "Modifier le Modèle d'Email",
+    "deleteTemplate": "Supprimer le Modèle d'Email",
+    "testTemplate": "Tester le Modèle d'Email",
+    "activateTemplate": "Activer le Modèle",
+    "name": "Nom",
+    "type": "Type", 
+    "subject": "Sujet",
+    "content": "Contenu",
+    "status": "Statut",
+    "createdAt": "Créé le",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "types": {
+      "WELCOME": "Email de Bienvenue"
+    },
+    "typePlaceholder": "Sélectionnez le type de modèle",
+    "namePlaceholder": "Entrez le nom du modèle",
+    "subjectPlaceholder": "Entrez le sujet de l'email",
+    "descriptionPlaceholder": "Entrez la description du modèle",
+    "contentPlaceholder": "Entrez le contenu de l'email",
+    "isActive": "Modèle Actif",
+    "isActiveHelp": "Un seul modèle peut être actif par type",
+    "test": "Tester",
+    "description": "Description",
+    "basicInfo": "Informations de base",
+    "form": {
+      "type": "Type de Modèle",
+      "typeRequired": "Le type de modèle est requis",
+      "name": "Nom du Modèle",
+      "nameRequired": "Le nom du modèle est requis",
+      "namePlaceholder": "Entrez le nom du modèle",
+      "subject": "Sujet de l'Email",
+      "subjectRequired": "Le sujet de l'email est requis",
+      "subjectPlaceholder": "Entrez le sujet de l'email",
+      "content": "Contenu de l'Email",
+      "contentRequired": "Le contenu de l'email est requis",
+      "contentPlaceholder": "Entrez le contenu de l'email",
+      "description": "Description",
+      "descriptionPlaceholder": "Entrez la description du modèle",
+      "isActive": "Modèle Actif",
+      "isActiveHelp": "Un seul modèle peut être actif par type"
+    },
+    "validation": {
+      "nameRequired": "Le nom du modèle est requis",
+      "nameMinLength": "Le nom doit contenir au moins 3 caractères",
+      "subjectRequired": "Le sujet de l'email est requis",
+      "subjectMinLength": "Le sujet doit contenir au moins 3 caractères",
+      "contentRequired": "Le contenu de l'email est requis"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "test": "Tester",
+      "activate": "Activer",
+      "delete": "Supprimer",
+      "create": "Créer",
+      "update": "Mettre à jour",
+      "testSuccess": "Email de test envoyé avec succès",
+      "testError": "Erreur lors de l'envoi de l'email de test",
+      "activateSuccess": "Modèle activé avec succès",
+      "activateError": "Erreur lors de l'activation du modèle",
+      "createSuccess": "Modèle créé avec succès",
+      "createError": "Erreur lors de la création du modèle",
+      "updateSuccess": "Modèle mis à jour avec succès",
+      "updateError": "Erreur lors de la mise à jour du modèle",
+      "deleteSuccess": "Modèle supprimé avec succès",
+      "deleteError": "Erreur lors de la suppression du modèle",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer le modèle '{{name}}' ?",
+      "saveBeforeTest": "Veuillez sauvegarder le modèle avant de le tester"
+    },
+    "create": {
+      "title": "Créer un Modèle d'Email",
+      "description": "Créez un nouveau modèle d'email personnalisé"
+    },
+    "edit": {
+      "title": "Modifier le Modèle d'Email",
+      "description": "Modifiez les paramètres et le contenu de votre modèle d'email"
+    },
+    "errors": {
+      "loadError": "Erreur lors du chargement du modèle d'email"
+    },
+    "empty": {
+      "title": "Aucun modèle d'email trouvé",
+      "description": "Vous n'avez pas encore créé de modèle d'email. Créez votre premier modèle pour commencer.",
+      "createButton": "Créer un Modèle d'Email"
     }
   },
   "common": {

@@ -1,0 +1,87 @@
+<!-- Email Templates Table -->
+<tos-table
+    [columns]="columns"
+    [getDataFunction]="getDataFunction"
+    addActionRoute="/admin/email-templates/create"
+    addActionIcon="@tui.plus"
+>
+    <div add-action-content>
+        {{ 'emailTemplates.createTemplate' | translate }}
+    </div>
+
+    <ng-template
+        #itemRowTemplate
+        let-item="item"
+        let-column="column"
+    >
+        @if (column.key === 'type') {
+            <span class="type-text">
+                {{ getTypeDisplayText(item.type) }}
+            </span>
+        }
+        @if (column.key === 'isActive') {
+            <tui-badge
+                [appearance]="getActiveBadgeAppearance(item.isActive)"
+            >
+                {{ item.isActive ? ('emailTemplates.active' | translate) : ('emailTemplates.inactive' | translate) }}
+            </tui-badge>
+        }
+        @if (column.key === 'createdAt') {
+            <div class="date-info">
+                <div class="date-value">{{ getFormattedDate(item.createdAt) }}</div>
+            </div>
+        }
+    </ng-template>
+
+    <ng-template
+        #itemActionsTemplate
+        let-item="item"
+    >
+        <div class="email-template-actions">
+            <!-- Edit Button -->
+            <button
+                tuiButton
+                appearance="outline"
+                size="s"
+                [routerLink]="['/admin/email-templates', item.id, 'edit']"
+                [tuiHint]="'emailTemplates.actions.edit' | translate"
+            >
+                <tui-icon icon="@tui.pencil" />
+            </button>
+
+            <!-- Test Button -->
+            <button
+                tuiButton
+                appearance="outline"
+                size="s"
+                (click)="testEmailTemplate(item)"
+                [tuiHint]="'emailTemplates.actions.test' | translate"
+            >
+                <tui-icon icon="@tui.eye" />
+            </button>
+
+            <!-- Activate Button -->
+            <button
+                tuiButton
+                appearance="primary"
+                size="s"
+                [disabled]="item.isActive"
+                (click)="activateEmailTemplate(item)"
+                [tuiHint]="'emailTemplates.actions.activate' | translate"
+            >
+                <tui-icon icon="@tui.check" />
+            </button>
+
+            <!-- Delete Button -->
+            <button
+                tuiButton
+                appearance="destructive"
+                size="s"
+                (click)="deleteEmailTemplate(item)"
+                [tuiHint]="'emailTemplates.actions.delete' | translate"
+            >
+                <tui-icon icon="@tui.trash" />
+            </button>
+        </div>
+    </ng-template>
+</tos-table>

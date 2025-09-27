@@ -154,7 +154,8 @@
     "pages": "Pages",
     "applications": "Applications",
     "infos": "Info",
-    "newsletters": "Newsletters"
+    "newsletters": "Newsletters",
+    "emailTemplates": "Email Templates"
   },
   
   "editUser": {
@@ -830,6 +831,76 @@
       "title": "No newsletters found",
       "description": "You haven't created any newsletters yet. Create your first newsletter to get started.",
       "createButton": "Create Newsletter"
+    }
+  },
+  "emailTemplates": {
+    "title": "Email Templates",
+    "createTemplate": "Create Email Template",
+    "editTemplate": "Edit Email Template",
+    "deleteTemplate": "Delete Email Template",
+    "testTemplate": "Test Email Template",
+    "activateTemplate": "Activate Template",
+    "name": "Name",
+    "type": "Type",
+    "subject": "Subject",
+    "content": "Content",
+    "status": "Status",
+    "createdAt": "Created At",
+    "active": "Active",
+    "inactive": "Inactive",
+    "types": {
+      "WELCOME": "Welcome Email"
+    },
+    "form": {
+      "type": "Template Type",
+      "typeRequired": "Template type is required",
+      "name": "Template Name",
+      "nameRequired": "Template name is required",
+      "namePlaceholder": "Enter template name",
+      "subject": "Email Subject",
+      "subjectRequired": "Email subject is required",
+      "subjectPlaceholder": "Enter email subject",
+      "content": "Email Content",
+      "contentRequired": "Email content is required",
+      "contentPlaceholder": "Enter email content",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter template description",
+      "isActive": "Active Template",
+      "isActiveHelp": "Only one template can be active per type"
+    },
+    "actions": {
+      "edit": "Edit",
+      "test": "Test",
+      "activate": "Activate",
+      "delete": "Delete",
+      "create": "Create",
+      "update": "Update",
+      "testSuccess": "Test email sent successfully to {{sentTo}}",
+      "testError": "Error sending test email",
+      "activateSuccess": "Template activated successfully",
+      "activateError": "Error activating template",
+      "createSuccess": "Template created successfully",
+      "createError": "Error creating template",
+      "updateSuccess": "Template updated successfully",
+      "updateError": "Error updating template",
+      "deleteSuccess": "Template deleted successfully",
+      "deleteError": "Error deleting template",
+      "deleteConfirm": "Are you sure you want to delete the template '{{name}}'?",
+      "saveBeforeTest": "Please save the template before testing"
+    },
+    "create": {
+      "title": "Create Email Template"
+    },
+    "edit": {
+      "title": "Edit Email Template"
+    },
+    "errors": {
+      "loadError": "Error loading email template"
+    },
+    "empty": {
+      "title": "No email templates found",
+      "description": "You haven't created any email templates yet. Create your first template to get started.",
+      "createButton": "Create Email Template"
     }
   },
   "common": {
