@@ -39,12 +39,16 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
         return createNewsletterRequest
                 .flatMap(request -> exchange.getPrincipal()
                         .map(principal -> UUID.fromString(principal.getName()))
-                        .flatMap(createdBy -> newsletterService.createNewsletter(
-                                request.getSubject(),
-                                request.getSubject(),
-                                request.getContent(),
-                                createdBy,
-                                request.getAudience())))
+                        .flatMap(createdBy -> {
+                            // Create newsletter with scheduledAt directly
+                            return newsletterService.createNewsletter(
+                                    request.getSubject(), // title
+                                    request.getSubject(), // subject
+                                    request.getContent(),
+                                    createdBy,
+                                    request.getAudience(),
+                                    request.getScheduledAt());
+                        }))
                 .map(newsletter -> {
                     log.info("Newsletter created successfully: {}", newsletter.getId());
                     return ResponseEntity.status(HttpStatus.CREATED).body(newsletter);
@@ -87,17 +91,23 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
             Mono<NewsletterRequest> updateNewsletterRequest,
             ServerWebExchange exchange) {
         return updateNewsletterRequest
-                .flatMap(request -> newsletterService.updateNewsletter(
-                        newsletterId,
-                        request.getSubject(),
-                        request.getSubject(),
-                        request.getContent(),
-                        request.getAudience()))
+                .flatMap(request -> {
+                    // Update newsletter with scheduledAt directly
+                    return newsletterService.updateNewsletter(
+                            newsletterId,
+                            request.getSubject(),
+                            request.getContent(),
+                            request.getAudience(),
+                            request.getScheduledAt());
+                })
                 .map(newsletter -> {
                     log.info("Newsletter updated successfully: {}", newsletterId);
                     return ResponseEntity.ok(newsletter);
                 })
-                .onErrorReturn(ResponseEntity.notFound().build());
+                .onErrorResume(e -> {
+                    log.error("Error updating newsletter: {}", newsletterId, e);
+                    return Mono.just(ResponseEntity.notFound().build());
+                });
     }
 
     @Override
@@ -114,10 +124,10 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
             Mono<NewsletterRequest> scheduleNewsletterRequest, ServerWebExchange exchange) {
         return scheduleNewsletterRequest
                 .flatMap(request -> {
-                    if (request.getScheduledAt() != null && request.getScheduledAt().isPresent()) {
+                    if (request.getScheduledAt() != null) {
                         return newsletterService.scheduleNewsletter(
                                 newsletterId,
-                                request.getScheduledAt().get());
+                                request.getScheduledAt());
                     } else {
                         return Mono.error(new IllegalArgumentException("scheduledAt is required"));
                     }
@@ -132,16 +142,47 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                 });
     }
 
+    @Override
     public Mono<ResponseEntity<SendNewsletter200Response>> sendNewsletter(UUID newsletterId,
+            Mono<com.neohoods.portal.platform.model.SendNewsletterRequest> sendNewsletterRequest,
             ServerWebExchange exchange) {
-        return newsletterService.sendNewsletter(newsletterId)
-                .then(Mono.fromSupplier(() -> {
-                    log.info("Newsletter sent successfully: {}", newsletterId);
-                    SendNewsletter200Response response = new SendNewsletter200Response();
-                    return ResponseEntity.ok(response);
-                }))
+        return sendNewsletterRequest
+                .flatMap(request -> {
+                    if (request.getScheduledAt() != null) {
+                        // Schedule newsletter
+                        return newsletterService.scheduleNewsletter(newsletterId, request.getScheduledAt())
+                                .map(newsletter -> {
+                                    log.info("Newsletter scheduled successfully: {}", newsletterId);
+                                    SendNewsletter200Response response = new SendNewsletter200Response();
+                                    response.setMessage("Newsletter scheduled successfully");
+                                    if (newsletter.getScheduledAt() != null) {
+                                        response.setScheduledAt(newsletter.getScheduledAt());
+                                    }
+                                    response.setRecipientCount(newsletter.getRecipientCount());
+                                    return ResponseEntity.ok(response);
+                                });
+                    } else {
+                        // Send immediately
+                        return newsletterService.sendNewsletter(newsletterId)
+                                .then(Mono.fromSupplier(() -> {
+                                    log.info("Newsletter sent successfully: {}", newsletterId);
+                                    SendNewsletter200Response response = new SendNewsletter200Response();
+                                    response.setMessage("Newsletter sent successfully");
+                                    return ResponseEntity.ok(response);
+                                }));
+                    }
+                })
+                .switchIfEmpty(
+                        // No request body - send immediately
+                        newsletterService.sendNewsletter(newsletterId)
+                                .then(Mono.fromSupplier(() -> {
+                                    log.info("Newsletter sent immediately: {}", newsletterId);
+                                    SendNewsletter200Response response = new SendNewsletter200Response();
+                                    response.setMessage("Newsletter sent successfully");
+                                    return ResponseEntity.ok(response);
+                                })))
                 .onErrorResume(e -> {
-                    log.error("Error sending newsletter: {}", newsletterId, e);
+                    log.error("Error sending/scheduling newsletter: {}", newsletterId, e);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }

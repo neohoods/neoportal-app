@@ -731,6 +731,17 @@
       "recipientCount": "Recipients",
       "actions": "Actions"
     },
+    "audience": {
+      "all": "All users",
+      "userTypes": "User types",
+      "specificUsers": "Specific users",
+      "users": "users"
+    },
+    "userTypes": {
+      "admin": "Administrator",
+      "user": "User",
+      "moderator": "Moderator"
+    },
     "table": {
       "title": "Title",
       "subject": "Subject",
@@ -769,6 +780,12 @@
       "updateError": "Error updating newsletter",
       "deleteSuccess": "Newsletter deleted successfully!",
       "deleteError": "Error deleting newsletter",
+      "cannotDeleteNonDraft": "Only draft newsletters can be deleted",
+      "cannotDeleteSent": "Sent newsletters cannot be deleted",
+      "confirmDeleteContent": "Are you sure you want to delete this newsletter?",
+      "confirmDeleteLabel": "Delete newsletter '{{title}}'",
+      "confirmDeleteYes": "Yes, Delete",
+      "confirmDeleteNo": "Cancel",
       "scheduleSuccess": "Newsletter scheduled successfully!",
       "scheduleError": "Error scheduling newsletter",
       "sendSuccess": "Newsletter sent successfully!",

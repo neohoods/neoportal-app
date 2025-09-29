@@ -2060,13 +2060,11 @@ components:
         scheduledAt:
           type: string
           format: date-time
-          nullable: true
           example: "2024-01-15T10:00:00Z"
           description: "When the newsletter is scheduled to be sent"
         sentAt:
           type: string
           format: date-time
-          nullable: true
           example: "2024-01-15T10:05:00Z"
           description: "When the newsletter was actually sent"
         createdAt:
@@ -2112,7 +2110,6 @@ components:
         scheduledAt:
           type: string
           format: date-time
-          nullable: true
           example: "2024-01-15T10:00:00Z"
           description: "Optional: Schedule the newsletter for later sending"
 

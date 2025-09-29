@@ -6,7 +6,8 @@ import {
     PaginatedNewslettersResponse as ApiPaginatedNewslettersResponse,
     SendNewsletterRequest as ApiSendNewsletterRequest,
     Newsletter,
-    NewsletterAudience
+    NewsletterAudience,
+    UserType
 } from '../../../../api-client';
 import { NewslettersAdminApiService } from '../../../../api-client/api/newslettersAdminApi.service';
 import {
@@ -15,6 +16,7 @@ import {
     PaginatedNewslettersResponse,
     ScheduleNewsletterRequest,
     UINewsletter,
+    UINewsletterAudience,
     UpdateNewsletterRequest
 } from '../../../../models/UINewsletter';
 import { NewslettersService } from '../newsletters.service';
@@ -47,9 +49,8 @@ export class ApiNewslettersService implements NewslettersService {
         const apiRequest: ApiNewsletterRequest = {
             subject: request.subject,
             content: request.content,
-            audience: {
-                type: NewsletterAudience.TypeEnum.All
-            }
+            audience: this.mapToApiAudience(request.audience),
+            scheduledAt: request.scheduledAt || undefined
         };
         return this.newslettersAdminApiService.createNewsletter(apiRequest).pipe(
             map((newsletter: Newsletter) => this.mapToUINewsletter(newsletter))
@@ -60,9 +61,8 @@ export class ApiNewslettersService implements NewslettersService {
         const apiRequest: ApiNewsletterRequest = {
             subject: request.subject,
             content: request.content,
-            audience: {
-                type: NewsletterAudience.TypeEnum.All
-            }
+            audience: this.mapToApiAudience(request.audience),
+            scheduledAt: request.scheduledAt || undefined
         };
         return this.newslettersAdminApiService.updateNewsletter(id, apiRequest).pipe(
             map(() => void 0)
@@ -94,6 +94,35 @@ export class ApiNewslettersService implements NewslettersService {
         );
     }
 
+    private mapToApiAudience(audience: UINewsletterAudience): NewsletterAudience {
+        const apiAudience: NewsletterAudience = {
+            type: this.mapAudienceType(audience.type)
+        };
+
+        if (audience.userTypes && audience.userTypes.length > 0) {
+            apiAudience.userTypes = audience.userTypes as UserType[];
+        }
+
+        if (audience.userIds && audience.userIds.length > 0) {
+            apiAudience.userIds = audience.userIds;
+        }
+
+        return apiAudience;
+    }
+
+    private mapAudienceType(type: string): NewsletterAudience.TypeEnum {
+        switch (type) {
+            case 'ALL':
+                return NewsletterAudience.TypeEnum.All;
+            case 'USER_TYPES':
+                return NewsletterAudience.TypeEnum.UserTypes;
+            case 'SPECIFIC_USERS':
+                return NewsletterAudience.TypeEnum.SpecificUsers;
+            default:
+                return NewsletterAudience.TypeEnum.All;
+        }
+    }
+
     private mapToUINewsletter(newsletter: Newsletter): UINewsletter {
         return {
             id: newsletter.id || '',
@@ -105,7 +134,8 @@ export class ApiNewslettersService implements NewslettersService {
             scheduledAt: newsletter.scheduledAt || undefined,
             sentAt: newsletter.sentAt || undefined,
             createdBy: newsletter.createdBy || '',
-            recipientCount: newsletter.recipientCount || undefined
+            recipientCount: newsletter.recipientCount || undefined,
+            audience: newsletter.audience || undefined
         };
     }
 }

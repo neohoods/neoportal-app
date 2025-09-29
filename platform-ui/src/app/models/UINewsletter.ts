@@ -43,12 +43,14 @@ export interface CreateNewsletterRequest {
     subject: string;
     content: string;
     audience: UINewsletterAudience;
+    scheduledAt?: string | null;
 }
 
 export interface UpdateNewsletterRequest {
     subject: string;
     content: string;
     audience: UINewsletterAudience;
+    scheduledAt?: string | null;
 }
 
 export interface ScheduleNewsletterRequest {

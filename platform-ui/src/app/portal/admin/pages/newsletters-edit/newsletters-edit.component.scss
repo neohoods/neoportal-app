@@ -16,6 +16,24 @@
             margin: 0;
             color: var(--tui-text-secondary);
         }
+
+        .newsletter-info {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background-color: var(--tui-base-02);
+            border-radius: var(--tui-radius-m);
+            border-left: 3px solid var(--tui-primary);
+
+            strong {
+                color: var(--tui-text-primary);
+                margin-right: 0.5rem;
+            }
+
+            span {
+                color: var(--tui-text-secondary);
+                font-family: var(--tui-font-mono);
+            }
+        }
     }
 
     .newsletter-form {

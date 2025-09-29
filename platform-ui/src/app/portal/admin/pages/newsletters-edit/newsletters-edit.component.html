@@ -2,6 +2,12 @@
     <div class="header">
         <h1>{{ pageTitle }}</h1>
         <p>{{ pageDescription }}</p>
+        @if (isEditMode && newsletter?.createdAt) {
+            <div class="newsletter-info">
+                <strong>{{ 'newsletters.createdAt' | translate }}</strong>
+                <span>{{ formatDate(newsletter?.createdAt) }}</span>
+            </div>
+        }
     </div>
 
     <form [formGroup]="newsletterForm" (ngSubmit)="onSubmit()" class="newsletter-form">
@@ -11,7 +17,6 @@
             <div class="form-field">
                 <tui-select
                     formControlName="audienceType"
-                    [readOnly]="!canEdit"
                     [stringify]="stringifyAudienceType"
                 >
                 {{ 'newsletters.audience.title' | translate }}
@@ -42,7 +47,6 @@
                             [placeholder]="selectedUserTypes.length ? '' : 'newsletters.audience.selectUserTypes' | translate"
                             [(ngModel)]="selectedUserTypes"
                             [ngModelOptions]="{standalone: true}"
-                            [disabled]="!canEdit"
                         />
                         <tui-data-list-wrapper
                             *tuiTextfieldDropdown
@@ -63,7 +67,6 @@
                             [placeholder]="selectedUserIds.length ? '' : 'newsletters.audience.selectUsers' | translate"
                             [(ngModel)]="selectedUserIds"
                             [ngModelOptions]="{standalone: true}"
-                            [disabled]="!canEdit"
                         />
                         <tui-data-list-wrapper
                             *tuiTextfieldDropdown
@@ -83,7 +86,6 @@
                         tuiTextfield
                         formControlName="subject"
                         [placeholder]="'newsletters.titlePlaceholder' | translate"
-                        [readOnly]="!canEdit"
                     />
                 </tui-textfield>
                 @if (newsletterForm.get('subject')?.invalid && newsletterForm.get('subject')?.touched) {
@@ -102,7 +104,6 @@
                         tuiInputDateTime
                         formControlName="scheduledAt"
                         [placeholder]="'newsletters.scheduledAtPlaceholder' | translate"
-                        [readOnly]="!canEdit"
                     />
                     <tui-calendar *tuiTextfieldDropdown />
                 </tui-textfield>
@@ -114,7 +115,6 @@
                 <quill-editor
                     formControlName="content"
                     [modules]="editorConfig"
-                    [readOnly]="!canEdit"
                     style="height: 300px; margin-top: 8px;"
                     [placeholder]="'newsletters.contentPlaceholder' | translate"
                 ></quill-editor>
@@ -143,7 +143,7 @@
                 tuiButton
                 type="button"
                 appearance="accent"
-                [disabled]="!canEdit || newsletterForm.invalid"
+                [disabled]="newsletterForm.invalid"
                 (click)="onTestNewsletter()"
             >
                 <tui-icon icon="@tui.eye" />
@@ -154,7 +154,7 @@
                 tuiButton
                 type="submit"
                 appearance="primary"
-                [disabled]="!canEdit || newsletterForm.invalid || isLoading"
+                [disabled]="newsletterForm.invalid || isLoading"
             >
                 @if (isLoading) {
                     <tui-loader size="s"></tui-loader>

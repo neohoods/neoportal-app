@@ -1,12 +1,17 @@
 package com.neohoods.portal.platform.entities;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.model.Newsletter;
+import com.neohoods.portal.platform.model.NewsletterAudience;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,14 +25,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 @Table(name = "newsletters")
 public class NewsletterEntity {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     @Id
     private UUID id;
 
@@ -106,6 +115,49 @@ public class NewsletterEntity {
             newsletter.sentAt(sentAt);
         }
 
+        // Map audience
+        NewsletterAudience audience = new NewsletterAudience();
+        audience.setType(NewsletterAudience.TypeEnum.valueOf(audienceType));
+
+        if (audienceUserTypes != null) {
+            try {
+                List<String> userTypes = objectMapper.readValue(audienceUserTypes, new TypeReference<List<String>>() {
+                });
+                audience.setUserTypes(userTypes.stream()
+                        .map(com.neohoods.portal.platform.model.UserType::valueOf)
+                        .collect(Collectors.toList()));
+            } catch (Exception e) {
+                log.warn("Failed to parse audienceUserTypes: {}", audienceUserTypes, e);
+            }
+        }
+
+        if (audienceUserIds != null) {
+            try {
+                List<String> userIds = objectMapper.readValue(audienceUserIds, new TypeReference<List<String>>() {
+                });
+                audience.setUserIds(userIds.stream()
+                        .map(UUID::fromString)
+                        .collect(Collectors.toList()));
+            } catch (Exception e) {
+                log.warn("Failed to parse audienceUserIds: {}", audienceUserIds, e);
+            }
+        }
+
+        if (audienceExcludeUserIds != null) {
+            try {
+                List<String> excludeUserIds = objectMapper.readValue(audienceExcludeUserIds,
+                        new TypeReference<List<String>>() {
+                        });
+                audience.setExcludeUserIds(excludeUserIds.stream()
+                        .map(UUID::fromString)
+                        .collect(Collectors.toList()));
+            } catch (Exception e) {
+                log.warn("Failed to parse audienceExcludeUserIds: {}", audienceExcludeUserIds, e);
+            }
+        }
+
+        newsletter.setAudience(audience);
+
         return newsletter;
     }
 
@@ -119,12 +171,8 @@ public class NewsletterEntity {
                         : NewsletterStatus.DRAFT)
                 .createdAt(newsletter.getCreatedAt())
                 .updatedAt(newsletter.getUpdatedAt())
-                .scheduledAt(newsletter.getScheduledAt() != null && newsletter.getScheduledAt().isPresent()
-                        ? newsletter.getScheduledAt().get()
-                        : null)
-                .sentAt(newsletter.getSentAt() != null && newsletter.getSentAt().isPresent()
-                        ? newsletter.getSentAt().get()
-                        : null)
+                .scheduledAt(newsletter.getScheduledAt())
+                .sentAt(newsletter.getSentAt())
                 .createdBy(newsletter.getCreatedBy())
                 .recipientCount(newsletter.getRecipientCount())
                 .build();

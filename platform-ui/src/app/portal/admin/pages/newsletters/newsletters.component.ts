@@ -1,5 +1,5 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, Inject, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -16,7 +16,8 @@ import {
     TuiBadge,
     TuiConfirmData
 } from '@taiga-ui/kit';
-import { map } from 'rxjs';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { NewsletterStatus, UINewsletter } from '../../../../models/UINewsletter';
 import { NEWSLETTERS_SERVICE_TOKEN } from '../../admin.providers';
 import {
@@ -44,11 +45,53 @@ import { NewslettersService } from '../../services/newsletters.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NewslettersComponent {
-    protected newsletters: UINewsletter[] = [];
+    @ViewChild('newslettersTable') newslettersTable: any;
+    
+    protected newsletters = signal<UINewsletter[]>([]);
     currentNewsletter: UINewsletter | undefined;
 
     // Available Columns for Display
-    columns: Column[] = [];
+    columns = computed<Column[]>(() => [
+        {
+            key: 'subject',
+            label: this.translate.instant('newsletters.columns.subject'),
+            visible: true,
+            sortable: true,
+            size: 'l',
+        },
+        {
+            key: 'status',
+            label: this.translate.instant('newsletters.columns.status'),
+            visible: true,
+            custom: true,
+            sortable: true,
+            size: 'm',
+        },
+        {
+            key: 'audience',
+            label: this.translate.instant('newsletters.columns.audience'),
+            visible: true,
+            custom: true,
+            sortable: false,
+            size: 'm',
+        },
+        {
+            key: 'scheduledOrSent',
+            label: this.translate.instant('newsletters.columns.scheduledOrSent'),
+            visible: true,
+            custom: true,
+            sortable: true,
+            size: 'm',
+        },
+        {
+            key: 'createdAt',
+            label: this.translate.instant('newsletters.columns.createdAt'),
+            visible: true,
+            custom: true,
+            sortable: true,
+            size: 'm',
+        }
+    ]);
 
     isMobile: boolean = false;
 
@@ -62,54 +105,6 @@ export class NewslettersComponent {
         @Inject(NEWSLETTERS_SERVICE_TOKEN) private newslettersService: NewslettersService,
         private translate: TranslateService
     ) {
-        this.columns = [
-            {
-                key: 'subject',
-                label: this.translate.instant('newsletters.columns.title'),
-                visible: true,
-                sortable: true,
-                size: 'l',
-            },
-            {
-                key: 'audience',
-                label: this.translate.instant('newsletters.columns.audience'),
-                custom: true,
-                visible: true,
-                sortable: true,
-                size: 'm',
-            },
-            {
-                key: 'status',
-                label: this.translate.instant('newsletters.columns.status'),
-                custom: true,
-                visible: true,
-                sortable: true,
-                size: 'm',
-            },
-            {
-                key: 'createdAt',
-                label: this.translate.instant('newsletters.columns.createdAt'),
-                visible: true,
-                sortable: true,
-                size: 'm',
-            },
-            {
-                key: 'scheduledOrSent',
-                label: this.translate.instant('newsletters.columns.scheduledOrSent'),
-                custom: true,
-                visible: true,
-                sortable: true,
-                size: 'm',
-            },
-            {
-                key: 'recipientCount',
-                label: this.translate.instant('newsletters.columns.recipientCount'),
-                visible: true,
-                sortable: false,
-                size: 's',
-            }
-        ];
-
         this.loadNewsletters();
 
         this.breakpointObserver
@@ -121,7 +116,7 @@ export class NewslettersComponent {
 
     private loadNewsletters(): void {
         this.newslettersService.getNewsletters().subscribe((response) => {
-            this.newsletters = response.newsletters;
+            this.newsletters.set(response.newsletters);
         });
     }
 
@@ -131,23 +126,23 @@ export class NewslettersComponent {
     }
 
     deleteNewsletter(newsletter: UINewsletter): void {
-        if (newsletter.status !== NewsletterStatus.DRAFT) {
+        if (newsletter.status === NewsletterStatus.SENT) {
             this.alerts.open(
-                this.translate.instant('newsletters.cannotDeleteNonDraft'),
+                this.translate.instant('newsletters.messages.cannotDeleteSent'),
                 { appearance: 'warning' }
             ).subscribe();
             return;
         }
 
         const data: TuiConfirmData = {
-            content: this.translate.instant('newsletters.confirmDeleteContent'),
-            yes: this.translate.instant('newsletters.confirmDeleteYes'),
-            no: this.translate.instant('newsletters.confirmDeleteNo'),
+            content: this.translate.instant('newsletters.messages.confirmDeleteContent'),
+            yes: this.translate.instant('newsletters.messages.confirmDeleteYes'),
+            no: this.translate.instant('newsletters.messages.confirmDeleteNo'),
         };
 
         this.dialogs
             .open<boolean>(TUI_CONFIRM, {
-                label: this.translate.instant('newsletters.confirmDeleteLabel', { title: newsletter.subject }),
+                label: this.translate.instant('newsletters.messages.confirmDeleteLabel', { title: newsletter.subject }),
                 size: 'm',
                 data,
             })
@@ -155,9 +150,12 @@ export class NewslettersComponent {
                 if (response) {
                     this.newslettersService.deleteNewsletter(newsletter.id)
                         .subscribe(() => {
-                            this.loadNewsletters();
+                            // Force refresh of the table
+                            if (this.newslettersTable && this.newslettersTable.refresh) {
+                                this.newslettersTable.refresh();
+                            }
                             this.alerts.open(
-                                this.translate.instant('newsletters.deleteSuccess', { title: newsletter.subject }),
+                                this.translate.instant('newsletters.messages.deleteSuccess', { title: newsletter.subject }),
                                 { appearance: 'positive' }
                             ).subscribe();
                         });
@@ -211,16 +209,18 @@ export class NewslettersComponent {
         sortOrder?: 'asc' | 'desc',
         page?: number,
         pageSize?: number
-    ) => {
+    ): Observable<any> => {
         return this.newslettersService.getNewsletters(page, pageSize).pipe(
             map((response) => {
+                // Mettre à jour le Signal avec les nouvelles données
+                this.newsletters.set(response.newsletters);
                 return {
                     totalPages: response.totalPages,
                     totalItems: response.totalItems,
                     currentPage: response.currentPage,
                     itemsPerPage: response.itemsPerPage,
                     items: response.newsletters
-                }
+                };
             })
         );
     }
@@ -250,7 +250,7 @@ export class NewslettersComponent {
 
     getAudienceDisplayText(audience: any): string {
         if (!audience) {
-            return this.translate.instant('newsletters.audience.all');
+            return '-';
         }
 
         switch (audience.type) {
@@ -265,11 +265,11 @@ export class NewslettersComponent {
                 return this.translate.instant('newsletters.audience.userTypes');
             case 'SPECIFIC_USERS':
                 if (audience.userIds && audience.userIds.length > 0) {
-                    return `${audience.userIds.length} ${this.translate.instant('newsletters.audience.specificUsers')}`;
+                    return `${audience.userIds.length} ${this.translate.instant('newsletters.audience.users')}`;
                 }
                 return this.translate.instant('newsletters.audience.specificUsers');
             default:
-                return this.translate.instant('newsletters.audience.all');
+                return audience.type || '-';
         }
     }
 
@@ -296,6 +296,9 @@ export class NewslettersComponent {
             return '-';
         }
         const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return '-';
+        }
         return date.toLocaleDateString('fr-FR', {
             year: 'numeric',
             month: 'short',
@@ -322,5 +325,6 @@ export class NewslettersComponent {
         }
         return '-';
     }
+
 
 }

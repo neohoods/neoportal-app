@@ -204,5 +204,10 @@ export class TosTableComponent {
       this.itemsPerPage = itemsPagination.itemsPerPage;
     });
   }
+
+  // Public method to refresh the table data
+  public refresh(): void {
+    this.fetchData();
+  }
 }
 

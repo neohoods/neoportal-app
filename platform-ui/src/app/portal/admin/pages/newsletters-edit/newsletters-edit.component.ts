@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/cor
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import {
     TuiAlertService,
     TuiButton,
@@ -23,7 +24,7 @@ import {
 } from '@taiga-ui/kit';
 import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
 import { QuillModule } from 'ngx-quill';
-import { CreateNewsletterRequest, NewsletterStatus, UINewsletter, UINewsletterAudience, UpdateNewsletterRequest } from '../../../../models/UINewsletter';
+import { CreateNewsletterRequest, UINewsletter, UINewsletterAudience, UpdateNewsletterRequest } from '../../../../models/UINewsletter';
 import { NEWSLETTERS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../admin.providers';
 import { NewslettersService } from '../../services/newsletters.service';
 import { UsersService } from '../../services/users.service';
@@ -119,7 +120,7 @@ export class NewslettersEditComponent implements OnInit {
             subject: ['', [Validators.required, Validators.maxLength(255)]],
             content: ['', [Validators.required]],
             audienceType: [this.audienceTypes[0], [Validators.required]], // Initialize with the first object
-            scheduledAt: [null], // Optional scheduled date
+            scheduledAt: [[null, null]], // Initialize with proper tuple format for TuiInputDateTime
         });
     }
 
@@ -166,6 +167,7 @@ export class NewslettersEditComponent implements OnInit {
                     subject: newsletter.subject,
                     content: newsletter.content,
                     audienceType: audienceTypeObject,
+                    scheduledAt: newsletter.scheduledAt ? this.parseBackendDateTime(newsletter.scheduledAt) : null
                 });
 
                 // Set the selected values for the chips
@@ -215,7 +217,8 @@ export class NewslettersEditComponent implements OnInit {
         const request: CreateNewsletterRequest = {
             subject: formValue.subject,
             content: formValue.content,
-            audience: audience
+            audience: audience,
+            scheduledAt: this.formatDateTimeForBackend(formValue.scheduledAt)
         };
 
         this.newslettersService.createNewsletter(request).subscribe({
@@ -252,9 +255,9 @@ export class NewslettersEditComponent implements OnInit {
         const request: UpdateNewsletterRequest = {
             subject: formValue.subject,
             content: formValue.content,
-            audience: audience
+            audience: audience,
+            scheduledAt: this.formatDateTimeForBackend(formValue.scheduledAt)
         };
-
         this.newslettersService.updateNewsletter(id, request).subscribe({
             next: () => {
                 this.alerts.open(
@@ -294,6 +297,56 @@ export class NewslettersEditComponent implements OnInit {
         });
     }
 
+    private formatDateTimeForBackend(dateTime: [any, any] | null): string | null {
+        if (!dateTime || !dateTime[0]) {
+            return null;
+        }
+
+        const [tuiDay, tuiTime] = dateTime;
+
+        // Vérifier que tuiDay est valide
+        if (!tuiDay || typeof tuiDay.toLocalNativeDate !== 'function') {
+            return null;
+        }
+
+        const date = tuiDay.toLocalNativeDate();
+
+        // Si tuiTime est null ou invalide, utiliser 9:00 par défaut
+        if (!tuiTime || typeof tuiTime.hours !== 'number' || typeof tuiTime.minutes !== 'number') {
+            date.setHours(9, 0, 0, 0); // 9h00 par défaut
+        } else {
+            date.setHours(tuiTime.hours, tuiTime.minutes, 0, 0);
+        }
+
+        return date.toISOString();
+    }
+
+    private parseBackendDateTime(dateString: string): [TuiDay, TuiTime] | null {
+        if (!dateString) return null;
+
+        try {
+            const date = new Date(dateString);
+
+            // Vérifier que la date est valide
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+
+            const tuiDay = TuiDay.fromLocalNativeDate(date);
+            const tuiTime = new TuiTime(date.getHours(), date.getMinutes());
+
+            // Vérifier que les objets TUI sont valides
+            if (!tuiDay || !tuiTime) {
+                return null;
+            }
+
+            return [tuiDay, tuiTime];
+        } catch (error) {
+            console.error('Error parsing backend date time:', error);
+            return null;
+        }
+    }
+
     get pageTitle(): string {
         return this.isEditMode
             ? this.translate.instant('newsletters.form.edit.title')
@@ -306,8 +359,21 @@ export class NewslettersEditComponent implements OnInit {
             : this.translate.instant('newsletters.form.create.description');
     }
 
-    get canEdit(): boolean {
-        return !this.isEditMode || (this.newsletter?.status === NewsletterStatus.DRAFT);
+    formatDate(dateString: string | undefined): string {
+        if (!dateString) {
+            return '-';
+        }
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return '-';
+        }
+        return date.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 
     onTestNewsletter(): void {
@@ -362,7 +428,8 @@ export class NewslettersEditComponent implements OnInit {
         const request: CreateNewsletterRequest = {
             subject: formValue.subject,
             content: formValue.content,
-            audience: audience
+            audience: audience,
+            scheduledAt: this.formatDateTimeForBackend(formValue.scheduledAt)
         };
 
         this.newslettersService.createNewsletter(request).subscribe({
