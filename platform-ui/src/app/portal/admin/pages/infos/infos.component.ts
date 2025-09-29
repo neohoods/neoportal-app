@@ -2,10 +2,9 @@ import { NgForOf, NgIf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiDay } from '@taiga-ui/cdk';
-import { TuiAlertService, TuiButton, TuiNotification, TuiTextfield } from '@taiga-ui/core';
-import { TuiDataListWrapper, TuiSelect, TuiTabs } from '@taiga-ui/kit';
-import { TuiInputDateModule } from '@taiga-ui/legacy';
+import { TuiDay, TuiTime } from '@taiga-ui/cdk';
+import { TuiAlertService, TuiButton, TuiCalendar, TuiLabel, TuiNotification, TuiTextfield } from '@taiga-ui/core';
+import { TuiDataListWrapper, TuiInputDateTime, TuiSelect, TuiTabs } from '@taiga-ui/kit';
 import { UIContactNumber, UIInfo } from '../../../../models/UIInfos';
 import { INFOS_SERVICE_TOKEN } from '../../admin.providers';
 import { InfosService } from '../../services/infos.service';
@@ -21,7 +20,9 @@ import { InfosService } from '../../services/infos.service';
     TuiButton,
     TranslateModule,
     TuiTextfield,
-    TuiInputDateModule,
+    TuiCalendar,
+    TuiLabel,
+    TuiInputDateTime,
     TuiTabs,
     TuiNotification,
     TuiSelect,
@@ -41,6 +42,7 @@ export class InfosComponent implements OnInit {
     delegates: [],
     contactNumbers: []
   };
+
   editInfosForm: FormGroup;
 
 
@@ -52,7 +54,7 @@ export class InfosComponent implements OnInit {
     private translate: TranslateService,
   ) {
     this.editInfosForm = this.fb.group({
-      nextAGDate: [''],
+      nextAGDateTime: [null],
       rulesUrl: [''],
       delegates: this.fb.array([]),
       syndicContacts: this.fb.array([]),
@@ -70,8 +72,9 @@ export class InfosComponent implements OnInit {
       .getInfos()
       .subscribe((infos) => {
         this.infos = infos;
+        const dateTime = infos.nextAGDate ? this.stringToTuiDateTime(infos.nextAGDate) : [null, null] as [TuiDay | null, TuiTime | null];
         this.editInfosForm.patchValue({
-          nextAGDate: infos.nextAGDate ? this.stringToTuiDay(infos.nextAGDate) : null,
+          nextAGDateTime: dateTime,
           rulesUrl: infos.rulesUrl
         });
         this.setDelegates(infos.delegates);
@@ -187,19 +190,28 @@ export class InfosComponent implements OnInit {
     this.maintenanceContacts.removeAt(index);
   }
 
-  private stringToTuiDay(dateString: string): TuiDay | null {
-    if (!dateString) return null;
+  private stringToTuiDateTime(dateString: string): [TuiDay | null, TuiTime | null] {
+    if (!dateString) return [null, null];
     try {
       const date = new Date(dateString);
-      return TuiDay.fromLocalNativeDate(date);
+      const tuiDay = TuiDay.fromLocalNativeDate(date);
+      const tuiTime = new TuiTime(date.getHours(), date.getMinutes());
+      return [tuiDay, tuiTime] as [TuiDay | null, TuiTime | null];
     } catch {
-      return null;
+      return [null, null] as [TuiDay | null, TuiTime | null];
     }
   }
 
-  private tuiDayToString(tuiDay: TuiDay | null): string {
-    if (!tuiDay) return '';
-    return tuiDay.toLocalNativeDate().toISOString().split('T')[0];
+  private tuiDateTimeToString(dateTime: [TuiDay | null, TuiTime | null]): string {
+    if (!dateTime[0] || !dateTime[1]) return '';
+    try {
+      const date = dateTime[0].toLocalNativeDate();
+      const time = dateTime[1];
+      date.setHours(time.hours, time.minutes, 0, 0);
+      return date.toISOString();
+    } catch {
+      return '';
+    }
   }
 
   onSubmit() {
@@ -214,7 +226,7 @@ export class InfosComponent implements OnInit {
 
     const updatedInfos = {
       ...this.infos,
-      nextAGDate: this.tuiDayToString(formValue.nextAGDate),
+      nextAGDate: this.tuiDateTimeToString(formValue.nextAGDateTime),
       rulesUrl: formValue.rulesUrl,
       delegates: formValue.delegates,
       contactNumbers: allContacts

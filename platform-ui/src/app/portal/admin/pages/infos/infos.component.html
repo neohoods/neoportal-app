@@ -43,14 +43,18 @@
             {{ 'infos.tabs.general.description' | translate }}
         </tui-notification>
 
-        <tui-input-date
-            formControlName="nextAGDate"
+        <tui-textfield
             tuiTextfieldSize="l"
             class="form-field"
             [tuiTextfieldCleaner]="true"
         >
-            {{ 'infos.nextAGDate' | translate }}
-        </tui-input-date>
+            <label tuiLabel>{{ 'infos.nextAGDate' | translate }}</label>
+            <input
+                tuiInputDateTime
+                formControlName="nextAGDateTime"
+            />
+            <tui-calendar *tuiTextfieldDropdown />
+        </tui-textfield>
         <tui-textfield>
             <label tuiLabel>{{ 'infos.rulesUrl' | translate }}</label>
             <input
