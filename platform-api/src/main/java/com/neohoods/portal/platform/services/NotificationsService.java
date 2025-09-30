@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import com.neohoods.portal.platform.entities.NotificationEntity;
+import com.neohoods.portal.platform.entities.NotificationSettingsEntity;
 import com.neohoods.portal.platform.entities.NotificationType;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
@@ -19,6 +21,7 @@ import com.neohoods.portal.platform.exceptions.CodedException;
 import com.neohoods.portal.platform.model.GetUnreadNotificationsCount200Response;
 import com.neohoods.portal.platform.model.Notification;
 import com.neohoods.portal.platform.repositories.NotificationRepository;
+import com.neohoods.portal.platform.repositories.NotificationSettingsRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.MailService.TemplateVariable;
 import com.neohoods.portal.platform.services.MailService.TemplateVariableType;
@@ -36,6 +39,7 @@ public class NotificationsService {
     public static final String PLATFORM_AUTHOR = "Platform";
     private final NotificationRepository notificationRepository;
     private final UsersRepository usersRepository;
+    private final NotificationSettingsRepository notificationSettingsRepository;
     private final MailService mailService;
     private final MessageSource messageSource;
 
@@ -156,11 +160,35 @@ public class NotificationsService {
         log.info("Notifying all users about new announcement: {}", announcement.getTitle());
 
         try {
-            // Find all users (we might want to filter by notification preferences later)
+            // Find all users
             List<UserEntity> allUsers = usersRepository.findAllWithProperties();
 
             if (allUsers.isEmpty()) {
                 log.warn("No users found to notify about new announcement");
+                return Mono.empty();
+            }
+
+            // Filter users by notification preferences (optimized to avoid N+1 queries)
+            List<UUID> userIds = allUsers.stream().map(UserEntity::getId).collect(Collectors.toList());
+
+            // Get all notification settings for these users in one query
+            List<NotificationSettingsEntity> allSettings = notificationSettingsRepository.findByUserIds(userIds);
+            Map<UUID, Boolean> userNotificationSettings = allSettings.stream()
+                    .collect(Collectors.toMap(
+                            settings -> settings.getUser().getId(),
+                            NotificationSettingsEntity::isEnableNotifications));
+
+            // Users without settings are considered to have notifications enabled by
+            // default
+            List<UserEntity> usersWithNotificationsEnabled = allUsers.stream()
+                    .filter(user -> userNotificationSettings.getOrDefault(user.getId(), true))
+                    .collect(Collectors.toList());
+
+            log.info("Filtered {} users with notifications enabled out of {} total users",
+                    usersWithNotificationsEnabled.size(), allUsers.size());
+
+            if (usersWithNotificationsEnabled.isEmpty()) {
+                log.warn("No users with notifications enabled found for announcement: {}", announcement.getTitle());
                 return Mono.empty();
             }
 
@@ -181,8 +209,8 @@ public class NotificationsService {
                     .payload(payload)
                     .build();
 
-            // Send notification to each user
-            return Flux.fromIterable(allUsers)
+            // Send notification to each user with notifications enabled
+            return Flux.fromIterable(usersWithNotificationsEnabled)
                     .flatMap(user -> sendNotifications(user, notification)
                             .onErrorResume(error -> {
                                 log.error(
@@ -215,6 +243,31 @@ public class NotificationsService {
                 return Mono.empty();
             }
 
+            // Filter admin users by notification preferences (optimized to avoid N+1
+            // queries)
+            List<UUID> adminUserIds = adminUsers.stream().map(UserEntity::getId).collect(Collectors.toList());
+
+            // Get all notification settings for these admins in one query
+            List<NotificationSettingsEntity> adminSettings = notificationSettingsRepository.findByUserIds(adminUserIds);
+            Map<UUID, Boolean> adminNotificationSettings = adminSettings.stream()
+                    .collect(Collectors.toMap(
+                            settings -> settings.getUser().getId(),
+                            NotificationSettingsEntity::isEnableNotifications));
+
+            // Admins without settings are considered to have notifications enabled by
+            // default
+            List<UserEntity> adminsWithNotificationsEnabled = adminUsers.stream()
+                    .filter(admin -> adminNotificationSettings.getOrDefault(admin.getId(), true))
+                    .collect(Collectors.toList());
+
+            log.info("Filtered {} admins with notifications enabled out of {} total admins",
+                    adminsWithNotificationsEnabled.size(), adminUsers.size());
+
+            if (adminsWithNotificationsEnabled.isEmpty()) {
+                log.warn("No admins with notifications enabled found for new user: {}", newUser.getUsername());
+                return Mono.empty();
+            }
+
             // Create notification payload
             Map<String, Object> payload = Map.of(
                     "newUserUsername", newUser.getUsername(),
@@ -232,8 +285,8 @@ public class NotificationsService {
                     .payload(payload)
                     .build();
 
-            // Send notification to each admin
-            return Flux.fromIterable(adminUsers)
+            // Send notification to each admin with notifications enabled
+            return Flux.fromIterable(adminsWithNotificationsEnabled)
                     .flatMap(admin -> sendNotifications(admin, notification)
                             .onErrorResume(error -> {
                                 log.error("Failed to send notification to admin: {} for new user: {}. " +
@@ -306,11 +359,11 @@ public class NotificationsService {
                                 .build());
                     }
 
-                    // URL to view announcements
+                    // URL to view announcements (redirect to home page)
                     variables.add(TemplateVariable.builder()
                             .type(TemplateVariableType.RAW)
-                            .ref("announcementsUrl")
-                            .value(frontendUrl + "/announcements")
+                            .ref("appUrl")
+                            .value(frontendUrl)
                             .build());
                 }
                 break;

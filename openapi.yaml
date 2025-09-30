@@ -1931,6 +1931,7 @@ components:
           type: string
           enum:
             - ADMIN_NEW_USER
+            - NEW_ANNOUNCEMENT
         alreadyRead:
           type: boolean
           example: false

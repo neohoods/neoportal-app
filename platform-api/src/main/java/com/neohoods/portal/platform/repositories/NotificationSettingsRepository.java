@@ -36,4 +36,17 @@ public interface NotificationSettingsRepository extends JpaRepository<Notificati
      */
     @Query("SELECT ns.user.id FROM NotificationSettingsEntity ns WHERE ns.newsletterEnabled = true AND ns.user.id IN :userIds")
     List<UUID> findUserIdsWithNewsletterEnabled(@Param("userIds") List<UUID> userIds);
+
+    /**
+     * Get all user IDs that have notifications enabled from a specific list of user
+     * IDs
+     */
+    @Query("SELECT ns.user.id FROM NotificationSettingsEntity ns WHERE ns.enableNotifications = true AND ns.user.id IN :userIds")
+    List<UUID> findUserIdsWithNotificationsEnabled(@Param("userIds") List<UUID> userIds);
+
+    /**
+     * Get all notification settings for a list of user IDs
+     */
+    @Query("SELECT ns FROM NotificationSettingsEntity ns WHERE ns.user.id IN :userIds")
+    List<NotificationSettingsEntity> findByUserIds(@Param("userIds") List<UUID> userIds);
 }

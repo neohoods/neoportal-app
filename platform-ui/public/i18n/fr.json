@@ -923,6 +923,24 @@
       "createButton": "Créer un Modèle d'Email"
     }
   },
+  "notification": {
+    "admin_new_user": {
+      "email": {
+        "title": "Nouvel Utilisateur Inscrit - [[${appName}]]",
+        "greeting": "Bonjour {{username}},",
+        "message": "Un nouvel utilisateur \"{{newUserUsername}}\" s'est inscrit sur la plateforme.",
+        "view_users": "Voir les Utilisateurs"
+      }
+    },
+    "new_announcement": {
+      "email": {
+        "title": "Nouvelle Annonce - [[${appName}]]",
+        "greeting": "Bonjour {{username}},",
+        "message": "Une nouvelle annonce a été publiée sur la plateforme.",
+        "view_announcement": "Voir l'Annonce"
+      }
+    }
+  },
   "common": {
     "save": "Enregistrer",
     "cancel": "Annuler",

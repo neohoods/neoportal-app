@@ -929,6 +929,24 @@
       "createButton": "Create Email Template"
     }
   },
+  "notification": {
+    "admin_new_user": {
+      "email": {
+        "title": "New User Registration - [[${appName}]]",
+        "greeting": "Hello {{username}},",
+        "message": "A new user \"{{newUserUsername}}\" has registered on the platform.",
+        "view_users": "View Users"
+      }
+    },
+    "new_announcement": {
+      "email": {
+        "title": "New Announcement - [[${appName}]]",
+        "greeting": "Hello {{username}},",
+        "message": "A new announcement has been published on the platform.",
+        "view_announcement": "View Announcement"
+      }
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

@@ -46,7 +46,8 @@ CREATE TABLE "notifications" (
     "date" timestamp(6) with time zone,
     "payload" jsonb,
     "type" varchar(255) CHECK (type IN (
-        'ADMIN_NEW_USER'
+        'ADMIN_NEW_USER',
+        'NEW_ANNOUNCEMENT'
     ))
 );
 
