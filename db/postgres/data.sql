@@ -1,5 +1,5 @@
 -- Users
-INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', 'john_doe', 'john.doe@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'John', 'Doe', '123', '123 Main St', 'Anytown', '12345', 'USA', 'en', '', true, false, 'TENANT');
+INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', 'john_doe', 'quentincastel86+john@gmail.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'John', 'Doe', '123', '123 Main St', 'Anytown', '12345', 'USA', 'en', '', true, false, 'TENANT');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', 'jane_smith', 'jane.smith@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Jane', 'Smith', '456', '456 Elm St', 'Othertown', '67890', 'USA', 'en', '', true, false, 'OWNER');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('c5c180f1-bd25-443e-8f8a-924ddf13f971', 'alice_jones', 'alice.jones@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Alice', 'Jones', '789', '789 Oak St', 'Somewhere', '54321', 'Canada', 'fr', '', false, true, 'LANDLORD');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, is_email_verified, disabled, user_type) VALUES ('593e726d-14b1-477e-967c-72bec8478a45', 'bob_brown', 'bob.brown@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Bob', 'Brown', '101', '101 Pine St', 'Nowhere', '98765', 'Mexico', 'es', '', true, false, 'TENANT');
@@ -81,20 +81,20 @@ INSERT INTO newsletters (id, subject, content, status, created_at, updated_at, s
 -- Default Settings
 INSERT INTO settings (id, is_registration_enabled, sso_enabled, sso_client_id, sso_client_secret, sso_token_endpoint, sso_authorization_endpoint, sso_scope) VALUES ('00000000-0000-0000-0000-000000000001', false, false, '', '', '', '', '');
 
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('c5c180f1-bd25-443e-8f8a-924ddf13f971', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('593e726d-14b1-477e-967c-72bec8478a45', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('331f5b7e-3acd-4e91-b64d-9fee522b5f31', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('56f91978-04c8-4142-93e4-706c5d23dacf', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('d4562dfd-2d98-4db0-9937-33fccd90599a', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('a42d1145-cb3a-4088-a9f8-eba1310a9e80', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('26be1301-4121-4497-80d1-e448fdef0532', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('f336a25e-7bed-4f44-a360-f758aecd7d09', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('f71c870e-9daa-4991-accd-61f3c3c14fa2', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('ce5578e6-87cf-44a0-877e-87c264dd281c', false, true);
-INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', false, true);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', true, true);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('c5c180f1-bd25-443e-8f8a-924ddf13f971', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('593e726d-14b1-477e-967c-72bec8478a45', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('331f5b7e-3acd-4e91-b64d-9fee522b5f31', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('56f91978-04c8-4142-93e4-706c5d23dacf', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('d4562dfd-2d98-4db0-9937-33fccd90599a', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('a42d1145-cb3a-4088-a9f8-eba1310a9e80', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('26be1301-4121-4497-80d1-e448fdef0532', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('f336a25e-7bed-4f44-a360-f758aecd7d09', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('f71c870e-9daa-4991-accd-61f3c3c14fa2', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('ce5578e6-87cf-44a0-877e-87c264dd281c', false, false);
+INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', false, false);
 INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('ff25a41d-a417-416c-9feb-dd61a7fcb2d6', true, true);
 
 -- Notifications

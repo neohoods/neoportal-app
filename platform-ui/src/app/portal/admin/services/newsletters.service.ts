@@ -4,6 +4,7 @@ import {
     PaginatedNewslettersResponse,
     ScheduleNewsletterRequest,
     UINewsletter,
+    UINewsletterLogEntry,
     UpdateNewsletterRequest
 } from '../../../models/UINewsletter';
 
@@ -16,4 +17,5 @@ export interface NewslettersService {
     scheduleNewsletter(id: string, request: ScheduleNewsletterRequest): Observable<void>;
     sendNewsletter(id: string): Observable<void>;
     testNewsletter(id: string): Observable<void>;
+    getNewsletterLogs(newsletterId: string, page?: number, pageSize?: number): Observable<UINewsletterLogEntry[]>;
 }

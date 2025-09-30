@@ -113,6 +113,16 @@
             font-size: 16px;
         }
     }
+
+    .pagination-info {
+        margin-top: 16px;
+        padding: 12px 24px;
+        background: var(--tui-base-02);
+        border-radius: 8px;
+        text-align: center;
+        font-size: 14px;
+        color: var(--tui-text-02);
+    }
 }
 
 @media (max-width: 768px) {
@@ -120,6 +130,7 @@
         padding: 16px;
 
         .logs-table {
+
             .table-header,
             .table-row {
                 grid-template-columns: 1fr;

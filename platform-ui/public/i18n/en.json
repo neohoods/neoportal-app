@@ -786,6 +786,10 @@
       "confirmDeleteLabel": "Delete newsletter '{{title}}'",
       "confirmDeleteYes": "Yes, Delete",
       "confirmDeleteNo": "Cancel",
+      "confirmSendContent": "Are you sure you want to send this newsletter?",
+      "confirmSendLabel": "Send newsletter '{{title}}'",
+      "confirmSendYes": "Yes, Send",
+      "confirmSendNo": "Cancel",
       "scheduleSuccess": "Newsletter scheduled successfully!",
       "scheduleError": "Error scheduling newsletter",
       "sendSuccess": "Newsletter sent successfully!",
@@ -807,6 +811,7 @@
       "all": "All users",
       "userTypes": "User types",
       "specificUsers": "Specific users",
+      "users": "users",
       "selectType": "Select audience type",
       "selectUserTypes": "Select user types",
       "selectUsers": "Select users",
@@ -818,12 +823,13 @@
       "admin": "Administrator"
     },
     "logs": {
-      "title": "Newsletter logs",
-      "description": "Send history for this newsletter",
+      "title": "Send Logs",
+      "description": "Detailed history of this newsletter's sends",
+      "loadError": "Error loading logs",
       "columns": {
-        "userEmail": "User email",
+        "userEmail": "User Email",
         "status": "Status",
-        "sentAt": "Sent at",
+        "sentAt": "Sent At",
         "error": "Error"
       },
       "status": {
@@ -833,10 +839,12 @@
         "pending": "Pending"
       },
       "empty": {
-        "title": "No logs found",
-        "description": "This newsletter has not been sent yet."
+        "title": "No logs available",
+        "description": "This newsletter has not been sent yet or logs are not yet available."
       },
-      "loadError": "Error loading logs"
+      "showing": "Showing",
+      "of": "of",
+      "entries": "entries"
     },
     "restrictions": {
       "cannotEditNonDraft": "Only draft newsletters can be edited",

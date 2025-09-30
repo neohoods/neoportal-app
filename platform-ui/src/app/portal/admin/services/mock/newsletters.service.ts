@@ -7,6 +7,7 @@ import {
     PaginatedNewslettersResponse,
     ScheduleNewsletterRequest,
     UINewsletter,
+    UINewsletterLogEntry,
     UpdateNewsletterRequest
 } from '../../../../models/UINewsletter';
 import { NewslettersService } from '../newsletters.service';
@@ -170,5 +171,53 @@ export class MockNewslettersService implements NewslettersService {
                 }
             }).catch(error => observer.error(error));
         }).pipe(delay(800));
+    }
+
+    getNewsletterLogs(newsletterId: string, page: number = 1, pageSize: number = 10): Observable<UINewsletterLogEntry[]> {
+        return new Observable<UINewsletterLogEntry[]>(observer => {
+            this.initializeData().then(() => {
+                const newsletter = this.newsletters.find(n => n.id === newsletterId);
+                if (!newsletter) {
+                    observer.error(new Error(`Newsletter with id ${newsletterId} not found`));
+                } else {
+                    // Mock logs data
+                    const mockLogs: UINewsletterLogEntry[] = [
+                        {
+                            id: '1',
+                            newsletterId: newsletterId,
+                            userId: 'user1',
+                            userEmail: 'user1@example.com',
+                            status: 'SENT',
+                            sentAt: '2024-01-15T10:05:00Z',
+                            createdAt: '2024-01-15T10:00:00Z'
+                        },
+                        {
+                            id: '2',
+                            newsletterId: newsletterId,
+                            userId: 'user2',
+                            userEmail: 'user2@example.com',
+                            status: 'FAILED',
+                            errorMessage: 'Invalid email address',
+                            createdAt: '2024-01-15T10:00:00Z'
+                        },
+                        {
+                            id: '3',
+                            newsletterId: newsletterId,
+                            userId: 'user3',
+                            userEmail: 'user3@example.com',
+                            status: 'PENDING',
+                            createdAt: '2024-01-15T10:00:00Z'
+                        }
+                    ];
+
+                    const startIndex = (page - 1) * pageSize;
+                    const endIndex = startIndex + pageSize;
+                    const paginatedLogs = mockLogs.slice(startIndex, endIndex);
+
+                    observer.next(paginatedLogs);
+                    observer.complete();
+                }
+            }).catch(error => observer.error(error));
+        }).pipe(delay(500));
     }
 }

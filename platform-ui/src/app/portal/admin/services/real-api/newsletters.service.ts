@@ -7,6 +7,8 @@ import {
     SendNewsletterRequest as ApiSendNewsletterRequest,
     Newsletter,
     NewsletterAudience,
+    NewsletterLogEntry,
+    NewsletterLogsResponse,
     UserType
 } from '../../../../api-client';
 import { NewslettersAdminApiService } from '../../../../api-client/api/newslettersAdminApi.service';
@@ -17,6 +19,7 @@ import {
     ScheduleNewsletterRequest,
     UINewsletter,
     UINewsletterAudience,
+    UINewsletterLogEntry,
     UpdateNewsletterRequest
 } from '../../../../models/UINewsletter';
 import { NewslettersService } from '../newsletters.service';
@@ -94,6 +97,14 @@ export class ApiNewslettersService implements NewslettersService {
         );
     }
 
+    getNewsletterLogs(newsletterId: string, page: number = 1, pageSize: number = 10): Observable<UINewsletterLogEntry[]> {
+        return this.newslettersAdminApiService.getNewsletterLogs(newsletterId, page, pageSize).pipe(
+            map((response: NewsletterLogsResponse) =>
+                (response.logs || []).map((log: NewsletterLogEntry) => this.mapToUINewsletterLogEntry(log))
+            )
+        );
+    }
+
     private mapToApiAudience(audience: UINewsletterAudience): NewsletterAudience {
         const apiAudience: NewsletterAudience = {
             type: this.mapAudienceType(audience.type)
@@ -136,6 +147,34 @@ export class ApiNewslettersService implements NewslettersService {
             createdBy: newsletter.createdBy || '',
             recipientCount: newsletter.recipientCount || undefined,
             audience: newsletter.audience || undefined
+        };
+    }
+
+    private mapToUINewsletterLogEntry(log: NewsletterLogEntry): UINewsletterLogEntry {
+        // Parse the message to extract user information
+        const message = log.message || '';
+        const userEmailMatch = message.match(/for user ([^\s]+)/);
+        const userEmail = userEmailMatch ? userEmailMatch[1] : 'unknown@example.com';
+
+        // Determine status from level and message
+        let status: 'PENDING' | 'SENT' | 'FAILED' | 'BOUNCED' = 'PENDING';
+        if (log.level === 'ERROR') {
+            status = 'FAILED';
+        } else if (log.level === 'INFO' && message.toLowerCase().includes('sent')) {
+            status = 'SENT';
+        } else if (message.toLowerCase().includes('bounced')) {
+            status = 'BOUNCED';
+        }
+
+        return {
+            id: log.id || '',
+            newsletterId: log.newsletterId || '',
+            userId: userEmail.split('@')[0], // Extract user ID from email
+            userEmail: userEmail,
+            status: status,
+            sentAt: status === 'SENT' ? log.timestamp : undefined,
+            errorMessage: log.level === 'ERROR' ? log.details || log.message : undefined,
+            createdAt: log.timestamp || ''
         };
     }
 }

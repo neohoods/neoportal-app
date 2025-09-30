@@ -64,8 +64,9 @@
                     <tui-textfield multi tuiChevron [stringify]="stringifyUser">
                         <input
                             tuiInputChip
-                            [placeholder]="selectedUserIds.length ? '' : 'newsletters.audience.selectUsers' | translate"
-                            [(ngModel)]="selectedUserIds"
+                            [placeholder]="selectedUsers.length ? '' : 'newsletters.audience.selectUsers' | translate"
+                            [(ngModel)]="selectedUsers"
+                            (ngModelChange)="onUserSelectionChange($event)"
                             [ngModelOptions]="{standalone: true}"
                         />
                         <tui-data-list-wrapper

@@ -4,7 +4,7 @@
         <p>{{ 'newsletters.logs.description' | translate }}</p>
     </div>
 
-    @if (isLoading) {
+    @if (isLoading()) {
         <div class="loading-container">
             <tui-loader size="l"></tui-loader>
         </div>
@@ -17,7 +17,7 @@
                 <div class="header-cell">{{ 'newsletters.logs.columns.error' | translate }}</div>
             </div>
 
-            @for (log of logs; track log.id) {
+            @for (log of logs(); track log.id) {
                 <div class="table-row">
                     <div class="cell">
                         <span class="user-email">{{ log.userEmail }}</span>
@@ -45,11 +45,17 @@
             }
         </div>
 
-        @if (logs.length === 0) {
+        @if (logs().length === 0 && !isLoading()) {
             <div class="empty-state">
                 <tui-icon icon="@tui.inbox" size="xl"></tui-icon>
                 <h3>{{ 'newsletters.logs.empty.title' | translate }}</h3>
                 <p>{{ 'newsletters.logs.empty.description' | translate }}</p>
+            </div>
+        }
+
+        @if (logs().length > 0) {
+            <div class="pagination-info">
+                <span>{{ 'newsletters.logs.showing' | translate }} {{ (currentPage() - 1) * pageSize() + 1 }}-{{ getMin(currentPage() * pageSize(), totalItems()) }} {{ 'newsletters.logs.of' | translate }} {{ totalItems() }} {{ 'newsletters.logs.entries' | translate }}</span>
             </div>
         }
     }

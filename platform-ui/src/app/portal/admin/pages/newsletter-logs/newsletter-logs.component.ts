@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiAlertService, TuiIcon, TuiLoader } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 import { UINewsletterLogEntry } from '../../../../models/UINewsletter';
 import { NEWSLETTERS_SERVICE_TOKEN } from '../../admin.providers';
@@ -13,19 +13,25 @@ import { NewslettersService } from '../../services/newsletters.service';
     imports: [
         CommonModule,
         TranslateModule,
-        TuiButton,
         TuiIcon,
         TuiBadge,
         TuiLoader
     ],
     selector: 'app-newsletter-logs',
     templateUrl: './newsletter-logs.component.html',
-    styleUrls: ['./newsletter-logs.component.scss']
+    styleUrls: ['./newsletter-logs.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewsletterLogsComponent implements OnInit {
     newsletterId: string | null = null;
-    logs: UINewsletterLogEntry[] = [];
-    isLoading = false;
+
+    // Convert to signals for reactive updates
+    logs = signal<UINewsletterLogEntry[]>([]);
+    isLoading = signal(false);
+    currentPage = signal(1);
+    pageSize = signal(10);
+    totalItems = signal(0);
+    totalPages = signal(0);
 
     constructor(
         private route: ActivatedRoute,
@@ -42,53 +48,34 @@ export class NewsletterLogsComponent implements OnInit {
     }
 
     private loadLogs(): void {
-        this.isLoading = true;
-        // TODO: Implement getNewsletterLogs method in service
-        // this.newslettersService.getNewsletterLogs(this.newsletterId!).subscribe({
-        //     next: (logs) => {
-        //         this.logs = logs;
-        //         this.isLoading = false;
-        //     },
-        //     error: (error) => {
-        //         console.error('Error loading newsletter logs:', error);
-        //         this.alerts.open(
-        //             this.translate.instant('newsletters.logs.loadError'),
-        //             { appearance: 'error' }
-        //         ).subscribe();
-        //         this.isLoading = false;
-        //     }
-        // });
-
-        // Mock data for now
-        this.logs = [
-            {
-                id: '1',
-                newsletterId: this.newsletterId!,
-                userId: 'user1',
-                userEmail: 'user1@example.com',
-                status: 'SENT',
-                sentAt: '2024-01-15T10:05:00Z',
-                createdAt: '2024-01-15T10:00:00Z'
+        this.isLoading.set(true);
+        this.newslettersService.getNewsletterLogs(this.newsletterId!, this.currentPage(), this.pageSize()).subscribe({
+            next: (logs) => {
+                this.logs.set(logs);
+                this.isLoading.set(false);
+                // Note: The current API doesn't return pagination info, so we'll use the logs length
+                this.totalItems.set(logs.length);
+                this.totalPages.set(Math.ceil(logs.length / this.pageSize()));
             },
-            {
-                id: '2',
-                newsletterId: this.newsletterId!,
-                userId: 'user2',
-                userEmail: 'user2@example.com',
-                status: 'FAILED',
-                errorMessage: 'Invalid email address',
-                createdAt: '2024-01-15T10:00:00Z'
-            },
-            {
-                id: '3',
-                newsletterId: this.newsletterId!,
-                userId: 'user3',
-                userEmail: 'user3@example.com',
-                status: 'PENDING',
-                createdAt: '2024-01-15T10:00:00Z'
+            error: (error) => {
+                console.error('Error loading newsletter logs:', error);
+                this.alerts.open(
+                    this.translate.instant('newsletters.logs.loadError'),
+                    { appearance: 'error' }
+                ).subscribe();
+                this.isLoading.set(false);
             }
-        ];
-        this.isLoading = false;
+        });
+    }
+
+    onPageChange(page: number): void {
+        this.currentPage.set(page);
+        this.loadLogs();
+    }
+
+    // Public method to refresh logs from external components
+    refreshLogs(): void {
+        this.loadLogs();
     }
 
     getStatusBadgeAppearance(status: string): string {
@@ -108,5 +95,9 @@ export class NewsletterLogsComponent implements OnInit {
 
     getStatusLabel(status: string): string {
         return this.translate.instant(`newsletters.logs.status.${status.toLowerCase()}`);
+    }
+
+    getMin(a: number, b: number): number {
+        return Math.min(a, b);
     }
 }

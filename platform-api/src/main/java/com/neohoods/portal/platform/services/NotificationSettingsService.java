@@ -26,7 +26,7 @@ public class NotificationSettingsService {
                 UserEntity user = usersRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                return Mono.just(notificationSettingsRepository.findByUser(user)
+                return Mono.just(notificationSettingsRepository.findByUserId(userId)
                                 .orElseGet(() -> createDefaultSettings(user))
                                 .toNotificationSettings());
         }
@@ -36,7 +36,7 @@ public class NotificationSettingsService {
                 UserEntity user = usersRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                NotificationSettingsEntity entity = notificationSettingsRepository.findByUser(user)
+                NotificationSettingsEntity entity = notificationSettingsRepository.findByUserId(userId)
                                 .orElseGet(() -> NotificationSettingsEntity.builder()
                                                 .id(UUID.randomUUID())
                                                 .user(user)

@@ -36,10 +36,13 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
     @Override
     public Mono<ResponseEntity<Newsletter>> createNewsletter(Mono<NewsletterRequest> createNewsletterRequest,
             ServerWebExchange exchange) {
+        log.debug("Creating newsletter request received");
         return createNewsletterRequest
                 .flatMap(request -> exchange.getPrincipal()
                         .map(principal -> UUID.fromString(principal.getName()))
                         .flatMap(createdBy -> {
+                            log.debug("Creating newsletter for user: {}, subject: {}, scheduledAt: {}",
+                                    createdBy, request.getSubject(), request.getScheduledAt());
                             // Create newsletter with scheduledAt directly
                             return newsletterService.createNewsletter(
                                     request.getSubject(), // title
@@ -53,7 +56,10 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                     log.info("Newsletter created successfully: {}", newsletter.getId());
                     return ResponseEntity.status(HttpStatus.CREATED).body(newsletter);
                 })
-                .onErrorReturn(ResponseEntity.badRequest().build());
+                .onErrorResume(e -> {
+                    log.error("Error creating newsletter: {}", e.getMessage(), e);
+                    return Mono.just(ResponseEntity.badRequest().build());
+                });
     }
 
     @Override
@@ -67,21 +73,24 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
         int pageNum = page != null ? page : 1;
         int pageSizeNum = pageSize != null ? pageSize : 10;
 
+        log.debug("Retrieving newsletters - page: {}, pageSize: {}, status: {}", pageNum, pageSizeNum, status);
+
         // TODO: Implement status filtering
         return newsletterService.getNewslettersPaginated(pageNum, pageSizeNum)
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> {
-                    log.error("Error retrieving paginated newsletters", e);
+                    log.error("Error retrieving paginated newsletters: {}", e.getMessage(), e);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }
 
     @Override
     public Mono<ResponseEntity<Newsletter>> getNewsletter(UUID newsletterId, ServerWebExchange exchange) {
+        log.debug("Retrieving newsletter: {}", newsletterId);
         return newsletterService.getNewsletter(newsletterId)
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> {
-                    log.error("Error retrieving newsletter: {}", newsletterId, e);
+                    log.error("Error retrieving newsletter {}: {}", newsletterId, e.getMessage(), e);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }
@@ -90,8 +99,11 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
     public Mono<ResponseEntity<Newsletter>> updateNewsletter(UUID newsletterId,
             Mono<NewsletterRequest> updateNewsletterRequest,
             ServerWebExchange exchange) {
+        log.debug("Updating newsletter: {}", newsletterId);
         return updateNewsletterRequest
                 .flatMap(request -> {
+                    log.debug("Updating newsletter {} with subject: {}, scheduledAt: {}",
+                            newsletterId, request.getSubject(), request.getScheduledAt());
                     // Update newsletter with scheduledAt directly
                     return newsletterService.updateNewsletter(
                             newsletterId,
@@ -105,40 +117,19 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                     return ResponseEntity.ok(newsletter);
                 })
                 .onErrorResume(e -> {
-                    log.error("Error updating newsletter: {}", newsletterId, e);
+                    log.error("Error updating newsletter {}: {}", newsletterId, e.getMessage(), e);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }
 
     @Override
     public Mono<ResponseEntity<Void>> deleteNewsletter(UUID newsletterId, ServerWebExchange exchange) {
+        log.debug("Deleting newsletter: {}", newsletterId);
         return newsletterService.deleteNewsletter(newsletterId)
                 .then(Mono.fromSupplier(() -> createVoidResponseEntity(HttpStatus.NO_CONTENT)))
                 .onErrorResume(e -> {
-                    log.error("Error deleting newsletter: {}", newsletterId, e);
+                    log.error("Error deleting newsletter {}: {}", newsletterId, e.getMessage(), e);
                     return Mono.just(createVoidResponseEntity(HttpStatus.NOT_FOUND));
-                });
-    }
-
-    public Mono<ResponseEntity<Newsletter>> scheduleNewsletter(UUID newsletterId,
-            Mono<NewsletterRequest> scheduleNewsletterRequest, ServerWebExchange exchange) {
-        return scheduleNewsletterRequest
-                .flatMap(request -> {
-                    if (request.getScheduledAt() != null) {
-                        return newsletterService.scheduleNewsletter(
-                                newsletterId,
-                                request.getScheduledAt());
-                    } else {
-                        return Mono.error(new IllegalArgumentException("scheduledAt is required"));
-                    }
-                })
-                .map(scheduledNewsletter -> {
-                    log.info("Newsletter scheduled successfully: {}", scheduledNewsletter.getId());
-                    return ResponseEntity.ok(scheduledNewsletter);
-                })
-                .onErrorResume(e -> {
-                    log.error("Error scheduling newsletter: {}", newsletterId, e);
-                    return Mono.just(ResponseEntity.badRequest().build());
                 });
     }
 
@@ -146,10 +137,13 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
     public Mono<ResponseEntity<SendNewsletter200Response>> sendNewsletter(UUID newsletterId,
             Mono<com.neohoods.portal.platform.model.SendNewsletterRequest> sendNewsletterRequest,
             ServerWebExchange exchange) {
+        log.debug("Sending newsletter: {}", newsletterId);
         return sendNewsletterRequest
                 .flatMap(request -> {
+                    log.debug("Send newsletter request - scheduledAt: {}", request.getScheduledAt());
                     if (request.getScheduledAt() != null) {
                         // Schedule newsletter
+                        log.debug("Scheduling newsletter {} for: {}", newsletterId, request.getScheduledAt());
                         return newsletterService.scheduleNewsletter(newsletterId, request.getScheduledAt())
                                 .map(newsletter -> {
                                     log.info("Newsletter scheduled successfully: {}", newsletterId);
@@ -163,6 +157,7 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                                 });
                     } else {
                         // Send immediately
+                        log.debug("Sending newsletter {} immediately", newsletterId);
                         return newsletterService.sendNewsletter(newsletterId)
                                 .then(Mono.fromSupplier(() -> {
                                     log.info("Newsletter sent successfully: {}", newsletterId);
@@ -174,7 +169,9 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                 })
                 .switchIfEmpty(
                         // No request body - send immediately
-                        newsletterService.sendNewsletter(newsletterId)
+                        Mono.fromRunnable(() -> log.debug("No request body provided, sending newsletter {} immediately",
+                                newsletterId))
+                                .then(newsletterService.sendNewsletter(newsletterId))
                                 .then(Mono.fromSupplier(() -> {
                                     log.info("Newsletter sent immediately: {}", newsletterId);
                                     SendNewsletter200Response response = new SendNewsletter200Response();
@@ -182,7 +179,7 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                                     return ResponseEntity.ok(response);
                                 })))
                 .onErrorResume(e -> {
-                    log.error("Error sending/scheduling newsletter: {}", newsletterId, e);
+                    log.error("Error sending/scheduling newsletter {}: {}", newsletterId, e.getMessage(), e);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }
@@ -190,6 +187,7 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
     @Override
     public Mono<ResponseEntity<TestNewsletter200Response>> testNewsletter(UUID newsletterId,
             ServerWebExchange exchange) {
+        log.debug("Testing newsletter: {}", newsletterId);
         return exchange.getPrincipal()
                 .map(principal -> UUID.fromString(principal.getName()))
                 .flatMap(userId -> newsletterService.testNewsletter(newsletterId, userId))
@@ -199,15 +197,18 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                     return ResponseEntity.ok(response);
                 }))
                 .onErrorResume(e -> {
-                    log.error("Error sending test newsletter: {}", newsletterId, e);
+                    log.error("Error sending test newsletter {}: {}", newsletterId, e.getMessage(), e);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }
 
     public Mono<ResponseEntity<NewsletterLogsResponse>> getNewsletterLogs(UUID newsletterId, Integer page,
-            Integer pageSize, ServerWebExchange exchange) {
+            Integer pageSize, String level, ServerWebExchange exchange) {
         int pageNum = page != null ? page : 1;
         int pageSizeNum = pageSize != null ? pageSize : 10;
+
+        log.debug("Retrieving newsletter logs for ID: {}, page: {}, pageSize: {}, level: {}",
+                newsletterId, pageNum, pageSizeNum, level);
 
         Pageable pageable = PageRequest.of(pageNum - 1, pageSizeNum, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -224,7 +225,7 @@ public class NewslettersAdminApi implements NewslettersAdminApiApiDelegate {
                     return ResponseEntity.ok(response);
                 })
                 .onErrorResume(e -> {
-                    log.error("Error retrieving newsletter logs: {}", newsletterId, e);
+                    log.error("Error retrieving newsletter logs for {}: {}", newsletterId, e.getMessage(), e);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }

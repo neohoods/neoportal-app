@@ -75,6 +75,7 @@ export class NewslettersEditComponent implements OnInit {
     userTypes = ['OWNER', 'TENANT', 'ADMIN'];
     selectedUserTypes: string[] = [];
     selectedUserIds: string[] = [];
+    selectedUsers: any[] = []; // Store the actual user objects for display
 
     availableUsers: any[] = []; // Will be loaded from API
 
@@ -91,6 +92,17 @@ export class NewslettersEditComponent implements OnInit {
     stringifyUser = (user: any): string => {
         return user ? `${user.firstName} ${user.lastName}` : '';
     };
+
+    // Handle user selection - extract IDs from selected user objects
+    onUserSelectionChange(selectedUsers: any[]): void {
+        this.selectedUsers = selectedUsers;
+        this.selectedUserIds = selectedUsers.map(user => user.id);
+    }
+
+    // Map user IDs to user objects for display
+    private mapUserIdsToUsers(userIds: string[]): any[] {
+        return userIds.map(id => this.availableUsers.find(user => user.id === id)).filter(user => user);
+    }
 
     editorConfig = {
         toolbar: [
@@ -145,6 +157,11 @@ export class NewslettersEditComponent implements OnInit {
                     lastName: user.lastName,
                     email: user.email
                 }));
+
+                // If we're in edit mode and have a newsletter loaded, update selectedUsers
+                if (this.isEditMode && this.newsletter && this.selectedUserIds.length > 0) {
+                    this.selectedUsers = this.mapUserIdsToUsers(this.selectedUserIds);
+                }
             },
             error: (error) => {
                 console.error('Error loading users:', error);
@@ -173,6 +190,7 @@ export class NewslettersEditComponent implements OnInit {
                 // Set the selected values for the chips
                 this.selectedUserTypes = newsletter.audience?.userTypes || [];
                 this.selectedUserIds = newsletter.audience?.userIds || [];
+                // selectedUsers will be set when availableUsers is loaded
 
                 this.isLoading = false;
             },

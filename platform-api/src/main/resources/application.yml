@@ -61,7 +61,7 @@ mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:
     email: dev@mail.neohoods.com
-    name: portal NeoHoods dev environment
+    name: portal NeoHoods Local environment
 spring:
   datasource:
     url: jdbc:postgresql://localhost:8433/neohoods-portal

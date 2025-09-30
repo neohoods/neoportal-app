@@ -760,6 +760,10 @@
       "confirmDeleteLabel": "Supprimer la newsletter '{{title}}'",
       "confirmDeleteYes": "Oui, Supprimer",
       "confirmDeleteNo": "Annuler",
+      "confirmSendContent": "Êtes-vous sûr de vouloir envoyer cette newsletter ?",
+      "confirmSendLabel": "Envoyer la newsletter '{{title}}'",
+      "confirmSendYes": "Oui, Envoyer",
+      "confirmSendNo": "Annuler",
       "scheduleSuccess": "Newsletter programmée avec succès !",
       "scheduleError": "Erreur lors de la programmation de la newsletter",
       "sendSuccess": "Newsletter envoyée avec succès !",
@@ -781,6 +785,7 @@
       "all": "Tous les utilisateurs",
       "userTypes": "Types d'utilisateurs",
       "specificUsers": "Utilisateurs spécifiques",
+      "users": "utilisateurs",
       "selectType": "Sélectionner le type d'audience",
       "selectUserTypes": "Sélectionner les types d'utilisateurs",
       "selectUsers": "Sélectionner les utilisateurs",
@@ -792,8 +797,9 @@
       "admin": "Administrateur"
     },
     "logs": {
-      "title": "Logs de newsletter",
-      "description": "Historique des envois de cette newsletter",
+      "title": "Logs d'envoi",
+      "description": "Historique détaillé des envois de cette newsletter",
+      "loadError": "Erreur lors du chargement des logs",
       "columns": {
         "userEmail": "Email utilisateur",
         "status": "Statut",
@@ -807,10 +813,13 @@
         "pending": "En attente"
       },
       "empty": {
-        "title": "Aucun log trouvé",
-        "description": "Cette newsletter n'a pas encore été envoyée."
+        "title": "Aucun log disponible",
+        "description": "Cette newsletter n'a pas encore été envoyée ou les logs ne sont pas encore disponibles."
       },
-      "loadError": "Erreur lors du chargement des logs"
+      "showing": "Affichage",
+      "of": "sur",
+      "entries": "entrées"
+    }
     },
     "restrictions": {
       "cannotEditNonDraft": "Seules les newsletters en brouillon peuvent être modifiées",

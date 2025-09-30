@@ -46,7 +46,7 @@ import { NewslettersService } from '../../services/newsletters.service';
 })
 export class NewslettersComponent {
     @ViewChild('newslettersTable') newslettersTable: any;
-    
+
     protected newsletters = signal<UINewsletter[]>([]);
     currentNewsletter: UINewsletter | undefined;
 
@@ -171,21 +171,21 @@ export class NewslettersComponent {
     sendNewsletter(newsletter: UINewsletter): void {
         if (newsletter.status !== NewsletterStatus.DRAFT && newsletter.status !== NewsletterStatus.SCHEDULED) {
             this.alerts.open(
-                this.translate.instant('newsletters.cannotSendNewsletter'),
+                this.translate.instant('newsletters.restrictions.cannotSendNewsletter'),
                 { appearance: 'warning' }
             ).subscribe();
             return;
         }
 
         const data: TuiConfirmData = {
-            content: this.translate.instant('newsletters.confirmSendContent'),
-            yes: this.translate.instant('newsletters.confirmSendYes'),
-            no: this.translate.instant('newsletters.confirmSendNo'),
+            content: this.translate.instant('newsletters.messages.confirmSendContent'),
+            yes: this.translate.instant('newsletters.messages.confirmSendYes'),
+            no: this.translate.instant('newsletters.messages.confirmSendNo'),
         };
 
         this.dialogs
             .open<boolean>(TUI_CONFIRM, {
-                label: this.translate.instant('newsletters.confirmSendLabel', { title: newsletter.subject }),
+                label: this.translate.instant('newsletters.messages.confirmSendLabel', { title: newsletter.subject }),
                 size: 'm',
                 data,
             })
@@ -195,7 +195,7 @@ export class NewslettersComponent {
                         .subscribe(() => {
                             this.loadNewsletters();
                             this.alerts.open(
-                                this.translate.instant('newsletters.sendSuccess', { title: newsletter.subject }),
+                                this.translate.instant('newsletters.messages.sendSuccess', { title: newsletter.subject }),
                                 { appearance: 'positive' }
                             ).subscribe();
                         });
