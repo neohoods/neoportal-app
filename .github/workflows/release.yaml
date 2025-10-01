@@ -17,12 +17,9 @@ jobs:
       - name: Prepare release
         id: vars
         run: |
-          sudo apt-get update
-          sudo apt-get install libxml2-utils
           cp openapi.yaml platform-ui/
           cp openapi.yaml platform-api/
-          cd platform-api
-          export VERSION=`xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' pom.xml | sed -e  "s/-SNAPSHOT$//"`
+          VERSION=$(grep -oP '<version>\K[^<]+' platform-api/pom.xml | head -1 | sed 's/-SNAPSHOT$//')
           echo "app-version=$VERSION"
           echo "app-version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -31,6 +28,9 @@ jobs:
     needs: prepare
     steps:
       - uses: actions/checkout@v1
+
+      - name: Copy openapi.yaml
+        run: cp openapi.yaml platform-api/
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -73,6 +73,9 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: Copy openapi.yaml
+        run: cp openapi.yaml platform-ui/
+
       - name: Cache npm dependencies
         uses: actions/cache@v4
         with:
@@ -105,6 +108,9 @@ jobs:
     needs: prepare
     steps:
       - uses: actions/checkout@v1
+
+      - name: Copy openapi.yaml
+        run: cp openapi.yaml platform-ui/
 
       - name: Cache npm dependencies
         uses: actions/cache@v4
