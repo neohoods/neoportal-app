@@ -4,7 +4,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +17,7 @@ import com.neohoods.portal.platform.model.DebugPostNotificationRequest;
 import com.neohoods.portal.platform.model.Notification;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.NotificationsService;
+
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -61,7 +61,8 @@ public class DebugApi implements DebugApiApiDelegate {
                                 .payload(payload)
                                 .build();
 
-                        Locale locale = request.getLocale() != null ?  Locale.of(request.getLocale()) : user.getLocale();
+                        Locale locale = request.getLocale() != null ? new Locale(request.getLocale())
+                                : user.getLocale();
                         notificationService.sendNotifications(user, notificationEntity, locale);
 
                         return notificationEntity.toNotification().build();

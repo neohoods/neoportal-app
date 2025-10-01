@@ -73,7 +73,8 @@ public class InfosService {
                 existingEntityWithDelegates.setContactNumbers(existingEntityWithContactNumbers.getContactNumbers());
 
                 // Update basic fields
-                existingEntityWithDelegates.setNextAGDate(info.getNextAGDate());
+                existingEntityWithDelegates.setNextAGDate(
+                                info.getNextAGDate() != null ? info.getNextAGDate().toLocalDateTime() : null);
                 existingEntityWithDelegates.setRulesUrl(info.getRulesUrl());
 
                 // Replace delegates collection

@@ -94,7 +94,7 @@ CREATE TABLE "applications" (
 
 CREATE TABLE "infos" (
     "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-    "next_ag_date" date,
+    "next_ag_date" timestamp with time zone,
     "rules_url" varchar(255)
 );
 

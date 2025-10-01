@@ -1,6 +1,7 @@
 package com.neohoods.portal.platform.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class InfoEntity {
         private UUID id;
 
         @Column(name = "next_ag_date")
-        private LocalDate nextAGDate;
+        private LocalDateTime nextAGDate;
 
         @Column(name = "rules_url")
         private String rulesUrl;
@@ -44,7 +45,7 @@ public class InfoEntity {
         public Info toInfo() {
                 return new Info()
                                 .id(id)
-                                .nextAGDate(nextAGDate)
+                                .nextAGDate(nextAGDate != null ? nextAGDate.atOffset(ZoneOffset.UTC) : null)
                                 .rulesUrl(rulesUrl)
                                 .delegates(delegates != null
                                                 ? delegates.stream().map(DelegateEntity::toDelegate)
@@ -59,7 +60,8 @@ public class InfoEntity {
         public static InfoEntity fromInfo(Info info) {
                 InfoEntity entity = InfoEntity.builder()
                                 .id(info.getId() != null ? info.getId() : UUID.randomUUID())
-                                .nextAGDate(info.getNextAGDate())
+                                .nextAGDate(info.getNextAGDate() != null ? info.getNextAGDate().toLocalDateTime()
+                                                : null)
                                 .rulesUrl(info.getRulesUrl())
                                 .build();
 

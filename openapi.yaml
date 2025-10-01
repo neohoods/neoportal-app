@@ -1953,7 +1953,7 @@ components:
           format: uuid
         nextAGDate:
           type: string
-          format: date
+          format: date-time
         rulesUrl:
           type: string
         delegates:

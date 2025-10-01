@@ -540,7 +540,9 @@
       "addSyndic": "Ajouter un syndic",
       "addEmergency": "Ajouter une urgence",
       "addMaintenance": "Ajouter une maintenance"
-    }
+    },
+    "updateSuccess": "Informations mises à jour avec succès !",
+    "updateError": "Erreur lors de la mise à jour des informations"
   },
   "settings": {
     "more": "Plus",
@@ -819,7 +821,6 @@
       "showing": "Affichage",
       "of": "sur",
       "entries": "entrées"
-    }
     },
     "restrictions": {
       "cannotEditNonDraft": "Seules les newsletters en brouillon peuvent être modifiées",
