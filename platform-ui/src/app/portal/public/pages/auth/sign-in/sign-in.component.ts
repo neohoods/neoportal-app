@@ -62,7 +62,7 @@ export class SignInComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // Check if user just verified their email
     this.route.queryParams.subscribe(params => {
       if (params['verified'] === 'true' && params['message'] === 'email-verified') {
@@ -72,6 +72,10 @@ export class SignInComponent implements OnInit {
         ).subscribe();
       }
     });
+
+    // Load settings and wait for completion
+    await this.configService.loadConfig();
+    this.config = await this.configService.getSettingsAsync();
 
     // Auto-redirect to SSO if enabled
     if (this.config.ssoEnabled) {

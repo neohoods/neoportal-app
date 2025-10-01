@@ -34,6 +34,8 @@ export class ConfigService {
   private static config: AppConfig = {
     ...environment
   };
+  private isConfigLoaded = false;
+  private configLoadPromise: Promise<void> | null = null;
 
   static async initialize(): Promise<void> {
     console.log('ConfigService: Starting initialization...');
@@ -67,12 +69,24 @@ export class ConfigService {
     return ConfigService.config;
   }
 
-  loadConfig() {
-    this.publicSettingsService.getPublicSettings().subscribe((settings) => {
-      if (settings) {
-        this.settings = settings;
-      }
+  loadConfig(): Promise<void> {
+    // Si déjà en cours de chargement, retourner la même promesse
+    if (this.configLoadPromise) {
+      return this.configLoadPromise;
+    }
+
+    // Créer une nouvelle promesse de chargement
+    this.configLoadPromise = new Promise((resolve) => {
+      this.publicSettingsService.getPublicSettings().subscribe((settings) => {
+        if (settings) {
+          this.settings = settings;
+        }
+        this.isConfigLoaded = true;
+        resolve();
+      });
     });
+
+    return this.configLoadPromise;
   }
 
   setSettings(config: UISettings) {
@@ -80,6 +94,17 @@ export class ConfigService {
   }
 
   getSettings(): UISettings {
+    if (!this.isConfigLoaded) {
+      console.warn('ConfigService: getSettings() called before loadConfig() completed. Returning default settings.');
+      return { isRegistrationEnabled: true, ssoEnabled: false };
+    }
+    return this.settings;
+  }
+
+  async getSettingsAsync(): Promise<UISettings> {
+    if (!this.isConfigLoaded) {
+      await this.loadConfig();
+    }
     return this.settings;
   }
 
