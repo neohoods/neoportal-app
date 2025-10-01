@@ -186,6 +186,13 @@ public class GlobalExceptionHandler {
                     return "Un utilisateur avec ces informations existe déjà";
                 }
 
+            case EMAIL_ALREADY_EXISTS:
+                String emailAlreadyExists = (String) variables.get("email");
+                return emailAlreadyExists != null
+                        ? String.format("L'adresse email '%s' est déjà utilisée par un autre utilisateur",
+                                emailAlreadyExists)
+                        : error.getDefaultMessage();
+
             case INVALID_CREDENTIALS:
                 return "The username or password you entered is incorrect";
 
@@ -212,6 +219,7 @@ public class GlobalExceptionHandler {
                 error == com.neohoods.portal.platform.exceptions.CodedError.APPROVAL_NOT_REQUIRED ||
                 error == com.neohoods.portal.platform.exceptions.CodedError.INVALID_BORROW_STATE ||
                 error == com.neohoods.portal.platform.exceptions.CodedError.USER_ALREADY_EXISTS ||
+                error == com.neohoods.portal.platform.exceptions.CodedError.EMAIL_ALREADY_EXISTS ||
                 error == com.neohoods.portal.platform.exceptions.CodedError.INVALID_CREDENTIALS ||
                 error == com.neohoods.portal.platform.exceptions.CodedError.EMAIL_ALREADY_VERIFIED ||
                 error == com.neohoods.portal.platform.exceptions.CodedError.INVALID_VERIFICATION_TOKEN;

@@ -12,6 +12,7 @@ import com.neohoods.portal.platform.entities.PropertyEntity;
 import com.neohoods.portal.platform.entities.PropertyType;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
+import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 
@@ -45,6 +46,18 @@ public class UsersService {
 
                 UserEntity userEntity = usersRepository.findByIdWithProperties(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+                // Check if email is already taken by another user
+                if (user.getEmail() != null && !user.getEmail().equals(userEntity.getEmail())) {
+                        UserEntity existingUserWithEmail = usersRepository.findByEmail(user.getEmail());
+                        if (existingUserWithEmail != null && !existingUserWithEmail.getId().equals(userId)) {
+                                log.warn("Email {} is already taken by user {}", user.getEmail(),
+                                                existingUserWithEmail.getId());
+                                throw new CodedErrorException(
+                                                com.neohoods.portal.platform.exceptions.CodedError.EMAIL_ALREADY_EXISTS,
+                                                "email", user.getEmail());
+                        }
+                }
 
                 userEntity.setFirstName(user.getFirstName());
                 userEntity.setLastName(user.getLastName());
@@ -98,6 +111,18 @@ public class UsersService {
                                 : UserEntity.builder()
                                                 .id(UUID.randomUUID())
                                                 .build();
+
+                // Check if email is already taken by another user
+                if (user.getEmail() != null) {
+                        UserEntity existingUserWithEmail = usersRepository.findByEmail(user.getEmail());
+                        if (existingUserWithEmail != null && !existingUserWithEmail.getId().equals(entity.getId())) {
+                                log.warn("Email {} is already taken by user {}", user.getEmail(),
+                                                existingUserWithEmail.getId());
+                                throw new CodedErrorException(
+                                                com.neohoods.portal.platform.exceptions.CodedError.EMAIL_ALREADY_EXISTS,
+                                                "email", user.getEmail());
+                        }
+                }
 
                 entity.setUsername(user.getUsername());
                 entity.setFirstName(user.getFirstName());

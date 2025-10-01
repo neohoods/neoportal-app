@@ -338,6 +338,11 @@
       "message": "Failed to delete user from Auth0 during rollback. Please contact support.",
       "action": "Please contact support to resolve this issue."
     },
+    "auth017": {
+      "title": "Email Already Exists",
+      "message": "This email is already used by another user.",
+      "action": "Please use a different email address."
+    },
    
     "res011": {
       "title": "Settings Not Found",

@@ -35,6 +35,10 @@ public class ProfileCommunityApi implements ProfileHubApiApiDelegate {
                             .map(ResponseEntity::ok);
                 }))
                 .onErrorResume(e -> {
+                    // Let CodedErrorException pass through to GlobalExceptionHandler
+                    if (e instanceof com.neohoods.portal.platform.exceptions.CodedErrorException) {
+                        return Mono.error(e);
+                    }
                     log.error("Failed to update user profile", e);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });

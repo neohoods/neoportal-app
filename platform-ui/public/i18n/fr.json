@@ -345,6 +345,11 @@
       "message": "Échec de la suppression de l'utilisateur d'Auth0 lors du rollback. Veuillez contacter le support.",
       "action": "Veuillez contacter le support pour résoudre ce problème."
     },
+    "auth017": {
+      "title": "Email déjà utilisé",
+      "message": "Cette adresse email est déjà utilisée par un autre utilisateur.",
+      "action": "Veuillez utiliser une adresse email différente."
+    },
     "res011": {
       "title": "Paramètres non trouvés",
       "message": "Les paramètres système n'ont pas été trouvés.",

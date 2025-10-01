@@ -26,6 +26,7 @@ public enum CodedError {
         EMAIL_SEND_ERROR("AUTH015", "Failed to send verification email", "auth/email-send-error"),
         AUTH0_USER_DELETE_ERROR("AUTH016", "Failed to delete user from Auth0 during rollback",
                         "auth/auth0-user-delete-error"),
+        EMAIL_ALREADY_EXISTS("AUTH017", "This email is already used by another user", "auth/email-already-exists"),
 
         // Notification errors (2000-2999)
         NOTIFICATION_SETTINGS_NOT_FOUND("NOT001", "Notification settings not found",
