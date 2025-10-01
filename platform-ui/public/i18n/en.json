@@ -494,6 +494,15 @@
     "edit": "Edit",
     "delete": "Delete"
   },
+  "ANNOUNCEMENT-CATEGORY": {
+    "CommunityEvent": "Community Event",
+    "LostAndFound": "Lost and Found",
+    "SafetyAlert": "Safety Alert",
+    "MaintenanceNotice": "Maintenance Notice",
+    "SocialGathering": "Social Gathering",
+    "Other": "Other"
+  },
+  "ANNOUNCEMENT-CATEGORY.${ANNOUNCEMENTCATEGORY}_EN": "Announcement Category",
   "announcement-post-form": {
     "title": "Title",
     "title-placeholder": "Enter announcement title...",
@@ -510,6 +519,15 @@
     "sort-title": "Title",
     "sort-order": "Order",
     "sort-asc": "Ascending",
+    "info": "This section allows you to create and view community announcements. Share important information, events, updates or any relevant news with your neighbors.",
+    "messages": {
+      "confirmCreateLabel": "Confirm Publication",
+      "confirmCreateContent": "Are you sure you want to publish this announcement?",
+      "confirmCreateYes": "Yes, publish",
+      "confirmCreateNo": "No, cancel",
+      "createSuccess": "Announcement '{title}' has been published successfully!",
+      "createError": "Error publishing announcement. Please try again."
+    },
     "sort-desc": "Descending",
     "showing": "Showing",
     "of": "of",
@@ -664,9 +682,6 @@
   "applications": {
     "info": "This section contains all the applications available in your community. You can access services, book equipment and use community tools to enhance your neighborhood living experience.",
     "notAvailable": "This application is not yet available"
-  },
-  "announcements": {
-    "info": "This section allows you to create and view community announcements. Share important information, events, updates or any relevant news with your neighbors."
   },
   "newsletters": {
     "title": "Newsletters",

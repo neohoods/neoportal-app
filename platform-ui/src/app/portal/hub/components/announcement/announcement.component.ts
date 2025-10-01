@@ -6,7 +6,7 @@ import { TuiAlertService, TuiButton, TuiDataList, TuiDialogService, TuiDropdown,
 import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 import { QuillModule } from 'ngx-quill';
 import { getGlobalProviders } from '../../../../global.provider';
-import { CATEGORY_COLORS, CATEGORY_ICONS, UIAnnouncement, UIAnnouncementCategory } from '../../../../models/UIAnnoncements';
+import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_TRANSLATIONS, UIAnnouncement, UIAnnouncementCategory } from '../../../../models/UIAnnoncements';
 import { ANNOUNCEMENTS_SERVICE_TOKEN } from '../../hub.provider';
 import { AnnouncementsService } from '../../services/annoncements.service';
 
@@ -140,5 +140,9 @@ export class AnnouncementComponent {
           });
         }
       });
+  }
+
+  getCategoryTranslationKey(category: UIAnnouncementCategory): string {
+    return CATEGORY_TRANSLATIONS[category];
   }
 }

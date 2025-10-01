@@ -46,6 +46,9 @@ public class NotificationsService {
     @Value("${neohoods.portal.frontend-url}")
     private String frontendUrl;
 
+    @Value("${neohoods.portal.email.template.app-name}")
+    private String appName;
+
     public Mono<Void> acknowledgeNotifications(UUID userId, Flux<Notification> notifications) {
         return notifications.collectList()
                 .flatMap(notifList -> {
@@ -127,7 +130,8 @@ public class NotificationsService {
             notificationRepository.save(notification);
 
             // Create template variables for the email
-            List<TemplateVariable> templateVariables = getTemplateVariables(notification.getType(), notification);
+            List<TemplateVariable> templateVariables = getTemplateVariables(notification.getType(), notification,
+                    locale);
 
             templateVariables.add(
                     TemplateVariable.builder()
@@ -136,9 +140,26 @@ public class NotificationsService {
                             .value(user.getUsername())
                             .build());
 
+            // Create dynamic subject for NEW_ANNOUNCEMENT notifications
+            String emailSubject;
+            if (notification.getType() == NotificationType.NEW_ANNOUNCEMENT && notification.getPayload() != null) {
+                Map<String, Object> payload = notification.getPayload();
+                String announcementTitle = payload.get("announcementTitle") != null
+                        ? payload.get("announcementTitle").toString()
+                        : messageSource.getMessage("notification.new_announcement.email.default_title", null, locale);
+                String category = payload.get("announcementCategory") != null
+                        ? payload.get("announcementCategory").toString()
+                        : "OTHER";
+                String categoryIcon = getCategoryIcon(category);
+                emailSubject = "[" + appName + "] " + categoryIcon + " " + announcementTitle;
+            } else {
+                // Use translation key for other notification types
+                emailSubject = "notification." + notification.getType().name().toLowerCase() + ".email.title";
+            }
+
             mailService.sendTemplatedEmail(
                     user,
-                    "notification." + notification.getType().name().toLowerCase() + ".email.title",
+                    emailSubject,
                     "email/" + notification.getType().getEmailTemplate(),
                     templateVariables,
                     locale);
@@ -303,7 +324,8 @@ public class NotificationsService {
         }
     }
 
-    private List<TemplateVariable> getTemplateVariables(NotificationType type, NotificationEntity notification) {
+    private List<TemplateVariable> getTemplateVariables(NotificationType type, NotificationEntity notification,
+            Locale locale) {
         List<TemplateVariable> variables = new ArrayList<>();
 
         switch (type) {
@@ -343,10 +365,22 @@ public class NotificationsService {
 
                     // Announcement category
                     if (payload.containsKey("announcementCategory")) {
+                        String category = payload.get("announcementCategory").toString();
+
+                        // Translate category to user's locale
+                        String translatedCategory = getTranslatedCategory(category, locale);
                         variables.add(TemplateVariable.builder()
                                 .type(TemplateVariableType.RAW)
                                 .ref("announcementCategory")
-                                .value(payload.get("announcementCategory").toString())
+                                .value(translatedCategory)
+                                .build());
+
+                        // Add category icon
+                        String categoryIcon = getCategoryIcon(category);
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("announcementCategoryIcon")
+                                .value(categoryIcon)
                                 .build());
                     }
 
@@ -431,5 +465,29 @@ public class NotificationsService {
         }
 
         return variables;
+    }
+
+    /**
+     * Get the appropriate emoji icon for announcement category
+     * Maps to the same categories as the frontend UIAnnouncementCategory enum
+     */
+    private String getCategoryIcon(String category) {
+        return switch (category.toUpperCase()) {
+            case "COMMUNITY_EVENT" -> "📅"; // @tui.calendar-heart
+            case "LOST_AND_FOUND" -> "🔍"; // @tui.search-x
+            case "SAFETY_ALERT" -> "⚠️"; // @tui.triangle-alert
+            case "MAINTENANCE_NOTICE" -> "🔧"; // @tui.construction
+            case "SOCIAL_GATHERING" -> "👥"; // @tui.users
+            case "OTHER" -> "📢"; // @tui.message-circle
+            default -> "📢";
+        };
+    }
+
+    /**
+     * Get the translated category name for the given locale
+     */
+    private String getTranslatedCategory(String category, Locale locale) {
+        String key = "announcement-category." + category.toUpperCase();
+        return messageSource.getMessage(key, null, category, locale);
     }
 }

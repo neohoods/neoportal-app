@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
     <head th:replace="~{email/fragments/email-layout :: head(~{::title})}">
-        <title th:text="#{notification.new_announcement.email.title}">New Announcement - [[${appName}]]</title>
+        <title th:text="${announcementCategoryIcon} + ' [' + ${appName} + '] ' + ${announcementTitle}">📅 [portal NeoHoods] Announcement Title</title>
     </head>
     <body>
         <th:block th:replace="~{email/fragments/email-layout :: layout}">
@@ -10,7 +10,7 @@
 
             <!-- Content -->
             <td th:fragment="content">
-                <h1 th:text="#{notification.new_announcement.email.title}">New Announcement</h1>
+                <h1 th:text="'[' + ${appName} + '] ' + ${announcementCategoryIcon} + ' ' + ${announcementTitle}">[portal NeoHoods] 📅 Announcement Title</h1>
                 <p>
                     <span th:text="#{notification.new_announcement.email.greeting(${username})}">Hello username,</span>
                 </p>
@@ -23,8 +23,10 @@
                 <div class="announcement-card">
                     <div class="announcement-details">
                         <div class="announcement-info">
-                            <div class="announcement-title" th:text="${announcementTitle}">Announcement Title</div>
-                            <div class="announcement-category" th:text="${announcementCategory}">Category</div>
+                            <div class="announcement-type-badge">
+                                <span th:text="${announcementCategoryIcon}">📅</span>
+                                <span th:text="${announcementCategory}">Événement communautaire</span>
+                            </div>
                             <div class="announcement-content" th:utext="${announcementContent}">Announcement content...</div>
                         </div>
                     </div>

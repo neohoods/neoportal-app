@@ -116,7 +116,7 @@
     </div>
     
     <div class="announcement-footer">
-        <small>{{ 'announcement.category' | translate }}: {{ ('announcement-category.' + announcement.category) | translate }}</small>
+        <small>{{ 'announcement.category' | translate }}: {{ getCategoryTranslationKey(announcement.category) | translate }}</small>
     </div>
 </div>
 

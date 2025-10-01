@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
-import { TuiButton, TuiExpand, TuiIcon, TuiLabel, TuiNotification, TuiTextfield } from '@taiga-ui/core';
-import { TuiPagination, TuiTabs } from '@taiga-ui/kit';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TuiAlertService, TuiButton, TuiDialogService, TuiExpand, TuiIcon, TuiLabel, TuiNotification, TuiTextfield } from '@taiga-ui/core';
+import { TUI_CONFIRM, TuiConfirmData, TuiPagination, TuiTabs } from '@taiga-ui/kit';
 import {
   TuiInputColorModule
 } from '@taiga-ui/legacy';
@@ -71,6 +71,9 @@ export class AnnouncementsComponent implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private cookieService: CookieService,
+    private dialogs: TuiDialogService,
+    private alerts: TuiAlertService,
+    private translate: TranslateService,
   ) {
     this.pageForm = this.fb.group({
       title: ['', Validators.required],
@@ -115,17 +118,42 @@ export class AnnouncementsComponent implements OnInit {
         category: this.activePostCategory
       };
 
-      this.announcementsService.createAnnouncement(newAnnouncement).subscribe({
-        next: () => {
-          // Reset form and reload announcements
-          this.pageForm.reset();
-          this.collapsed.set(true);
-          this.loadAnnouncements();
-        },
-        error: (error) => {
-          console.error('Error creating announcement:', error);
-        }
-      });
+      // Show confirmation dialog
+      const data: TuiConfirmData = {
+        content: this.translate.instant('announcements.messages.confirmCreateContent'),
+        yes: this.translate.instant('announcements.messages.confirmCreateYes'),
+        no: this.translate.instant('announcements.messages.confirmCreateNo'),
+      };
+
+      this.dialogs
+        .open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('announcements.messages.confirmCreateLabel', { title: newAnnouncement.title }),
+          size: 'm',
+          data,
+        })
+        .subscribe(response => {
+          if (response) {
+            this.announcementsService.createAnnouncement(newAnnouncement).subscribe({
+              next: () => {
+                // Reset form and reload announcements
+                this.pageForm.reset();
+                this.collapsed.set(true);
+                this.loadAnnouncements();
+                this.alerts.open(
+                  this.translate.instant('announcements.messages.createSuccess', { title: newAnnouncement.title }),
+                  { appearance: 'positive' }
+                ).subscribe();
+              },
+              error: (error) => {
+                console.error('Error creating announcement:', error);
+                this.alerts.open(
+                  this.translate.instant('announcements.messages.createError'),
+                  { appearance: 'error' }
+                ).subscribe();
+              }
+            });
+          }
+        });
     }
   }
 
