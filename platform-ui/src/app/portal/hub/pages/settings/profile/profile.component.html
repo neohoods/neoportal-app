@@ -58,21 +58,29 @@
         </tui-textfield>
       </div>
     </div>
+    <tui-select
+    tuiTextfieldSize="s"
+    formControlName="type"
+    [stringify]="stringifyUserType"
+>
+    {{ 'profile.propertyType' | translate }}
+    <input
+        placeholder="{{ 'profile.propertyTypePlaceholder' | translate }}"
+        tuiTextfieldLegacy
+    >
+    <tui-data-list-wrapper
+        *tuiDataList
+        [items]="userTypes"
+        [itemContent]="userTypeContent"
+    ></tui-data-list-wrapper>
+</tui-select>
 
-    <div class="form-field">
-      <label tuiLabel>{{ 'profile.userType' | translate }}</label>
-      <select
-        formControlName="type"
-        class="user-type-select"
-      >
-        <option
-          *ngFor="let userType of userTypes"
-          [value]="userType"
-        >
-          {{ 'user.type.' + userType | translate }}
-        </option>
-      </select>
-    </div>
+<ng-template
+    #userTypeContent
+    let-item
+>
+    {{ 'user.type.' + item | translate }}
+</ng-template>
 
     <tui-textfield class="form-field">
       <label tuiLabel>{{ 'profile.email' | translate }}</label>

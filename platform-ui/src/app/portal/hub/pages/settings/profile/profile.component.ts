@@ -8,7 +8,8 @@ import {
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiTextfield } from '@taiga-ui/core';
-import { TuiPassword, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
+import { TuiDataListWrapperComponent, TuiPassword, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
+import { TuiSelectModule } from '@taiga-ui/legacy';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIPropertyType, UIUser, UIUserType } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
@@ -27,6 +28,8 @@ import { ProfileService } from '../../../services/profile.service';
     TuiSwitch,
     TuiTooltip,
     TuiHint,
+    TuiSelectModule,
+    TuiDataListWrapperComponent,
     TranslateModule
   ],
   templateUrl: './profile.component.html',
@@ -35,13 +38,19 @@ import { ProfileService } from '../../../services/profile.service';
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;
   propertyTypes = Object.values(UIPropertyType);
-  userTypes = Object.values(UIUserType);
+  // Filter out ADMIN from user types - users cannot promote themselves to admin
+  userTypes = Object.values(UIUserType).filter(type => type !== UIUserType.ADMIN);
   user: UIUser = {} as UIUser;
 
   // Stringify function for user type select
   readonly stringifyUserType = (userType: UIUserType): string => {
     return this.translate.instant(`user.type.${userType}`);
   };
+
+  // Getter for type FormControl
+  get typeControl() {
+    return this.profileForm.get('type')!;
+  }
 
   constructor(
     private fb: FormBuilder,

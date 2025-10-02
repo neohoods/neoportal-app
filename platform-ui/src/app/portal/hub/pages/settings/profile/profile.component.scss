@@ -53,20 +53,3 @@ form {
         color: var(--tos-primary);
     }
 }
-
-/* User type select styling */
-.user-type-select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--tos-border);
-    border-radius: 8px;
-    background-color: var(--tos-background-base);
-    color: var(--tos-text-01);
-    font-size: 14px;
-    margin-top: 8px;
-
-    &:focus {
-        outline: none;
-        border-color: var(--tos-primary);
-    }
-}

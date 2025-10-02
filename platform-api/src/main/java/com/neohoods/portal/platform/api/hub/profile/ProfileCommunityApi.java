@@ -9,6 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.ProfileHubApiApiDelegate;
 import com.neohoods.portal.platform.model.User;
+import com.neohoods.portal.platform.model.UserType;
 import com.neohoods.portal.platform.services.UsersService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,21 @@ public class ProfileCommunityApi implements ProfileHubApiApiDelegate {
                         log.warn("User {} is not allowed to update user {}", userId, user.getId());
                         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).<User>build());
                     }
-                    return usersService.updateProfile(userId, user)
-                            .map(ResponseEntity::ok);
+
+                    // Security check: prevent users from promoting themselves to ADMIN
+                    // Only block if they're trying to CHANGE their type to ADMIN
+                    return usersService.getProfile(userId)
+                            .flatMap(existingUser -> {
+                                if (user.getType() != null &&
+                                        user.getType() == UserType.ADMIN &&
+                                        existingUser.getType() != UserType.ADMIN) {
+                                    log.warn("User {} attempted to promote themselves to ADMIN - blocked", userId);
+                                    return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).<User>build());
+                                }
+
+                                return usersService.updateProfile(userId, user)
+                                        .map(ResponseEntity::ok);
+                            });
                 }))
                 .onErrorResume(e -> {
                     // Let CodedErrorException pass through to GlobalExceptionHandler
