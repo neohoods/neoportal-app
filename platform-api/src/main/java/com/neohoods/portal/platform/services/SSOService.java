@@ -3,6 +3,7 @@ package com.neohoods.portal.platform.services;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.entities.SettingsEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.exceptions.CodedError;
+import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.repositories.SettingsRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.nimbusds.jwt.JWT;
@@ -83,14 +86,23 @@ public class SSOService {
             // TODO state and PKCE
             SettingsEntity setting = settingsRepository.findTopByOrderByIdAsc().get();
             AuthorizationCode code = new AuthorizationCode(authorizationCode);
-            URI callback = new URI(frontendUrl + "/sso/callback");
+
+            URI callback;
+            URI tokenEndpoint;
+            try {
+                callback = new URI(frontendUrl + "/sso/callback");
+                tokenEndpoint = new URI(setting.getSsoTokenEndpoint());
+            } catch (URISyntaxException e) {
+                log.error("Invalid URI configuration", e);
+                throw new CodedErrorException(CodedError.INTERNAL_ERROR,
+                        Map.of("error", "Invalid URI configuration", "details", e.getMessage()));
+            }
+
             AuthorizationGrant codeGrant = new AuthorizationCodeGrant(code, callback);
 
             ClientID clientID = new ClientID(setting.getSsoClientId());
             Secret clientSecret = new Secret(setting.getSsoClientSecret());
             ClientAuthentication clientAuth = new ClientSecretBasic(clientID, clientSecret);
-
-            URI tokenEndpoint = new URI(setting.getSsoTokenEndpoint());
 
             TokenRequest request = new TokenRequest(tokenEndpoint, clientAuth, codeGrant, null);
 
@@ -98,7 +110,9 @@ public class SSOService {
             try {
                 tokenResponse = OIDCTokenResponseParser.parse(request.toHTTPRequest().send());
             } catch (ParseException e) {
-                throw new RuntimeException(e);
+                log.error("Failed to parse token response", e);
+                throw new CodedErrorException(CodedError.EXTERNAL_SERVICE_ERROR,
+                        Map.of("service", "SSO Token Exchange", "error", e.getMessage()));
             }
 
             if (!tokenResponse.indicatesSuccess()) {
@@ -117,7 +131,7 @@ public class SSOService {
                 if (user == null) {
                     // User not found, create a new user or handle appropriately
                     log.error("User not found for email: {}", email);
-                    throw new RuntimeException("User not found for email: " + email);
+                    throw new CodedErrorException(CodedError.USER_NOT_FOUND_SSO, Map.of("email", email));
                 }
 
                 log.info("Found user: {} with roles: {}", user.getUsername(), user.getRoles());
@@ -143,7 +157,9 @@ public class SSOService {
                 return new SecurityContext[] { context };
 
             } catch (java.text.ParseException e) {
-                throw new RuntimeException(e);
+                log.error("Failed to parse JWT claims", e);
+                throw new CodedErrorException(CodedError.EXTERNAL_SERVICE_ERROR,
+                        Map.of("service", "JWT Parsing", "error", e.getMessage()));
             }
         }).flatMap(contextArray -> {
             if (contextArray == null) {
@@ -159,6 +175,6 @@ public class SSOService {
                     .doOnSuccess(v -> log.info("Security context saved successfully"))
                     .doOnError(e -> log.error("Failed to save security context", e))
                     .then(Mono.just(true));
-        }).onErrorReturn(false);
+        });
     }
 }

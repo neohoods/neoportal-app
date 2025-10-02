@@ -39,8 +39,7 @@ public class SSOApi implements SsoPublicApiApiDelegate {
                         } else {
                             return ResponseEntity.badRequest().<Void>build();
                         }
-                    })
-                    .onErrorReturn(ResponseEntity.badRequest().<Void>build());
+                    });
         });
     }
 }

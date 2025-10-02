@@ -19,7 +19,9 @@
     "redirectingToSSO": "Redirecting to SSO login..."
   },
   "tokenExchange": {
-    "inProgress": "Exchanging SSO token..."
+    "inProgress": "Exchanging SSO token...",
+    "userNotFound": "User not found. Please sign up first.",
+    "userNotFoundMessage": "The user account for this email does not exist. Please create an account first."
   },
   "welcome": {
     "rentPortal": "Welcome to your community portal",

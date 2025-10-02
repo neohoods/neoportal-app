@@ -19,7 +19,9 @@
     "redirectingToSSO": "Redirection vers la connexion SSO..."
   },
   "tokenExchange": {
-    "inProgress": "Échange du jeton SSO en cours..."
+    "inProgress": "Échange du jeton SSO en cours...",
+    "userNotFound": "Utilisateur introuvable. Veuillez d'abord vous inscrire.",
+    "userNotFoundMessage": "Le compte utilisateur pour cet email n'existe pas. Veuillez d'abord créer un compte."
   },
   "welcome": {
     "rentPortal": "Bienvenue sur votre portail communautaire",

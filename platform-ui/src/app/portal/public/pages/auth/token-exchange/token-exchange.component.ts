@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiLoader, TuiTextfield } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
@@ -46,7 +46,8 @@ export class TokenExchangeComponent {
     @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
     private configService: ConfigService,
     private alerts: TuiAlertService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {
     this.config = this.configService.getSettings();
   }
@@ -60,6 +61,7 @@ export class TokenExchangeComponent {
 
     if (state && code) {
       this.authService.exchangeSSOToken(state, code).subscribe((result: string) => {
+        console.log('Token exchange result:', result);
         if (result === 'success') {
           // Check user role and redirect accordingly, same as sign-in flow
           if (this.authService.hasRole('hub')) {
@@ -68,16 +70,15 @@ export class TokenExchangeComponent {
             this.router.navigate(['/']);
           }
         } else {
+          // Other errors are handled by the error interceptor
           this.alerts.open(
             'Failed to exchange SSO token',
             { appearance: 'negative' }
           ).subscribe();
         }
       }, (error) => {
-        this.alerts.open(
-          'An error occurred during SSO token exchange',
-          { appearance: 'negative' }
-        ).subscribe();
+        // Errors are handled by the error interceptor
+        console.error('Token exchange error:', error);
       });
     } else {
       this.alerts.open(

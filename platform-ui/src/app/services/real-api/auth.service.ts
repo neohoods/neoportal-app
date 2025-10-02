@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { TuiAlertService } from '@taiga-ui/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { AuthApiService, ProfileHubApiService, Property, SsoPublicApiService, User } from '../../api-client';
 import { UIProperty, UIPropertyType, UIUser, UIUserType } from '../../models/UIUser';
 import { AuthService, UserInfo } from '../auth.service';
@@ -64,6 +64,11 @@ export class APIAuthService implements AuthService {
           console.error('Failed to initialize session after SSO token exchange:', error);
           return 'error';
         });
+      }),
+      catchError((error) => {
+        // The AUTH018 error is handled by the error interceptor
+        console.error('SSO token exchange error:', error);
+        return of('error');
       })
     );
   }

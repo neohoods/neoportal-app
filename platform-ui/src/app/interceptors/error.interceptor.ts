@@ -46,6 +46,18 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                 } as CodedError);
             } else if (isApiError(error.error)) {
                 // API error with our custom format
+                if (error.error.code === 'AUTH018') {
+                    // Special handling for user not found in SSO
+                    // Show alert and redirect immediately
+                    alertService.open(
+                        translate.instant('tokenExchange.userNotFound'),
+                        { appearance: 'negative' }
+                    ).subscribe();
+
+                    router.navigate(['/sign-up']);
+
+                    return EMPTY; // Don't propagate the error when redirecting
+                }
                 showError(alertService, translate, error.error);
             } else {
                 // Unexpected server error
