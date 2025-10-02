@@ -18,6 +18,10 @@
       font-size: 1.8rem;
       color: var(--tos-text-primary);
       margin-bottom: 10px;
+
+      &.centered {
+        text-align: center;
+      }
     }
 
     p {
