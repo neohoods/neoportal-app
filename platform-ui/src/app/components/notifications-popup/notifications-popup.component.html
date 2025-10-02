@@ -42,6 +42,8 @@
           <img
             class="notification-image"
             [src]="getNotificationImage(notification)"
+            (error)="onImageError($event)"
+            alt="Notification icon"
           />
           <div class="notification-content">
             <h4 class="notification-text">

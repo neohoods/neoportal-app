@@ -184,8 +184,17 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
   }
 
   getNotificationImage(notification: UINotification): string {
-
-    return '/assets/default-notification.png';
+    switch (notification.type) {
+      case UINotificationType.ADMIN_NEW_USER:
+        return '/assets/notifications/user-icon.svg';
+      // Add more cases as needed for other notification types
+      // case UINotificationType.ANNOUNCEMENT:
+      //   return '/assets/notifications/announcement-icon.svg';
+      // case UINotificationType.EMAIL:
+      //   return '/assets/notifications/email-icon.svg';
+      default:
+        return '/assets/notifications/default-icon.svg';
+    }
   }
 
   onNotificationClick(notification: UINotification) {
@@ -218,5 +227,12 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
 
   onNotificationHover(notification: UINotification) {
     this.markAsRead(notification);
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.src = '/assets/notifications/default-icon.svg';
+    }
   }
 }
