@@ -56,7 +56,7 @@
                 <tui-expand [expanded]="!getDelegateSignal(i)()">
                     <table tuiTable>
                         <tbody>
-                            <tr>
+                            <tr *ngIf="delegate.email">
                                 <td tuiTd>
                                     <b>
                                         {{ 'infos.delegate.email' | translate }}
@@ -64,7 +64,7 @@
                                 </td>
                                 <td tuiTd>{{ delegate.email }}</td>
                             </tr>
-                            <tr>
+                            <tr *ngIf="delegate.matrixUser">
                                 <td tuiTd>
                                     <b>
                                         {{ 'infos.delegate.matrixUser' | translate }}
@@ -72,7 +72,7 @@
                                 </td>
                                 <td tuiTd>{{ delegate.matrixUser }}</td>
                             </tr>
-                            <tr>
+                            <tr *ngIf="delegate.building">
                                 <td tuiTd>
                                     <b>
                                         {{ 'infos.delegate.building' | translate }}
@@ -219,7 +219,7 @@
                     <tui-expand [expanded]="!getEmergencySignal(i)()">
                         <table tuiTable>
                             <tbody>
-                                <tr>
+                                <tr *ngIf="emergency.name">
                                     <td tuiTd>
                                         <b>
                                             {{ 'infos.contactNumbers.emergency.name' | translate }}

@@ -12,7 +12,7 @@ import { AuthService, UserInfo } from '../auth.service';
 })
 export class APIAuthService implements AuthService {
   private isAuthenticated$ = new BehaviorSubject<boolean>(false);
-  private userRoles: string[] = ['admin', 'hub']; // Store multiple roles
+  private userRoles: string[] = ['hub']; // Store multiple roles
   message: string = '';
   userInfo: UserInfo = {
     firstName: 'unknown',
@@ -33,6 +33,7 @@ export class APIAuthService implements AuthService {
       postalCode: 'unknown',
       country: 'unknown',
       type: UIUserType.EXTERNAL,
+      roles: ['hub'],
       properties: [],
     },
   };
@@ -92,6 +93,9 @@ export class APIAuthService implements AuthService {
   getUserProfile(): Observable<UIUser> {
     return this.profileApiService.getProfile().pipe(
       map((user: User) => {
+        // Update userRoles with the actual user roles
+        this.userRoles = user.roles ?? ['hub'];
+
         return {
           ...user,
           type: user.type as UIUserType,
@@ -142,6 +146,7 @@ export class APIAuthService implements AuthService {
               streetAddress: user.streetAddress ?? 'unknown',
               city: user.city ?? 'unknown',
               type: user.type as UIUserType,
+              roles: user.roles ?? ['hub'],
               properties: (user.properties ?? []).map((property: Property) => ({
                 ...property,
                 type: property.type as UIPropertyType,
@@ -149,6 +154,8 @@ export class APIAuthService implements AuthService {
               postalCode: user.postalCode ?? 'unknown',
               country: user.country ?? 'unknown',
             };
+            // Update userRoles with the actual user roles
+            this.userRoles = user.roles ?? ['hub'];
             observer.next(true);
             observer.complete();
           },

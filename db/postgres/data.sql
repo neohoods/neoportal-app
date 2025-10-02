@@ -101,8 +101,8 @@ INSERT INTO notification_settings (user_id, enable_notifications, newsletter_ena
 INSERT INTO notifications (
                 id, user_id, author, date, type, already_read, payload
             ) VALUES (
-                '200103cd-f279-4503-af50-fcc6decd74f6', '8cf28343-7b32-4365-8c04-305f342a2cee', 'Platform', '2024-11-21T00:00:00Z',
-                'ADMIN_NEW_USER', false, '{"userId": "999a870a-ae16-4d4a-9f17-516ca3b4d16d"}'
+                '200103cd-f279-4503-af50-fcc6decd74f6', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'Platform', '2024-11-21T00:00:00Z',
+                'ADMIN_NEW_USER', false, '{"newUserType": "TENANT", "newUserEmail": "quentincastel86+john@gmail.com", "newUserLastName": "Doe", "newUserUsername": "john_doe", "newUserFirstName": "John", "newUserId": "8cf28343-7b32-4365-8c04-305f342a2cee"}'
                 
             );
 

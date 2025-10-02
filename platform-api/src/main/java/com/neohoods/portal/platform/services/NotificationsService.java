@@ -291,6 +291,7 @@ public class NotificationsService {
 
             // Create notification payload
             Map<String, Object> payload = Map.of(
+                    "newUserId", newUser.getId().toString(),
                     "newUserUsername", newUser.getUsername(),
                     "newUserEmail", newUser.getEmail(),
                     "newUserType", newUser.getType().toString(),

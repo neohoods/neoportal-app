@@ -117,6 +117,7 @@
     "emailPlaceholder": "Enter your email",
     "password": "Password",
     "passwordPlaceholder": "Enter your password",
+    "ssoPasswordInfo": "SSO is enabled. Password management is not available when SSO is active.",
     "addressInfo": "Address Information",
     "flatNumber": "Flat Number",
     "flatNumberPlaceholder": "Enter your flat number",
@@ -225,7 +226,9 @@
       "username": "Username",
       "email": "Email",
       "flatNumber": "Flat Number",
-      "address": "Address"
+      "type": "Type",
+      "address": "Address",
+      "createdAt": "Registration Date"
     }
   },
   
@@ -587,6 +590,7 @@
     "enableNotifications": "Enable notifications",
     "enableNewsletters": "Receive newsletters",
     "adminNewUser": "New user registered",
+    "adminNewUserWithName": "New user registered: {{firstName}} {{lastName}}",
     "moreButton": "More",
     "saveButton": "Save",
     "saveSuccess": "Settings saved successfully",
@@ -764,8 +768,14 @@
     },
     "userTypes": {
       "admin": "Administrator",
-      "user": "User",
-      "moderator": "Moderator"
+      "owner": "Owner",
+      "landlord": "Landlord",
+      "tenant": "Tenant",
+      "syndic": "Syndic",
+      "external": "External",
+      "contractor": "Contractor",
+      "commercial_property_owner": "Commercial Property Owner",
+      "guest": "Guest"
     },
     "table": {
       "title": "Title",
@@ -843,9 +853,15 @@
       "specificUsersHelp": "Coming soon: specific user selection"
     },
     "userTypes": {
+      "admin": "Administrator",
       "owner": "Owner",
+      "landlord": "Landlord",
       "tenant": "Tenant",
-      "admin": "Administrator"
+      "syndic": "Syndic",
+      "external": "External",
+      "contractor": "Contractor",
+      "commercial_property_owner": "Commercial Property Owner",
+      "guest": "Guest"
     },
     "logs": {
       "title": "Send Logs",

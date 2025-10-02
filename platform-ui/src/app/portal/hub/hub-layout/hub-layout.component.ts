@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -35,6 +36,7 @@ import { ApplicationsComponent } from '../components/applications/applications.c
   standalone: true,
   selector: 'hub-layout',
   imports: [
+    CommonModule,
     FooterComponent,
     RouterLinkActive,
     RouterOutlet,

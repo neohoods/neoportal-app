@@ -101,6 +101,18 @@
         <span class="username ellipsis">{{ item.username }}</span>
       </div>
     }
+    @if (column.key === "type") {
+      <tui-chip
+        appearance="custom"
+        [style.background-color]="('userTypes.' + item.type.toLowerCase()) | translate | tuiAutoColor"
+        size="s"
+      >
+        {{ 'userTypes.' + item.type.toLowerCase() | translate }}
+      </tui-chip>
+    }
+    @if (column.key === "createdAt") {
+      <span class="ellipsis">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+    }
   </ng-template>
 </tos-table>
 

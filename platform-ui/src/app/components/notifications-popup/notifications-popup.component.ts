@@ -49,6 +49,9 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
   private pollingSubscription?: Subscription;
   private isAlive = true; // Track component lifecycle
 
+  // Expose enum for template
+  UINotificationType = UINotificationType;
+
   // Use signals for reactive state
   notifications = signal<UINotification[]>([]);
   unreadNotificationsCount = signal<number>(0);
@@ -163,19 +166,42 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
     this.notificationsService.acknowledgeNotifications(this.notifications());
   }
 
-  getNotificationText(type: UINotificationType): string {
-    switch (type) {
+  getNotificationText(notification: UINotification): string {
+    switch (notification.type) {
       case UINotificationType.ADMIN_NEW_USER:
+        if (notification.payload) {
+          return 'notifications.adminNewUserWithName';
+        }
         return 'notifications.adminNewUser';
       default:
         return 'notifications.unknown';
     }
   }
 
+  getNotificationVariables(notification: UINotification): any {
+    switch (notification.type) {
+      case UINotificationType.ADMIN_NEW_USER:
+        if (notification.payload) {
+          return {
+            firstName: notification.payload.newUserFirstName,
+            lastName: notification.payload.newUserLastName,
+            email: notification.payload.newUserEmail
+          };
+        }
+        return {};
+      default:
+        return {};
+    }
+  }
+
   getNotificationLink(notification: UINotification): string | null {
     switch (notification.type) {
       case UINotificationType.ADMIN_NEW_USER:
-        return null;
+        // Navigate to admin users page with the specific user
+        if (notification.payload?.newUserId) {
+          return `/admin/users/${notification.payload.newUserId}/edit`;
+        }
+        return '/admin/users';
 
       // Add other cases if needed for different notification types
       default:

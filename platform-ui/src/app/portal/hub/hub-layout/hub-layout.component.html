@@ -61,6 +61,7 @@
           {{ 'hubLayout.settings' | translate }}
         </button>
         <button
+          *ngIf="user?.user?.roles?.includes('admin')"
           tuiOption
           new
           type="button"

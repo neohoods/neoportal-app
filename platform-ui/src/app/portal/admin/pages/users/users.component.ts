@@ -1,4 +1,5 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 import {
   FormControl,
@@ -24,11 +25,12 @@ import {
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiChip,
   TuiConfirmData
 } from '@taiga-ui/kit';
 import { TuiInputModule } from '@taiga-ui/legacy';
 import { map } from 'rxjs';
-import { UIUser } from '../../../../models/UIUser';
+import { UIUser, UIUserType } from '../../../../models/UIUser';
 import { USERS_SERVICE_TOKEN } from '../../admin.providers';
 import {
   Column,
@@ -57,8 +59,10 @@ import { UsersService } from '../../services/users.service';
     TuiDropdown,
     TuiTable,
     TuiIcon,
+    TuiChip,
     TosTableComponent,
-    TranslateModule
+    TranslateModule,
+    DatePipe
   ],
   selector: 'app-users',
   templateUrl: './users.component.html',
@@ -69,6 +73,9 @@ export class UsersComponent {
   // Default Table Size
   protected users: UIUser[] = [];
   currentUser: UIUser | undefined;
+
+  // Expose enum for template
+  UIUserType = UIUserType;
 
   // Available Columns for Display
   columns: Column[] = [];
@@ -107,6 +114,22 @@ export class UsersComponent {
         label: this.translate.instant('users.columns.flatNumber'),
         visible: true,
         sortable: true,
+        size: 'm',
+      },
+      {
+        key: 'type',
+        label: this.translate.instant('users.columns.type'),
+        visible: true,
+        sortable: true,
+        size: 's',
+        custom: true,
+      },
+      {
+        key: 'createdAt',
+        label: this.translate.instant('users.columns.createdAt'),
+        visible: true,
+        sortable: true,
+        custom: true,
         size: 'm',
       },
       {
@@ -194,7 +217,9 @@ export class UsersComponent {
             user.username?.toLowerCase().includes(searchLower) ||
             user.email?.toLowerCase().includes(searchLower) ||
             user.flatNumber?.toLowerCase().includes(searchLower) ||
-            user.streetAddress?.toLowerCase().includes(searchLower)
+            user.streetAddress?.toLowerCase().includes(searchLower) ||
+            user.type?.toLowerCase().includes(searchLower) ||
+            user.createdAt?.toLowerCase().includes(searchLower)
           );
         }
 
@@ -210,6 +235,14 @@ export class UsersComponent {
             if (bValue === undefined) return -1;
 
             if (aValue === bValue) return 0;
+
+            // Special handling for createdAt (date sorting)
+            if (sortBy === 'createdAt') {
+              const dateA = new Date(aValue as string).getTime();
+              const dateB = new Date(bValue as string).getTime();
+              const comparison = dateA - dateB;
+              return sortOrder === 'desc' ? -comparison : comparison;
+            }
 
             const comparison = aValue < bValue ? -1 : 1;
             return sortOrder === 'desc' ? -comparison : comparison;
@@ -254,4 +287,6 @@ export class UsersComponent {
       }
     }
   }
+
+
 }

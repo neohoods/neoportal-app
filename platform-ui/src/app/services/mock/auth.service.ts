@@ -33,6 +33,7 @@ export class MockAuthService implements AuthService {
       postalCode: '12345',
       country: 'USA',
       type: UIUserType.ADMIN,
+      roles: ['hub', 'admin'],
       properties: []
     },
   };
@@ -58,6 +59,7 @@ export class MockAuthService implements AuthService {
       "postalCode": "12345",
       "country": "USA",
       "type": UIUserType.ADMIN,
+      "roles": ["hub", "admin"],
       "properties": [],
     };
     this.usersService.getUsers().subscribe((users) => {
@@ -75,6 +77,8 @@ export class MockAuthService implements AuthService {
   }
 
   getUserProfile(): Observable<UIUser> {
+    // Update userRoles with the actual user roles
+    this.userRoles = this.userInfo.user.roles ?? ['hub'];
     return of(this.userInfo.user);
   }
 

@@ -116,6 +116,7 @@
     "emailPlaceholder": "Entrez votre email",
     "password": "Mot de passe",
     "passwordPlaceholder": "Entrez votre mot de passe",
+    "ssoPasswordInfo": "SSO est activé. La gestion du mot de passe n'est pas disponible quand SSO est actif.",
     "addressInfo": "Adresse",
     "flatNumber": "Numéro d'appartement",
     "flatNumberPlaceholder": "Entrez votre numéro d'appartement",
@@ -233,7 +234,9 @@
       "username": "Nom d'utilisateur",
       "email": "Email",
       "flatNumber": "Numéro d'appartement",
-      "address": "Adresse"
+      "type": "Type",
+      "address": "Adresse",
+      "createdAt": "Date d'inscription"
     }
   },
   "emailConfirmation": {
@@ -584,6 +587,7 @@
     "enableNotifications": "Activer les notifications",
     "enableNewsletters": "Recevoir les newsletters",
     "adminNewUser": "Nouvel utilisateur enregistré",
+    "adminNewUserWithName": "Nouvel utilisateur enregistré: {{firstName}} {{lastName}}",
     "moreButton": "Plus",
     "saveButton": "Enregistrer",
     "saveSuccess": "Paramètres sauvegardés avec succès",
@@ -738,11 +742,6 @@
       "specificUsers": "Utilisateurs spécifiques",
       "users": "utilisateurs"
     },
-    "userTypes": {
-      "admin": "Administrateur",
-      "user": "Utilisateur",
-      "moderator": "Modérateur"
-    },
     "table": {
       "title": "Titre",
       "subject": "Sujet",
@@ -819,9 +818,15 @@
       "specificUsersHelp": "Fonctionnalité à venir : sélection d'utilisateurs spécifiques"
     },
     "userTypes": {
+      "admin": "Administrateur",
       "owner": "Propriétaire",
+      "landlord": "Bailleur",
       "tenant": "Locataire",
-      "admin": "Administrateur"
+      "syndic": "Syndic",
+      "external": "Externe",
+      "contractor": "Entrepreneur",
+      "commercial_property_owner": "Propriétaire Commercial",
+      "guest": "Invité"
     },
     "logs": {
       "title": "Logs d'envoi",
@@ -966,6 +971,17 @@
         "view_announcement": "Voir l'Annonce"
       }
     }
+  },
+  "userTypes": {
+    "admin": "Administrateur",
+    "owner": "Propriétaire",
+    "landlord": "Bailleur",
+    "tenant": "Locataire",
+    "syndic": "Syndic",
+    "external": "Externe",
+    "contractor": "Entrepreneur",
+    "commercial_property_owner": "Propriétaire Commercial",
+    "guest": "Invité"
   },
   "common": {
     "save": "Enregistrer",

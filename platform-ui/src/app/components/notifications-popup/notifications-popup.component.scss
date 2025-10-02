@@ -105,6 +105,18 @@
   max-width: 200px;
 }
 
+.user-info {
+  font-size: 12px;
+  color: var(--tos-text-02);
+  margin: 4px 0;
+  max-width: 200px;
+  
+  .user-email {
+    color: var(--tos-text-03);
+    font-style: italic;
+  }
+}
+
 .details-button {
   position: absolute;
   top: calc(50% - 15px);

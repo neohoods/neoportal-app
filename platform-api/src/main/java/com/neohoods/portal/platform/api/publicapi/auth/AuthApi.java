@@ -103,8 +103,6 @@ public class AuthApi implements AuthApiApiDelegate {
                                 .map(userEntity -> {
                                         log.info("Login successful for user: {}", userEntity.getUsername());
                                         return ResponseEntity.ok(userEntity.toUser()
-                                                        // TODO get the user roles
-                                                        .roles(List.of("hub", "admin"))
                                                         .build());
                                 })
                                 .onErrorResume(e -> {

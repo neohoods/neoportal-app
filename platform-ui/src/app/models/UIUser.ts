@@ -13,8 +13,10 @@ export interface UIUser {
     disabled: boolean;
     preferredLanguage?: string;
     profileSharingConsent?: boolean;
+    createdAt?: string;
 
     type: UIUserType;
+    roles: string[];
     properties: UIProperty[];
 
     //address

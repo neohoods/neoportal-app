@@ -47,6 +47,8 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/api/actuator/**").permitAll()
                         .pathMatchers("/public/**", "/api/public/**").permitAll()
+                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
+                        .pathMatchers("/api/hub/**").hasRole("HUB")
                         .anyExchange().authenticated())
                 .build();
     }

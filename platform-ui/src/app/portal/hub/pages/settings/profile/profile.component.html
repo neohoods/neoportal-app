@@ -18,23 +18,23 @@
     <h3>{{ 'profile.basicInfo' | translate }}</h3>
 
     <tui-textfield class="form-field">
-      <label tuiLabel>{{ 'profile.username' | translate }}</label>
-      <input formControlName="username" type="text" placeholder="{{ 'profile.usernamePlaceholder' | translate }}"
+      <label tuiLabel for="username">{{ 'profile.username' | translate }}</label>
+      <input id="username" formControlName="username" type="text" placeholder="{{ 'profile.usernamePlaceholder' | translate }}"
         tuiTextfield />
     </tui-textfield>
 
     <div class="row form-field">
       <div class="column">
         <tui-textfield>
-          <label tuiLabel>{{ 'profile.firstName' | translate }}</label>
-          <input formControlName="firstName" type="text" placeholder="{{ 'profile.firstNamePlaceholder' | translate }}"
+          <label tuiLabel for="firstName">{{ 'profile.firstName' | translate }}</label>
+          <input id="firstName" formControlName="firstName" type="text" placeholder="{{ 'profile.firstNamePlaceholder' | translate }}"
             tuiTextfield />
         </tui-textfield>
       </div>
       <div class="column">
         <tui-textfield>
-          <label tuiLabel>{{ 'profile.lastName' | translate }}</label>
-          <input formControlName="lastName" type="text" placeholder="{{ 'profile.lastNamePlaceholder' | translate }}"
+          <label tuiLabel for="lastName">{{ 'profile.lastName' | translate }}</label>
+          <input id="lastName" formControlName="lastName" type="text" placeholder="{{ 'profile.lastNamePlaceholder' | translate }}"
             tuiTextfield />
         </tui-textfield>
       </div>
@@ -52,55 +52,64 @@
 
 
     <tui-textfield class="form-field">
-      <label tuiLabel>{{ 'profile.email' | translate }}</label>
-      <input formControlName="email" type="email" placeholder="{{ 'profile.emailPlaceholder' | translate }}"
+      <label tuiLabel for="email">{{ 'profile.email' | translate }}</label>
+      <input id="email" formControlName="email" type="email" placeholder="{{ 'profile.emailPlaceholder' | translate }}"
         tuiTextfield />
     </tui-textfield>
 
-    <tui-textfield class="form-field">
-      <label tuiLabel>{{ 'profile.password' | translate }}</label>
-      <input formControlName="password" type="password" placeholder="{{ 'profile.passwordPlaceholder' | translate }}"
-        tuiTextfield />
-      <tui-icon tuiPassword />
-    </tui-textfield>
+    @if (!isSSOUser) {
+      <tui-textfield class="form-field">
+        <label tuiLabel for="password">{{ 'profile.password' | translate }}</label>
+        <input id="password" formControlName="password" type="password" placeholder="{{ 'profile.passwordPlaceholder' | translate }}"
+          tuiTextfield />
+        <tui-icon tuiPassword />
+      </tui-textfield>
+    }
 
     <!-- Address Fields -->
     <h3>{{ 'profile.addressInfo' | translate }}</h3>
 
     <tui-textfield class="form-field">
-      <label tuiLabel>{{ 'profile.flatNumber' | translate }}</label>
-      <input formControlName="flatNumber" type="text" placeholder="{{ 'profile.flatNumberPlaceholder' | translate }}"
+      <label tuiLabel for="flatNumber">{{ 'profile.flatNumber' | translate }}</label>
+      <input id="flatNumber" formControlName="flatNumber" type="text" placeholder="{{ 'profile.flatNumberPlaceholder' | translate }}"
         tuiTextfield />
-    </tui-textfield>
-
-    <tui-textfield class="form-field">
-      <label tuiLabel>{{ 'profile.streetAddress' | translate }}</label>
-      <input formControlName="streetAddress" type="text"
-        placeholder="{{ 'profile.streetAddressPlaceholder' | translate }}" tuiTextfield />
     </tui-textfield>
 
     <div class="row form-field">
       <div class="column">
         <tui-textfield>
-          <label tuiLabel>{{ 'profile.city' | translate }}</label>
-          <input formControlName="city" type="text" placeholder="{{ 'profile.cityPlaceholder' | translate }}"
+          <label tuiLabel for="streetAddress">{{ 'profile.streetAddress' | translate }}</label>
+          <input id="streetAddress" formControlName="streetAddress" type="text"
+            placeholder="{{ 'profile.streetAddressPlaceholder' | translate }}" 
             tuiTextfield />
         </tui-textfield>
       </div>
       <div class="column">
         <tui-textfield>
-          <label tuiLabel>{{ 'profile.postalCode' | translate }}</label>
-          <input formControlName="postalCode" type="text"
-            placeholder="{{ 'profile.postalCodePlaceholder' | translate }}" tuiTextfield />
+          <label tuiLabel for="city">{{ 'profile.city' | translate }}</label>
+          <input id="city" formControlName="city" type="text" placeholder="{{ 'profile.cityPlaceholder' | translate }}"
+            tuiTextfield />
         </tui-textfield>
       </div>
     </div>
 
-    <tui-textfield class="form-field">
-      <label tuiLabel>{{ 'profile.country' | translate }}</label>
-      <input formControlName="country" type="text" placeholder="{{ 'profile.countryPlaceholder' | translate }}"
-        tuiTextfield />
-    </tui-textfield>
+    <div class="row form-field">
+      <div class="column">
+        <tui-textfield>
+          <label tuiLabel for="postalCode">{{ 'profile.postalCode' | translate }}</label>
+          <input id="postalCode" formControlName="postalCode" type="text"
+            placeholder="{{ 'profile.postalCodePlaceholder' | translate }}" 
+            tuiTextfield />
+        </tui-textfield>
+      </div>
+      <div class="column">
+        <tui-textfield>
+          <label tuiLabel for="country">{{ 'profile.country' | translate }}</label>
+          <input id="country" formControlName="country" type="text" placeholder="{{ 'profile.countryPlaceholder' | translate }}"
+            tuiTextfield />
+        </tui-textfield>
+      </div>
+    </div>
     <button appearance="accent" tuiButton size="l" type="submit">
       {{ 'profile.saveButton' | translate }}
     </button>

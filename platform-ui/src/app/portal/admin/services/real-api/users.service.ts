@@ -52,8 +52,9 @@ export class ApiUsersService implements UsersService {
       disabled: uiUser.disabled,
       avatarUrl: uiUser.avatarUrl,
       preferredLanguage: uiUser.preferredLanguage,
-      roles: [],
+      roles: uiUser.roles || [],
       type: uiUser.type as UserType,
+      createdAt: uiUser.createdAt,
       properties: (uiUser.properties ?? []).map((property: UIProperty) => ({
         name: property.name,
         type: property.type as PropertyType,
@@ -78,6 +79,8 @@ export class ApiUsersService implements UsersService {
       avatarUrl: user.avatarUrl || '',
       preferredLanguage: user.preferredLanguage || '',
       type: user.type as UIUserType,
+      roles: user.roles || [],
+      createdAt: user.createdAt || '',
       properties: (user.properties ?? []).map((property: Property) => ({
         name: property.name,
         type: property.type as UIPropertyType,

@@ -13,6 +13,7 @@ import { TuiChevron, TuiDataListWrapper, TuiDataListWrapperComponent, TuiPasswor
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIPropertyType, UIUser, UIUserType } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
+import { ConfigService, UISettings } from '../../../../../services/config.service';
 import { PROFILE_SERVICE_TOKEN } from '../../../hub.provider';
 import { ProfileService } from '../../../services/profile.service';
 
@@ -50,6 +51,8 @@ export class ProfileComponent implements OnInit {
   // Filter out ADMIN from user types - users cannot promote themselves to admin
   userTypes = Object.values(UIUserType).filter(type => type !== UIUserType.ADMIN);
   user: UIUser = {} as UIUser;
+  isSSOUser = false; // Flag to track if user is SSO authenticated
+  config: UISettings | null = null;
 
   // Stringify function for user type select
   readonly stringifyUserType = (userType: UIUserType): string => {
@@ -65,6 +68,7 @@ export class ProfileComponent implements OnInit {
     private fb: FormBuilder,
     private alerts: TuiAlertService,
     private translate: TranslateService,
+    private configService: ConfigService,
     @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
     @Inject(PROFILE_SERVICE_TOKEN) private profileService: ProfileService,
   ) {
@@ -86,13 +90,23 @@ export class ProfileComponent implements OnInit {
   }
 
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    // Load configuration first
+    await this.configService.loadConfig();
+    this.config = await this.configService.getSettingsAsync();
+
+    // Load profile after config is loaded
     this.loadProfile();
   }
 
   // Load initial profile data
   loadProfile(): void {
     this.user = this.authService.getCurrentUserInfo().user;
+
+    // Detect if user is SSO authenticated
+    // For now, we'll use a simple heuristic: if the user has no password field or specific SSO indicators
+    this.isSSOUser = this.detectSSOUser();
+
     this.profileForm.patchValue({
       username: this.user.username,
       firstName: this.user.firstName,
@@ -109,7 +123,17 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // Detect if SSO is enabled in configuration
+  private detectSSOUser(): boolean {
+    // Check if SSO is enabled in the configuration
+    // If SSO is enabled, password management should be disabled for all users
+    return this.config?.ssoEnabled || false;
+  }
+
   onSave(): void {
+    // Store current scroll position before validation
+    const currentScrollY = window.scrollY;
+
     if (this.profileForm.valid) {
       const formValue = this.profileForm.value;
 
@@ -126,6 +150,11 @@ export class ProfileComponent implements OnInit {
       this.user.preferredLanguage = formValue.preferredLanguage;
       this.user.profileSharingConsent = formValue.profileSharingConsent;
 
+      // Only include password if user is not SSO and password is provided
+      if (!this.isSSOUser && formValue.password && formValue.password.trim()) {
+        (this.user as any).password = formValue.password;
+      }
+
       this.profileService.updateProfile(this.user).subscribe(() => {
         this.alerts
           .open(this.translate.instant('profile.saveSuccess'), {
@@ -135,4 +164,6 @@ export class ProfileComponent implements OnInit {
       });
     }
   }
+
+
 }

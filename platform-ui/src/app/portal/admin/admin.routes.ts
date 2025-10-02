@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { getGlobalProviders } from '../../global.provider';
+import { AdminGuard } from '../../guards/admin-guards';
 import { AdminLayoutComponent } from './admin-layout/admin-layout.component';
 import { adminProviders } from './admin.providers';
 
@@ -23,6 +24,7 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: '',
     component: AdminLayoutComponent,
+    canActivate: [AdminGuard],
     providers: [...adminProviders, ...getGlobalProviders()],
     children: [
       { path: '', redirectTo: 'infos', pathMatch: 'full' }, // Redirect to 'profile'

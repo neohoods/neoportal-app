@@ -8,12 +8,14 @@
         "isEmailVerified": true,
         "disabled": false,
         "preferredLanguage": "en",
+        "createdAt": "2024-01-15T10:30:00Z",
         "flatNumber": "123",
         "streetAddress": "123 Main St",
         "city": "Anytown",
         "postalCode": "12345",
         "country": "USA",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -40,6 +42,7 @@
         "postalCode": "67890",
         "country": "USA",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -60,12 +63,14 @@
         "isEmailVerified": false,
         "disabled": true,
         "preferredLanguage": "fr",
+        "createdAt": "2024-02-20T14:15:00Z",
         "flatNumber": "789",
         "streetAddress": "789 Oak St",
         "city": "Somewhere",
         "postalCode": "54321",
         "country": "Canada",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -86,12 +91,14 @@
         "isEmailVerified": true,
         "disabled": false,
         "preferredLanguage": "es",
+        "createdAt": "2024-03-10T09:45:00Z",
         "flatNumber": "101",
         "streetAddress": "101 Pine St",
         "city": "Nowhere",
         "postalCode": "98765",
         "country": "Mexico",
         "type": "LANDLORD",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -119,6 +126,7 @@
         "postalCode": "24680",
         "country": "Germany",
         "type": "TENANT",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -145,6 +153,7 @@
         "postalCode": "13579",
         "country": "Spain",
         "type": "TENANT",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -175,6 +184,7 @@
         "postalCode": "24680",
         "country": "France",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -201,6 +211,7 @@
         "postalCode": "12345",
         "country": "China",
         "type": "LANDLORD",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "GARAGE",
@@ -223,6 +234,7 @@
         "postalCode": "67890",
         "country": "Spain",
         "type": "TENANT",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "GARAGE",
@@ -245,6 +257,7 @@
         "postalCode": "54321",
         "country": "Mexico",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "GARAGE",
@@ -272,6 +285,7 @@
         "postalCode": "12345",
         "country": "USA",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -302,6 +316,7 @@
         "postalCode": "67890",
         "country": "USA",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -332,6 +347,7 @@
         "postalCode": "54321",
         "country": "USA",
         "type": "OWNER",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",
@@ -358,6 +374,7 @@
         "postalCode": "12345",
         "country": "USA",
         "type": "LANDLORD",
+        "roles": ["hub"],
         "properties": [
             {
                 "type": "APARTMENT",

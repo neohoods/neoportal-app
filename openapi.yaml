@@ -1657,6 +1657,10 @@ components:
           type: boolean
           description: "User consent for sharing profile information in the community directory"
           default: false
+        createdAt:
+          type: string
+          format: date-time
+          description: "User registration date"
         type:
           $ref: "#/components/schemas/UserType"
         properties:

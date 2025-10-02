@@ -1,5 +1,6 @@
 package com.neohoods.portal.platform.entities;
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -64,6 +65,10 @@ public class UserEntity {
     @Builder.Default
     private boolean isEmailVerified = false;
 
+    @Column(name = "created_at")
+    @Builder.Default
+    private OffsetDateTime createdAt = OffsetDateTime.now();
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
@@ -100,7 +105,8 @@ public class UserEntity {
                 .profileSharingConsent(profileSharingConsent)
                 .disabled(disabled)
                 .isEmailVerified(isEmailVerified)
-                .roles(Arrays.asList("hub")) // TODO
+                .createdAt(createdAt)
+                .roles(type == UserType.ADMIN ? Arrays.asList("hub", "admin") : Arrays.asList("hub"))
                 .type(type != null ? type.toOpenApiUserType() : null)
                 .properties(properties != null
                         ? properties.stream().map(PropertyEntity::toProperty).collect(Collectors.toList())
@@ -116,5 +122,9 @@ public class UserEntity {
         return parts.length > 1
                 ? Locale.of(parts[0], parts[1])
                 : Locale.of(parts[0]);
+    }
+
+    public List<String> getRoles() {
+        return type == UserType.ADMIN ? Arrays.asList("hub", "admin") : Arrays.asList("hub");
     }
 }
