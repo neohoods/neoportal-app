@@ -139,7 +139,7 @@ public class SSOService {
                 // Convert user roles to authorities
                 Collection<GrantedAuthority> authorities = user.getRoles() != null
                         ? user.getRoles().stream()
-                                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                                 .collect(Collectors.toList())
                         : java.util.Collections.emptyList();
 
