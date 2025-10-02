@@ -171,7 +171,7 @@ export class TosTableComponent {
   }
 
   goToPage(page: number) {
-    this.currentPage = page;
+    this.currentPage = page + 1; // Convert from 0-based to 1-based
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.fetchData();
   }

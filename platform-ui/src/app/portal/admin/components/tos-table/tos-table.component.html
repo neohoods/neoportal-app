@@ -125,7 +125,7 @@
 
     <div class="footer-actions">
       <tui-pagination
-        [index]="currentPage"
+        [index]="currentPage - 1"
         [length]="totalPages"
         (indexChange)="goToPage($event)"
       />
