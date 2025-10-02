@@ -164,10 +164,22 @@ export class UsersComponent {
       })
       .subscribe(response => {
         if (response) {
-          this.alerts.open(
-            this.translate.instant('users.deleteSuccess', { username: user.username }),
-            { appearance: 'positive' },
-          ).subscribe();
+          this.usersService.deleteUser(user.id).subscribe({
+            next: () => {
+              this.alerts.open(
+                this.translate.instant('users.deleteSuccess', { username: user.username }),
+                { appearance: 'positive' },
+              ).subscribe();
+              // The tos-table component will automatically refresh when data changes
+            },
+            error: (error) => {
+              console.error('Error deleting user:', error);
+              this.alerts.open(
+                this.translate.instant('users.deleteError', { username: user.username }),
+                { appearance: 'negative' },
+              ).subscribe();
+            }
+          });
         }
       });
   }

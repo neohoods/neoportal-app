@@ -224,6 +224,7 @@
     "confirmDeleteNo": "Annuler",
     "confirmDeleteLabel": "Supprimer l'utilisateur '{{username}}'",
     "deleteSuccess": "Utilisateur <strong>{{username}}</strong> supprimé avec succès",
+    "deleteError": "Échec de la suppression de l'utilisateur <strong>{{username}}</strong>. Veuillez réessayer.",
     "confirmDisableContent": "Êtes-vous sûr de vouloir désactiver cet utilisateur ?",
     "confirmDisableYes": "Oui, Désactiver",
     "confirmDisableNo": "Annuler",

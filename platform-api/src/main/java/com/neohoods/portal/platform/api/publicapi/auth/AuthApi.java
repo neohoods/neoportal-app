@@ -70,6 +70,8 @@ public class AuthApi implements AuthApiApiDelegate {
 
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;
+        @Value("${neohoods.portal.email.template.app-name}")
+        private String appName;
 
         @Override
         public Mono<ResponseEntity<User>> login(Mono<LoginRequest> loginRequest, ServerWebExchange exchange) {
@@ -151,50 +153,52 @@ public class AuthApi implements AuthApiApiDelegate {
                                                                 // Use Auth0 for user management when SSO is enabled
                                                                 return auth0Service.userExists(request.getEmail())
                                                                                 .flatMap(userExists -> {
-                                                                                        if (userExists) {
-                                                                                                log.warn("Signup failed: User already exists in Auth0: {}",
-                                                                                                                request.getEmail());
-                                                                                                return Mono.error(
-                                                                                                                new CodedErrorException(
-                                                                                                                                CodedError.USER_ALREADY_EXISTS,
-                                                                                                                                "email",
-                                                                                                                                request.getEmail()));
-                                                                                        }
-
-                                                                                        // Step 4: Register user in
-                                                                                        // Auth0
-                                                                                        Map<String, Object> userMetadata = new HashMap<>();
-                                                                                        userMetadata.put("username",
-                                                                                                        request.getUsername());
-                                                                                        userMetadata.put("type", request
-                                                                                                        .getType()
-                                                                                                        .toString());
-                                                                                        userMetadata.put("firstName",
-                                                                                                        request.getFirstName());
-                                                                                        userMetadata.put("lastName",
-                                                                                                        request.getLastName());
-
-                                                                                        try {
-                                                                                                // Register user in
+                                                                                        if (!userExists) {
+                                                                                                // Step 4: Register user
+                                                                                                // in
                                                                                                 // Auth0
-                                                                                                // Email verification
-                                                                                                // redirect URL should
-                                                                                                // be configured in
-                                                                                                // Auth0 Dashboard
-                                                                                                auth0Service.registerUser(
-                                                                                                                request.getEmail(),
-                                                                                                                request.getPassword(),
-                                                                                                                request.getUsername(),
-                                                                                                                userMetadata);
-                                                                                                log.info("Successfully registered user in Auth0: {}",
-                                                                                                                request.getEmail());
-                                                                                        } catch (CodedErrorException e) {
-                                                                                                log.error("Failed to register user in Auth0: {}",
-                                                                                                                request.getEmail(),
-                                                                                                                e);
-                                                                                                return Mono.error(e);
-                                                                                        }
+                                                                                                Map<String, Object> userMetadata = new HashMap<>();
+                                                                                                userMetadata.put(
+                                                                                                                "username",
+                                                                                                                request.getUsername());
+                                                                                                userMetadata.put("type",
+                                                                                                                request
+                                                                                                                                .getType()
+                                                                                                                                .toString());
+                                                                                                userMetadata.put(
+                                                                                                                "firstName",
+                                                                                                                request.getFirstName());
+                                                                                                userMetadata.put(
+                                                                                                                "lastName",
+                                                                                                                request.getLastName());
 
+                                                                                                try {
+                                                                                                        // Register user
+                                                                                                        // in
+                                                                                                        // Auth0
+                                                                                                        // Email
+                                                                                                        // verification
+                                                                                                        // redirect URL
+                                                                                                        // should
+                                                                                                        // be configured
+                                                                                                        // in
+                                                                                                        // Auth0
+                                                                                                        // Dashboard
+                                                                                                        auth0Service.registerUser(
+                                                                                                                        request.getEmail(),
+                                                                                                                        request.getPassword(),
+                                                                                                                        request.getUsername(),
+                                                                                                                        userMetadata);
+                                                                                                        log.info("Successfully registered user in Auth0: {}",
+                                                                                                                        request.getEmail());
+                                                                                                } catch (CodedErrorException e) {
+                                                                                                        log.error("Failed to register user in Auth0: {}",
+                                                                                                                        request.getEmail(),
+                                                                                                                        e);
+                                                                                                        return Mono.error(
+                                                                                                                        e);
+                                                                                                }
+                                                                                        }
                                                                                         // Step 5: Save user to local
                                                                                         // database
                                                                                         UserEntity newUser = createUserEntity(
@@ -236,6 +240,21 @@ public class AuthApi implements AuthApiApiDelegate {
                                                                                         // enabled
                                                                                         log.info("User registration completed. Auth0 will handle email verification for: {}",
                                                                                                         request.getEmail());
+
+                                                                                        // Send welcome email even when
+                                                                                        // SSO is enabled
+                                                                                        try {
+                                                                                                sendWelcomeEmail(
+                                                                                                                newUser);
+                                                                                                log.info("Successfully sent welcome email to: {}",
+                                                                                                                request.getEmail());
+                                                                                        } catch (Exception e) {
+                                                                                                log.error("Failed to send welcome email to: {}",
+                                                                                                                request.getEmail(),
+                                                                                                                e);
+                                                                                                // Don't fail the signup
+                                                                                                // for email failures
+                                                                                        }
 
                                                                                         // Notify admins about new user
                                                                                         // registration
@@ -323,6 +342,105 @@ public class AuthApi implements AuthApiApiDelegate {
         }
 
         /**
+         * Sends welcome email to the user using the active WELCOME template (without
+         * verification token)
+         */
+        private void sendWelcomeEmail(UserEntity user) throws Exception {
+                // Try to get the active WELCOME template
+                try {
+                        var welcomeTemplate = emailTemplateService.getActiveTemplateByType("WELCOME").block();
+                        if (welcomeTemplate != null) {
+                                log.info("Using custom WELCOME template for user: {}", user.getUsername());
+
+                                // Create template variables
+                                var usernameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("username")
+                                                .value(user.getUsername())
+                                                .build();
+
+                                var firstNameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("firstName")
+                                                .value(user.getFirstName())
+                                                .build();
+
+                                var lastNameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("lastName")
+                                                .value(user.getLastName())
+                                                .build();
+
+                                // Add appName variable for template processing
+                                var appNameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("appName")
+                                                .value(appName)
+                                                .build();
+
+                                // Process template content with variables (no verif_url for welcome email)
+                                List<MailService.TemplateVariable> processingVariables = Arrays.asList(
+                                                usernameVar, firstNameVar, lastNameVar, appNameVar);
+
+                                String processedSubject = processTemplateVariables(welcomeTemplate.getSubject(),
+                                                processingVariables);
+                                String processedContent = processTemplateVariables(welcomeTemplate.getContent(),
+                                                processingVariables);
+
+                                // Create final template variables for the email (exclude appName as it's added
+                                // by MailService)
+                                List<MailService.TemplateVariable> templateVariables = new ArrayList<>();
+                                templateVariables.add(usernameVar);
+                                templateVariables.add(firstNameVar);
+                                templateVariables.add(lastNameVar);
+                                templateVariables.add(MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("content")
+                                                .value(processedContent)
+                                                .build());
+
+                                mailService.sendTemplatedEmail(
+                                                user,
+                                                processedSubject,
+                                                "email/custom-template",
+                                                templateVariables,
+                                                user.getLocale());
+                                return;
+                        }
+                } catch (Exception e) {
+                        log.warn("Failed to get WELCOME template, falling back to default template: {}",
+                                        e.getMessage());
+                }
+
+                // Fallback to default welcome template if WELCOME template is not available
+                log.info("Using default welcome template for user: {}", user.getUsername());
+                var usernameVar = MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("username")
+                                .value(user.getUsername())
+                                .build();
+
+                var firstNameVar = MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("firstName")
+                                .value(user.getFirstName())
+                                .build();
+
+                var lastNameVar = MailService.TemplateVariable.builder()
+                                .type(MailService.TemplateVariableType.RAW)
+                                .ref("lastName")
+                                .value(user.getLastName())
+                                .build();
+
+                mailService.sendTemplatedEmail(
+                                user,
+                                "Welcome to portal NeoHoods",
+                                "email/welcome",
+                                new ArrayList<>(Arrays.asList(usernameVar, firstNameVar, lastNameVar)),
+                                user.getLocale());
+        }
+
+        /**
          * Sends verification email to the user using the active WELCOME template
          */
         private void sendVerificationEmail(UserEntity user) throws Exception {
@@ -360,18 +478,28 @@ public class AuthApi implements AuthApiApiDelegate {
                                                 .value(user.getLastName())
                                                 .build();
 
+                                // Add appName variable for template processing
+                                var appNameVar = MailService.TemplateVariable.builder()
+                                                .type(MailService.TemplateVariableType.RAW)
+                                                .ref("appName")
+                                                .value("Terres de Laya") // TODO: Get from configuration
+                                                .build();
+
                                 // Process template content with variables (no verif_url for welcome email)
                                 List<MailService.TemplateVariable> processingVariables = Arrays.asList(
-                                                usernameVar, firstNameVar, lastNameVar);
+                                                usernameVar, firstNameVar, lastNameVar, appNameVar);
 
                                 String processedSubject = processTemplateVariables(welcomeTemplate.getSubject(),
                                                 processingVariables);
                                 String processedContent = processTemplateVariables(welcomeTemplate.getContent(),
                                                 processingVariables);
 
-                                // Create final template variables for the email
-                                List<MailService.TemplateVariable> templateVariables = new ArrayList<>(
-                                                processingVariables);
+                                // Create final template variables for the email (exclude appName as it's added
+                                // by MailService)
+                                List<MailService.TemplateVariable> templateVariables = new ArrayList<>();
+                                templateVariables.add(usernameVar);
+                                templateVariables.add(firstNameVar);
+                                templateVariables.add(lastNameVar);
                                 templateVariables.add(MailService.TemplateVariable.builder()
                                                 .type(MailService.TemplateVariableType.RAW)
                                                 .ref("content")

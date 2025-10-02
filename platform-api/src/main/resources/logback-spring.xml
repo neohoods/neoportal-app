@@ -114,7 +114,9 @@
     </springProfile>
 
     <!-- Reduce noise from some libraries -->
-    <logger name="org.hibernate.SQL" level="WARN"/>
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="ERROR"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="ERROR"/>
+    <logger name="org.hibernate.engine.internal.StatisticalLoggingSessionEventListener" level="ERROR"/>
+    <logger name="org.hibernate.engine.transaction.internal.TransactionImpl" level="ERROR"/>
     <logger name="org.springframework.boot.actuate" level="WARN"/>
 </configuration>

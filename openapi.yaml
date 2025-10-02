@@ -828,6 +828,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      summary: Delete a user
+      tags:
+        - users-admin-api
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /admin/users/{user-id}/password:
     parameters:

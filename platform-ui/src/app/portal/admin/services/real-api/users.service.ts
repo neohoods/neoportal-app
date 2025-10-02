@@ -36,6 +36,10 @@ export class ApiUsersService implements UsersService {
     });
   }
 
+  deleteUser(id: string): Observable<void> {
+    return this.usersAdminApiService.deleteUser(id);
+  }
+
   private mapToApiUser(uiUser: UIUser): User {
     return {
       id: uiUser.id,

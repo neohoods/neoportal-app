@@ -70,14 +70,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none # "update" pour dev, "validate" ou "none" pour prod
-    show-sql: true # Affiche les requêtes SQL dans les logs
+    show-sql: false # Affiche les requêtes SQL dans les logs
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # This shows the parameter values
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: ERROR
   pattern:
     level: "%5p [traceId=%X{trace_id:-}, spanId=%X{span_id:-}] %logger{36} - %msg%n"

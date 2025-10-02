@@ -120,8 +120,8 @@ public class UserEntity {
         // Handle both formats: "en" and "en-US"
         String[] parts = preferredLanguage.split("-");
         return parts.length > 1
-                ? Locale.of(parts[0], parts[1])
-                : Locale.of(parts[0]);
+                ? new Locale(parts[0], parts[1])
+                : new Locale(parts[0]);
     }
 
     public List<String> getRoles() {

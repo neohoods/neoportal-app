@@ -8,4 +8,5 @@ export interface UsersService {
   getUser(id: string): Observable<UIUser>;
   saveUser(user: UIUser): Observable<UIUser>;
   setUserPassword(userId: string, newPassword: string): Observable<void>;
+  deleteUser(id: string): Observable<void>;
 }

@@ -2,7 +2,7 @@ import { NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { environment } from '../../../../../../environments/environment';
 import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
 import { getGlobalProviders } from '../../../../../global.provider';
@@ -13,6 +13,7 @@ import { getGlobalProviders } from '../../../../../global.provider';
     imports: [
         WelcomeComponent,
         TuiButton,
+        TuiIcon,
         TranslateModule,
         NgIf
     ],

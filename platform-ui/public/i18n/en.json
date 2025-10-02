@@ -216,6 +216,7 @@
     "confirmDeleteNo": "Cancel",
     "confirmDeleteLabel": "Delete user '{{username}}'",
     "deleteSuccess": "User <strong>{{username}}</strong> deleted successfully",
+    "deleteError": "Failed to delete user <strong>{{username}}</strong>. Please try again.",
     "confirmDisableContent": "Are you sure you want to disable this user?",
     "confirmDisableYes": "Yes, Disable",
     "confirmDisableNo": "Cancel",

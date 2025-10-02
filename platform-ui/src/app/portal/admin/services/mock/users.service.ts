@@ -41,4 +41,15 @@ export class MockUsersService implements UsersService {
     }
     return of(undefined);
   }
+
+  deleteUser(id: string): Observable<void> {
+    const userIndex = users.findIndex((user) => user.id === id);
+    if (userIndex >= 0) {
+      users.splice(userIndex, 1);
+      console.log(`User deleted: ${id}`);
+    } else {
+      console.error(`User not found: ${id}`);
+    }
+    return of(undefined);
+  }
 }

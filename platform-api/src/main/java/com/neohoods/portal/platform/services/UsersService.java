@@ -2,6 +2,7 @@ package com.neohoods.portal.platform.services;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -168,5 +169,20 @@ public class UsersService {
                 user.setPassword(passwordEncoder.encode(password));
                 usersRepository.save(user);
                 return Mono.empty();
+        }
+
+        public Mono<Boolean> deleteUser(UUID userId) {
+                log.info("Deleting user: {}", userId);
+
+                Optional<UserEntity> userOpt = usersRepository.findByIdWithProperties(userId);
+                if (userOpt.isEmpty()) {
+                        log.warn("User not found for deletion: {}", userId);
+                        return Mono.just(false);
+                }
+
+                UserEntity user = userOpt.get();
+                usersRepository.delete(user);
+                log.info("User deleted successfully: {}", userId);
+                return Mono.just(true);
         }
 }

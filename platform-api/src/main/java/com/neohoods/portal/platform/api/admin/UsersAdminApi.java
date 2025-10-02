@@ -10,6 +10,7 @@ import com.neohoods.portal.platform.api.UsersAdminApiApiDelegate;
 import com.neohoods.portal.platform.model.SetUserPasswordRequest;
 import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.services.UsersService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -43,7 +44,15 @@ public class UsersAdminApi implements UsersAdminApiApiDelegate {
     @Override
     public Mono<ResponseEntity<Void>> setUserPassword(UUID userId, Mono<SetUserPasswordRequest> setUserPasswordRequest,
             ServerWebExchange exchange) {
-        return setUserPasswordRequest.doOnNext(request -> usersService.setUserPassword(userId, request.getNewPassword()))
+        return setUserPasswordRequest
+                .doOnNext(request -> usersService.setUserPassword(userId, request.getNewPassword()))
                 .map(r -> ResponseEntity.noContent().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<Void>> deleteUser(UUID userId, ServerWebExchange exchange) {
+        return usersService.deleteUser(userId)
+                .map(deleted -> deleted ? ResponseEntity.noContent().<Void>build()
+                        : ResponseEntity.notFound().<Void>build());
     }
 }
