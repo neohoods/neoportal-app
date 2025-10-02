@@ -1653,6 +1653,10 @@ components:
         preferredLanguage:
           type: string
           example: "en"
+        profileSharingConsent:
+          type: boolean
+          description: "User consent for sharing profile information in the community directory"
+          default: false
         type:
           $ref: "#/components/schemas/UserType"
         properties:

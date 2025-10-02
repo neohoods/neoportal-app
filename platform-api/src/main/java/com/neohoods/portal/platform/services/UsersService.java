@@ -69,6 +69,7 @@ public class UsersService {
                 userEntity.setCountry(user.getCountry());
                 userEntity.setPreferredLanguage(user.getPreferredLanguage());
                 userEntity.setAvatarUrl(user.getAvatarUrl());
+                userEntity.setProfileSharingConsent(user.getProfileSharingConsent());
 
                 // Handle user type
                 if (user.getType() != null) {
@@ -135,6 +136,7 @@ public class UsersService {
                 entity.setCountry(user.getCountry());
                 entity.setPreferredLanguage(user.getPreferredLanguage());
                 entity.setAvatarUrl(user.getAvatarUrl());
+                entity.setProfileSharingConsent(user.getProfileSharingConsent());
                 entity.setDisabled(user.getDisabled());
                 entity.setEmailVerified(user.getIsEmailVerified());
                 entity.setRoles(new HashSet<>(user.getRoles()));

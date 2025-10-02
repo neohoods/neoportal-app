@@ -29,3 +29,21 @@ form {
 .column {
     flex: 1;
 }
+
+/* Switch field styling */
+.section {
+    margin-bottom: 16px;
+}
+
+.switch-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.switch-label {
+    font-size: 16px;
+    color: var(--tos-text-01);
+    cursor: pointer;
+    user-select: none;
+}

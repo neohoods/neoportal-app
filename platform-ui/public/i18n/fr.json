@@ -139,7 +139,10 @@
     "remove": "Supprimer",
     "saveButton": "Enregistrer",
     "saveSuccess": "Profil enregistré avec succès",
-    "saveError": "Profil non enregistré"
+    "saveError": "Profil non enregistré",
+    "privacySettings": "Paramètres de confidentialité",
+    "profileSharingConsent": "Autoriser le partage de profil dans l'annuaire communautaire",
+    "profileSharingConsentDescription": "Lorsque activé, vos informations de profil de base (nom, numéro d'appartement, coordonnées) seront visibles par les autres membres de la communauté dans l'annuaire des résidents. Cela aide les voisins à se connecter et communiquer plus facilement."
   },
   "adminLayout": {
     "hubPortal": "Portail communautaire",

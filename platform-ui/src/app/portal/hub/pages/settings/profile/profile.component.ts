@@ -7,9 +7,8 @@ import {
   Validators
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiIcon, TuiTextfield } from '@taiga-ui/core';
-import { TuiPassword } from '@taiga-ui/kit';
-import { TuiSelectModule } from '@taiga-ui/legacy';
+import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiTextfield } from '@taiga-ui/core';
+import { TuiPassword, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIPropertyType, UIUser, UIUserType } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
@@ -25,7 +24,9 @@ import { ProfileService } from '../../../services/profile.service';
     TuiPassword,
     TuiTextfield,
     TuiIcon,
-    TuiSelectModule,
+    TuiSwitch,
+    TuiTooltip,
+    TuiHint,
     TranslateModule
   ],
   templateUrl: './profile.component.html',
@@ -62,6 +63,7 @@ export class ProfileComponent implements OnInit {
       postalCode: ['', Validators.required],
       country: ['', Validators.required],
       preferredLanguage: ['en'],
+      profileSharingConsent: [false],
     });
   }
 
@@ -84,7 +86,8 @@ export class ProfileComponent implements OnInit {
       city: this.user.city,
       postalCode: this.user.postalCode,
       country: this.user.country,
-      preferredLanguage: this.user.preferredLanguage
+      preferredLanguage: this.user.preferredLanguage,
+      profileSharingConsent: this.user.profileSharingConsent || false
     });
   }
 
@@ -103,6 +106,7 @@ export class ProfileComponent implements OnInit {
       this.user.postalCode = formValue.postalCode;
       this.user.country = formValue.country;
       this.user.preferredLanguage = formValue.preferredLanguage;
+      this.user.profileSharingConsent = formValue.profileSharingConsent;
 
       this.profileService.updateProfile(this.user).subscribe(() => {
         this.alerts

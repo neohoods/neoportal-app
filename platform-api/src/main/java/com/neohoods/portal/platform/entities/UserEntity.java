@@ -55,6 +55,9 @@ public class UserEntity {
     private String preferredLanguage;
     @Column(name = "avatar_url")
     private String avatarUrl;
+    @Column(name = "profile_sharing_consent")
+    @Builder.Default
+    private boolean profileSharingConsent = false;
     @Builder.Default
     private boolean disabled = false;
     @Column(name = "is_email_verified")
@@ -94,6 +97,7 @@ public class UserEntity {
                 .country(country)
                 .preferredLanguage(preferredLanguage)
                 .avatarUrl(avatarUrl)
+                .profileSharingConsent(profileSharingConsent)
                 .disabled(disabled)
                 .isEmailVerified(isEmailVerified)
                 .roles(Arrays.asList("hub")) // TODO
@@ -110,7 +114,7 @@ public class UserEntity {
         // Handle both formats: "en" and "en-US"
         String[] parts = preferredLanguage.split("-");
         return parts.length > 1
-                ? new Locale(parts[0], parts[1])
-                : new Locale(parts[0]);
+                ? Locale.of(parts[0], parts[1])
+                : Locale.of(parts[0]);
     }
 }

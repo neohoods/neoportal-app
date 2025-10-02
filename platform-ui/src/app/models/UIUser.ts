@@ -12,6 +12,7 @@ export interface UIUser {
 
     disabled: boolean;
     preferredLanguage?: string;
+    profileSharingConsent?: boolean;
 
     type: UIUserType;
     properties: UIProperty[];

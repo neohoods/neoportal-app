@@ -3,6 +3,24 @@
   <form [formGroup]="profileForm" (ngSubmit)="onSave()">
     <h1>{{ 'profile.editTitle' | translate }}</h1>
 
+    <!-- Privacy Settings -->
+    <h3>{{ 'profile.privacySettings' | translate }}</h3>
+    
+    <div class="form-field">
+      <div class="privacy-toggle">
+        <input
+          tuiSwitch
+          type="checkbox"
+          formControlName="profileSharingConsent"
+        >
+        <label>{{ 'profile.profileSharingConsent' | translate }}</label>
+        <tui-icon
+        tuiHintDirection="right"
+        [tuiTooltip]="'profile.profileSharingConsentDescription' | translate"
+        />
+      </div>
+    </div>
+
     <!-- Basic Information -->
     <h3>{{ 'profile.basicInfo' | translate }}</h3>
     
@@ -41,27 +59,20 @@
       </div>
     </div>
 
-    <tui-select
-      tuiTextfieldSize="s"
-      formControlName="type"
-      class="form-field"
-      [stringify]="stringifyUserType"
-    >
-      {{ 'profile.userType' | translate }}
-      <input
-        placeholder="{{ 'profile.userTypePlaceholder' | translate }}"
-        tuiTextfieldLegacy
-      />
-      <tui-data-list-wrapper
-        *tuiDataList
-        [items]="userTypes"
-        [itemContent]="userTypeContent"
-      ></tui-data-list-wrapper>
-    </tui-select>
-
-    <ng-template #userTypeContent let-item>
-      {{ 'user.type.' + item | translate }}
-    </ng-template>
+    <div class="form-field">
+      <label tuiLabel>{{ 'profile.userType' | translate }}</label>
+      <select
+        formControlName="type"
+        class="user-type-select"
+      >
+        <option
+          *ngFor="let userType of userTypes"
+          [value]="userType"
+        >
+          {{ 'user.type.' + userType | translate }}
+        </option>
+      </select>
+    </div>
 
     <tui-textfield class="form-field">
       <label tuiLabel>{{ 'profile.email' | translate }}</label>

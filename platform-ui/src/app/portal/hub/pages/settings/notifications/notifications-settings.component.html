@@ -9,29 +9,31 @@
         </h1>
 
         <div class="section">
-            <input
-                tuiSwitch
-                type="checkbox"
-                formControlName="isNotificationsEnabled"
-                [showIcons]="true"
-                name="notificationsToggle"
-            >
-            <label>
-                {{ 'notifications.enableNotifications' | translate }}
-            </label>
+            <div class="switch-field">
+                <input
+                    tuiSwitch
+                    type="checkbox"
+                    formControlName="isNotificationsEnabled"
+                    name="notificationsToggle"
+                >
+                <label class="switch-label">
+                    {{ 'notifications.enableNotifications' | translate }}
+                </label>
+            </div>
         </div>
 
         <div class="section">
-            <input
-                tuiSwitch
-                type="checkbox"
-                formControlName="isNewsletterEnabled"
-                [showIcons]="true"
-                name="newsletterToggle"
-            >
-            <label>
-                {{ 'notifications.enableNewsletters' | translate }}
-            </label>
+            <div class="switch-field">
+                <input
+                    tuiSwitch
+                    type="checkbox"
+                    formControlName="isNewsletterEnabled"
+                    name="newsletterToggle"
+                >
+                <label class="switch-label">
+                    {{ 'notifications.enableNewsletters' | translate }}
+                </label>
+            </div>
         </div>
 
         <button

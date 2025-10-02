@@ -14,6 +14,7 @@ CREATE TABLE "users" (
     "country" varchar(255),
     "preferred_language" varchar(255),
     "avatar_url" varchar(255),
+    "profile_sharing_consent" boolean NOT NULL DEFAULT false,
     "created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
     "is_email_verified" boolean NOT NULL DEFAULT false,
     "disabled" boolean NOT NULL DEFAULT false,

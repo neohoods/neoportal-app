@@ -140,7 +140,10 @@
     "remove": "Remove",
     "saveButton": "Save",
     "saveSuccess": "Profile saved successfully",
-    "saveError": "Profile save failed"
+    "saveError": "Profile save failed",
+    "privacySettings": "Privacy Settings",
+    "profileSharingConsent": "Allow profile sharing in community directory",
+    "profileSharingConsentDescription": "When enabled, your basic profile information (name, apartment number, contact details) will be visible to other community members in the residents directory. This helps neighbors connect and communicate more easily."
   },
   "adminLayout": {
     "hubPortal": "Hub portal",
