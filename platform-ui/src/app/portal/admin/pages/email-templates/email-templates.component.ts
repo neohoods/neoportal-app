@@ -62,12 +62,62 @@ export class EmailTemplatesComponent {
     ) => {
         return this.emailTemplatesService.getEmailTemplates().pipe(
             map((templates) => {
+                // Filter templates based on search text
+                let filteredTemplates = templates;
+                if (searchText && searchText.trim()) {
+                    const searchLower = searchText.toLowerCase().trim();
+                    filteredTemplates = templates.filter(template =>
+                        template.name?.toLowerCase().includes(searchLower) ||
+                        template.type?.toLowerCase().includes(searchLower) ||
+                        template.subject?.toLowerCase().includes(searchLower) ||
+                        this.getTypeDisplayText(template.type)?.toLowerCase().includes(searchLower)
+                    );
+                }
+
+                // Sort templates if sortBy is specified
+                if (sortBy) {
+                    filteredTemplates = [...filteredTemplates].sort((a, b) => {
+                        let aValue: any;
+                        let bValue: any;
+
+                        if (sortBy === 'type') {
+                            aValue = this.getTypeDisplayText(a.type);
+                            bValue = this.getTypeDisplayText(b.type);
+                        } else if (sortBy === 'isActive') {
+                            aValue = a.isActive ? 'active' : 'inactive';
+                            bValue = b.isActive ? 'active' : 'inactive';
+                        } else {
+                            aValue = a[sortBy as keyof UIEmailTemplate];
+                            bValue = b[sortBy as keyof UIEmailTemplate];
+                        }
+
+                        // Handle undefined values
+                        if (aValue === undefined && bValue === undefined) return 0;
+                        if (aValue === undefined) return 1;
+                        if (bValue === undefined) return -1;
+
+                        if (aValue === bValue) return 0;
+
+                        const comparison = aValue < bValue ? -1 : 1;
+                        return sortOrder === 'desc' ? -comparison : comparison;
+                    });
+                }
+
+                // Calculate pagination
+                const totalItems = filteredTemplates.length;
+                const itemsPerPage = pageSize || 12;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                const currentPage = page || 1;
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedTemplates = filteredTemplates.slice(startIndex, endIndex);
+
                 return {
-                    totalPages: 1,
-                    totalItems: templates.length,
-                    currentPage: 1,
-                    itemsPerPage: templates.length,
-                    items: templates
+                    totalPages,
+                    totalItems,
+                    currentPage,
+                    itemsPerPage,
+                    items: paginatedTemplates
                 }
             })
         );

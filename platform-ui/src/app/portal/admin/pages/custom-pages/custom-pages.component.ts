@@ -68,20 +68,61 @@ export class CustomPagesComponent implements OnInit {
   ) => {
     return this.customPagesService.getCustomPageRefs().pipe(
       map((pages: UICustomPage[]) => {
-        pages.push({
+        // Add help-center page
+        const allPages = [...pages, {
           id: 'help-center',
           ref: 'help-center',
           position: 'footer-links',
           title: 'Help Center',
           content: 'Test',
           order: 0
-        });
+        }];
+
+        // Filter pages based on search text
+        let filteredPages = allPages;
+        if (searchText && searchText.trim()) {
+          const searchLower = searchText.toLowerCase().trim();
+          filteredPages = allPages.filter(page =>
+            page.ref?.toLowerCase().includes(searchLower) ||
+            page.title?.toLowerCase().includes(searchLower) ||
+            page.position?.toLowerCase().includes(searchLower) ||
+            page.content?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // Sort pages if sortBy is specified
+        if (sortBy) {
+          filteredPages = [...filteredPages].sort((a, b) => {
+            const aValue = a[sortBy as keyof UICustomPage];
+            const bValue = b[sortBy as keyof UICustomPage];
+
+            // Handle undefined values
+            if (aValue === undefined && bValue === undefined) return 0;
+            if (aValue === undefined) return 1;
+            if (bValue === undefined) return -1;
+
+            if (aValue === bValue) return 0;
+
+            const comparison = aValue < bValue ? -1 : 1;
+            return sortOrder === 'desc' ? -comparison : comparison;
+          });
+        }
+
+        // Calculate pagination
+        const totalItems = filteredPages.length;
+        const itemsPerPage = pageSize || 12;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const currentPage = page || 1;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedPages = filteredPages.slice(startIndex, endIndex);
+
         return {
-          totalPages: 1,
-          totalItems: pages.length + 1,
-          currentPage: 0,
-          itemsPerPage: pages.length + 1,
-          items: pages
+          totalPages,
+          totalItems,
+          currentPage,
+          itemsPerPage,
+          items: paginatedPages
         }
       })
     );

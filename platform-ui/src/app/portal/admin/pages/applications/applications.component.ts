@@ -76,12 +76,51 @@ export class ApplicationsComponent implements OnInit {
   ) => {
     return this.applicationsService.getApplications().pipe(
       map((applications: UIApplication[]) => {
+        // Filter applications based on search text
+        let filteredApplications = applications;
+        if (searchText && searchText.trim()) {
+          const searchLower = searchText.toLowerCase().trim();
+          filteredApplications = applications.filter(application =>
+            application.id?.toString().toLowerCase().includes(searchLower) ||
+            application.name?.toLowerCase().includes(searchLower) ||
+            application.url?.toLowerCase().includes(searchLower) ||
+            application.helpText?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // Sort applications if sortBy is specified
+        if (sortBy) {
+          filteredApplications = [...filteredApplications].sort((a, b) => {
+            const aValue = a[sortBy as keyof UIApplication];
+            const bValue = b[sortBy as keyof UIApplication];
+
+            // Handle undefined values
+            if (aValue === undefined && bValue === undefined) return 0;
+            if (aValue === undefined) return 1;
+            if (bValue === undefined) return -1;
+
+            if (aValue === bValue) return 0;
+
+            const comparison = aValue < bValue ? -1 : 1;
+            return sortOrder === 'desc' ? -comparison : comparison;
+          });
+        }
+
+        // Calculate pagination
+        const totalItems = filteredApplications.length;
+        const itemsPerPage = pageSize || 12;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const currentPage = page || 1;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
+
         return {
-          totalPages: 1,
-          totalItems: applications.length,
-          currentPage: 0,
-          itemsPerPage: applications.length,
-          items: applications
+          totalPages,
+          totalItems,
+          currentPage,
+          itemsPerPage,
+          items: paginatedApplications
         }
       })
     );

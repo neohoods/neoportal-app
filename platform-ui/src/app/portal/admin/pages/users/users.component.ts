@@ -186,12 +186,51 @@ export class UsersComponent {
   ) => {
     return this.usersService.getUsers().pipe(
       map((users) => {
+        // Filter users based on search text
+        let filteredUsers = users;
+        if (searchText && searchText.trim()) {
+          const searchLower = searchText.toLowerCase().trim();
+          filteredUsers = users.filter(user =>
+            user.username?.toLowerCase().includes(searchLower) ||
+            user.email?.toLowerCase().includes(searchLower) ||
+            user.flatNumber?.toLowerCase().includes(searchLower) ||
+            user.streetAddress?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // Sort users if sortBy is specified
+        if (sortBy) {
+          filteredUsers = [...filteredUsers].sort((a, b) => {
+            const aValue = a[sortBy as keyof UIUser];
+            const bValue = b[sortBy as keyof UIUser];
+
+            // Handle undefined values
+            if (aValue === undefined && bValue === undefined) return 0;
+            if (aValue === undefined) return 1;
+            if (bValue === undefined) return -1;
+
+            if (aValue === bValue) return 0;
+
+            const comparison = aValue < bValue ? -1 : 1;
+            return sortOrder === 'desc' ? -comparison : comparison;
+          });
+        }
+
+        // Calculate pagination
+        const totalItems = filteredUsers.length;
+        const itemsPerPage = pageSize || 12;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const currentPage = page || 1;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
         return {
-          totalPages: 1,
-          totalItems: users.length,
-          currentPage: 0,
-          itemsPerPage: users.length,
-          items: users
+          totalPages,
+          totalItems,
+          currentPage,
+          itemsPerPage,
+          items: paginatedUsers
         }
       })
     );

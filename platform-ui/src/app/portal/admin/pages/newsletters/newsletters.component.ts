@@ -212,14 +212,63 @@ export class NewslettersComponent {
     ): Observable<any> => {
         return this.newslettersService.getNewsletters(page, pageSize).pipe(
             map((response) => {
+                // Filter newsletters based on search text
+                let filteredNewsletters = response.newsletters;
+                if (searchText && searchText.trim()) {
+                    const searchLower = searchText.toLowerCase().trim();
+                    filteredNewsletters = response.newsletters.filter((newsletter: UINewsletter) =>
+                        newsletter.subject?.toLowerCase().includes(searchLower) ||
+                        newsletter.status?.toLowerCase().includes(searchLower) ||
+                        this.getAudienceDisplayText(newsletter.audience)?.toLowerCase().includes(searchLower)
+                    );
+                }
+
+                // Sort newsletters if sortBy is specified
+                if (sortBy) {
+                    filteredNewsletters = [...filteredNewsletters].sort((a, b) => {
+                        let aValue: any;
+                        let bValue: any;
+
+                        if (sortBy === 'scheduledOrSent') {
+                            aValue = a.sentAt || a.scheduledAt;
+                            bValue = b.sentAt || b.scheduledAt;
+                        } else if (sortBy === 'audience') {
+                            aValue = this.getAudienceDisplayText(a.audience);
+                            bValue = this.getAudienceDisplayText(b.audience);
+                        } else {
+                            aValue = a[sortBy as keyof UINewsletter];
+                            bValue = b[sortBy as keyof UINewsletter];
+                        }
+
+                        // Handle undefined values
+                        if (aValue === undefined && bValue === undefined) return 0;
+                        if (aValue === undefined) return 1;
+                        if (bValue === undefined) return -1;
+
+                        if (aValue === bValue) return 0;
+
+                        const comparison = aValue < bValue ? -1 : 1;
+                        return sortOrder === 'desc' ? -comparison : comparison;
+                    });
+                }
+
+                // Calculate pagination
+                const totalItems = filteredNewsletters.length;
+                const itemsPerPage = pageSize || 12;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                const currentPage = page || 1;
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedNewsletters = filteredNewsletters.slice(startIndex, endIndex);
+
                 // Mettre à jour le Signal avec les nouvelles données
-                this.newsletters.set(response.newsletters);
+                this.newsletters.set(filteredNewsletters);
                 return {
-                    totalPages: response.totalPages,
-                    totalItems: response.totalItems,
-                    currentPage: response.currentPage,
-                    itemsPerPage: response.itemsPerPage,
-                    items: response.newsletters
+                    totalPages,
+                    totalItems,
+                    currentPage,
+                    itemsPerPage,
+                    items: paginatedNewsletters
                 };
             })
         );
