@@ -1,10 +1,9 @@
 import { NgForOf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiNotification, TuiTextfield } from '@taiga-ui/core';
-import { TuiPassword } from '@taiga-ui/kit';
-import { TuiSelectModule } from '@taiga-ui/legacy';
+import { TuiChevron, TuiDataListWrapper, TuiPassword, TuiSelect } from '@taiga-ui/kit';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIProperty, UIPropertyType, UIUser } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
@@ -20,9 +19,14 @@ import { ProfileService } from '../../../services/profile.service';
     TuiPassword,
     TuiTextfield,
     TuiIcon,
-    TuiSelectModule,
     TranslateModule,
-    TuiNotification
+    TuiNotification,
+    TranslateModule,
+    FormsModule,
+    TuiChevron,
+    TuiDataListWrapper,
+    TuiSelect,
+    TuiTextfield
   ],
   templateUrl: './properties.component.html',
   styleUrl: './properties.component.scss'

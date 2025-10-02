@@ -3,18 +3,23 @@ import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
+  FormsModule,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiTextfield } from '@taiga-ui/core';
-import { TuiDataListWrapperComponent, TuiPassword, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
-import { TuiSelectModule } from '@taiga-ui/legacy';
+import { TuiChevron, TuiDataListWrapper, TuiDataListWrapperComponent, TuiPassword, TuiSelect, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIPropertyType, UIUser, UIUserType } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
 import { PROFILE_SERVICE_TOKEN } from '../../../hub.provider';
 import { ProfileService } from '../../../services/profile.service';
+
+interface Character {
+  readonly id: number;
+  readonly name: string;
+}
 
 @Component({
   selector: 'app-profile',
@@ -28,9 +33,13 @@ import { ProfileService } from '../../../services/profile.service';
     TuiSwitch,
     TuiTooltip,
     TuiHint,
-    TuiSelectModule,
     TuiDataListWrapperComponent,
-    TranslateModule
+    TranslateModule,
+    FormsModule,
+    TuiChevron,
+    TuiDataListWrapper,
+    TuiSelect,
+    TuiTextfield
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',

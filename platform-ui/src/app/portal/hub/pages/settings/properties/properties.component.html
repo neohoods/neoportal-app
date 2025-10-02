@@ -52,27 +52,17 @@
                         </tui-textfield>
                     </div>
                     <div class="column">
-                        <tui-select
-                            tuiTextfieldSize="s"
-                            formControlName="type"
-                            [stringify]="stringifyPropertyType"
-                        >
-                            {{ 'profile.propertyType' | translate }}
-                            <input
-                                placeholder="{{ 'profile.propertyTypePlaceholder' | translate }}"
-                                tuiTextfieldLegacy
-                            >
-                            <tui-data-list-wrapper
-                                *tuiDataList
-                                [items]="propertyTypes"
-                                [itemContent]="propertyTypeContent"
-                            ></tui-data-list-wrapper>
-                        </tui-select>
 
-                        <ng-template
-                            #propertyTypeContent
-                            let-item
+                        <tui-textfield 
+                        tuiChevron 
+                        [stringify]="stringifyPropertyType"
                         >
+                            <input tuiSelect formControlName="type" />
+                    
+                            <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="propertyTypes" [itemContent]="propertyTypeContent" />
+                        </tui-textfield>
+                    
+                        <ng-template #propertyTypeContent let-item>
                             {{ 'property.type.' + item | translate }}
                         </ng-template>
                     </div>
