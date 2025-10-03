@@ -55,6 +55,7 @@ public class SSOService {
     private String frontendUrl;
     private final ServerSecurityContextRepository serverSecurityContextRepository;
     private final UsersRepository usersRepository;
+    private final Auth0Service auth0Service;
 
     public URI generateSSOLoginUrl() {
         State state = new State();
@@ -135,6 +136,28 @@ public class SSOService {
                 }
 
                 log.info("Found user: {} with roles: {}", user.getUsername(), user.getRoles());
+
+                // Perform account linking if email is verified
+                Boolean emailVerified = (Boolean) idToken.getJWTClaimsSet().getClaim("email_verified");
+                if (Boolean.TRUE.equals(emailVerified)) {
+                    String currentUserId = idToken.getJWTClaimsSet().getStringClaim("sub");
+                    // Get the connection/provider from the JWT claims
+                    String provider = idToken.getJWTClaimsSet().getStringClaim("connection");
+                    if (provider == null) {
+                        // Fallback to 'auth0' if connection is not available
+                        provider = "auth0";
+                    }
+                    log.debug("Using provider '{}' for account linking of user: {}", provider, email);
+
+                    // Perform account linking asynchronously (don't block the login process)
+                    auth0Service.performAccountLinking(currentUserId, email, provider)
+                            .subscribe(
+                                    result -> log.info("Account linking completed for user: {}", email),
+                                    error -> log.warn("Account linking failed for user: {}, error: {}", email,
+                                            error.getMessage()));
+                } else {
+                    log.debug("Email not verified for user: {}, skipping account linking", email);
+                }
 
                 // Convert user roles to authorities
                 Collection<GrantedAuthority> authorities = user.getRoles() != null

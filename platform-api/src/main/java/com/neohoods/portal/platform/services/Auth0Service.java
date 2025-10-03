@@ -1,6 +1,8 @@
 package com.neohoods.portal.platform.services;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -224,5 +226,196 @@ public class Auth0Service {
             throw new CodedErrorException(CodedError.AUTH0_USER_DELETE_ERROR,
                     Map.of("email", email), e);
         }
+    }
+
+    /**
+     * Get all users with the same email from Auth0
+     */
+    public Mono<List<Map<String, Object>>> getUsersByEmail(String email) {
+        return Mono.fromCallable(() -> {
+            try {
+                String accessToken = getAccessToken();
+                String searchUrl = "https://" + auth0Domain + "/api/v2/users-by-email?email=" + email;
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(accessToken);
+
+                HttpEntity<String> request = new HttpEntity<>(headers);
+
+                ResponseEntity<Map[]> response = restTemplate.exchange(
+                        searchUrl,
+                        HttpMethod.GET,
+                        request,
+                        Map[].class);
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    return Arrays.asList(response.getBody());
+                }
+                return Arrays.asList();
+            } catch (Exception e) {
+                log.error("Error getting users by email from Auth0: {}", email, e);
+                throw new CodedErrorException(CodedError.INTERNAL_ERROR,
+                        Map.of("email", email), e);
+            }
+        });
+    }
+
+    /**
+     * Link two Auth0 users (secondary user to primary user)
+     */
+    public void linkUsers(String primaryUserId, String secondaryUserId, String provider) {
+        try {
+            log.debug("Attempting to link user {} to primary user {} with provider {}",
+                    secondaryUserId, primaryUserId, provider);
+
+            String accessToken = getAccessToken();
+            String linkUrl = "https://" + auth0Domain + "/api/v2/users/" + primaryUserId + "/identities";
+
+            Map<String, Object> linkData = new HashMap<>();
+            linkData.put("user_id", secondaryUserId);
+            linkData.put("provider", provider);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(linkData, headers);
+
+            // Log the request details for debugging
+            log.info("Account linking request - URL: {}", linkUrl);
+            log.info("Account linking request - Headers: {}", headers);
+            log.info("Account linking request - Body: {}", linkData);
+
+            ResponseEntity<Map[]> response = restTemplate.postForEntity(linkUrl, request, Map[].class);
+
+            // Log the response for debugging
+            log.debug("Account linking response - Status: {}, Body: {}", response.getStatusCode(), response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully linked user {} to primary user {}", secondaryUserId, primaryUserId);
+            } else {
+                log.error("Failed to link users. Status: {}, Response: {}, URL: {}",
+                        response.getStatusCode(), response.getBody(), linkUrl);
+                throw new CodedErrorException(CodedError.AUTH0_LINKING_FAILED,
+                        Map.of("primaryUserId", primaryUserId, "secondaryUserId", secondaryUserId,
+                                "status", response.getStatusCode().toString(), "response",
+                                response.getBody().toString()));
+            }
+        } catch (CodedErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error linking users in Auth0: {} -> {} (provider: {})", secondaryUserId, primaryUserId, provider,
+                    e);
+            throw new CodedErrorException(CodedError.AUTH0_LINKING_FAILED,
+                    Map.of("primaryUserId", primaryUserId, "secondaryUserId", secondaryUserId, "provider", provider),
+                    e);
+        }
+    }
+
+    /**
+     * Perform automatic account linking for users with the same email
+     */
+    public Mono<Void> performAccountLinking(String currentUserId, String email, String provider) {
+        return getUsersByEmail(email)
+                .flatMap(users -> {
+                    if (users == null || users.size() <= 1) {
+                        log.debug("No duplicate users found for email: {}", email);
+                        return Mono.empty();
+                    }
+
+                    // Sort users with priority: username-defined users first, then by creation date
+                    users.sort((user1, user2) -> {
+                        String username1 = (String) user1.get("username");
+                        String username2 = (String) user2.get("username");
+
+                        // If one has username and the other doesn't, prioritize the one with username
+                        boolean hasUsername1 = username1 != null && !username1.trim().isEmpty();
+                        boolean hasUsername2 = username2 != null && !username2.trim().isEmpty();
+
+                        if (hasUsername1 && !hasUsername2)
+                            return -1;
+                        if (!hasUsername1 && hasUsername2)
+                            return 1;
+
+                        // If both have or both don't have username, sort by creation date (oldest
+                        // first)
+                        String createdAt1 = (String) user1.get("created_at");
+                        String createdAt2 = (String) user2.get("created_at");
+                        return (createdAt1 != null ? createdAt1 : "0").compareTo(createdAt2 != null ? createdAt2 : "0");
+                    });
+
+                    String primaryUserId = (String) users.get(0).get("user_id");
+                    String primaryUsername = (String) users.get(0).get("username");
+                    List<Map<String, Object>> secondaryUsers = users.subList(1, users.size());
+
+                    log.info("Found {} users with email {}. Primary: {} (username: {}), Secondaries: {}",
+                            users.size(), email, primaryUserId,
+                            primaryUsername != null ? primaryUsername : "none",
+                            secondaryUsers.stream().map(u -> u.get("user_id")).toArray());
+
+                    log.debug("Current user ID: {}, Primary user ID: {}", currentUserId, primaryUserId);
+
+                    // Log user details for debugging
+                    for (Map<String, Object> user : users) {
+                        log.debug("User details: user_id={}, username={}, identities={}",
+                                user.get("user_id"), user.get("username"), user.get("identities"));
+                    }
+
+                    // Link all secondary users to the primary user
+                    return Mono.<Void>fromRunnable(() -> {
+                        for (Map<String, Object> user : secondaryUsers) {
+                            String userId = (String) user.get("user_id");
+                            // Skip if this is the primary user (shouldn't happen, but safety check)
+                            if (!userId.equals(primaryUserId)) {
+                                // Extract provider from user identities data
+                                String userProvider = extractProviderFromUserData(user);
+                                log.info("Linking secondary user {} (provider: {}) to primary user {}", userId,
+                                        userProvider, primaryUserId);
+                                try {
+                                    linkUsers(primaryUserId, userId, userProvider);
+                                } catch (Exception e) {
+                                    log.warn("Failed to link user {} to primary user {}: {}", userId, primaryUserId,
+                                            e.getMessage());
+                                }
+                            }
+                        }
+                    });
+                })
+                .onErrorResume(e -> {
+                    log.error("Error during account linking for email: {}", email, e);
+                    // Don't fail the login process for linking errors
+                    return Mono.empty();
+                });
+    }
+
+    /**
+     * Extract provider from Auth0 user data (from identities array)
+     */
+    @SuppressWarnings("unchecked")
+    private String extractProviderFromUserData(Map<String, Object> user) {
+        try {
+            // Get identities array from user data
+            Object identitiesObj = user.get("identities");
+            if (identitiesObj instanceof List) {
+                List<Map<String, Object>> identities = (List<Map<String, Object>>) identitiesObj;
+                if (!identities.isEmpty()) {
+                    // Get the first identity's provider
+                    String provider = (String) identities.get(0).get("provider");
+                    if (provider != null && !provider.trim().isEmpty()) {
+                        return provider;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to extract provider from user data: {}", e.getMessage());
+        }
+
+        // Fallback: extract from user_id if identities not available
+        String userId = (String) user.get("user_id");
+        if (userId != null && userId.contains("|")) {
+            return userId.substring(0, userId.indexOf("|"));
+        }
+
+        return "auth0"; // Default fallback
     }
 }

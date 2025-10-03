@@ -28,6 +28,7 @@ public enum CodedError {
                         "auth/auth0-user-delete-error"),
         EMAIL_ALREADY_EXISTS("AUTH017", "This email is already used by another user", "auth/email-already-exists"),
         USER_NOT_FOUND_SSO("AUTH018", "User not found for SSO login. Please sign up first", "auth/user-not-found-sso"),
+        AUTH0_LINKING_FAILED("AUTH019", "Failed to link Auth0 accounts", "auth/auth0-linking-failed"),
 
         // Notification errors (2000-2999)
         NOTIFICATION_SETTINGS_NOT_FOUND("NOT001", "Notification settings not found",
