@@ -23,6 +23,14 @@
     "userNotFound": "User not found. Please sign up first.",
     "userNotFoundMessage": "The user account for this email does not exist. Please create an account first."
   },
+  "signupSuccess": {
+    "title": "Account Ready!",
+    "message": "Your account is ready to use.",
+    "accountReady": "Account Ready",
+    "noFurtherAction": "No further action needed. You can now access all features.",
+    "goToHub": "Go to Hub",
+    "backToHome": "Back to Home"
+  },
   "welcome": {
     "rentPortal": "Welcome to your community portal",
     "rentPortalDescription": "Manage your community, properties and services with ease. Connect with your neighbors and enjoy harmonious community living."

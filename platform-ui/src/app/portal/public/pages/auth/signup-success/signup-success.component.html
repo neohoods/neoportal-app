@@ -1,0 +1,50 @@
+<div class="signup-success-container">
+    <div class="signup-success-content">
+        <div class="header">
+            <img
+                class="logo"
+                [src]="environment.brandLogo"
+                [alt]="environment.brandDisplayName"
+            >
+            <h1 class="title">{{ 'signupSuccess.title' | translate }}</h1>
+            <p class="subtitle">
+                {{ 'signupSuccess.message' | translate }}
+            </p>
+        </div>
+
+        <div
+            class="success-card"
+            *ngIf="email"
+        >
+            <div class="success-icon">
+                <tui-icon icon="@tui.check-circle"></tui-icon>
+            </div>
+            <div class="success-content">
+                <h3>
+                    {{ 'signupSuccess.accountReady' | translate }}
+                </h3>
+                <p class="email-address">{{ email }}</p>
+                <p class="success-message">
+                    {{ 'signupSuccess.noFurtherAction' | translate }}
+                </p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button
+                appearance="primary"
+                tuiButton
+                size="l"
+                (click)="goToHub()"
+                class="primary-button"
+            >
+                <tui-icon icon="@tui.home"></tui-icon>
+                {{ 'signupSuccess.goToHub' | translate }}
+            </button>
+        </div>
+    </div>
+
+    <div class="welcome-section">
+        <app-welcome></app-welcome>
+    </div>
+</div>

@@ -83,6 +83,10 @@ paths:
       responses:
         "201":
           description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignUp201Response"
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -2376,6 +2380,22 @@ components:
       description: |
         Email template types (currently only WELCOME is supported):
         - WELCOME: Welcome email sent to new users after registration
+
+    SignUp201Response:
+      type: object
+      required:
+        - user
+        - emailAlreadyVerified
+        - message
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        emailAlreadyVerified:
+          type: boolean
+          description: "True if the user already existed and email was already verified"
+        message:
+          type: string
+          description: "Success message"
 
   responses:
     OK_200_GET_HELLO_WORLD:

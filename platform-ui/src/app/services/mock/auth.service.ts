@@ -191,11 +191,15 @@ export class MockAuthService implements AuthService {
     email: string,
     type: UIUserType,
     password: string,
-  ): Observable<boolean> {
+  ): Observable<{ success: boolean; emailAlreadyVerified?: boolean; user?: UIUser; message?: string }> {
     // Mock sign up logic (replace with backend API call)
     console.log('User registered:', { username, firstName, lastName, email, type, password });
-    return new Observable<boolean>((observer) => {
-      observer.next(true);
+    return new Observable<{ success: boolean; emailAlreadyVerified?: boolean; user?: UIUser; message?: string }>((observer) => {
+      observer.next({
+        success: true,
+        emailAlreadyVerified: false,
+        message: 'User registered successfully'
+      });
       observer.complete();
     });
   }

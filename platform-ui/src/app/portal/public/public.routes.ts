@@ -6,6 +6,7 @@ import { ResetPasswordComponent } from './pages/auth/reset-password/reset-passwo
 import { SignInComponent } from './pages/auth/sign-in/sign-in.component';
 import { SignOutComponent } from './pages/auth/sign-out/sign-out.component';
 import { SignUpComponent } from './pages/auth/sign-up/sign-up.component';
+import { SignupSuccessComponent } from './pages/auth/signup-success/signup-success.component';
 import { TokenExchangeComponent } from './pages/auth/token-exchange/token-exchange.component';
 import { HomeComponent } from './pages/home/home.component';
 import { PublicLayoutComponent } from './public-layout/public-layout.component';
@@ -19,6 +20,7 @@ export const PUBLIC_ROUTES: Routes = [
       { path: 'login', component: SignInComponent },
       { path: 'sign-out', component: SignOutComponent },
       { path: 'sign-up', component: SignUpComponent },
+      { path: 'signup-success', component: SignupSuccessComponent },
       { path: 'email-pending', component: EmailPendingComponent },
       { path: 'forgot-password', component: ForgotPasswordComponent },
       { path: 'reset-password', component: ResetPasswordComponent },

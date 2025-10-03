@@ -24,7 +24,7 @@ export interface AuthService {
     email: string,
     type: UIUserType,
     password: string,
-  ): Observable<boolean>;
+  ): Observable<{ success: boolean; emailAlreadyVerified?: boolean; user?: UIUser; message?: string }>;
   signOut(): Observable<boolean>;
   isAuthenticated(): Observable<boolean>;
   resetPassword(email: string): Observable<boolean>;

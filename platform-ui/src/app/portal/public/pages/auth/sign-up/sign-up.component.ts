@@ -91,11 +91,25 @@ export class SignUpComponent {
         type,
         password,
       ).subscribe({
-        next: () => {
-          // Redirect to email pending page with email parameter
-          this.router.navigate(['/email-pending'], {
-            queryParams: { email: email }
-          });
+        next: (result) => {
+          if (result.success) {
+            if (result.emailAlreadyVerified) {
+              // User already exists with verified email, redirect to success page
+              this.router.navigate(['/signup-success'], {
+                queryParams: { email: email }
+              });
+            } else {
+              // New user, redirect to email pending page
+              this.router.navigate(['/email-pending'], {
+                queryParams: { email: email }
+              });
+            }
+          } else {
+            this.alerts.open(
+              result.message || 'Registration failed! Please try again.',
+              { appearance: 'negative' }
+            ).subscribe();
+          }
         },
         error: () => {
           this.alerts.open(

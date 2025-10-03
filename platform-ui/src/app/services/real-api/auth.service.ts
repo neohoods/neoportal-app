@@ -179,25 +179,63 @@ export class APIAuthService implements AuthService {
     email: string,
     type: UIUserType,
     password: string,
-  ): Observable<boolean> {
-    // Mock sign up logic (replace with backend API call)
-    return new Observable<boolean>((observer) => {
-      this.authApiService
-        .signUp({
-          username: username,
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          type: type,
-          password: password,
+  ): Observable<{ success: boolean; emailAlreadyVerified?: boolean; user?: UIUser; message?: string }> {
+    return this.authApiService
+      .signUp({
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        type: type,
+        password: password,
+      })
+      .pipe(
+        map((response: any) => {
+          // If email is already verified, create session
+          if (response.emailAlreadyVerified && response.user) {
+            this.isAuthenticated$.next(true);
+            this.userRoles = response.user.roles ?? ['hub'];
+            this.userInfo.firstName = response.user.firstName;
+            this.userInfo.lastName = response.user.lastName;
+            this.userInfo.username = response.user.username;
+            this.userInfo.email = response.user.email ?? 'unknown';
+            this.userInfo.user = {
+              id: response.user.id,
+              username: response.user.username,
+              email: response.user.email ?? 'unknown',
+              avatarUrl: response.user.avatarUrl ?? 'unknown',
+              disabled: response.user.disabled ?? false,
+              isEmailVerified: response.user.isEmailVerified ?? false,
+              firstName: response.user.firstName ?? 'unknown',
+              lastName: response.user.lastName ?? 'unknown',
+              streetAddress: response.user.streetAddress ?? 'unknown',
+              city: response.user.city ?? 'unknown',
+              type: response.user.type as UIUserType,
+              roles: response.user.roles ?? ['hub'],
+              properties: (response.user.properties ?? []).map((property: any) => ({
+                ...property,
+                type: property.type as UIPropertyType,
+              })) as UIProperty[],
+              postalCode: response.user.postalCode ?? 'unknown',
+              country: response.user.country ?? 'unknown',
+            };
+          }
+
+          return {
+            success: true,
+            emailAlreadyVerified: response.emailAlreadyVerified,
+            user: response.user,
+            message: response.message
+          };
+        }),
+        catchError((error) => {
+          console.error('Signup error:', error);
+          return of({
+            success: false,
+            message: 'Signup failed'
+          });
         })
-        .subscribe({
-          next: (response) => {
-            observer.next(true);
-            observer.complete();
-          },
-        });
-    });
+      );
   }
 
   signOut(): Observable<boolean> {

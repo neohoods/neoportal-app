@@ -154,6 +154,39 @@ public class Auth0Service {
     }
 
     /**
+     * Get user details from Auth0 by email to check verification status
+     */
+    public Mono<Map<String, Object>> getUserDetails(String email) {
+        return Mono.fromCallable(() -> {
+            try {
+                String accessToken = getAccessToken();
+                String searchUrl = "https://" + auth0Domain + "/api/v2/users-by-email?email=" + email;
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(accessToken);
+
+                HttpEntity<String> request = new HttpEntity<>(headers);
+
+                ResponseEntity<Map[]> response = restTemplate.exchange(
+                        searchUrl,
+                        HttpMethod.GET,
+                        request,
+                        Map[].class);
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null
+                        && response.getBody().length > 0) {
+                    return response.getBody()[0];
+                }
+                return null;
+            } catch (Exception e) {
+                log.error("Error getting user details from Auth0: {}", email, e);
+                throw new CodedErrorException(CodedError.INTERNAL_ERROR,
+                        Map.of("email", email), e);
+            }
+        });
+    }
+
+    /**
      * Delete a user from Auth0 (for rollback purposes)
      */
     public void deleteUser(String email) {

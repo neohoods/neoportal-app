@@ -170,7 +170,10 @@ export class UsersComponent {
                 this.translate.instant('users.deleteSuccess', { username: user.username }),
                 { appearance: 'positive' },
               ).subscribe();
-              // The tos-table component will automatically refresh when data changes
+              // Refresh the users list after successful deletion
+              this.usersService.getUsers().subscribe((users) => {
+                this.users = users;
+              });
             },
             error: (error) => {
               console.error('Error deleting user:', error);
@@ -203,6 +206,10 @@ export class UsersComponent {
             this.translate.instant('users.disableSuccess', { username: user.username }),
             { appearance: 'positive' },
           ).subscribe();
+          // Refresh the users list after successful disable
+          this.usersService.getUsers().subscribe((users) => {
+            this.users = users;
+          });
         }
       });
   }
@@ -295,6 +302,10 @@ export class UsersComponent {
                 { appearance: 'positive' },
               )
               .subscribe();
+            // Refresh the users list after successful password change
+            this.usersService.getUsers().subscribe((users) => {
+              this.users = users;
+            });
           });
       }
     }

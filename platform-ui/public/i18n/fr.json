@@ -23,6 +23,14 @@
     "userNotFound": "Utilisateur introuvable. Veuillez d'abord vous inscrire.",
     "userNotFoundMessage": "Le compte utilisateur pour cet email n'existe pas. Veuillez d'abord créer un compte."
   },
+  "signupSuccess": {
+    "title": "Compte Prêt !",
+    "message": "Votre compte est prêt à être utilisé.",
+    "accountReady": "Compte Prêt",
+    "noFurtherAction": "Aucune action supplémentaire nécessaire. Vous pouvez maintenant accéder à toutes les fonctionnalités.",
+    "goToHub": "Aller au Hub",
+    "backToHome": "Retour à l'Accueil"
+  },
   "welcome": {
     "rentPortal": "Bienvenue sur votre portail communautaire",
     "rentPortalDescription": "Gérez votre communauté, vos propriétés et vos services en toute simplicité. Connectez-vous avec vos voisins et profitez d'une vie communautaire harmonieuse."

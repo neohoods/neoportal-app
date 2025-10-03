@@ -1,0 +1,129 @@
+@use 'styles' as *;
+
+.signup-success-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--tui-base-01), var(--tui-base-02));
+
+    .signup-success-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        max-width: 500px;
+        margin: 0 auto;
+        text-align: center;
+
+        .header {
+            margin-bottom: 2rem;
+
+            .logo {
+                width: 150px;
+                margin-bottom: 1.5rem;
+            }
+
+            .title {
+                font-size: 2.5rem;
+                color: var(--tui-text-01);
+                margin-bottom: 0.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+                color: var(--tui-text-02);
+                line-height: 1.5;
+            }
+        }
+
+        .success-card {
+            background-color: var(--tui-base-00);
+            border-radius: var(--tui-radius-m);
+            box-shadow: var(--tui-shadow-elevation-2);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-left: 4px solid var(--tui-success);
+
+            .success-icon {
+                color: var(--tui-success);
+                font-size: 2rem;
+            }
+
+            .success-content {
+                h3 {
+                    font-size: 1.2rem;
+                    color: var(--tui-text-01);
+                    margin-bottom: 0.5rem;
+                }
+
+                .email-address {
+                    font-family: monospace;
+                    font-size: 1.1rem;
+                    color: var(--tui-text-02);
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                }
+
+                .success-message {
+                    font-size: 0.95rem;
+                    color: var(--tui-text-02);
+                    line-height: 1.4;
+                    margin: 0;
+                }
+            }
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 1rem;
+
+        }
+    }
+
+    .welcome-section {
+        background-color: var(--tos-background-accent-1);
+        color: var(--tos-text-primary-on-accent-1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+
+        app-welcome {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}
+
+@media (max-width: 991px) {
+    .signup-success-container {
+        grid-template-columns: 1fr;
+
+        .welcome-section {
+            display: none;
+        }
+
+        .signup-success-content {
+            padding: 1.5rem;
+            max-width: 100%;
+        }
+
+        .header .logo {
+            display: block;
+            margin: 0 auto 1.5rem auto;
+        }
+    }
+}
