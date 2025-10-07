@@ -141,11 +141,19 @@ public class AuthApi implements AuthApiApiDelegate {
                                 }
 
                                 // Step 2: Check if user already exists locally
-                                UserEntity existingUser = usersRepository.findByUsername(request.getUsername());
-                                if (existingUser != null) {
+                                UserEntity existingUserByUsername = usersRepository.findByUsername(request.getUsername());
+                                if (existingUserByUsername != null) {
                                         log.warn("Signup failed: Username already exists: {}", request.getUsername());
                                         return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
                                                         "username", request.getUsername()));
+                                }
+
+                                // Step 2.5: Check if email already exists locally
+                                UserEntity existingUserByEmail = usersRepository.findByEmail(request.getEmail());
+                                if (existingUserByEmail != null) {
+                                        log.warn("Signup failed: Email already exists: {}", request.getEmail());
+                                        return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
+                                                        "email", request.getEmail()));
                                 }
 
                                 // Step 3: Check settings to determine if Auth0 should be used
@@ -243,6 +251,21 @@ public class AuthApi implements AuthApiApiDelegate {
                 try {
                         usersRepository.save(newUser);
                         log.info("Successfully saved user to local database: {}", newUser.getUsername());
+                } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        log.error("Failed to save user to local database due to constraint violation: {}", newUser.getUsername(), e);
+                        // Check if it's a duplicate email constraint
+                        if (e.getMessage() != null && e.getMessage().contains("users_email_key")) {
+                                return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
+                                                "email", request.getEmail()));
+                        }
+                        // Check if it's a duplicate username constraint
+                        if (e.getMessage() != null && e.getMessage().contains("users_username_key")) {
+                                return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
+                                                "username", request.getUsername()));
+                        }
+                        return Mono.error(new CodedErrorException(
+                                        CodedError.DATABASE_SAVE_ERROR,
+                                        Map.of("username", request.getUsername()), e));
                 } catch (Exception e) {
                         log.error("Failed to save user to local database: {}", newUser.getUsername(), e);
                         return Mono.error(new CodedErrorException(
