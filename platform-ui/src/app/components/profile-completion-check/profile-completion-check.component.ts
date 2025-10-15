@@ -3,7 +3,7 @@ import { Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@a
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiResponsiveDialogService } from '@taiga-ui/addon-mobile';
-import { TuiAlertService, TuiButton } from '@taiga-ui/core';
+import { TuiAlertService } from '@taiga-ui/core';
 import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 import { Subject, takeUntil } from 'rxjs';
 import { AUTH_SERVICE_TOKEN } from '../../global.provider';
@@ -15,7 +15,6 @@ import { AuthService } from '../../services/auth.service';
     selector: 'app-profile-completion-check',
     imports: [
         CommonModule,
-        TuiButton,
         TranslateModule,
     ],
     templateUrl: './profile-completion-check.component.html',
@@ -85,7 +84,7 @@ export class ProfileCompletionCheckComponent implements OnInit, OnDestroy {
         }
         if (!user.type) {
             missing.push('type');
-        } else if (user.properties.length === 0) {
+        } else if (user.properties && user.properties.length === 0) {
             if (user.type === UIUserType.OWNER) {
                 missing.push('properties');
             } else if (user.type === UIUserType.LANDLORD) {

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { map, Observable } from "rxjs";
-import { CustomPage, CustomPagesAdminApiService, GetCustomPageRefs200ResponseInner, HelpAdminApiService, HelpArticle, HelpCategory } from "../../../../api-client";
+import { CustomPage, CustomPagesAdminApiService, HelpAdminApiService, HelpArticle, HelpCategory } from "../../../../api-client";
 import { UICustomPage } from "../../../../models/UICustomPage";
 import { UIHelpArticle, UIHelpCategory } from "../../../../models/UIHelp";
 import { CustomPagesService } from "../custom-pages.service";
@@ -31,9 +31,9 @@ export class APICustomPagesService implements CustomPagesService {
 
     getCustomPageRefs(): Observable<UICustomPage[]> {
         return this.customPagesService.getAdminCustomPages().pipe(
-            map((pages: GetCustomPageRefs200ResponseInner[]) => pages.map((page) => ({
+            map((pages: any[]) => pages.map((page) => ({
                 ref: page.ref,
-                position: page.position,
+                position: page.position as any,
                 title: page.title,
                 content: '',
                 order: 0
@@ -42,13 +42,13 @@ export class APICustomPagesService implements CustomPagesService {
     }
 
     createCustomPage(page: UICustomPage): Observable<UICustomPage> {
-        return this.customPagesService.createCustomPage(page).pipe(
+        return this.customPagesService.createCustomPage(page as any).pipe(
             map((page: CustomPage) => page as UICustomPage),
         );
     }
 
     updateCustomPage(page: UICustomPage): Observable<UICustomPage> {
-        return this.customPagesService.updateCustomPage(page.ref, page).pipe(
+        return this.customPagesService.updateCustomPage(page.ref, page as any).pipe(
             map((page: CustomPage) => page as UICustomPage),
         );
     }

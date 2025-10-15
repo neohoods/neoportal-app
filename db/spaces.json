@@ -1,0 +1,520 @@
+[
+  {
+    "name": "Place de parking N°7",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°7 est située au niveau -1 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°23",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°23 est située au niveau -1 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°45",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°45 est située au niveau -2 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°67",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°67 est située au niveau -2 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°89",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°89 est située au niveau -2 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°102",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°102 est située au niveau -3 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°34",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°34 est située au niveau -1 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°56",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°56 est située au niveau -2 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°78",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°78 est située au niveau -2 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Place de parking N°91",
+    "type": "PARKING",
+    "status": "AVAILABLE",
+    "description": "Place de parking pour véhicule léger. Réservation gratuite à la journée, maximum 15 jours consécutifs. Aucun frais de réservation.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 0,
+      "ownerPrice": 0,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 15,
+      "advanceBooking": 0,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "00:00",
+      "allowedHoursEnd": "23:59",
+      "checkInTime": "00:00",
+      "checkOutTime": "23:59",
+      "houseRules": "Respecter les dimensions de la place. Pas de véhicules utilitaires ou camping-cars."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 15
+    },
+    "images": ["parking.jpeg"],
+    "instructions": "La place N°91 est située au niveau -3 du parking souterrain. Accès par le portail principal avec votre badge ou code d'accès temporaire."
+  },
+  {
+    "name": "Chambre d'hôte",
+    "type": "GUEST_ROOM",
+    "status": "AVAILABLE",
+    "description": "Chambre d'hôte confortable pour 2 voyageurs maximum. Équipement complet avec literie, électroménager et décoration. Réservée exclusivement aux résidents de Terre de Laya.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 70,
+      "ownerPrice": 50,
+      "deposit": 0,
+      "cleaningFee": 50,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 2,
+      "maxStay": 7,
+      "advanceBooking": 14,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "15:00",
+      "allowedHoursEnd": "11:00",
+      "checkInTime": "15:00",
+      "checkOutTime": "11:00",
+      "houseRules": "Maximum 2 voyageurs. Interdictions : fumeurs, animaux, bougies, fêtes. Horaires de calme : 22h-7h. Chauffage au minimum en cas d'absence."
+    },
+    "quota": {
+      "maxAnnualReservations": 7,
+      "maxConsecutiveDays": 7
+    },
+    "images": ["chambre-dhotes.jpg"],
+    "instructions": "La chambre d'hôte est située au 1er étage. Vous recevrez un code d'accès temporaire par email 24h avant votre arrivée. Accès 24h/24 avec votre code personnel. Nettoyage inclus les lundis et mardis."
+  },
+  {
+    "name": "Salle commune",
+    "type": "COMMON_ROOM",
+    "status": "AVAILABLE",
+    "description": "Salle commune équipée pour événements et réunions. Mobilier complet avec tables, chaises, 2 bureaux de co-working, réfrigérateur, imprimante et vidéoprojecteur. Idéale pour les résidents de Terre de Laya.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 20,
+      "ownerPrice": 10,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 1,
+      "advanceBooking": 14,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["WEDNESDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "08:00",
+      "allowedHoursEnd": "20:00",
+      "checkInTime": "08:00",
+      "checkOutTime": "20:00",
+      "houseRules": "Capacité maximale à respecter. Interdictions : fumeurs, animaux, pétards. Responsabilités : nettoyage après utilisation, volume sonore raisonnable. Signalement obligatoire des dégâts."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 1
+    },
+    "images": ["common-space.jpg"],
+    "instructions": "La salle commune est située au rez-de-chaussée. Vous recevrez un code d'accès temporaire par email 24h avant votre réservation. Accès de 8h à 20h. Nettoyage par les participants après utilisation."
+  },
+  {
+    "name": "Bureau coworking A",
+    "type": "COWORKING",
+    "status": "AVAILABLE",
+    "description": "Bureau de coworking individuel équipé pour le télétravail. Espace calme et fonctionnel avec bureau, chaise ergonomique, connexion internet et éclairage optimal. Idéal pour les résidents de Terre de Laya.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 8,
+      "ownerPrice": 4,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 5,
+      "advanceBooking": 28,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "08:00",
+      "allowedHoursEnd": "20:00",
+      "checkInTime": "08:00",
+      "checkOutTime": "20:00",
+      "houseRules": "Nettoyage par l'utilisateur après utilisation. Respecter le calme. Pas de frais de ménage. Non réservable si salle commune occupée."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 5
+    },
+    "images": ["coworking.jpg"],
+    "instructions": "Le bureau coworking A est situé dans la salle commune. Vous recevrez un code d'accès temporaire par email 24h avant votre réservation. Accès de 8h à 20h. Nettoyage par l'utilisateur après utilisation."
+  },
+  {
+    "name": "Bureau coworking B",
+    "type": "COWORKING",
+    "status": "AVAILABLE",
+    "description": "Bureau de coworking individuel équipé pour le télétravail. Espace calme et fonctionnel avec bureau, chaise ergonomique, connexion internet et éclairage optimal. Idéal pour les résidents de Terre de Laya.",
+    "location": {
+      "address": "Résidence Terre de Laya",
+      "city": "Marseille",
+      "postalCode": "13008",
+      "country": "France"
+    },
+    "pricing": {
+      "tenantPrice": 8,
+      "ownerPrice": 4,
+      "deposit": 0,
+      "cleaningFee": 0,
+      "currency": "EUR"
+    },
+    "rules": {
+      "minStay": 1,
+      "maxStay": 5,
+      "advanceBooking": 28,
+      "cancellationPolicy": "FREE_CANCELLATION",
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHoursStart": "08:00",
+      "allowedHoursEnd": "20:00",
+      "checkInTime": "08:00",
+      "checkOutTime": "20:00",
+      "houseRules": "Nettoyage par l'utilisateur après utilisation. Respecter le calme. Pas de frais de ménage. Non réservable si salle commune occupée."
+    },
+    "quota": {
+      "maxAnnualReservations": null,
+      "maxConsecutiveDays": 5
+    },
+    "images": ["coworking.jpg"],
+    "instructions": "Le bureau coworking B est situé dans la salle commune. Vous recevrez un code d'accès temporaire par email 24h avant votre réservation. Accès de 8h à 20h. Nettoyage par l'utilisateur après utilisation."
+  }
+]

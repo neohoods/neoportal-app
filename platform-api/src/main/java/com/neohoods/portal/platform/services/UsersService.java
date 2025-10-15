@@ -42,6 +42,12 @@ public class UsersService {
                                 .map(User.UserBuilder::build);
         }
 
+        public Flux<User> getUsersByIds(List<UUID> userIds) {
+                return Flux.fromIterable(usersRepository.findAllByIdWithProperties(userIds))
+                                .map(UserEntity::toUser)
+                                .map(User.UserBuilder::build);
+        }
+
         public Mono<User> updateProfile(UUID userId, User user) {
                 log.info("Updating profile for user: {}", userId);
 

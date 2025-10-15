@@ -1,0 +1,174 @@
+.spaces-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.spaces-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+
+    h1 {
+        margin: 0 0 0.5rem 0;
+        color: var(--tos-text-primary);
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    .spaces-subtitle {
+        margin: 0;
+        color: var(--tos-text-secondary);
+        font-size: 1.125rem;
+    }
+}
+
+.filters-section {
+    background: var(--tos-background-base);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--tos-border-neutral-1);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+}
+
+.filters-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto auto;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+.search-container {
+    .search-icon {
+        color: var(--tos-text-tertiary);
+    }
+}
+
+.type-filter,
+.date-filter {
+    min-width: 0; // Prevent grid overflow
+
+    // Improve date range picker styling
+    ::ng-deep {
+        .tui-input-date-range {
+            .tui-textfield {
+                border-radius: 8px;
+            }
+        }
+
+        // Custom styling for selected dates
+        .tui-calendar-range {
+            .tui-calendar-range__item_selected {
+                background: var(--tos-background-accent-2) !important;
+                color: var(--tos-text-primary) !important;
+                border-radius: 8px !important;
+            }
+
+            .tui-calendar-range__item_hover {
+                background: var(--tos-background-accent-1) !important;
+                color: var(--tos-text-primary) !important;
+            }
+
+            .tui-calendar-range__item_range {
+                background: var(--tos-background-accent-1) !important;
+                color: var(--tos-text-primary) !important;
+            }
+        }
+    }
+}
+
+.available-toggle,
+.clear-filters {
+    white-space: nowrap;
+}
+
+.filter-pills {
+    border-top: 1px solid var(--tos-border-neutral-1);
+    padding-top: 1rem;
+}
+
+.pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--tos-background-accent-2);
+    color: var(--tos-text-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+
+    .pill-remove {
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    p {
+        margin-top: 1rem;
+        color: var(--tos-text-secondary);
+    }
+}
+
+.spaces-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    tui-icon {
+        color: var(--tos-text-tertiary);
+        margin-bottom: 1rem;
+    }
+
+    h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--tos-text-primary);
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin: 0 0 1.5rem 0;
+        color: var(--tos-text-secondary);
+    }
+}

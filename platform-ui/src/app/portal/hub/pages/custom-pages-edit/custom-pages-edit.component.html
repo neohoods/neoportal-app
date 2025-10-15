@@ -18,12 +18,13 @@
     <tui-select
         tuiTextfieldSize="s"
         formControlName="position"
+        name="position"
     >
         {{ 'customPagesEdit.position' | translate }}
         <input
             placeholder="{{ 'customPagesEdit.positionPlaceholder' | translate }}"
             tuiTextfieldLegacy
-        />
+        >
         <tui-data-list-wrapper
             *tuiDataList
             [items]="items"

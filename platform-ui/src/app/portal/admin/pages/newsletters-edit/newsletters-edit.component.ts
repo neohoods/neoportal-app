@@ -16,8 +16,6 @@ import {
 import {
     TuiChevron,
     TuiDataListWrapper,
-    TuiFilterByInputPipe,
-    TuiHideSelectedPipe,
     TuiInputChip,
     TuiInputDateTime,
     TuiMultiSelect
@@ -48,8 +46,6 @@ import { UsersService } from '../../services/users.service';
         TuiInputChip,
         TuiInputDateTime,
         TuiDataListWrapper,
-        TuiFilterByInputPipe,
-        TuiHideSelectedPipe,
         TuiMultiSelect,
         TuiLoader,
         QuillModule

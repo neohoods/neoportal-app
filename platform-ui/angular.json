@@ -50,6 +50,9 @@
               "src/styles/_theme.scss"
             ],
             "scripts": [],
+            "allowedCommonJsDependencies": [
+              "quill-delta"
+            ],
             "budgets": [
               {
                 "type": "initial",

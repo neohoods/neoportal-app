@@ -54,6 +54,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>1.19.8</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -240,6 +247,23 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
+
+        <!-- Testcontainers for integration testing with PostgreSQL -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -306,6 +330,7 @@
                                 <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
                                 <reactive>true</reactive>
                                 <delegatePattern>true</delegatePattern>
+                                <nullableAsOptional>true</nullableAsOptional>
                                 <additionalModelTypeAnnotations>@lombok.Builder(toBuilder=true)
                                     @lombok.NoArgsConstructor @lombok.AllArgsConstructor
                                 </additionalModelTypeAnnotations>
@@ -361,6 +386,54 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/BaseIntegrationTest.class</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/entities/**</exclude>
+                        <exclude>**/repositories/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                <!-- Sequential execution to avoid DataSource conflicts between test classes -->
+                <parallel>none</parallel>
+                <forkCount>1</forkCount>
+                <reuseForks>false</reuseForks>
+                <threadCount>1</threadCount>
+                    <!-- Each test class gets its own container sequentially -->
+                    <!-- Increase timeouts for Testcontainers -->
+                    <systemPropertyVariables>
+                        <testcontainers.ryuk.disabled>true</testcontainers.ryuk.disabled>
+                        <testcontainers.reuse.enable>false</testcontainers.reuse.enable>
+                    </systemPropertyVariables>
+                    <!-- Timeout per test -->
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <!-- Timeout for each test method in seconds -->
+                    <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

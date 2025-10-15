@@ -1,0 +1,218 @@
+<div class="reservation-detail-container">
+    <!-- Header -->
+    <div class="detail-header">
+        <button
+            tuiButton
+            appearance="secondary"
+            size="m"
+            (click)="onBack()"
+        >
+            <tui-icon icon="@tui.arrow-left"></tui-icon>
+            {{ 'reservations.admin.backToReservations' | translate }}
+        </button>
+
+        <h1>
+            {{ 'reservations.admin.reservationDetail' | translate }} #{{ reservation()?.id }}
+        </h1>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'reservations.admin.loadingReservation' | translate }}
+        </p>
+    </div>
+
+    <!-- Content -->
+    <div
+        *ngIf="!loading() && reservation()"
+        class="detail-content"
+    >
+        <div class="detail-grid">
+            <!-- Reservation Info -->
+            <div class="detail-card">
+                <h2>
+                    {{ 'reservations.admin.reservationInfo' | translate }}
+                </h2>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>
+                            {{ 'reservations.admin.status' | translate }}
+                        </label>
+                        <span
+                            class="status-badge"
+                            [class]="getStatusClass(reservation()!.status)"
+                        >
+                            {{ getStatusLabel(reservation()!.status) }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>
+                            {{ 'reservations.admin.startDate' | translate }}
+                        </label>
+                        <span>
+                            {{ formatDate(reservation()!.startDate) }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>
+                            {{ 'reservations.admin.endDate' | translate }}
+                        </label>
+                        <span>
+                            {{ formatDate(reservation()!.endDate) }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>
+                            {{ 'reservations.admin.totalPrice' | translate }}
+                        </label>
+                        <span class="price">
+                            {{ formatPrice(reservation()!.totalPrice) }}
+                        </span>
+                    </div>
+
+                    <div
+                        *ngIf="reservation()?.accessCode"
+                        class="info-item"
+                    >
+                        <label>
+                            {{ 'reservations.admin.accessCode' | translate }}
+                        </label>
+                        <span class="access-code">{{ reservation()?.accessCode?.code }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Space Info -->
+            <div
+                *ngIf="space()"
+                class="detail-card"
+            >
+                <h2>
+                    {{ 'reservations.admin.spaceInfo' | translate }}
+                </h2>
+
+                <div class="space-info">
+                    <div class="space-image">
+                        <img
+                            *ngIf="space()!.images && space()!.images.length > 0"
+                            [src]="space()!.images[0]?.url"
+                            [alt]="space()!.name"
+                        >
+                        <div
+                            *ngIf="!space()!.images || space()!.images.length === 0"
+                            class="no-image"
+                        >
+                            <tui-icon
+                                icon="@tui.image"
+                                size="xl"
+                            ></tui-icon>
+                        </div>
+                    </div>
+
+                    <div class="space-details">
+                        <h3>{{ space()!.name }}</h3>
+                        <p>{{ space()!.description }}</p>
+                        <div class="space-meta">
+                            <span class="space-type">{{ space()!.type }}</span>
+                            <span class="space-status">{{ space()!.status }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div
+                *ngIf="user()"
+                class="detail-card"
+            >
+                <h2>
+                    {{ 'reservations.admin.userInfo' | translate }}
+                </h2>
+
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <img
+                            *ngIf="user()!.avatar"
+                            [src]="user()!.avatar"
+                            [alt]="user()!.username"
+                        >
+                        <div
+                            *ngIf="!user()!.avatar"
+                            class="no-avatar"
+                        >
+                            <tui-icon
+                                icon="@tui.user"
+                                size="xl"
+                            ></tui-icon>
+                        </div>
+                    </div>
+
+                    <div class="user-details">
+                        <h3>{{ user()!.username }}</h3>
+                        <p>{{ user()!.email }}</p>
+                        <div class="user-meta">
+                            <span class="user-type">{{ user()!.type }}</span>
+                            <span class="user-status">{{ user()!.status }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="detail-actions">
+            <button
+                tuiButton
+                appearance="secondary"
+                size="m"
+                (click)="onUpdateStatus('CONFIRMED')"
+                [disabled]="reservation()!.status === 'CONFIRMED'"
+            >
+                <tui-icon icon="@tui.check"></tui-icon>
+                {{ 'reservations.admin.confirm' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                appearance="secondary"
+                size="m"
+                (click)="onUpdateStatus('COMPLETED')"
+                [disabled]="reservation()!.status === 'COMPLETED'"
+            >
+                <tui-icon icon="@tui.check-circle"></tui-icon>
+                {{ 'reservations.admin.complete' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                appearance="secondary"
+                size="m"
+                (click)="onGenerateAccessCode()"
+                [disabled]="!reservation()!.accessCode"
+            >
+                <tui-icon icon="@tui.key"></tui-icon>
+                {{ 'reservations.admin.generateAccessCode' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                appearance="negative"
+                size="m"
+                (click)="onCancelReservation()"
+                [disabled]="reservation()!.status === 'CANCELLED'"
+            >
+                <tui-icon icon="@tui.x"></tui-icon>
+                {{ 'reservations.admin.cancel' | translate }}
+            </button>
+        </div>
+    </div>
+</div>

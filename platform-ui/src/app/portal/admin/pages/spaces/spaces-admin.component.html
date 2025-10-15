@@ -1,0 +1,325 @@
+<div class="spaces-admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <h1>{{ 'spaces.admin.title' | translate }}</h1>
+        <p class="admin-subtitle">
+            {{ 'spaces.admin.subtitle' | translate }}
+        </p>
+
+        <div class="admin-actions">
+            <button
+                tuiButton
+                appearance="primary"
+                size="m"
+                (click)="onAddSpace()"
+            >
+                <tui-icon icon="@tui.plus"></tui-icon>
+                {{ 'spaces.admin.addSpace' | translate }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h3>
+                {{ 'spaces.admin.filters' | translate }}
+            </h3>
+            <button
+                tuiButton
+                appearance="secondary"
+                size="s"
+                (click)="onClearFilters()"
+            >
+                <tui-icon icon="@tui.x"></tui-icon>
+                {{ 'spaces.admin.clearFilters' | translate }}
+            </button>
+        </div>
+
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label tuiLabel>
+                    {{ 'spaces.admin.filterByType' | translate }}
+                    <tui-textfield
+                        tuiChevron
+                        [stringify]="stringifyType"
+                    >
+                        <input
+                            tuiSelect
+                            [ngModel]="selectedType()"
+                            (ngModelChange)="onTypeChange($event)"
+                            name="type"
+                            [placeholder]="'spaces.admin.filterByType' | translate"
+                        >
+                        <tui-data-list-wrapper
+                            *tuiTextfieldDropdown
+                            new
+                            [items]="spaceTypes"
+                            [itemContent]="typeContent"
+                        ></tui-data-list-wrapper>
+                    </tui-textfield>
+                </label>
+            </div>
+
+            <ng-template
+                #typeContent
+                let-item
+            >
+                {{ item.label | translate }}
+            </ng-template>
+
+            <div class="filter-group">
+                <label tuiLabel>
+                    {{ 'spaces.admin.filterByStatus' | translate }}
+                    <tui-textfield
+                        tuiChevron
+                        [stringify]="stringifyStatus"
+                    >
+                        <input
+                            tuiSelect
+                            [ngModel]="selectedStatus()"
+                            (ngModelChange)="onStatusChange($event)"
+                            name="status"
+                            [placeholder]="'spaces.admin.filterByStatus' | translate"
+                        >
+                        <tui-data-list-wrapper
+                            *tuiTextfieldDropdown
+                            new
+                            [items]="spaceStatuses"
+                            [itemContent]="statusContent"
+                        ></tui-data-list-wrapper>
+                    </tui-textfield>
+                </label>
+            </div>
+
+            <ng-template
+                #statusContent
+                let-item
+            >
+                {{ item.label | translate }}
+            </ng-template>
+        </div>
+
+        <!-- Filter Pills -->
+        <div
+            class="filter-pills"
+            *ngIf="selectedType() || selectedStatus()"
+        >
+            <div class="pills-container">
+                <span
+                    *ngIf="selectedType()"
+                    class="filter-pill"
+                >
+                    Type: {{ getSpaceTypeLabel(selectedType()) }}
+                    <tui-icon
+                        icon="@tui.x"
+                        (click)="onTypeChange(null)"
+                        class="pill-remove"
+                    ></tui-icon>
+                </span>
+
+                <span
+                    *ngIf="selectedStatus()"
+                    class="filter-pill"
+                >
+                    Statut: {{ getSpaceStatusLabel(selectedStatus()) }}
+                    <tui-icon
+                        icon="@tui.x"
+                        (click)="onStatusChange(null)"
+                        class="pill-remove"
+                    ></tui-icon>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>{{ 'spaces.list.loading' | translate }}</p>
+    </div>
+
+    <!-- Spaces Table -->
+    <div
+        *ngIf="!loading()"
+        class="spaces-table-container"
+    >
+        <div class="table-header">
+            <h2>{{ 'spaces.list.title' | translate }}</h2>
+        </div>
+
+        <div class="spaces-grid">
+            <div
+                *ngFor="let space of paginatedSpaces"
+                class="space-admin-card"
+            >
+                <div class="space-image">
+                    <img
+                        *ngIf="space.images && space.images.length > 0"
+                        [src]="space.images[0].url"
+                        [alt]="space.name"
+                    >
+                    <div
+                        *ngIf="!space.images || space.images.length === 0"
+                        class="no-image"
+                    >
+                        <tui-icon
+                            [icon]="getSpaceTypeIcon(space.type)"
+                            size="xl"
+                        ></tui-icon>
+                    </div>
+                </div>
+
+                <div class="space-info">
+                    <div class="space-header">
+                        <h3>{{ space.name }}</h3>
+                        <span class="space-type">
+                            <tui-icon [icon]="getSpaceTypeIcon(space.type)"></tui-icon>
+                            {{ getSpaceTypeLabel(space.type) }}
+                        </span>
+                    </div>
+
+                    <p class="space-description">{{ space.description }}</p>
+
+                    <div class="space-stats">
+                        <div class="stat">
+                            <span class="stat-label">
+                                {{ 'spaces.detail.pricing' | translate }}:
+                            </span>
+                            <span class="stat-value">{{ space.pricing.tenantPrice }}€/jour</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">
+                                {{ 'spaces.detail.capacity' | translate }}:
+                            </span>
+                            <span class="stat-value">{{ getQuotaDescription(space) }}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">
+                                {{ 'spaces.detail.status' | translate }}:
+                            </span>
+                            <span
+                                class="stat-value"
+                                [class]="'status-' + space.status.toLowerCase()"
+                            >
+                                {{ 'spaces.status.' + space.status | translate }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-actions">
+                    <button
+                        tuiButton
+                        appearance="outline"
+                        size="m"
+                        (click)="onViewSpace(space)"
+                        class="action-btn view-btn"
+                    >
+                        <tui-icon icon="@tui.eye"></tui-icon>
+                        Voir
+                    </button>
+
+                    <button
+                        tuiButton
+                        appearance="outline"
+                        size="m"
+                        (click)="onEditSpace(space)"
+                        class="action-btn edit-btn"
+                    >
+                        <tui-icon icon="@tui.edit"></tui-icon>
+                        Modifier
+                    </button>
+
+                    <button
+                        tuiButton
+                        appearance="outline"
+                        size="m"
+                        (click)="onToggleSpaceStatus(space)"
+                        class="action-btn toggle-btn"
+                        [class.active]="space.status === 'ACTIVE'"
+                    >
+                        <tui-icon [icon]="space.status === 'ACTIVE' ? '@tui.pause' : '@tui.play'"></tui-icon>
+                        {{ space.status === 'ACTIVE' ? 'Désactiver' : 'Activer' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+            *ngIf="totalPages() > 1"
+            class="pagination-container"
+        >
+            <div class="pagination-info">
+                {{ 'spaces.admin.showing' | translate }} {{ (currentPage() - 1) * itemsPerPage() + 1 }} - {{ getEndIndex() }} {{ 'spaces.admin.of' | translate }} {{ filteredSpaces().length }} {{ 'spaces.admin.results' | translate }}
+            </div>
+
+            <div class="pagination-controls">
+                <button
+                    tuiButton
+                    appearance="secondary"
+                    size="s"
+                    [disabled]="currentPage() === 1"
+                    (click)="onPageChange(currentPage() - 1)"
+                >
+                    <tui-icon icon="@tui.chevron-left"></tui-icon>
+                    {{ 'spaces.admin.previous' | translate }}
+                </button>
+
+                <div class="page-numbers">
+                    <button
+                        *ngFor="let page of getPageNumbers()"
+                        tuiButton
+                        [appearance]="page === currentPage() ? 'primary' : 'secondary'"
+                        size="s"
+                        (click)="onPageChange(page)"
+                        class="page-button"
+                    >
+                        {{ page }}
+                    </button>
+                </div>
+
+                <button
+                    tuiButton
+                    appearance="secondary"
+                    size="s"
+                    [disabled]="currentPage() === totalPages()"
+                    (click)="onPageChange(currentPage() + 1)"
+                >
+                    {{ 'spaces.admin.next' | translate }}
+                    <tui-icon icon="@tui.chevron-right"></tui-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+        *ngIf="!loading() && filteredSpaces().length === 0"
+        class="empty-state"
+    >
+        <tui-icon
+            icon="@tui.map-pin"
+            size="xl"
+        ></tui-icon>
+        <h3>
+            {{ 'spaces.admin.noSpaces' | translate }}
+        </h3>
+        <p>
+            {{ 'spaces.admin.noSpaces' | translate }}
+        </p>
+        <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            (click)="onAddSpace()"
+        >
+            <tui-icon icon="@tui.plus"></tui-icon>
+            {{ 'spaces.admin.createFirstSpace' | translate }}
+        </button>
+    </div>
+</div>

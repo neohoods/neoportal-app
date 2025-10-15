@@ -1,0 +1,410 @@
+<div class="reservation-detail-container">
+    <!-- Header -->
+    <div class="detail-header">
+        <div class="header-left">
+            <button
+                tuiButton
+                appearance="flat"
+                size="m"
+                (click)="onBack()"
+                class="back-button"
+            >
+                <tui-icon icon="@tui.chevron-left"></tui-icon>
+                {{ 'reservations.admin.back' | translate }}
+            </button>
+
+            <div class="header-info">
+                <h1>
+                    {{ 'reservations.admin.reservationDetail' | translate }} #{{ reservation()?.id }}
+                </h1>
+                <span
+                    *ngIf="reservation()"
+                    class="reservation-status"
+                    [class]="getStatusClass(reservation()!.status)"
+                >
+                    {{ getStatusLabel(reservation()!.status) }}
+                </span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button
+                *ngIf="reservation()?.accessCode"
+                tuiButton
+                appearance="secondary"
+                size="m"
+                (click)="onRegenerateAccessCode()"
+            >
+                <tui-icon icon="@tui.refresh"></tui-icon>
+                {{ 'reservations.admin.regenerateCode' | translate }}
+            </button>
+
+            <button
+                tuiButton
+                appearance="negative"
+                size="m"
+                (click)="onCancelReservation()"
+            >
+                <tui-icon icon="@tui.x"></tui-icon>
+                {{ 'reservations.admin.cancel' | translate }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'reservations.admin.loading' | translate }}
+        </p>
+    </div>
+
+    <!-- Content -->
+    <div
+        *ngIf="!loading() && reservation()"
+        class="detail-content"
+    >
+        <!-- Tabs -->
+        <tui-tabs
+            [(activeItemIndex)]="activeTab"
+            (activeItemIndexChange)="onTabChange($event)"
+            class="detail-tabs"
+        >
+            <button tuiTab>
+                {{ ('reservations.admin.overview' | translate) || 'Aperçu' }}
+            </button>
+            <button tuiTab>
+                {{ ('reservations.admin.userInfo' | translate) || 'Informations utilisateur' }}
+            </button>
+            <button tuiTab>
+                {{ ('reservations.admin.accessCode' | translate) || 'Code d\'accès' }}
+            </button>
+            <button tuiTab>
+                {{ 'reservations.admin.auditLogTitle' | translate }}
+            </button>
+        </tui-tabs>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div
+                *ngIf="activeTab === 0"
+                class="overview-tab"
+            >
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>
+                            {{ 'reservations.admin.datesAndReservationInfo' | translate }}
+                        </h3>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.startDate' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ formatDate(reservation()!.startDate) }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.endDate' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ formatDate(reservation()!.endDate) }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.duration' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ getDurationDays(reservation()!.startDate, reservation()!.endDate) }} {{ 'reservations.admin.days' | translate }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.createdAt' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ formatDate(reservation()!.createdAt || '') }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>
+                            {{ 'reservations.admin.pricing' | translate }}
+                        </h3>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.totalPrice' | translate }}:
+                            </span>
+                            <span class="info-value price">{{ reservation()!.totalPrice }}€</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.paymentStatus' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ getPaymentStatus(reservation()!.status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>
+                            {{ 'reservations.admin.spaceInfo' | translate }}
+                        </h3>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.spaceId' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                <a
+                                    [routerLink]="['/admin/spaces', reservation()!.spaceId]"
+                                    class="space-link"
+                                >
+                                    {{ reservation()!.spaceId }}
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Info Tab -->
+            <div
+                *ngIf="activeTab === 1"
+                class="user-info-tab"
+            >
+                <div
+                    *ngIf="user()"
+                    class="user-card"
+                >
+                    <div class="user-header">
+                        <img
+                            [src]="user()!.avatarUrl || 'https://i.pravatar.cc/150'"
+                            [alt]="user()!.username"
+                            class="user-avatar-large"
+                        >
+                        <div class="user-basic-info">
+                            <h2>
+                                {{ user()!.firstName }} {{ user()!.lastName }}
+                            </h2>
+                            <p class="user-username">{{ getUserDisplayName(user()!) }}</p>
+                            <p class="user-email">{{ user()!.email }}</p>
+                        </div>
+                        <button
+                            tuiButton
+                            appearance="primary"
+                            size="m"
+                            (click)="onViewUser()"
+                        >
+                            <tui-icon icon="@tui.user"></tui-icon>
+                            {{ 'reservations.admin.viewUser' | translate }}
+                        </button>
+                    </div>
+
+                    <div class="user-details-grid">
+                        <div class="user-detail-item">
+                            <span class="detail-label">
+                                {{ 'reservations.admin.userType' | translate }}:
+                            </span>
+                            <span class="detail-value">{{ user()!.type }}</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="detail-label">
+                                {{ 'reservations.admin.emailVerified' | translate }}:
+                            </span>
+                            <span class="detail-value">
+                                <tui-icon
+                                    [icon]="user()!.isEmailVerified ? '@tui.check-circle' : '@tui.x-circle'"
+                                    [class]="user()!.isEmailVerified ? 'verified' : 'not-verified'"
+                                ></tui-icon>
+                                {{ (user()!.isEmailVerified ? 'reservations.admin.yes' : 'reservations.admin.no') | translate }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Code Tab -->
+            <div
+                *ngIf="activeTab === 2"
+                class="access-code-tab"
+            >
+                <div
+                    *ngIf="reservation()?.accessCode"
+                    class="access-code-card"
+                >
+                    <h3>
+                        {{ 'reservations.admin.accessCodeDetails' | translate }}
+                    </h3>
+
+                    <div class="access-code-display">
+                        <span class="access-code">{{ reservation()!.accessCode?.code }}</span>
+                        <button
+                            tuiButton
+                            appearance="secondary"
+                            size="s"
+                            (click)="copyAccessCode()"
+                        >
+                            <tui-icon icon="@tui.copy"></tui-icon>
+                            {{ 'reservations.admin.copy' | translate }}
+                        </button>
+                    </div>
+
+                    <div class="access-code-info">
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.generatedOn' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ formatDate(reservation()!.accessCode?.generatedAt || '') }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.validUntil' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                {{ formatDate(reservation()!.accessCode?.expiresAt || '') }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                {{ 'reservations.admin.status' | translate }}:
+                            </span>
+                            <span class="info-value">
+                                <span
+                                    class="code-status"
+                                    [class]="isAccessCodeValid() ? 'valid' : 'expired'"
+                                >
+                                    {{ (isAccessCodeValid() ? 'reservations.admin.valid' : 'reservations.admin.expired') | translate }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    *ngIf="!reservation()?.accessCode"
+                    class="no-access-code"
+                >
+                    <tui-icon
+                        icon="@tui.key"
+                        size="xl"
+                    ></tui-icon>
+                    <h3>
+                        {{ 'reservations.admin.noAccessCode' | translate }}
+                    </h3>
+                    <p>
+                        {{ 'reservations.admin.noAccessCodeDescription' | translate }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Audit Log Tab -->
+            <div
+                *ngIf="activeTab === 3"
+                class="audit-log-tab"
+            >
+                <div class="audit-log-header">
+                    <h3>
+                        {{ 'reservations.admin.auditLogTitle' | translate }}
+                    </h3>
+                    <button
+                        tuiButton
+                        appearance="secondary"
+                        size="s"
+                        (click)="refreshAuditLogs()"
+                        [disabled]="auditLogsLoading()"
+                    >
+                        <tui-icon icon="@tui.refresh"></tui-icon>
+                        {{ 'reservations.admin.refresh' | translate }}
+                    </button>
+                </div>
+
+                <div
+                    *ngIf="auditLogsLoading()"
+                    class="audit-logs-loading"
+                >
+                    <tui-loader size="m"></tui-loader>
+                    <p>
+                        {{ 'reservations.admin.loadingAuditLogs' | translate }}
+                    </p>
+                </div>
+
+                <div
+                    *ngIf="!auditLogsLoading() && auditLogs().length > 0"
+                    class="audit-logs-list"
+                >
+                    <div
+                        *ngFor="let log of auditLogs(); trackBy: trackByLogId"
+                        [class]="'audit-log-item ' + getEventTypeClass(log.eventType)"
+                    >
+                        <div class="log-header">
+                            <div class="log-icon">
+                                <tui-icon
+                                    [icon]="getEventTypeIcon(log.eventType)"
+                                    [class]="getEventTypeClass(log.eventType)"
+                                ></tui-icon>
+                            </div>
+                            <div class="log-info">
+                                <div class="log-event">{{ getEventTypeLabel(log.eventType) }}</div>
+                                <div class="log-timestamp">{{ formatDateTime(log.createdAt) }}</div>
+                            </div>
+                            <div class="log-performer">{{ log.performedBy }}</div>
+                        </div>
+
+                        <div class="log-content">
+                            <div class="log-message">{{ log.logMessage }}</div>
+
+                            <div
+                                *ngIf="log.oldValue || log.newValue"
+                                class="log-changes"
+                            >
+                                <div
+                                    *ngIf="log.oldValue"
+                                    class="change-item old-value"
+                                >
+                                    <span class="change-label">
+                                        {{ 'reservations.admin.oldValue' | translate }}:
+                                    </span>
+                                    <span class="change-value">{{ log.oldValue }}</span>
+                                </div>
+                                <div
+                                    *ngIf="log.newValue"
+                                    class="change-item new-value"
+                                >
+                                    <span class="change-label">
+                                        {{ 'reservations.admin.newValue' | translate }}:
+                                    </span>
+                                    <span class="change-value">{{ log.newValue }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    *ngIf="!auditLogsLoading() && auditLogs().length === 0"
+                    class="no-audit-logs"
+                >
+                    <tui-icon
+                        icon="@tui.file-text"
+                        size="xl"
+                    ></tui-icon>
+                    <h3>
+                        {{ 'reservations.admin.noAuditLogs' | translate }}
+                    </h3>
+                    <p>
+                        {{ 'reservations.admin.noAuditLogsDescription' | translate }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

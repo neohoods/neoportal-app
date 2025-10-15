@@ -1,0 +1,209 @@
+<div class="reservation-success-container">
+    <div class="success-content">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon">
+                <tui-icon
+                    icon="tuiIconCheckCircle"
+                    size="xl"
+                    class="success-icon-svg"
+                ></tui-icon>
+            </div>
+            <h1 class="success-title">
+                {{ 'reservations.success.title' | translate }}
+            </h1>
+            <p class="success-message">
+                {{ 'reservations.success.paymentSuccessful' | translate }}
+            </p>
+        </div>
+
+        <!-- Loading State -->
+        <div
+            *ngIf="loading()"
+            class="loading-container"
+        >
+            <tui-loader size="l"></tui-loader>
+            <p>
+                {{ 'reservations.success.loading' | translate }}
+            </p>
+        </div>
+
+        <!-- Error State -->
+        <div
+            *ngIf="error()"
+            class="error-container"
+        >
+            <tui-icon
+                icon="tuiIconAlertCircle"
+                size="l"
+                class="error-icon"
+            ></tui-icon>
+            <h2>
+                {{ 'reservations.success.error' | translate }}
+            </h2>
+            <p>{{ error() }}</p>
+            <button
+                tuiButton
+                (click)="onBackToSpaces()"
+                appearance="primary"
+            >
+                {{ 'reservations.success.backToSpaces' | translate }}
+            </button>
+        </div>
+
+        <!-- Success Details -->
+        <div
+            *ngIf="!loading() && !error() && reservation() && space()"
+            class="reservation-details"
+        >
+            <!-- Reservation Summary -->
+            <div class="reservation-summary">
+                <h2>
+                    {{ 'reservations.success.reservationDetails' | translate }}
+                </h2>
+
+                <div class="reservation-info">
+                    <div class="info-item">
+                        <strong>
+                            {{ 'reservations.success.reservationId' | translate }}:
+                        </strong>
+                        <a
+                            [routerLink]="['/spaces/reservations', reservation()!.id]"
+                            class="reservation-link"
+                        >
+                            {{ reservation()!.id }}
+                        </a>
+                    </div>
+                    <div class="info-item">
+                        <strong>
+                            {{ 'reservations.status.CONFIRMED' | translate }}:
+                        </strong>
+                        <tui-chip
+                            *ngIf="paymentConfirmed()"
+                            size="s"
+                            appearance="success"
+                        >
+                            {{ 'reservations.status.CONFIRMED' | translate }}
+                        </tui-chip>
+                        <tui-chip
+                            *ngIf="!paymentConfirmed()"
+                            size="s"
+                            appearance="warning"
+                        >
+                            {{ 'reservations.success.confirmingPayment' | translate }}
+                        </tui-chip>
+                    </div>
+                    <div class="info-item">
+                        <strong>
+                            {{ 'reservations.success.totalPrice' | translate }}:
+                        </strong>
+                        <span>{{ reservation()!.totalPrice }}€</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Space Details -->
+            <div class="space-details">
+                <h3>
+                    {{ 'reservations.success.spaceName' | translate }}
+                </h3>
+
+                <div class="space-card">
+                    <div
+                        class="space-image"
+                        *ngIf="space()!.images && space()!.images.length > 0"
+                    >
+                        <img
+                            [src]="space()!.images[0].url"
+                            [alt]="space()!.name"
+                        >
+                    </div>
+                    <div class="space-info">
+                        <h4>{{ space()!.name }}</h4>
+                        <p class="space-type">{{ getSpaceTypeLabel(space()!.type) }}</p>
+                        <p class="space-description">{{ space()!.description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="reservation-dates">
+                <h3>
+                    {{ 'reservations.success.dates' | translate }}
+                </h3>
+                <div class="date-range">
+                    <div class="date-item">
+                        <strong>
+                            {{ 'reservations.success.startDate' | translate }}:
+                        </strong>
+                        <span>
+                            {{ formatDate(reservation()!.startDate) }}
+                        </span>
+                    </div>
+                    <div class="date-item">
+                        <strong>
+                            {{ 'reservations.success.endDate' | translate }}:
+                        </strong>
+                        <span>
+                            {{ formatDate(reservation()!.endDate) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div
+                class="instructions"
+                *ngIf="space()!.instructions"
+            >
+                <h3>
+                    {{ 'spaces.detail.instructions' | translate }}
+                </h3>
+                <div class="instructions-content">
+                    <p>{{ space()!.instructions }}</p>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>
+                    {{ 'reservations.success.whatsNext' | translate }}
+                </h3>
+                <ul>
+                    <li>
+                        {{ 'reservations.success.whatsNextDescription' | translate }}
+                    </li>
+                    <li>
+                        {{ 'reservations.success.accessCodeSent' | translate }}
+                    </li>
+                    <li>
+                        {{ 'reservations.success.viewReservationsPersonal' | translate }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div
+            *ngIf="!loading() && !error()"
+            class="action-buttons"
+        >
+            <button
+                tuiButton
+                (click)="onViewReservations()"
+                appearance="primary"
+                size="l"
+            >
+                {{ 'reservations.success.viewReservations' | translate }}
+            </button>
+            <button
+                tuiButton
+                (click)="onBackToSpaces()"
+                appearance="secondary"
+                size="l"
+            >
+                {{ 'reservations.success.backToSpaces' | translate }}
+            </button>
+        </div>
+    </div>
+</div>

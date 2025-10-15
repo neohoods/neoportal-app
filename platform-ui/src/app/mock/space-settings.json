@@ -1,0 +1,45 @@
+{
+  "guestRoomSettings": {
+    "minDurationDays": 3,
+    "maxDurationDays": 7,
+    "maxReservationsPerYear": 4,
+    "cleaningDays": ["MONDAY", "FRIDAY"],
+    "cleaningFee": 25.0,
+    "ownerPrice": 15.0,
+    "tenantPrice": 20.0
+  },
+  "commonRoomSettings": {
+    "allowedDays": ["WEDNESDAY", "SATURDAY", "SUNDAY"],
+    "allowedHours": {
+      "start": "08:00",
+      "end": "20:00"
+    },
+    "ownerPrice": 10.0,
+    "tenantPrice": 20.0,
+    "vacationPeriods": [
+      {
+        "startDate": "2024-07-15",
+        "endDate": "2024-08-15",
+        "reason": "Vacances d'été"
+      },
+      {
+        "startDate": "2024-12-23",
+        "endDate": "2025-01-02",
+        "reason": "Vacances de Noël"
+      }
+    ]
+  },
+  "coworkingSettings": {
+    "maxDesks": 2,
+    "maxDurationDays": 5,
+    "ownerPrice": 4.0,
+    "tenantPrice": 8.0
+  },
+  "parkingSettings": {
+    "maxDurationDays": 15,
+    "numberedSpots": ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
+  }
+}
+
+
+

@@ -1,0 +1,854 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Chambre d'hôtes - Appartement 2A",
+    "type": "GUEST_ROOM",
+    "status": "ACTIVE",
+    "description": "Chambre d'hôtes de 15m² avec lit double, bureau et placard. Idéale pour accueillir vos proches dans un cadre confortable.",
+    "instructions": "Code d'accès envoyé par email 24h avant votre arrivée. Nettoyage obligatoire avant départ. Clés remises à l'accueil.",
+    "pricing": {
+      "ownerPrice": 15.0,
+      "tenantPrice": 20.0,
+      "currency": "EUR",
+      "cleaningFee": 25.0,
+      "deposit": 50.0
+    },
+    "rules": {
+      "minDurationDays": 3,
+      "maxDurationDays": 7,
+      "maxReservationsPerYear": 4,
+      "allowedDays": ["WEDNESDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "14:00",
+        "end": "11:00"
+      },
+      "cleaningDays": ["MONDAY", "FRIDAY"],
+      "requiresApartmentAccess": true,
+      "conflictWithTypes": []
+    },
+    "images": [
+    {
+      "id": "1",
+      "url": "https://picsum.photos/800/600?random=1",
+      "altText": "Chambre d'amis avec lit double",
+      "isPrimary": true,
+      "orderIndex": 0
+    },
+      {
+        "id": "2",
+        "url": "https://picsum.photos/800/600?random=2",
+        "altText": "Bureau et placard de la chambre",
+        "isPrimary": false,
+        "orderIndex": 1
+      }
+    ],
+    "quota": {
+      "max": 4,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "digitalLockId": "dl-001",
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "name": "Salle commune - Rez-de-chaussée",
+    "type": "COMMON_ROOM",
+    "status": "ACTIVE",
+    "description": "Grande salle commune de 80m² avec cuisine équipée, salon et espace détente. Parfaite pour organiser des événements communautaires.",
+    "instructions": "Réservation à la journée uniquement. Nettoyage obligatoire après utilisation. Clés disponibles à l'accueil.",
+    "pricing": {
+      "ownerPrice": 10.0,
+      "tenantPrice": 20.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 1,
+      "maxReservationsPerYear": 12,
+      "allowedDays": ["WEDNESDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "08:00",
+        "end": "20:00"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": ["COWORKING"]
+    },
+    "images": [
+    {
+      "id": "3",
+      "url": "https://picsum.photos/800/600?random=3",
+      "altText": "Salle commune avec cuisine équipée",
+      "isPrimary": true,
+      "orderIndex": 0
+    },
+      {
+        "id": "4",
+        "url": "https://picsum.photos/800/600?random=4",
+        "altText": "Espace salon de la salle commune",
+        "isPrimary": false,
+        "orderIndex": 1
+      }
+    ],
+    "quota": {
+      "max": 12,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "digitalLockId": "dl-002",
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "name": "Espace coworking - 2 bureaux",
+    "type": "COWORKING",
+    "status": "ACTIVE",
+    "description": "Espace de coworking avec 2 bureaux équipés, connexion internet haut débit et espace calme pour le télétravail.",
+    "instructions": "Réservation par bureau. Matériel informatique fourni. Respecter le calme pour les autres utilisateurs.",
+    "pricing": {
+      "ownerPrice": 4.0,
+      "tenantPrice": 8.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 5,
+      "maxReservationsPerYear": 20,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+      "allowedHours": {
+        "start": "08:00",
+        "end": "18:00"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": ["COMMON_ROOM"]
+    },
+    "images": [
+    {
+      "id": "5",
+      "url": "https://picsum.photos/800/600?random=5",
+      "altText": "Espace coworking avec 2 bureaux",
+      "isPrimary": true,
+      "orderIndex": 0
+    }
+    ],
+    "quota": {
+      "max": 20,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "name": "Place de parking A1",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée A1, située au sous-sol du bâtiment. Accès par ascenseur ou escalier.",
+    "instructions": "Place numérotée A1. Stationnement gratuit. Respecter les autres places. Clés de l'accès au parking remises à l'accueil.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": "6",
+        "url": "https://picsum.photos/800/600?random=6",
+        "altText": "Place de parking A1 au sous-sol",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "name": "Place de parking A2",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée A2, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée A2. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 7,
+        "url": "https://picsum.photos/800/600?random=7",
+        "altText": "Place de parking A2",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440006",
+    "name": "Place de parking A3",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée A3, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée A3. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 8,
+        "url": "https://picsum.photos/800/600?random=8",
+        "altText": "Place de parking A3",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440007",
+    "name": "Place de parking B1",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée B1, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée B1. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 9,
+        "url": "https://picsum.photos/800/600?random=9",
+        "altText": "Place de parking B1",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440008",
+    "name": "Place de parking B2",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée B2, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée B2. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 10,
+        "url": "https://picsum.photos/800/600?random=10",
+        "altText": "Place de parking B2",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440009",
+    "name": "Place de parking B3",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée B3, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée B3. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 11,
+        "url": "https://picsum.photos/800/600?random=11",
+        "altText": "Place de parking B3",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440010",
+    "name": "Place de parking C1",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée C1, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée C1. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 12,
+        "url": "https://picsum.photos/800/600?random=12",
+        "altText": "Place de parking C1",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440011",
+    "name": "Place de parking C2",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée C2, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée C2. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 13,
+        "url": "https://picsum.photos/800/600?random=13",
+        "altText": "Place de parking C2",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440012",
+    "name": "Place de parking C3",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée C3, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée C3. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 14,
+        "url": "https://picsum.photos/800/600?random=14",
+        "altText": "Place de parking C3",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440013",
+    "name": "Place de parking D1",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée D1, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée D1. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 15,
+        "url": "https://picsum.photos/800/600?random=15",
+        "altText": "Place de parking D1",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440014",
+    "name": "Place de parking D2",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée D2, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée D2. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 16,
+        "url": "https://picsum.photos/800/600?random=16",
+        "altText": "Place de parking D2",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440015",
+    "name": "Place de parking D3",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée D3, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée D3. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 17,
+        "url": "https://picsum.photos/800/600?random=17",
+        "altText": "Place de parking D3",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440016",
+    "name": "Place de parking E1",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée E1, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée E1. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 18,
+        "url": "https://picsum.photos/800/600?random=18",
+        "altText": "Place de parking E1",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440017",
+    "name": "Place de parking E2",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée E2, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée E2. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 19,
+        "url": "https://picsum.photos/800/600?random=19",
+        "altText": "Place de parking E2",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440018",
+    "name": "Place de parking E3",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée E3, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée E3. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 20,
+        "url": "https://picsum.photos/800/600?random=20",
+        "altText": "Place de parking E3",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440019",
+    "name": "Place de parking F1",
+    "type": "PARKING",
+    "status": "ACTIVE",
+    "description": "Place de parking numérotée F1, située au sous-sol du bâtiment.",
+    "instructions": "Place numérotée F1. Stationnement gratuit.",
+    "pricing": {
+      "ownerPrice": 0.0,
+      "tenantPrice": 0.0,
+      "currency": "EUR",
+      "cleaningFee": 0.0,
+      "deposit": 0.0
+    },
+    "rules": {
+      "minDurationDays": 1,
+      "maxDurationDays": 15,
+      "maxReservationsPerYear": 50,
+      "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "allowedHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "cleaningDays": [],
+      "requiresApartmentAccess": false,
+      "conflictWithTypes": []
+    },
+    "images": [
+      {
+        "id": 21,
+        "url": "https://picsum.photos/800/600?random=21",
+        "altText": "Place de parking F1",
+        "isPrimary": true,
+        "orderIndex": 0
+      }
+    ],
+    "quota": {
+      "max": 50,
+      "period": "YEAR",
+      "resetDate": "2024-01-01"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  }
+]

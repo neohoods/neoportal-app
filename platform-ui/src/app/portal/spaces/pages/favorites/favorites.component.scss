@@ -1,0 +1,205 @@
+.favorites-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.favorites-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h1 {
+        margin: 0 0 0.5rem 0;
+        color: var(--tui-text-01);
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    .favorites-subtitle {
+        margin: 0;
+        color: var(--tui-text-02);
+        font-size: 1.125rem;
+    }
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    p {
+        margin-top: 1rem;
+        color: var(--tui-text-02);
+    }
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.favorite-card {
+    background: var(--tui-base-01);
+    border: 1px solid var(--tui-base-03);
+    border-radius: var(--tui-radius-l);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.favorite-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: var(--tui-base-02);
+        color: var(--tui-text-03);
+    }
+
+    .remove-favorite {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--tui-error);
+
+        &:hover {
+            background: var(--tui-error);
+            color: white;
+            transform: scale(1.1);
+        }
+    }
+}
+
+.favorite-content {
+    padding: 1.5rem;
+}
+
+.favorite-header {
+    margin-bottom: 1rem;
+
+    h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--tui-text-01);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .space-type {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--tui-text-02);
+        font-size: 0.875rem;
+    }
+}
+
+.favorite-description {
+    margin: 0 0 1rem 0;
+    color: var(--tui-text-02);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.favorite-pricing {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    .price {
+        color: var(--tui-text-01);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .status {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--tui-radius-m);
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+
+        &.status-active {
+            background: var(--tui-success-bg);
+            color: var(--tui-success-fg);
+        }
+
+        &.status-inactive {
+            background: var(--tui-error-bg);
+            color: var(--tui-error-fg);
+        }
+    }
+}
+
+.favorite-actions {
+    display: flex;
+    gap: 0.75rem;
+
+    tui-button {
+        flex: 1;
+    }
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    tui-icon {
+        color: var(--tui-text-03);
+        margin-bottom: 1rem;
+    }
+
+    h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--tui-text-01);
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin: 0 0 1.5rem 0;
+        color: var(--tui-text-02);
+    }
+}
+
+

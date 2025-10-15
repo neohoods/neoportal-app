@@ -1,0 +1,718 @@
+<div class="spaces-edit-container">
+    <!-- Header -->
+    <div class="edit-header">
+        <button
+            tuiButton
+            appearance="secondary"
+            size="m"
+            (click)="onCancel()"
+        >
+            <tui-icon icon="@tui.arrow-left"></tui-icon>
+            {{ 'spaces.admin.backToSpaces' | translate }}
+        </button>
+
+        <h1>
+            {{ (isEdit() ? 'spaces.admin.editSpace' : 'spaces.admin.addSpace') | translate }}
+        </h1>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'spaces.admin.loading' | translate }}
+        </p>
+    </div>
+
+    <!-- Form -->
+    <form
+        *ngIf="!loading()"
+        [formGroup]="spaceForm"
+        (ngSubmit)="onSubmit()"
+        class="space-form"
+    >
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h2>
+                {{ 'spaces.admin.basicInfo' | translate }}
+            </h2>
+
+            <div class="form-row">
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'spaces.admin.name' | translate }} *
+                        <tui-textfield>
+                            <input
+                                tuiTextfield
+                                formControlName="name"
+                                [placeholder]="'spaces.admin.namePlaceholder' | translate"
+                            >
+                        </tui-textfield>
+                    </label>
+                    <div
+                        *ngIf="getFieldError('name')"
+                        class="field-error"
+                    >
+                        {{ getFieldError('name') }}
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'spaces.admin.type' | translate }} *
+                        <tui-textfield
+                            tuiChevron
+                            [stringify]="stringifyType"
+                        >
+                            <input
+                                tuiSelect
+                                formControlName="type"
+                                [placeholder]="'spaces.admin.selectType' | translate"
+                            >
+                            <tui-data-list-wrapper
+                                *tuiTextfieldDropdown
+                                new
+                                [items]="spaceTypes"
+                                [itemContent]="typeContent"
+                            ></tui-data-list-wrapper>
+                        </tui-textfield>
+                    </label>
+                    <ng-template
+                        #typeContent
+                        let-item
+                    >
+                        {{ item.label | translate }}
+                    </ng-template>
+                    <div
+                        *ngIf="getFieldError('type')"
+                        class="field-error"
+                    >
+                        {{ getFieldError('type') }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>
+                    {{ 'spaces.admin.description' | translate }} *
+                    <tui-textfield>
+                        <textarea
+                            tuiTextarea
+                            formControlName="description"
+                            [rows]="4"
+                            [placeholder]="'spaces.admin.descriptionPlaceholder' | translate"
+                        ></textarea>
+                    </tui-textfield>
+                </label>
+                <div
+                    *ngIf="getFieldError('description')"
+                    class="field-error"
+                >
+                    {{ getFieldError('description') }}
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>
+                    {{ 'spaces.admin.instructions' | translate }}
+                    <tui-textfield>
+                        <textarea
+                            tuiTextarea
+                            formControlName="instructions"
+                            [rows]="3"
+                            [placeholder]="'spaces.admin.instructionsPlaceholder' | translate"
+                        ></textarea>
+                    </tui-textfield>
+                </label>
+            </div>
+
+            <div class="form-field">
+                <label tuiLabel>
+                    {{ 'spaces.admin.statusLabel' | translate }} *
+                    <input
+                        tuiSwitch
+                        type="checkbox"
+                        formControlName="status"
+                        name="status"
+                    >
+                </label>
+                <small class="help-text">
+                    {{ (spaceForm.get('status')?.value ? 'spaces.status.ACTIVE' : 'spaces.status.INACTIVE') | translate }}
+                </small>
+                <div
+                    *ngIf="getFieldError('status')"
+                    class="field-error"
+                >
+                    {{ getFieldError('status') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="form-section">
+            <h2>
+                {{ 'spaces.admin.pricing' | translate }}
+            </h2>
+
+            <div
+                formGroupName="pricing"
+                class="pricing-group"
+            >
+                <div class="form-row">
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{ 'spaces.admin.tenantPrice' | translate }} *
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="tenantPrice"
+                                placeholder="0"
+                            >
+
+                        </tui-textfield>
+                        <small class="help-text">
+                            {{ 'spaces.admin.tenantPriceHelp' | translate }}
+                        </small>
+                        <div
+                            *ngIf="getNestedFieldError('pricing', 'tenantPrice')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('pricing', 'tenantPrice') }}
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{'spaces.admin.ownerPrice' | translate }}
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="ownerPrice"
+                                placeholder="0"
+                            >
+                        </tui-textfield>
+                        <small class="help-text">
+                            {{ 'spaces.admin.ownerPriceHelp' | translate }}
+                        </small>
+                        <div
+                            *ngIf="getNestedFieldError('pricing', 'ownerPrice')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('pricing', 'ownerPrice') }}
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{'spaces.admin.cleaningFee' | translate }}
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="cleaningFee"
+                                placeholder="0"
+                            >
+                        </tui-textfield>
+                        <small class="help-text">€</small>
+                        <div
+                            *ngIf="getNestedFieldError('pricing', 'cleaningFee')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('pricing', 'cleaningFee') }}
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>{{'spaces.admin.deposit' | translate }}</label>
+                            <input
+                                tuiInputNumber
+                                formControlName="deposit"
+                                placeholder="0"
+                            >
+                        </tui-textfield>
+                        <small class="help-text">€</small>
+                        <div
+                            *ngIf="getNestedFieldError('pricing', 'deposit')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('pricing', 'deposit') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quota -->
+        <div class="form-section">
+            <h2>
+                {{ 'spaces.admin.quota-title' | translate }}
+            </h2>
+
+            <div
+                formGroupName="quota"
+                class="quota-group"
+            >
+                <div class="form-row">
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{'spaces.admin.maxCapacity' | translate }}
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="max"
+                                placeholder="0"
+                            >
+                        </tui-textfield>
+                        <small class="help-text">{{ 'spaces.admin.people' | translate }}</small>
+                        <div
+                            *ngIf="getNestedFieldError('quota', 'max')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('quota', 'max') }}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservation Rules -->
+        <div class="form-section">
+            <h2>
+                {{ 'spaces.admin.reservationRules' | translate }}
+            </h2>
+
+            <div
+                formGroupName="rules"
+                class="rules-group"
+            >
+                <div class="form-row">
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{'spaces.admin.minDurationDays' | translate }}
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="minDurationDays"
+                                placeholder="1"
+                            >
+
+                        </tui-textfield>
+                        <small class="help-text">{{ 'spaces.admin.days' | translate }}</small>
+                    </div>
+
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{'spaces.admin.maxDurationDays' | translate }}
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="maxDurationDays"
+                                placeholder="1"
+                            >
+
+                        </tui-textfield>
+                        <small class="help-text">{{ 'spaces.admin.days' | translate }}</small>
+                    </div>
+
+                    <div class="form-field">
+                        <tui-textfield>
+                            <label tuiLabel>
+                                {{'spaces.admin.maxReservationsPerYear' | translate }}
+                            </label>
+                            <input
+                                tuiInputNumber
+                                formControlName="maxReservationsPerYear"
+                                placeholder="1"
+                            >
+                        </tui-textfield>
+                        <small class="help-text">
+                            {{ 'spaces.admin.reservations' | translate }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <div class="checkbox-group">
+                            <label class="group-label">
+                                {{ 'spaces.admin.allowedDays' | translate }}
+                            </label>
+                            <div class="checkboxes">
+                                <label
+                                    *ngFor="let day of dayOptions"
+                                    tuiLabel
+                                    class="checkbox-item"
+                                >
+                                    <input
+                                        tuiCheckbox
+                                        type="checkbox"
+                                        [ngModel]="isDaySelected('allowedDays', day.value)"
+                                        (ngModelChange)="toggleDay('allowedDays', day.value)"
+                                        [ngModelOptions]="{standalone: true}"
+                                    >
+                                    {{ day.label | translate }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="checkbox-group">
+                            <label class="group-label">
+                                {{ 'spaces.admin.cleaningDays' | translate }}
+                            </label>
+                            <div class="checkboxes">
+                                <label
+                                    *ngFor="let day of dayOptions"
+                                    tuiLabel
+                                    class="checkbox-item"
+                                >
+                                    <input
+                                        tuiCheckbox
+                                        type="checkbox"
+                                        [ngModel]="isDaySelected('cleaningDays', day.value)"
+                                        (ngModelChange)="toggleDay('cleaningDays', day.value)"
+                                        [ngModelOptions]="{standalone: true}"
+                                    >
+                                    {{ day.label | translate }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <label tuiLabel>
+                            {{ 'spaces.admin.shareSpaceWith' | translate }}
+                        </label>
+                        <div class="checkbox-group">
+                            <div class="checkboxes">
+                                <label
+                                    class="checkbox-item"
+                                    *ngFor="let space of availableSpacesForSharing()"
+                                >
+                                    <input
+                                        tuiCheckbox
+                                        type="checkbox"
+                                        [(ngModel)]="selectedShareSpaceWithMap[space.id]"
+                                        [ngModelOptions]="{standalone: true}"
+                                    >
+                                    {{ space.name }} ({{ 'spaces.types.' + space.type | translate }})
+                                </label>
+                            </div>
+                        </div>
+                        <small class="help-text">
+                            {{ 'spaces.admin.shareSpaceWithHelp' | translate }}
+                        </small>
+                    </div>
+                </div>
+
+                <div
+                    formGroupName="allowedHours"
+                    class="hours-group"
+                >
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label tuiLabel>
+                                {{ 'spaces.admin.allowedHoursStart' | translate }}
+                                <tui-textfield>
+                                    <input
+                                        tuiInputTime
+                                        formControlName="start"
+                                    >
+                                </tui-textfield>
+                            </label>
+                        </div>
+
+                        <div class="form-field">
+                            <label tuiLabel>
+                                {{ 'spaces.admin.allowedHoursEnd' | translate }}
+                                <tui-textfield>
+                                    <input
+                                        tuiInputTime
+                                        formControlName="end"
+                                    >
+                                </tui-textfield>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label
+                        tuiLabel
+                        class="switch-label"
+                    >
+                        <input
+                            tuiSwitch
+                            type="checkbox"
+                            formControlName="requiresApartmentAccess"
+                            name="requiresApartmentAccess"
+                        >
+                        {{ 'spaces.admin.requiresApartmentAccess' | translate }}
+                    </label>
+                    <small class="help-text">
+                        {{ (spaceForm.get('rules.requiresApartmentAccess')?.value ? 'spaces.admin.yes' : 'spaces.admin.no') | translate }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Regulations -->
+        <div class="form-section">
+            <h2>
+                {{ 'spaces.admin.userRegulations' | translate }}
+            </h2>
+
+            <div
+                formGroupName="userRegulations"
+                class="user-regulations-group"
+            >
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'spaces.admin.generalRules' | translate }}
+                        <tui-textfield>
+                            <textarea
+                                tuiTextarea
+                                formControlName="generalRules"
+                                [rows]="4"
+                            ></textarea>
+                        </tui-textfield>
+                    </label>
+                </div>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'spaces.admin.safetyInstructions' | translate }}
+                        <tui-textfield>
+                            <textarea
+                                tuiTextarea
+                                formControlName="safetyInstructions"
+                                [rows]="4"
+                            ></textarea>
+                        </tui-textfield>
+                    </label>
+                </div>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'spaces.admin.prohibitedItems' | translate }}
+                        <tui-textfield>
+                            <textarea
+                                tuiTextarea
+                                formControlName="prohibitedItems"
+                                [rows]="3"
+                            ></textarea>
+                        </tui-textfield>
+                    </label>
+                </div>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'spaces.admin.additionalTerms' | translate }}
+                        <tui-textfield>
+                            <textarea
+                                tuiTextarea
+                                formControlName="additionalTerms"
+                                [rows]="3"
+                            ></textarea>
+                        </tui-textfield>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Digital Locks -->
+        <div class="form-section">
+            <h2>
+                {{ 'adminLayout.digitalLocks' | translate }}
+            </h2>
+
+            <div class="form-field">
+                <label tuiLabel>
+                    {{ 'spaces.admin.associateDigitalLock' | translate }}
+                    <tui-textfield
+                        tuiChevron
+                        [stringify]="stringifyDigitalLock"
+                    >
+                        <input
+                            tuiSelect
+                            formControlName="digitalLockId"
+                            name="digitalLockId"
+                            [placeholder]="'spaces.admin.selectDigitalLock' | translate"
+                        >
+                        <tui-data-list-wrapper
+                            *tuiTextfieldDropdown
+                            new
+                            [items]="digitalLocks()"
+                            [itemContent]="digitalLockContent"
+                        ></tui-data-list-wrapper>
+                    </tui-textfield>
+                </label>
+                <ng-template
+                    #digitalLockContent
+                    let-item
+                >
+                    {{ item.name }}
+                </ng-template>
+            </div>
+        </div>
+
+        <!-- Images -->
+        <div class="form-section">
+            <h2>{{ 'spaces.admin.images' | translate }}</h2>
+
+            <!-- Upload Area -->
+            <div class="image-upload-area">
+                <div
+                    class="upload-zone"
+                    [class.uploading]="uploadingImages()"
+                    (click)="fileInput.click()"
+                >
+                    <input
+                        #fileInput
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        (change)="onImageUpload($event)"
+                        style="display: none;"
+                    >
+
+                    <div
+                        *ngIf="!uploadingImages()"
+                        class="upload-content"
+                    >
+                        <tui-icon
+                            icon="@tui.upload"
+                            size="xl"
+                        ></tui-icon>
+                        <p>
+                            {{ 'spaces.admin.uploadImages' | translate }}
+                        </p>
+                        <small>
+                            {{ 'spaces.admin.uploadImagesHint' | translate }}
+                        </small>
+                    </div>
+
+                    <div
+                        *ngIf="uploadingImages()"
+                        class="upload-loading"
+                    >
+                        <tui-loader size="m"></tui-loader>
+                        <p>
+                            {{ 'spaces.admin.uploadingImages' | translate }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images List -->
+            <div
+                *ngIf="images().length > 0"
+                class="images-list"
+            >
+                <div
+                    *ngFor="let image of images(); let i = index"
+                    class="image-item"
+                    [class.primary]="image.isPrimary"
+                >
+
+                    <div class="image-preview">
+                        <img
+                            [src]="image.url"
+                            [alt]="image.altText"
+                            class="preview-img"
+                        >
+
+                        <div
+                            *ngIf="image.isPrimary"
+                            class="primary-badge"
+                        >
+                            {{ 'spaces.admin.primaryImage' | translate }}
+                        </div>
+                    </div>
+
+                    <div class="image-actions">
+                        <button
+                            type="button"
+                            tuiButton
+                            appearance="flat"
+                            size="xs"
+                            [disabled]="i === 0"
+                            (click)="moveImageUp(image.id)"
+                        >
+                            <tui-icon icon="@tui.chevron-up"></tui-icon>
+                        </button>
+
+                        <button
+                            type="button"
+                            tuiButton
+                            appearance="flat"
+                            size="xs"
+                            [disabled]="i === images().length - 1"
+                            (click)="moveImageDown(image.id)"
+                        >
+                            <tui-icon icon="@tui.chevron-down"></tui-icon>
+                        </button>
+
+                        <button
+                            type="button"
+                            tuiButton
+                            appearance="flat"
+                            size="xs"
+                            [disabled]="image.isPrimary"
+                            (click)="setPrimaryImage(image.id)"
+                        >
+                            <tui-icon icon="@tui.star"></tui-icon>
+                        </button>
+
+                        <button
+                            type="button"
+                            tuiButton
+                            appearance="flat"
+                            size="xs"
+                            (click)="removeImage(image.id)"
+                        >
+                            <tui-icon icon="@tui.trash"></tui-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button
+                type="button"
+                tuiButton
+                appearance="secondary"
+                size="m"
+                (click)="onCancel()"
+            >
+                {{ 'spaces.admin.cancel' | translate }}
+            </button>
+
+            <button
+                type="submit"
+                tuiButton
+                appearance="primary"
+                size="m"
+                [disabled]="spaceForm.invalid || loading()"
+            >
+                <tui-icon icon="@tui.check"></tui-icon>
+                {{ (isEdit() ? 'spaces.admin.updateSpace' : 'spaces.admin.createSpace') | translate }}
+            </button>
+        </div>
+    </form>
+</div>

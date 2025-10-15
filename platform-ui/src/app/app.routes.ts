@@ -18,6 +18,11 @@ export const routes: Routes = [
     canActivate: [AdminGuard], // Protect with AdminGuard
   },
   {
+    path: 'spaces',
+    loadChildren: () =>
+      import('./portal/spaces/spaces.routes').then((m) => m.SPACES_ROUTES),
+  },
+  {
     path: '',
     loadChildren: () =>
       import('./portal/public/public.routes').then((m) => m.PUBLIC_ROUTES),

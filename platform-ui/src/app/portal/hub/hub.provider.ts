@@ -10,13 +10,13 @@ import { MockApplicationsService } from './services/mock/applications.service';
 import { MockCustomPageService } from './services/mock/custom-pages.service';
 import { MockHelpService } from './services/mock/help.service';
 import { MockInfosService } from './services/mock/infos.service';
+import { MockProfileService } from './services/mock/profile.service';
+import { ProfileService } from './services/profile.service';
 import { APIAnnouncementsService } from './services/real-api/annoncements.service';
 import { APIApplicationsService } from './services/real-api/applications.service';
 import { APICustomPageService } from './services/real-api/custom-pages.service';
 import { APIHelpService } from './services/real-api/help.service';
 import { APIInfosService } from './services/real-api/infos.service';
-import { MockProfileService } from './services/mock/profile.service';
-import { ProfileService } from './services/profile.service';
 import { APIProfileService } from './services/real-api/profile.service';
 
 

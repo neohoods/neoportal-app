@@ -8,29 +8,56 @@
     </span>
     <hr />
 
-
-    <button iconStart="@tui.ellipsis" tuiIconButton type="button" tuiChevron tuiDropdownOpen [tuiDropdown]="settings">
-      <ng-template #settings>
-        <tui-data-list>
-          <a
-            routerLink="/hub"
-            class="dropdown"
-            tuiOption
-          >
-            <tui-icon icon="@tui.users" [style.width.px]="16" />
-            {{ 'adminLayout.hubPortal' | translate }}
-          </a>
-          <a
-            routerLink="/auth/sign-out"
-            class="dropdown"
-            tuiOption
-          >
-            <tui-icon icon="@tui.log-out" [style.width.px]="16" />
-            {{ 'adminLayout.logOut' | translate }}
-          </a>
-        </tui-data-list>
-      </ng-template>
-    </button>
+    <div id="userSettingsMenu">
+      @if (user.user.avatarUrl) {
+        <tui-avatar
+          tuiDropdownOpen
+          [tuiDropdown]="settings" 
+          class="user-avatar">
+          <picture>
+              <source
+                  media="(min-width: 600px)"
+                  [srcset]="user.user.avatarUrl"
+              />
+              <img
+                  alt="User Avatar"
+                  [src]="user.user.avatarUrl"
+              />
+          </picture>
+        </tui-avatar>
+      } @else {
+        <tui-avatar 
+            class="user-avatar"
+            tuiDropdownOpen
+            [tuiDropdown]="settings" 
+            [src]="user.username | tuiInitials"
+            [style.background]="user.username | tuiAutoColor"
+            size="s">
+        </tui-avatar>
+      }
+    </div>
+    <ng-template #settings>
+      <tui-data-list tuiDataListDropdownManager>
+        <button
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/hub')"
+        >
+          <tui-icon icon="@tui.users" [style.width.px]="16" />
+          {{ 'adminLayout.hubPortal' | translate }}
+        </button>
+        <button
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/auth/sign-out')"
+        >
+          <tui-icon icon="@tui.log-out" [style.width.px]="16" />
+          {{ 'adminLayout.logOut' | translate }}
+        </button>
+      </tui-data-list>
+    </ng-template>
   </header>
 
   <nav id="menu" class="horizontal-menu">
@@ -63,6 +90,53 @@
       <tui-icon icon="@tui.file-text" />
       {{ 'adminLayout.emailTemplates' | translate }}
     </a>
+    
+    <button tuiButton tuiChevron type="button" appearance="flat" class="spaces-dropdown" [tuiDropdown]="spacesDropdownContent"
+      [tuiDropdownManual]="openSpacesDropdown" (click)="onClickSpacesDropdown()" (tuiActiveZoneChange)="onSpacesActiveZone($event)"
+      (tuiObscured)="onSpacesObscured($event)">
+      <tui-icon icon="@tui.home" />
+      {{ 'adminLayout.spacesManagement' | translate }}
+      <ng-template #spacesDropdownContent>
+        <tui-data-list>
+          <a
+            (click)="closeSpacesDropdown()"
+            routerLink="/admin/spaces/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.home" [style.width.px]="16" />
+            {{ 'adminLayout.spaces' | translate }}
+          </a>
+          <a
+            (click)="closeSpacesDropdown()"
+            routerLink="/admin/reservations/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.calendar" [style.width.px]="16" />
+            {{ 'adminLayout.reservations' | translate }}
+          </a>
+          <a
+            (click)="closeSpacesDropdown()"
+            routerLink="/admin/digital-locks/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.key" [style.width.px]="16" />
+            {{ 'adminLayout.digitalLocks' | translate }}
+          </a>
+          <a
+            (click)="closeSpacesDropdown()"
+            routerLink="/admin/settings/spaces/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.settings" [style.width.px]="16" />
+            {{ 'adminLayout.spaceSettings' | translate }}
+          </a>
+        </tui-data-list>
+      </ng-template>
+    </button>
 
 
 
@@ -90,6 +164,33 @@
           >
             <tui-icon icon="@tui.shield" [style.width.px]="16" />
             {{ 'adminLayout.security' | translate }}
+          </a>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/spaces/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.home" [style.width.px]="16" />
+            {{ 'adminLayout.spaces' | translate }}
+          </a>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/reservations/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.calendar" [style.width.px]="16" />
+            {{ 'adminLayout.reservations' | translate }}
+          </a>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/ttlink/"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.key" [style.width.px]="16" />
+            {{ 'adminLayout.ttlink' | translate }}
           </a>
         </tui-data-list>
       </ng-template>

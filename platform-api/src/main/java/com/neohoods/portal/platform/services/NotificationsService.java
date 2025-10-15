@@ -123,6 +123,25 @@ public class NotificationsService {
         return this.sendNotifications(user, notification, user.getLocale());
     }
 
+    public void createNotification(UUID userId, NotificationType type, String title, String message,
+            Map<String, Object> payload) {
+        NotificationEntity notification = new NotificationEntity();
+        notification.setId(UUID.randomUUID());
+        notification.setUserId(userId);
+        notification.setType(type);
+
+        // Add title and message to payload
+        Map<String, Object> fullPayload = new java.util.HashMap<>(payload);
+        fullPayload.put("title", title);
+        fullPayload.put("message", message);
+        notification.setPayload(fullPayload);
+
+        notification.setAlreadyRead(false);
+        notification.setAuthor(PLATFORM_AUTHOR);
+        notification.setDate(java.time.Instant.now());
+        notificationRepository.save(notification);
+    }
+
     public Mono<Void> sendNotifications(UserEntity user, NotificationEntity notification, Locale locale) {
         try {
             notification.setId(UUID.randomUUID());
@@ -490,5 +509,104 @@ public class NotificationsService {
     private String getTranslatedCategory(String category, Locale locale) {
         String key = "announcement-category." + category.toUpperCase();
         return messageSource.getMessage(key, null, category, locale);
+    }
+
+    /**
+     * Send notification for reservation events
+     */
+    public void sendReservationNotification(UUID reservationId, String eventType, String spaceName,
+            UserEntity user, UserEntity adminUser) {
+
+        // Send notification to user
+        createNotification(
+                user.getId(),
+                NotificationType.RESERVATION,
+                getReservationNotificationTitle(eventType, spaceName),
+                getReservationNotificationMessage(eventType, spaceName),
+                Map.of(
+                        "reservationId", reservationId.toString(),
+                        "eventType", eventType,
+                        "spaceName", spaceName));
+
+        // Send notification to admin
+        if (adminUser != null) {
+            createNotification(
+                    adminUser.getId(),
+                    NotificationType.RESERVATION,
+                    getReservationNotificationTitle(eventType, spaceName),
+                    getReservationNotificationMessage(eventType, spaceName),
+                    Map.of(
+                            "reservationId", reservationId.toString(),
+                            "eventType", eventType,
+                            "spaceName", spaceName,
+                            "userName", user.getFirstName() + " " + user.getLastName()));
+        }
+    }
+
+    /**
+     * Send notification for reservation creation
+     */
+    public void notifyReservationCreated(UUID reservationId, String spaceName, UserEntity user, UserEntity adminUser) {
+        sendReservationNotification(reservationId, "CREATED", spaceName, user, adminUser);
+    }
+
+    /**
+     * Send notification for reservation confirmation
+     */
+    public void notifyReservationConfirmed(UUID reservationId, String spaceName, UserEntity user,
+            UserEntity adminUser) {
+        sendReservationNotification(reservationId, "CONFIRMED", spaceName, user, adminUser);
+    }
+
+    /**
+     * Send notification for reservation cancellation
+     */
+    public void notifyReservationCancelled(UUID reservationId, String spaceName, UserEntity user,
+            UserEntity adminUser) {
+        sendReservationNotification(reservationId, "CANCELLED", spaceName, user, adminUser);
+    }
+
+    /**
+     * Send notification for payment received
+     */
+    public void notifyPaymentReceived(UUID reservationId, String spaceName, UserEntity user, UserEntity adminUser) {
+        sendReservationNotification(reservationId, "PAYMENT_RECEIVED", spaceName, user, adminUser);
+    }
+
+    /**
+     * Send notification for access code generated
+     */
+    public void notifyAccessCodeGenerated(UUID reservationId, String spaceName, UserEntity user) {
+        createNotification(
+                user.getId(),
+                NotificationType.RESERVATION,
+                getReservationNotificationTitle("ACCESS_CODE_GENERATED", spaceName),
+                getReservationNotificationMessage("ACCESS_CODE_GENERATED", spaceName),
+                Map.of(
+                        "reservationId", reservationId.toString(),
+                        "eventType", "ACCESS_CODE_GENERATED",
+                        "spaceName", spaceName));
+    }
+
+    private String getReservationNotificationTitle(String eventType, String spaceName) {
+        return switch (eventType) {
+            case "CREATED" -> "Nouvelle réservation";
+            case "CONFIRMED" -> "Réservation confirmée";
+            case "CANCELLED" -> "Réservation annulée";
+            case "PAYMENT_RECEIVED" -> "Paiement reçu";
+            case "ACCESS_CODE_GENERATED" -> "Code d'accès généré";
+            default -> "Mise à jour de réservation";
+        };
+    }
+
+    private String getReservationNotificationMessage(String eventType, String spaceName) {
+        return switch (eventType) {
+            case "CREATED" -> "Une nouvelle réservation a été créée pour " + spaceName;
+            case "CONFIRMED" -> "Votre réservation pour " + spaceName + " a été confirmée";
+            case "CANCELLED" -> "La réservation pour " + spaceName + " a été annulée";
+            case "PAYMENT_RECEIVED" -> "Le paiement pour " + spaceName + " a été reçu";
+            case "ACCESS_CODE_GENERATED" -> "Un code d'accès a été généré pour " + spaceName;
+            default -> "Mise à jour de la réservation pour " + spaceName;
+        };
     }
 }

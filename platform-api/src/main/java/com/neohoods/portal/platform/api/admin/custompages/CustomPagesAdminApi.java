@@ -10,14 +10,15 @@ import com.neohoods.portal.platform.model.CustomPage;
 import com.neohoods.portal.platform.services.CustomPagesService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CustomPagesAdminApi implements CustomPagesAdminApiApiDelegate {
+    private static final Logger log = LoggerFactory.getLogger(CustomPagesAdminApi.class);
 
     private final CustomPagesService customPagesService;
 

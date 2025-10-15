@@ -62,6 +62,23 @@ mailersend:
   from:
     email: dev@mail.neohoods.com
     name: portal NeoHoods Local environment
+
+ttlock:
+  api-url: ${TTLOCK_API_URL:https://api.ttlock.com}
+  api-key: ${TTLOCK_API_KEY:}
+  device-id: ${TTLOCK_DEVICE_ID:}
+
+nuki:
+  api-url: ${NUKI_API_URL:https://api.nuki.io}
+  token: ${NUKI_TOKEN:}
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_dummy}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_dummy}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_dummy}
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:4200}
 spring:
   datasource:
     url: jdbc:postgresql://localhost:8433/neohoods-portal
@@ -73,11 +90,13 @@ spring:
     show-sql: false # Affiche les requêtes SQL dans les logs
     properties:
       hibernate:
-        format_sql: false
+        format_sql: true # Formate les requêtes SQL pour meilleure lisibilité
+        use_sql_comments: true # Ajoute des commentaires dans les requêtes SQL
 
 logging:
   level:
-    org.hibernate.SQL: INFO
+    org.hibernate.SQL: ERROR
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+    org.hibernate.type.descriptor.sql.BasicExtractor: ERROR
   pattern:
     level: "%5p [traceId=%X{trace_id:-}, spanId=%X{span_id:-}] %logger{36} - %msg%n"

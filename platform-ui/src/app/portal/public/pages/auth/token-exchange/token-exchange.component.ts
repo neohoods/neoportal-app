@@ -4,11 +4,9 @@ import {
   FormsModule,
   ReactiveFormsModule
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiIcon, TuiLoader, TuiTextfield } from '@taiga-ui/core';
-import { TuiPassword } from '@taiga-ui/kit';
-import { WelcomeComponent } from '../../../../../components/welcome/welcome.component';
+import { TuiAlertService, TuiLoader, TuiTextfield } from '@taiga-ui/core';
 import {
   AUTH_SERVICE_TOKEN,
   getGlobalProviders,
@@ -23,12 +21,7 @@ import {
   standalone: true,
   selector: 'app-sign-in',
   imports: [
-    WelcomeComponent,
-    TuiButton,
     TuiTextfield,
-    TuiIcon,
-    TuiPassword,
-    RouterLink,
     ReactiveFormsModule,
     FormsModule,
     TranslateModule,

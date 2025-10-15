@@ -7,6 +7,7 @@ import {
     SendNewsletterRequest as ApiSendNewsletterRequest,
     Newsletter,
     NewsletterAudience,
+    NewsletterAudienceTypeEnum,
     NewsletterLogEntry,
     NewsletterLogsResponse,
     UserType
@@ -121,16 +122,16 @@ export class ApiNewslettersService implements NewslettersService {
         return apiAudience;
     }
 
-    private mapAudienceType(type: string): NewsletterAudience.TypeEnum {
+    private mapAudienceType(type: string): NewsletterAudienceTypeEnum {
         switch (type) {
             case 'ALL':
-                return NewsletterAudience.TypeEnum.All;
+                return NewsletterAudienceTypeEnum.All;
             case 'USER_TYPES':
-                return NewsletterAudience.TypeEnum.UserTypes;
+                return NewsletterAudienceTypeEnum.UserTypes;
             case 'SPECIFIC_USERS':
-                return NewsletterAudience.TypeEnum.SpecificUsers;
+                return NewsletterAudienceTypeEnum.SpecificUsers;
             default:
-                return NewsletterAudience.TypeEnum.All;
+                return NewsletterAudienceTypeEnum.All;
         }
     }
 
@@ -139,7 +140,7 @@ export class ApiNewslettersService implements NewslettersService {
             id: newsletter.id || '',
             subject: newsletter.subject || '',
             content: newsletter.content || '',
-            status: (newsletter.status as NewsletterStatus) || NewsletterStatus.DRAFT,
+            status: (newsletter.status as any) || NewsletterStatus.DRAFT,
             createdAt: newsletter.createdAt || '',
             updatedAt: newsletter.updatedAt || '',
             scheduledAt: newsletter.scheduledAt || undefined,

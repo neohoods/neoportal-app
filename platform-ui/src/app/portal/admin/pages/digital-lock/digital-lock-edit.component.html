@@ -1,0 +1,230 @@
+<div class="digital-lock-edit-container">
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'digitalLock.admin.loading' | translate }}
+        </p>
+    </div>
+
+    <!-- Form Content -->
+    <div
+        *ngIf="!loading()"
+        class="form-container"
+    >
+        <!-- Header -->
+        <div class="form-header">
+            <h1>
+                <tui-icon icon="@tui.key"></tui-icon>
+                {{ (isEditMode() ? 'digitalLock.admin.editDevice' : 'digitalLock.admin.addDevice') | translate }}
+            </h1>
+            <p class="form-description">
+                {{ 'digitalLock.admin.deviceFormDescription' | translate }}
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form
+            [formGroup]="digitalLockForm"
+            (ngSubmit)="onSubmit()"
+            class="digital-lock-form"
+        >
+            <!-- Basic Information Section -->
+            <div class="form-section">
+                <h2>
+                    {{ 'digitalLock.admin.basicInformation' | translate }}
+                </h2>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'digitalLock.admin.deviceName' | translate }}
+                        <tui-textfield>
+                            <input
+                                tuiTextfield
+                                formControlName="name"
+                                [placeholder]="'digitalLock.admin.deviceNamePlaceholder' | translate"
+                            >
+                        </tui-textfield>
+                    </label>
+                    <div
+                        *ngIf="getFieldError('name')"
+                        class="field-error"
+                    >
+                        {{ getFieldError('name') }}
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'digitalLock.admin.deviceType' | translate }}
+                        <tui-textfield
+                            tuiChevron
+                            [stringify]="stringifyType"
+                        >
+                            <input
+                                tuiSelect
+                                formControlName="type"
+                                [placeholder]="'digitalLock.admin.selectType' | translate"
+                            >
+                            <tui-data-list-wrapper
+                                *tuiTextfieldDropdown
+                                new
+                                [items]="typeOptions"
+                            >
+                                <ng-template
+                                    tuiDataList
+                                    let-option
+                                >
+                                    {{ option.label | translate }}
+                                </ng-template>
+                            </tui-data-list-wrapper>
+                        </tui-textfield>
+                    </label>
+                </div>
+
+                <div class="form-field">
+                    <label tuiLabel>
+                        {{ 'digitalLock.admin.status' | translate }}
+                        <tui-textfield
+                            tuiChevron
+                            [stringify]="stringifyStatus"
+                        >
+                            <input
+                                tuiSelect
+                                formControlName="status"
+                                [placeholder]="'digitalLock.admin.selectStatus' | translate"
+                            >
+                            <tui-data-list-wrapper
+                                *tuiTextfieldDropdown
+                                new
+                                [items]="statusOptions"
+                            >
+                                <ng-template
+                                    tuiDataList
+                                    let-option
+                                >
+                                    {{ option.label | translate }}
+                                </ng-template>
+                            </tui-data-list-wrapper>
+                        </tui-textfield>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Configuration Section -->
+            <div
+                class="form-section"
+                *ngIf="getSelectedType() === 'TTLINK'"
+            >
+                <h2>
+                    {{ 'digitalLock.admin.ttlinkConfig' | translate }}
+                </h2>
+
+                <div formGroupName="config">
+                    <div class="form-field">
+                        <label tuiLabel>
+                            {{ 'digitalLock.admin.ttlinkDeviceId' | translate }}
+                            <tui-textfield>
+                                <input
+                                    tuiTextfield
+                                    formControlName="deviceId"
+                                    [placeholder]="'digitalLock.admin.ttlinkDeviceIdPlaceholder' | translate"
+                                >
+                            </tui-textfield>
+                        </label>
+                        <div
+                            *ngIf="getConfigFieldError('deviceId')"
+                            class="field-error"
+                        >
+                            {{ getConfigFieldError('deviceId') }}
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label tuiLabel>
+                            {{ 'digitalLock.admin.location' | translate }}
+                            <tui-textfield>
+                                <input
+                                    tuiTextfield
+                                    formControlName="location"
+                                    [placeholder]="'digitalLock.admin.locationPlaceholder' | translate"
+                                >
+                            </tui-textfield>
+                        </label>
+                        <div
+                            *ngIf="getConfigFieldError('location')"
+                            class="field-error"
+                        >
+                            {{ getConfigFieldError('location') }}
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label tuiLabel>
+                            {{ 'digitalLock.admin.battery' | translate }} (%)
+                            <tui-textfield>
+                                <input
+                                    tuiTextfield
+                                    type="number"
+                                    formControlName="batteryLevel"
+                                    min="0"
+                                    max="100"
+                                    [placeholder]="'digitalLock.admin.batteryPlaceholder' | translate"
+                                >
+                            </tui-textfield>
+                        </label>
+                    </div>
+
+                    <div class="form-field">
+                        <label tuiLabel>
+                            {{ 'digitalLock.admin.signal' | translate }} (dBm)
+                            <tui-textfield>
+                                <input
+                                    tuiTextfield
+                                    type="number"
+                                    formControlName="signalStrength"
+                                    [placeholder]="'digitalLock.admin.signalPlaceholder' | translate"
+                                >
+                            </tui-textfield>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button
+                    type="button"
+                    tuiButton
+                    appearance="secondary"
+                    size="m"
+                    (click)="onCancel()"
+                    [disabled]="saving()"
+                >
+                    {{ 'digitalLock.admin.cancel' | translate }}
+                </button>
+
+                <button
+                    type="submit"
+                    tuiButton
+                    appearance="primary"
+                    size="m"
+                    [disabled]="digitalLockForm.invalid || saving()"
+                >
+                    <tui-loader
+                        *ngIf="saving()"
+                        size="s"
+                    ></tui-loader>
+                    <tui-icon
+                        *ngIf="!saving()"
+                        icon="@tui.check"
+                    ></tui-icon>
+                    {{ (isEditMode() ? 'digitalLock.admin.updateDevice' : 'digitalLock.admin.createDevice') | translate }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

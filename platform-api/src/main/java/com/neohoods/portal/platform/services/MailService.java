@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +59,9 @@ public class MailService {
 
     @Value("${neohoods.portal.email.template.notifications-url}")
     private String notificationsUrl;
+
+    @Value("${neohoods.portal.frontend-url}")
+    private String frontendUrl;
 
     public void sendMail(String to, String subject, String htmlContent) {
         log.info("Sending email via MailerSend to: {}, subject: {}", to, subject);
@@ -217,7 +221,86 @@ public class MailService {
     }
 
     public enum TemplateVariableType {
-        TRANSLATABLE_TEXT,
-        RAW
+        RAW,
+        TRANSLATABLE_TEXT
+    }
+
+    public void sendReservationReminderEmail(UserEntity user, String spaceName,
+            String startDate, String endDate, String accessCode, String spaceRules,
+            String spaceInstructions, Locale locale) {
+
+        List<TemplateVariable> variables = List.of(
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("spaceName")
+                        .value(spaceName)
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("startDate")
+                        .value(startDate)
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("endDate")
+                        .value(endDate)
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("accessCode")
+                        .value(accessCode)
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("spaceRules")
+                        .value(spaceRules)
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("spaceInstructions")
+                        .value(spaceInstructions)
+                        .build());
+
+        sendTemplatedEmail(user, "reservations.email.reminder.title",
+                "email/reservation-reminder", variables, locale);
+    }
+
+    public void sendReservationConfirmationEmail(UserEntity user, String spaceName,
+            String startDate, String endDate, String accessCode, UUID reservationId, UUID spaceId, Locale locale) {
+
+        List<TemplateVariable> variables = List.of(
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("spaceName")
+                        .value(spaceName != null ? spaceName : "")
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("startDate")
+                        .value(startDate != null ? startDate : "")
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("endDate")
+                        .value(endDate != null ? endDate : "")
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("accessCode")
+                        .value(accessCode != null ? accessCode : "")
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("reservationUrl")
+                        .value(frontendUrl + "/spaces/reservations/" + reservationId)
+                        .build(),
+                TemplateVariable.builder()
+                        .type(TemplateVariableType.RAW)
+                        .ref("spaceUrl")
+                        .value(frontendUrl + "/spaces/" + spaceId)
+                        .build());
+
+        sendTemplatedEmail(user, "reservations.email.confirmation.title",
+                "email/reservation-confirmation", variables, locale);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.UsersAdminApiApiDelegate;
+import com.neohoods.portal.platform.model.GetUsersByIdsRequest;
 import com.neohoods.portal.platform.model.SetUserPasswordRequest;
 import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.services.UsersService;
@@ -32,6 +33,16 @@ public class UsersAdminApi implements UsersAdminApiApiDelegate {
     @Override
     public Mono<ResponseEntity<Flux<User>>> getUsers(ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok(usersService.getUsers()));
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<User>>> getUsersByIds(Mono<GetUsersByIdsRequest> getUsersByIdsRequest,
+            ServerWebExchange exchange) {
+        return getUsersByIdsRequest
+                .flatMap(request -> {
+                    Flux<User> users = usersService.getUsersByIds(request.getUserIds());
+                    return Mono.just(ResponseEntity.ok(users));
+                });
     }
 
     @Override

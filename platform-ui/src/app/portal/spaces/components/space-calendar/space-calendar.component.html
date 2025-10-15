@@ -1,0 +1,38 @@
+<!-- Loading state for calendar -->
+<div *ngIf="loadingOccupancy()" class="calendar-loading">
+    <tui-loader size="m"></tui-loader>
+    <p>{{ 'spaces.detail.loadingAvailability' | translate }}</p>
+</div>
+
+<!-- Desktop calendar - only show when occupancy data is loaded -->
+<div *ngIf="!loadingOccupancy()" class="desktop-calendar">
+    <div class="calendar-wrapper" #calendarRef>
+        <tui-calendar-range 
+            [defaultViewedMonth]="defaultViewedMonth" 
+            [min]="min" 
+            [max]="max"
+            [minLength]="minLength"
+            [maxLength]="maxLength"
+            [disabledItemHandler]="disabledItemHandler"
+            [markerHandler]="markerHandler" 
+            (valueChange)="onRangeChange($event)" />
+    </div>
+</div>
+
+<!-- Mobile calendar - only show when occupancy data is loaded -->
+<div *ngIf="!loadingOccupancy()" class="mobile-calendar">
+    <tui-mobile-calendar
+        [min]="min"
+        [max]="max"
+        [value]="mobileCalendarControl.value"
+        [disabledItemHandler]="disabledItemHandler"
+        (valueChange)="onMobileCalendarChange($event)"
+        name="mobileCalendar"
+    />
+    <span class="date" [class.date_empty]="empty">
+        {{ date$ | async }}
+    </span>
+</div>
+
+
+

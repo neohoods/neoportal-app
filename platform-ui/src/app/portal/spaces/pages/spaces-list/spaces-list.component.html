@@ -1,0 +1,206 @@
+<div class="spaces-list-container">
+    <!-- Header -->
+    <div class="spaces-header">
+        <h1>{{ 'spaces.list.title' | translate }}</h1>
+        <p class="spaces-subtitle">
+            {{ 'spaces.list.subtitle' | translate }}
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <div class="filters-row">
+            <!-- Search Bar -->
+
+            <!-- Type Filter -->
+            <div class="type-filter">
+                <tui-textfield
+                    tuiChevron
+                    [stringify]="stringifyType"
+                >
+                    <input
+                        tuiSelect
+                        [ngModel]="selectedType()"
+                        (ngModelChange)="onTypeChange($event)"
+                        name="type"
+                        [placeholder]="'spaces.list.filterByType' | translate"
+                    >
+                    <tui-data-list-wrapper
+                        *tuiTextfieldDropdown
+                        new
+                        [items]="spaceTypes"
+                        [itemContent]="typeContent"
+                    ></tui-data-list-wrapper>
+                </tui-textfield>
+            </div>
+
+            <ng-template
+                #typeContent
+                let-item
+            >
+                {{ item.label | translate }}
+            </ng-template>
+
+            <!-- Date Range Filter -->
+            <div class="date-filter">
+                <tui-textfield>
+                    <input
+                        tuiInputDateRange
+                        [ngModel]="dateRange()"
+                        (ngModelChange)="onDateRangeChange($event)"
+                        [ngModelOptions]="{standalone: true}"
+                        name="dateRange"
+                    />
+                    <tui-calendar-range *tuiTextfieldDropdown />
+                </tui-textfield>
+            </div>
+
+            <!-- Available Only Toggle -->
+            <div class="available-toggle">
+                <button
+                    tuiButton
+                    [appearance]="showAvailableOnly() ? 'primary' : 'secondary'"
+                    [size]="'m'"
+                    (click)="onAvailableToggle()"
+                >
+                    <tui-icon
+                        icon="@tui.check"
+                        *ngIf="showAvailableOnly()"
+                    ></tui-icon>
+                    {{ 'spaces.list.availableOnly' | translate }}
+                </button>
+            </div>
+
+            <!-- Clear Filters -->
+            <div class="clear-filters">
+                <button
+                    tuiButton
+                    appearance="secondary"
+                    size="m"
+                    (click)="onClearFilters()"
+                >
+                    <tui-icon icon="@tui.x"></tui-icon>
+                    {{ 'spaces.list.clearFilters' | translate }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Pills -->
+        <div
+            class="filter-pills"
+            *ngIf="searchQuery() || selectedType() || showAvailableOnly() || dateRange()"
+        >
+            <div class="pills-container">
+                <span
+                    *ngIf="searchQuery()"
+                    class="filter-pill"
+                >
+                    {{ 'spaces.list.searchPill' | translate: {query: searchQuery()} }}
+                    <tui-icon
+                        icon="@tui.x"
+                        (click)="onSearchChange('')"
+                        class="pill-remove"
+                    ></tui-icon>
+                </span>
+
+                <span
+                    *ngIf="selectedType()"
+                    class="filter-pill"
+                >
+                    {{ 'spaces.list.typePill' | translate: {type: getSpaceTypeLabel(selectedType())} }}
+                    <tui-icon
+                        icon="@tui.x"
+                        (click)="onTypeChange(null)"
+                        class="pill-remove"
+                    ></tui-icon>
+                </span>
+
+                <span
+                    *ngIf="dateRange()"
+                    class="filter-pill"
+                >
+                    {{ 'spaces.list.dateRangePill' | translate: {range: formatDateRange(dateRange())} }}
+                    <tui-icon
+                        icon="@tui.x"
+                        (click)="onDateRangeChange(null)"
+                        class="pill-remove"
+                    ></tui-icon>
+                </span>
+
+                <span
+                    *ngIf="showAvailableOnly()"
+                    class="filter-pill"
+                >
+                    {{ 'spaces.list.availableOnlyPill' | translate }}
+                    <tui-icon
+                        icon="@tui.x"
+                        (click)="onAvailableToggle()"
+                        class="pill-remove"
+                    ></tui-icon>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>{{ 'spaces.list.loading' | translate }}</p>
+    </div>
+
+    <!-- Spaces Grid -->
+    <div
+        *ngIf="!loading()"
+        class="spaces-grid"
+    >
+        <app-space-card
+            *ngFor="let space of spaces()"
+            [space]="space"
+            [currentUser]="currentUser()"
+            [showActions]="true"
+            (spaceClick)="onSpaceClick($event)"
+            (reserveClick)="onReserveClick($event)"
+            (favoriteClick)="onFavoriteClick($event)"
+        ></app-space-card>
+    </div>
+
+    <!-- Pagination -->
+    <div
+        *ngIf="!loading() && totalPages() > 1"
+        class="pagination-container"
+    >
+        <tui-pagination
+            [length]="totalPages()"
+            [index]="currentPage() - 1"
+            (indexChange)="onPageChange($event + 1)"
+        ></tui-pagination>
+    </div>
+
+    <!-- Empty State -->
+    <div
+        *ngIf="!loading() && spaces().length === 0"
+        class="empty-state"
+    >
+        <tui-icon
+            icon="@tui.search"
+            size="xl"
+        ></tui-icon>
+        <h3>
+            {{ 'spaces.list.noResults' | translate }}
+        </h3>
+        <p>
+            {{ 'spaces.list.noSpacesMessage' | translate }}
+        </p>
+        <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            (click)="onClearFilters()"
+        >
+            {{ 'spaces.list.clearFiltersButton' | translate }}
+        </button>
+    </div>
+</div>

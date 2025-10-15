@@ -141,7 +141,8 @@ public class AuthApi implements AuthApiApiDelegate {
                                 }
 
                                 // Step 2: Check if user already exists locally
-                                UserEntity existingUserByUsername = usersRepository.findByUsername(request.getUsername());
+                                UserEntity existingUserByUsername = usersRepository
+                                                .findByUsername(request.getUsername());
                                 if (existingUserByUsername != null) {
                                         log.warn("Signup failed: Username already exists: {}", request.getUsername());
                                         return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,
@@ -252,7 +253,8 @@ public class AuthApi implements AuthApiApiDelegate {
                         usersRepository.save(newUser);
                         log.info("Successfully saved user to local database: {}", newUser.getUsername());
                 } catch (org.springframework.dao.DataIntegrityViolationException e) {
-                        log.error("Failed to save user to local database due to constraint violation: {}", newUser.getUsername(), e);
+                        log.error("Failed to save user to local database due to constraint violation: {}",
+                                        newUser.getUsername(), e);
                         // Check if it's a duplicate email constraint
                         if (e.getMessage() != null && e.getMessage().contains("users_email_key")) {
                                 return Mono.error(new CodedErrorException(CodedError.USER_ALREADY_EXISTS,

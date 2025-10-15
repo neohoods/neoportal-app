@@ -1,23 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { tuiAsPortal, TuiObscured, TuiPortals } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
+  TuiAutoColorPipe,
   TuiButton,
   TuiDataList,
   TuiDropdown,
   TuiDropdownService,
   TuiIcon,
+  TuiInitialsPipe,
   TuiRoot,
 } from '@taiga-ui/core';
 import {
+  TuiAvatar,
   TuiChevron, TuiDataListWrapper, TuiFade,
   TuiTabs
 } from '@taiga-ui/kit';
 import { TuiNavigation } from '@taiga-ui/layout';
 import { TuiComboBoxModule, TuiSelectModule } from '@taiga-ui/legacy';
 import { FooterComponent } from '../../../components/footer/footer.component';
+import { AUTH_SERVICE_TOKEN } from '../../../global.provider';
+import { AuthService, UserInfo } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
 
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -54,7 +59,10 @@ const ICON =
     TuiDropdown,
     TuiObscured,
     TuiActiveZone,
-    TranslateModule
+    TranslateModule,
+    TuiAvatar,
+    TuiInitialsPipe,
+    TuiAutoColorPipe
   ],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.scss',
@@ -67,13 +75,20 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
   protected readonly routes: any = {};
   protected activeItemIndex = 0;
   appConfig = ConfigService.configuration;
+  user: UserInfo;
 
   protected openMore = false;
+  protected openSpacesDropdown = false;
 
   mobile = false;
 
-  constructor(private readonly breakpointObserver: BreakpointObserver) {
+  constructor(
+    @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
+    private readonly breakpointObserver: BreakpointObserver,
+    private router: Router
+  ) {
     super();
+    this.user = this.authService.getCurrentUserInfo();
   }
 
   ngOnInit() {
@@ -103,6 +118,28 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
 
   protected onActiveZone(active: boolean): void {
     this.openMore = active && this.openMore;
+  }
+
+  protected onClickSpacesDropdown(): void {
+    this.openSpacesDropdown = !this.openSpacesDropdown;
+  }
+
+  protected closeSpacesDropdown(): void {
+    this.openSpacesDropdown = false;
+  }
+
+  protected onSpacesObscured(obscured: boolean): void {
+    if (obscured) {
+      this.openSpacesDropdown = false;
+    }
+  }
+
+  protected onSpacesActiveZone(active: boolean): void {
+    this.openSpacesDropdown = active && this.openSpacesDropdown;
+  }
+
+  navigateTo(path: string) {
+    this.router.navigate([path]);
   }
 
   protected readonly drawer = {

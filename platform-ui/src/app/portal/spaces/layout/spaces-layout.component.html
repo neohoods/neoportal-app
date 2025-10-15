@@ -1,0 +1,109 @@
+<tui-root>
+  <!-- Position drawer inside the example block -->
+  <div class="custom-portal"><ng-container #viewContainer /></div>
+
+  <!-- Header -->
+  <header tuiNavigationHeader>
+    <span class="logo-container" tuiNavigationLogo routerLink="/hub/">
+      <img id="logo" src="/logo-simple.png" />
+      <span tuiFade>{{ appConfig.brandDisplayName }}</span>
+    </span>
+    <hr />
+
+    <notifications-popup></notifications-popup>
+    
+    <a routerLink="/spaces/reservations" class="reservations-link">
+      <tui-icon icon="@tui.calendar"    
+      />
+      <span>{{ 'reservations.myReservations' | translate }}</span>
+    </a>
+
+    <div id="userSettingsMenu">
+      @if (user.user.avatarUrl) {
+        <tui-avatar
+          tuiDropdownOpen
+          [tuiDropdown]="settings" 
+          class="user-avatar">
+          <picture>
+              <source
+                  media="(min-width: 600px)"
+                  [srcset]="user.user.avatarUrl"
+              />
+              <img
+                  alt="User Avatar"
+                  [src]="user.user.avatarUrl"
+              />
+          </picture>
+        </tui-avatar>
+      } @else {
+        <tui-avatar 
+            class="user-avatar"
+            tuiDropdownOpen
+            [tuiDropdown]="settings" 
+            [src]="user.username | tuiInitials"
+            [style.background]="user.username | tuiAutoColor"
+            size="s">
+        </tui-avatar>
+      }
+    </div>
+    <ng-template #settings>
+      <tui-data-list tuiDataListDropdownManager>
+        <button
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/hub/settings/profile')"
+        >
+          <tui-icon icon="@tui.user" [style.width.px]="16" />
+          {{ 'hubLayout.signInAs' | translate: {username: user.username} }}
+        </button>
+        <button
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/hub/settings')"
+        >
+          <tui-icon icon="@tui.settings" [style.width.px]="16" />
+          {{ 'hubLayout.settings' | translate }}
+        </button>
+        <button
+          *ngIf="user?.user?.roles?.includes('admin')"
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/admin/')"
+        >
+          <tui-icon icon="@tui.lock" [style.width.px]="16" />
+          {{ 'hubLayout.adminPanel' | translate }}
+        </button>
+        <button
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/auth/sign-out')"
+        >
+          <tui-icon icon="@tui.log-out" [style.width.px]="16" />
+          {{ 'hubLayout.logOut' | translate }}
+        </button>
+      </tui-data-list>
+    </ng-template>
+  </header>
+
+  <!-- Horizontal Menu -->
+  <nav id="menu" class="horizontal-menu">
+    <!-- Buttons -->
+    <applications></applications>
+  </nav>
+
+  <!-- Main Content -->
+  <div [style.display]="'flex'">
+    <main tuiNavigationMain>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <tos-footer></tos-footer>
+
+  <!-- Profile Completion Check -->
+  <app-profile-completion-check></app-profile-completion-check>
+</tui-root>

@@ -29,5 +29,8 @@ public interface UsersRepository extends CrudRepository<UserEntity, UUID> {
     @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.properties")
     List<UserEntity> findAllWithProperties();
 
+    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.properties WHERE u.id IN :ids")
+    List<UserEntity> findAllByIdWithProperties(@Param("ids") List<UUID> ids);
+
     List<UserEntity> findByType(UserType type);
 }

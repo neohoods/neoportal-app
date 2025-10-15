@@ -1,4 +1,4 @@
-import { NgForOf, NgIf } from '@angular/common';
+import { NgForOf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormArray,
@@ -30,7 +30,6 @@ import { UsersService } from '../../services/users.service';
     FormsModule,
     ReactiveFormsModule,
     NgForOf,
-    NgIf,
     TuiButton,
     TuiTextfield,
     TuiIcon,
@@ -166,7 +165,8 @@ export class EditUserComponent implements OnInit {
         postalCode: formValue.postalCode,
         country: formValue.country,
         avatarUrl: formValue.avatarUrl,
-        preferredLanguage: formValue.preferredLanguage
+        preferredLanguage: formValue.preferredLanguage,
+        createdAt: this.user.createdAt || new Date().toISOString()
       };
 
       this.usersService.saveUser(updatedUser).subscribe(() => {

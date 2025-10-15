@@ -34,7 +34,9 @@ export class MockAuthService implements AuthService {
       country: 'USA',
       type: UIUserType.ADMIN,
       roles: ['hub', 'admin'],
-      properties: []
+      properties: [],
+      preferredLanguage: 'fr',
+      createdAt: new Date().toISOString()
     },
   };
 
@@ -61,6 +63,7 @@ export class MockAuthService implements AuthService {
       "type": UIUserType.ADMIN,
       "roles": ["hub", "admin"],
       "properties": [],
+      "createdAt": new Date().toISOString()
     };
     this.usersService.getUsers().subscribe((users) => {
       this.userInfo.user = users.find((user) => user.username === 'me') as UIUser;
@@ -78,7 +81,7 @@ export class MockAuthService implements AuthService {
 
   getUserProfile(): Observable<UIUser> {
     // Update userRoles with the actual user roles
-    this.userRoles = this.userInfo.user.roles ?? ['hub'];
+    this.userRoles = this.userInfo.user.roles ?? ['hub', 'admin'];
     return of(this.userInfo.user);
   }
 

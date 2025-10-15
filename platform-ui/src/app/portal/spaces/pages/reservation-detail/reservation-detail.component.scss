@@ -1,0 +1,751 @@
+.reservation-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.loading-container,
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+
+    p {
+        color: var(--tui-text-secondary);
+        font-size: 1.1rem;
+    }
+}
+
+.error-icon {
+    font-size: 3rem;
+    color: var(--tui-status-negative);
+}
+
+.reservation-header {
+    margin-bottom: 2rem;
+
+    .back-button {
+        margin-bottom: 1rem;
+    }
+
+    .header-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+    }
+}
+
+.reservation-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.space-section {
+    .space-card {
+        background: var(--tui-background-elevation-1);
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+        .space-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .space-info {
+            padding: 1.5rem;
+
+            h2 {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            .space-type,
+            .space-location {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--tui-text-secondary);
+                margin: 0.5rem 0;
+                font-size: 0.95rem;
+
+                tui-icon {
+                    font-size: 1rem;
+                }
+            }
+
+            .space-description {
+                margin: 1rem 0;
+                color: var(--tui-text-secondary);
+                line-height: 1.6;
+            }
+
+            .view-space-button {
+                width: 100%;
+                margin-top: 1rem;
+            }
+        }
+    }
+}
+
+.details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.detail-card {
+    background: var(--tui-background-elevation-1);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--tui-text-primary);
+
+        tui-icon {
+            color: var(--tui-text-action);
+        }
+    }
+
+    .detail-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+// Date Section
+.date-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .label {
+        font-size: 0.85rem;
+        color: var(--tui-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .value {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--tui-text-primary);
+
+        .time {
+            margin-left: 0.5rem;
+            color: var(--tui-text-secondary);
+            font-weight: 400;
+        }
+    }
+}
+
+.date-separator {
+    display: flex;
+    justify-content: center;
+    color: var(--tui-text-tertiary);
+}
+
+.duration-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--tui-background-base);
+    border-radius: 0.5rem;
+    color: var(--tui-text-secondary);
+    font-weight: 500;
+
+    tui-icon {
+        color: var(--tui-text-action);
+    }
+}
+
+// Access Code Section
+.access-code-display {
+    text-align: center;
+    padding: 1rem;
+    background: var(--tui-background-base);
+    border-radius: 0.5rem;
+
+    .code {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        color: var(--tui-text-action);
+        letter-spacing: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .code-hint {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--tui-text-secondary);
+    }
+}
+
+// Pricing Section
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+
+    &.subtotal {
+        border-top: 1px solid var(--tui-border-normal);
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        font-weight: 500;
+    }
+
+    &.total {
+        border-top: 2px solid var(--tui-border-normal);
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .label {
+        color: var(--tui-text-secondary);
+    }
+
+    .value {
+        font-weight: 500;
+        color: var(--tui-text-primary);
+    }
+}
+
+.payment-status {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+// Status styles
+.status-pending-payment {
+    background: var(--tui-status-warning);
+    color: var(--tui-text-on-dark);
+}
+
+.status-payment-failed {
+    background: var(--tui-status-negative);
+    color: var(--tui-text-on-dark);
+}
+
+.status-expired {
+    background: var(--tui-text-secondary);
+    color: var(--tui-text-on-dark);
+}
+
+.status-confirmed {
+    background: var(--tui-status-success);
+    color: var(--tui-text-on-dark);
+}
+
+.status-active {
+    background: var(--tui-status-info);
+    color: var(--tui-text-on-dark);
+}
+
+.status-completed {
+    background: var(--tui-status-success);
+    color: var(--tui-text-on-dark);
+}
+
+.status-cancelled {
+    background: var(--tui-status-negative);
+    color: var(--tui-text-on-dark);
+}
+
+.status-refunded {
+    background: var(--tui-status-warning);
+    color: var(--tui-text-on-dark);
+}
+
+.status-unknown {
+    background: var(--tui-text-secondary);
+    color: var(--tui-text-on-dark);
+}
+
+.retry-payment-button {
+    margin-left: 1rem;
+}
+
+// Info Section
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+    gap: 1rem;
+
+    .label {
+        color: var(--tui-text-secondary);
+        flex-shrink: 0;
+    }
+
+    .value {
+        color: var(--tui-text-primary);
+        text-align: right;
+        word-break: break-all;
+
+        &.mono {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+    }
+}
+
+// Status Chips
+.status-confirmed,
+.status-active {
+    --tui-background-base: #e8f5e9;
+    --tui-text-primary: #2e7d32;
+}
+
+.status-pending_payment {
+    --tui-background-base: #fff3e0;
+    --tui-text-primary: #e65100;
+}
+
+.status-completed {
+    --tui-background-base: #e3f2fd;
+    --tui-text-primary: #1565c0;
+}
+
+.status-cancelled {
+    --tui-background-base: #ffebee;
+    --tui-text-primary: #c62828;
+}
+
+.payment-paid {
+    --tui-background-base: #e8f5e9;
+    --tui-text-primary: #2e7d32;
+}
+
+.payment-pending_payment {
+    --tui-background-base: #fff3e0;
+    --tui-text-primary: #e65100;
+}
+
+.payment-cancelled {
+    --tui-background-base: #ffebee;
+    --tui-text-primary: #c62828;
+}
+
+// Payment View Styles
+.payment-view {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .payment-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+
+        h1 {
+            margin: 0;
+            color: var(--tos-text-primary);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+    }
+
+    .confirm-button,
+    .pay-button,
+    .retry-button {
+        width: 100%;
+    }
+
+    .payment-timer {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--tos-background-base);
+        border-radius: 8px;
+        border: 1px solid var(--tos-border-neutral-1);
+
+        .timer-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--tos-text-primary);
+
+            &.warning {
+                color: var(--tos-text-negative);
+            }
+        }
+
+        .timer-message {
+            margin: 0.5rem 0 0 0;
+            color: var(--tos-text-secondary);
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+    }
+
+    .payment-expired {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--tos-background-negative);
+        border-radius: 8px;
+        border: 1px solid var(--tos-border-negative);
+        text-align: center;
+
+        p {
+            margin: 0.5rem 0;
+            color: var(--tos-text-negative);
+            font-weight: 600;
+        }
+
+        .retry-button {
+            margin-top: 1rem;
+        }
+    }
+
+    .payment-content {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 2rem;
+    }
+
+    .space-summary {
+        background: var(--tos-background-base);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid var(--tos-border-neutral-1);
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+
+        h2 {
+            margin: 0 0 1.5rem 0;
+            color: var(--tos-text-primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+    }
+
+    .space-info {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+
+        .space-image {
+            width: 120px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+
+        .space-details {
+            flex: 1;
+
+            h3 {
+                margin: 0 0 0.5rem 0;
+                color: var(--tos-text-primary);
+                font-size: 1.25rem;
+                font-weight: 600;
+            }
+
+            .space-type {
+                margin: 0 0 0.5rem 0;
+                color: var(--tos-text-accent);
+                font-weight: 500;
+            }
+
+            .space-description {
+                margin: 0;
+                color: var(--tos-text-secondary);
+                font-size: 0.875rem;
+                line-height: 1.4;
+            }
+        }
+    }
+
+    .reservation-dates {
+        h3 {
+            margin: 0 0 1rem 0;
+            color: var(--tos-text-primary);
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .date-range {
+            display: flex;
+            gap: 2rem;
+
+            .date-item {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+
+                strong {
+                    color: var(--tos-text-secondary);
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+
+                span {
+                    color: var(--tos-text-primary);
+                    font-size: 1rem;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+
+    .payment-summary {
+        background: var(--tos-background-base);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid var(--tos-border-neutral-1);
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+        height: fit-content;
+
+        h2 {
+            margin: 0 0 1.5rem 0;
+            color: var(--tos-text-primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+    }
+
+    .price-breakdown {
+        margin-bottom: 2rem;
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--tos-border-neutral-1);
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &.subtotal {
+                border-top: 1px solid var(--tos-border-neutral-2);
+                margin-top: 0.5rem;
+                padding-top: 0.75rem;
+                font-weight: 500;
+            }
+
+            &.total {
+                border-top: 2px solid var(--tos-border-accent-1);
+                margin-top: 1rem;
+                padding-top: 1rem;
+            }
+
+            span {
+                color: var(--tos-text-primary);
+                font-size: 0.875rem;
+
+                &:first-child {
+                    color: var(--tos-text-secondary);
+                }
+            }
+        }
+    }
+
+    .payment-actions {
+
+        .pay-button,
+        .confirm-button,
+        .retry-button {
+            width: 100%;
+            height: 48px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+    }
+
+    .free-reservation-notice {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+        tui-icon {
+            font-size: 1.25rem;
+        }
+
+        p {
+            margin: 0;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .payment-content {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .space-info {
+            flex-direction: column;
+
+            .space-image {
+                width: 100%;
+                height: 200px;
+            }
+        }
+
+        .reservation-dates .date-range {
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+}
+
+// Payment styles for detail view
+.detail-view {
+    .detail-card {
+        .price-breakdown {
+            margin-bottom: 1rem;
+
+            .price-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--tui-border-neutral-1);
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                &.total {
+                    border-top: 2px solid var(--tui-border-accent-1);
+                    margin-top: 0.5rem;
+                    padding-top: 0.5rem;
+                }
+
+                span {
+                    color: var(--tui-text-primary);
+                    font-size: 0.875rem;
+
+                    &:first-child {
+                        color: var(--tui-text-secondary);
+                    }
+                }
+            }
+        }
+
+        .free-reservation-notice {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+            tui-icon {
+                font-size: 1rem;
+            }
+
+            p {
+                margin: 0;
+                font-weight: 500;
+                font-size: 0.875rem;
+            }
+        }
+
+        .payment-timer {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: var(--tui-background-base);
+            border-radius: 8px;
+            border: 1px solid var(--tui-border-neutral-1);
+
+            .timer-display {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 600;
+                color: var(--tui-text-primary);
+
+                &.warning {
+                    color: var(--tui-text-negative);
+                }
+            }
+
+            .timer-message {
+                margin: 0.5rem 0 0 0;
+                color: var(--tui-text-secondary);
+                font-size: 0.75rem;
+                font-style: italic;
+            }
+        }
+
+        .payment-expired {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: var(--tui-background-negative);
+            border-radius: 8px;
+            border: 1px solid var(--tui-border-negative);
+            text-align: center;
+
+            p {
+                margin: 0.5rem 0;
+                color: var(--tui-text-negative);
+                font-weight: 600;
+            }
+        }
+
+        .payment-actions {
+            margin-top: 1rem;
+
+            button {
+                width: 100%;
+                margin-bottom: 0.5rem;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}

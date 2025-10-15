@@ -1,4 +1,3 @@
-import { NgForOf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -26,7 +25,6 @@ interface Character {
   selector: 'app-profile',
   imports: [
     ReactiveFormsModule,
-    NgForOf,
     TuiButton,
     TuiPassword,
     TuiTextfield,

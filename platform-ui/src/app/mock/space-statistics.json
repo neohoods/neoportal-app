@@ -1,0 +1,404 @@
+[
+  {
+    "spaceId": "550e8400-e29b-41d4-a716-446655440001",
+    "spaceName": "Chambre d'hôtes - Appartement 2A",
+    "period": {
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-31"
+    },
+    "occupancyRate": 20.5,
+    "totalRevenue": 1850.00,
+    "totalReservations": 12,
+    "totalDaysBooked": 75,
+    "averageReservationDuration": 6.25,
+    "topUsers": [
+      {
+        "userId": "user-001",
+        "userName": "Marie Dubois",
+        "userEmail": "marie.dubois@example.com",
+        "reservationCount": 4,
+        "totalDays": 16,
+        "totalSpent": 640.00
+      },
+      {
+        "userId": "user-002",
+        "userName": "Pierre Martin",
+        "userEmail": "pierre.martin@example.com",
+        "reservationCount": 3,
+        "totalDays": 12,
+        "totalSpent": 480.00
+      },
+      {
+        "userId": "user-003",
+        "userName": "Sophie Bernard",
+        "userEmail": "sophie.bernard@example.com",
+        "reservationCount": 2,
+        "totalDays": 8,
+        "totalSpent": 320.00
+      },
+      {
+        "userId": "user-004",
+        "userName": "Jean Lefebvre",
+        "userEmail": "jean.lefebvre@example.com",
+        "reservationCount": 2,
+        "totalDays": 6,
+        "totalSpent": 240.00
+      },
+      {
+        "userId": "user-005",
+        "userName": "Anne Rousseau",
+        "userEmail": "anne.rousseau@example.com",
+        "reservationCount": 1,
+        "totalDays": 3,
+        "totalSpent": 170.00
+      }
+    ],
+    "occupancyCalendar": [
+      {"date": "2025-01-05", "isOccupied": true, "reservationId": "res-2025-001", "userName": "Marie Dubois"},
+      {"date": "2025-01-06", "isOccupied": true, "reservationId": "res-2025-001", "userName": "Marie Dubois"},
+      {"date": "2025-01-07", "isOccupied": true, "reservationId": "res-2025-001", "userName": "Marie Dubois"},
+      {"date": "2025-01-08", "isOccupied": false},
+      {"date": "2025-01-09", "isOccupied": false},
+      {"date": "2025-01-10", "isOccupied": false},
+      {"date": "2025-01-15", "isOccupied": true, "reservationId": "res-2025-002", "userName": "Pierre Martin"},
+      {"date": "2025-01-16", "isOccupied": true, "reservationId": "res-2025-002", "userName": "Pierre Martin"},
+      {"date": "2025-01-17", "isOccupied": true, "reservationId": "res-2025-002", "userName": "Pierre Martin"},
+      {"date": "2025-01-18", "isOccupied": true, "reservationId": "res-2025-002", "userName": "Pierre Martin"},
+      {"date": "2025-01-19", "isOccupied": false},
+      {"date": "2025-01-20", "isOccupied": false},
+      {"date": "2025-01-25", "isOccupied": true, "reservationId": "res-2025-003", "userName": "Sophie Bernard"},
+      {"date": "2025-01-26", "isOccupied": true, "reservationId": "res-2025-003", "userName": "Sophie Bernard"},
+      {"date": "2025-01-27", "isOccupied": true, "reservationId": "res-2025-003", "userName": "Sophie Bernard"},
+      {"date": "2025-01-28", "isOccupied": false},
+      {"date": "2025-02-05", "isOccupied": true, "reservationId": "res-2025-004", "userName": "Jean Lefebvre"},
+      {"date": "2025-02-06", "isOccupied": true, "reservationId": "res-2025-004", "userName": "Jean Lefebvre"},
+      {"date": "2025-02-07", "isOccupied": true, "reservationId": "res-2025-004", "userName": "Jean Lefebvre"},
+      {"date": "2025-02-08", "isOccupied": false},
+      {"date": "2025-02-10", "isOccupied": true, "reservationId": "res-2025-005", "userName": "Marie Dubois"},
+      {"date": "2025-02-11", "isOccupied": true, "reservationId": "res-2025-005", "userName": "Marie Dubois"},
+      {"date": "2025-02-12", "isOccupied": true, "reservationId": "res-2025-005", "userName": "Marie Dubois"},
+      {"date": "2025-02-13", "isOccupied": true, "reservationId": "res-2025-005", "userName": "Marie Dubois"},
+      {"date": "2025-02-14", "isOccupied": false},
+      {"date": "2025-02-18", "isOccupied": true, "reservationId": "res-2025-006", "userName": "Pierre Martin"},
+      {"date": "2025-02-19", "isOccupied": true, "reservationId": "res-2025-006", "userName": "Pierre Martin"},
+      {"date": "2025-02-20", "isOccupied": true, "reservationId": "res-2025-006", "userName": "Pierre Martin"},
+      {"date": "2025-02-21", "isOccupied": false},
+      {"date": "2025-03-08", "isOccupied": true, "reservationId": "res-2025-007", "userName": "Sophie Bernard"},
+      {"date": "2025-03-09", "isOccupied": true, "reservationId": "res-2025-007", "userName": "Sophie Bernard"},
+      {"date": "2025-03-10", "isOccupied": true, "reservationId": "res-2025-007", "userName": "Sophie Bernard"},
+      {"date": "2025-03-11", "isOccupied": false},
+      {"date": "2025-03-15", "isOccupied": true, "reservationId": "res-2025-008", "userName": "Jean Lefebvre"},
+      {"date": "2025-03-16", "isOccupied": true, "reservationId": "res-2025-008", "userName": "Jean Lefebvre"},
+      {"date": "2025-03-17", "isOccupied": true, "reservationId": "res-2025-008", "userName": "Jean Lefebvre"},
+      {"date": "2025-03-18", "isOccupied": false},
+      {"date": "2025-04-12", "isOccupied": true, "reservationId": "res-2025-009", "userName": "Marie Dubois"},
+      {"date": "2025-04-13", "isOccupied": true, "reservationId": "res-2025-009", "userName": "Marie Dubois"},
+      {"date": "2025-04-14", "isOccupied": true, "reservationId": "res-2025-009", "userName": "Marie Dubois"},
+      {"date": "2025-04-15", "isOccupied": true, "reservationId": "res-2025-009", "userName": "Marie Dubois"},
+      {"date": "2025-04-16", "isOccupied": true, "reservationId": "res-2025-009", "userName": "Marie Dubois"},
+      {"date": "2025-04-17", "isOccupied": false},
+      {"date": "2025-04-22", "isOccupied": true, "reservationId": "res-2025-010", "userName": "Anne Rousseau"},
+      {"date": "2025-04-23", "isOccupied": true, "reservationId": "res-2025-010", "userName": "Anne Rousseau"},
+      {"date": "2025-04-24", "isOccupied": true, "reservationId": "res-2025-010", "userName": "Anne Rousseau"},
+      {"date": "2025-04-25", "isOccupied": false},
+      {"date": "2025-05-10", "isOccupied": true, "reservationId": "res-2025-011", "userName": "Pierre Martin"},
+      {"date": "2025-05-11", "isOccupied": true, "reservationId": "res-2025-011", "userName": "Pierre Martin"},
+      {"date": "2025-05-12", "isOccupied": true, "reservationId": "res-2025-011", "userName": "Pierre Martin"},
+      {"date": "2025-05-13", "isOccupied": false},
+      {"date": "2025-05-20", "isOccupied": true, "reservationId": "res-2025-012", "userName": "Sophie Bernard"},
+      {"date": "2025-05-21", "isOccupied": true, "reservationId": "res-2025-012", "userName": "Sophie Bernard"},
+      {"date": "2025-05-22", "isOccupied": true, "reservationId": "res-2025-012", "userName": "Sophie Bernard"},
+      {"date": "2025-05-23", "isOccupied": true, "reservationId": "res-2025-012", "userName": "Sophie Bernard"},
+      {"date": "2025-05-24", "isOccupied": false},
+      {"date": "2025-06-08", "isOccupied": true, "reservationId": "res-2025-013", "userName": "Jean Lefebvre"},
+      {"date": "2025-06-09", "isOccupied": true, "reservationId": "res-2025-013", "userName": "Jean Lefebvre"},
+      {"date": "2025-06-10", "isOccupied": true, "reservationId": "res-2025-013", "userName": "Jean Lefebvre"},
+      {"date": "2025-06-11", "isOccupied": false},
+      {"date": "2025-06-18", "isOccupied": true, "reservationId": "res-2025-014", "userName": "Marie Dubois"},
+      {"date": "2025-06-19", "isOccupied": true, "reservationId": "res-2025-014", "userName": "Marie Dubois"},
+      {"date": "2025-06-20", "isOccupied": true, "reservationId": "res-2025-014", "userName": "Marie Dubois"},
+      {"date": "2025-06-21", "isOccupied": true, "reservationId": "res-2025-014", "userName": "Marie Dubois"},
+      {"date": "2025-06-22", "isOccupied": false},
+      {"date": "2025-07-05", "isOccupied": true, "reservationId": "res-2025-015", "userName": "Pierre Martin"},
+      {"date": "2025-07-06", "isOccupied": true, "reservationId": "res-2025-015", "userName": "Pierre Martin"},
+      {"date": "2025-07-07", "isOccupied": true, "reservationId": "res-2025-015", "userName": "Pierre Martin"},
+      {"date": "2025-07-08", "isOccupied": false},
+      {"date": "2025-07-15", "isOccupied": true, "reservationId": "res-2025-016", "userName": "Sophie Bernard"},
+      {"date": "2025-07-16", "isOccupied": true, "reservationId": "res-2025-016", "userName": "Sophie Bernard"},
+      {"date": "2025-07-17", "isOccupied": true, "reservationId": "res-2025-016", "userName": "Sophie Bernard"},
+      {"date": "2025-07-18", "isOccupied": false}
+    ],
+    "monthlyOccupancy": [
+      {"month": "Jan", "daysOccupied": 10, "daysAvailable": 31},
+      {"month": "Fév", "daysOccupied": 11, "daysAvailable": 28},
+      {"month": "Mar", "daysOccupied": 6, "daysAvailable": 31},
+      {"month": "Avr", "daysOccupied": 8, "daysAvailable": 30},
+      {"month": "Mai", "daysOccupied": 8, "daysAvailable": 31},
+      {"month": "Juin", "daysOccupied": 8, "daysAvailable": 30},
+      {"month": "Juil", "daysOccupied": 6, "daysAvailable": 31},
+      {"month": "Août", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Sep", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Oct", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Nov", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Déc", "daysOccupied": 0, "daysAvailable": 31}
+    ]
+  },
+  {
+    "spaceId": "550e8400-e29b-41d4-a716-446655440002",
+    "spaceName": "Salle commune - Rez-de-chaussée",
+    "period": {
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31"
+    },
+    "occupancyRate": 42.3,
+    "totalRevenue": 890.00,
+    "totalReservations": 18,
+    "totalDaysBooked": 18,
+    "averageReservationDuration": 1.0,
+    "topUsers": [
+      {
+        "userId": "user-006",
+        "userName": "Luc Moreau",
+        "userEmail": "luc.moreau@example.com",
+        "reservationCount": 5,
+        "totalDays": 5,
+        "totalSpent": 250.00
+      },
+      {
+        "userId": "user-007",
+        "userName": "Claire Petit",
+        "userEmail": "claire.petit@example.com",
+        "reservationCount": 4,
+        "totalDays": 4,
+        "totalSpent": 200.00
+      },
+      {
+        "userId": "user-008",
+        "userName": "Thomas Roux",
+        "userEmail": "thomas.roux@example.com",
+        "reservationCount": 3,
+        "totalDays": 3,
+        "totalSpent": 150.00
+      },
+      {
+        "userId": "user-009",
+        "userName": "Emma Girard",
+        "userEmail": "emma.girard@example.com",
+        "reservationCount": 3,
+        "totalDays": 3,
+        "totalSpent": 150.00
+      },
+      {
+        "userId": "user-010",
+        "userName": "Lucas Andre",
+        "userEmail": "lucas.andre@example.com",
+        "reservationCount": 3,
+        "totalDays": 3,
+        "totalSpent": 140.00
+      }
+    ],
+    "occupancyCalendar": [
+      {"date": "2024-01-06", "isOccupied": true, "reservationId": "res-2024-101", "userName": "Luc Moreau"},
+      {"date": "2024-01-13", "isOccupied": true, "reservationId": "res-2024-102", "userName": "Claire Petit"},
+      {"date": "2024-01-20", "isOccupied": true, "reservationId": "res-2024-103", "userName": "Thomas Roux"},
+      {"date": "2024-02-03", "isOccupied": true, "reservationId": "res-2024-104", "userName": "Emma Girard"},
+      {"date": "2024-02-17", "isOccupied": true, "reservationId": "res-2024-105", "userName": "Lucas Andre"},
+      {"date": "2024-03-02", "isOccupied": true, "reservationId": "res-2024-106", "userName": "Luc Moreau"},
+      {"date": "2024-03-16", "isOccupied": true, "reservationId": "res-2024-107", "userName": "Claire Petit"},
+      {"date": "2024-04-06", "isOccupied": true, "reservationId": "res-2024-108", "userName": "Thomas Roux"},
+      {"date": "2024-04-20", "isOccupied": true, "reservationId": "res-2024-109", "userName": "Emma Girard"},
+      {"date": "2024-05-04", "isOccupied": true, "reservationId": "res-2024-110", "userName": "Lucas Andre"},
+      {"date": "2024-05-18", "isOccupied": true, "reservationId": "res-2024-111", "userName": "Luc Moreau"},
+      {"date": "2024-06-01", "isOccupied": true, "reservationId": "res-2024-112", "userName": "Claire Petit"},
+      {"date": "2024-06-15", "isOccupied": true, "reservationId": "res-2024-113", "userName": "Thomas Roux"},
+      {"date": "2024-07-06", "isOccupied": true, "reservationId": "res-2024-114", "userName": "Emma Girard"},
+      {"date": "2024-07-20", "isOccupied": true, "reservationId": "res-2024-115", "userName": "Lucas Andre"},
+      {"date": "2024-08-03", "isOccupied": true, "reservationId": "res-2024-116", "userName": "Luc Moreau"},
+      {"date": "2024-08-17", "isOccupied": true, "reservationId": "res-2024-117", "userName": "Claire Petit"},
+      {"date": "2024-09-07", "isOccupied": true, "reservationId": "res-2024-118", "userName": "Thomas Roux"}
+    ],
+    "monthlyOccupancy": [
+      {"month": "Jan", "daysOccupied": 2, "daysAvailable": 31},
+      {"month": "Fév", "daysOccupied": 2, "daysAvailable": 28},
+      {"month": "Mar", "daysOccupied": 2, "daysAvailable": 31},
+      {"month": "Avr", "daysOccupied": 2, "daysAvailable": 30},
+      {"month": "Mai", "daysOccupied": 2, "daysAvailable": 31},
+      {"month": "Juin", "daysOccupied": 2, "daysAvailable": 30},
+      {"month": "Juil", "daysOccupied": 2, "daysAvailable": 31},
+      {"month": "Août", "daysOccupied": 2, "daysAvailable": 31},
+      {"month": "Sep", "daysOccupied": 2, "daysAvailable": 30},
+      {"month": "Oct", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Nov", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Déc", "daysOccupied": 0, "daysAvailable": 31}
+    ]
+  },
+  {
+    "spaceId": "550e8400-e29b-41d4-a716-446655440003",
+    "spaceName": "Espace coworking - 2 bureaux",
+    "period": {
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31"
+    },
+    "occupancyRate": 75.2,
+    "totalRevenue": 2340.00,
+    "totalReservations": 42,
+    "totalDaysBooked": 156,
+    "averageReservationDuration": 3.7,
+    "topUsers": [
+      {
+        "userId": "user-011",
+        "userName": "Alexandre Blanc",
+        "userEmail": "alexandre.blanc@example.com",
+        "reservationCount": 12,
+        "totalDays": 48,
+        "totalSpent": 768.00
+      },
+      {
+        "userId": "user-012",
+        "userName": "Camille Leroy",
+        "userEmail": "camille.leroy@example.com",
+        "reservationCount": 10,
+        "totalDays": 40,
+        "totalSpent": 640.00
+      },
+      {
+        "userId": "user-013",
+        "userName": "Julien Simon",
+        "userEmail": "julien.simon@example.com",
+        "reservationCount": 8,
+        "totalDays": 32,
+        "totalSpent": 512.00
+      },
+      {
+        "userId": "user-014",
+        "userName": "Laura Mercier",
+        "userEmail": "laura.mercier@example.com",
+        "reservationCount": 7,
+        "totalDays": 24,
+        "totalSpent": 384.00
+      },
+      {
+        "userId": "user-015",
+        "userName": "Nicolas Fournier",
+        "userEmail": "nicolas.fournier@example.com",
+        "reservationCount": 5,
+        "totalDays": 12,
+        "totalSpent": 192.00
+      }
+    ],
+    "occupancyCalendar": [
+      {"date": "2024-01-08", "isOccupied": true, "reservationId": "res-2024-201", "userName": "Alexandre Blanc"},
+      {"date": "2024-01-09", "isOccupied": true, "reservationId": "res-2024-201", "userName": "Alexandre Blanc"},
+      {"date": "2024-01-10", "isOccupied": true, "reservationId": "res-2024-201", "userName": "Alexandre Blanc"},
+      {"date": "2024-01-11", "isOccupied": true, "reservationId": "res-2024-201", "userName": "Alexandre Blanc"},
+      {"date": "2024-01-15", "isOccupied": true, "reservationId": "res-2024-202", "userName": "Camille Leroy"},
+      {"date": "2024-01-16", "isOccupied": true, "reservationId": "res-2024-202", "userName": "Camille Leroy"},
+      {"date": "2024-01-17", "isOccupied": true, "reservationId": "res-2024-202", "userName": "Camille Leroy"},
+      {"date": "2024-01-18", "isOccupied": true, "reservationId": "res-2024-202", "userName": "Camille Leroy"},
+      {"date": "2024-01-22", "isOccupied": true, "reservationId": "res-2024-203", "userName": "Julien Simon"},
+      {"date": "2024-01-23", "isOccupied": true, "reservationId": "res-2024-203", "userName": "Julien Simon"},
+      {"date": "2024-01-24", "isOccupied": true, "reservationId": "res-2024-203", "userName": "Julien Simon"},
+      {"date": "2024-01-25", "isOccupied": true, "reservationId": "res-2024-203", "userName": "Julien Simon"}
+    ],
+    "monthlyOccupancy": [
+      {"month": "Jan", "daysOccupied": 5, "daysAvailable": 31},
+      {"month": "Fév", "daysOccupied": 0, "daysAvailable": 28},
+      {"month": "Mar", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Avr", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Mai", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Juin", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Juil", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Août", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Sep", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Oct", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Nov", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Déc", "daysOccupied": 0, "daysAvailable": 31}
+    ]
+  },
+  {
+    "spaceId": "550e8400-e29b-41d4-a716-446655440004",
+    "spaceName": "Place de parking A1",
+    "period": {
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31"
+    },
+    "occupancyRate": 55.8,
+    "totalRevenue": 0.00,
+    "totalReservations": 28,
+    "totalDaysBooked": 204,
+    "averageReservationDuration": 7.3,
+    "topUsers": [
+      {
+        "userId": "user-016",
+        "userName": "Vincent Garnier",
+        "userEmail": "vincent.garnier@example.com",
+        "reservationCount": 8,
+        "totalDays": 64,
+        "totalSpent": 0.00
+      },
+      {
+        "userId": "user-017",
+        "userName": "Isabelle Faure",
+        "userEmail": "isabelle.faure@example.com",
+        "reservationCount": 6,
+        "totalDays": 48,
+        "totalSpent": 0.00
+      },
+      {
+        "userId": "user-018",
+        "userName": "Olivier Morel",
+        "userEmail": "olivier.morel@example.com",
+        "reservationCount": 5,
+        "totalDays": 40,
+        "totalSpent": 0.00
+      },
+      {
+        "userId": "user-019",
+        "userName": "Nathalie Robin",
+        "userEmail": "nathalie.robin@example.com",
+        "reservationCount": 5,
+        "totalDays": 32,
+        "totalSpent": 0.00
+      },
+      {
+        "userId": "user-020",
+        "userName": "Sebastien Perrin",
+        "userEmail": "sebastien.perrin@example.com",
+        "reservationCount": 4,
+        "totalDays": 20,
+        "totalSpent": 0.00
+      }
+    ],
+    "occupancyCalendar": [
+      {"date": "2024-01-02", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-03", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-04", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-05", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-06", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-07", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-08", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-09", "isOccupied": true, "reservationId": "res-2024-301", "userName": "Vincent Garnier"},
+      {"date": "2024-01-15", "isOccupied": true, "reservationId": "res-2024-302", "userName": "Isabelle Faure"},
+      {"date": "2024-01-16", "isOccupied": true, "reservationId": "res-2024-302", "userName": "Isabelle Faure"},
+      {"date": "2024-01-17", "isOccupied": true, "reservationId": "res-2024-302", "userName": "Isabelle Faure"},
+      {"date": "2024-01-18", "isOccupied": true, "reservationId": "res-2024-302", "userName": "Isabelle Faure"},
+      {"date": "2024-01-19", "isOccupied": true, "reservationId": "res-2024-302", "userName": "Isabelle Faure"},
+      {"date": "2024-01-20", "isOccupied": true, "reservationId": "res-2024-302", "userName": "Isabelle Faure"}
+    ],
+    "monthlyOccupancy": [
+      {"month": "Jan", "daysOccupied": 20, "daysAvailable": 31},
+      {"month": "Fév", "daysOccupied": 0, "daysAvailable": 28},
+      {"month": "Mar", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Avr", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Mai", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Juin", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Juil", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Août", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Sep", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Oct", "daysOccupied": 0, "daysAvailable": 31},
+      {"month": "Nov", "daysOccupied": 0, "daysAvailable": 30},
+      {"month": "Déc", "daysOccupied": 0, "daysAvailable": 31}
+    ]
+  }
+]
+

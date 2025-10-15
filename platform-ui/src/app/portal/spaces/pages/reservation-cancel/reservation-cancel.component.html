@@ -1,0 +1,221 @@
+<div class="reservation-cancel-container">
+    <div class="cancel-content">
+        <!-- Cancel Header -->
+        <div class="cancel-header">
+            <div class="cancel-icon">
+                <tui-icon
+                    icon="tuiIconXCircle"
+                    size="xl"
+                    class="cancel-icon-svg"
+                ></tui-icon>
+            </div>
+            <h1 class="cancel-title">
+                {{ 'reservations.cancel.title' | translate }}
+            </h1>
+            <p class="cancel-message">
+                {{ 'reservations.cancel.paymentCancelledDescription' | translate }}
+            </p>
+        </div>
+
+        <!-- Loading State -->
+        <div
+            *ngIf="loading()"
+            class="loading-container"
+        >
+            <tui-loader size="l"></tui-loader>
+            <p>
+                {{ 'reservations.cancel.loading' | translate }}
+            </p>
+        </div>
+
+        <!-- Error State -->
+        <div
+            *ngIf="error()"
+            class="error-container"
+        >
+            <tui-icon
+                icon="tuiIconAlertCircle"
+                size="l"
+                class="error-icon"
+            ></tui-icon>
+            <h2>
+                {{ 'reservations.cancel.error' | translate }}
+            </h2>
+            <p>{{ error() }}</p>
+            <button
+                tuiButton
+                (click)="onBackToSpaces()"
+                appearance="primary"
+            >
+                {{ 'reservations.cancel.backToSpaces' | translate }}
+            </button>
+        </div>
+
+        <!-- Cancel Details -->
+        <div
+            *ngIf="!loading() && !error() && reservation() && space()"
+            class="reservation-details"
+        >
+            <!-- Reservation Summary -->
+            <div class="reservation-summary">
+                <h2>
+                    {{ 'reservations.cancel.reservationDetails' | translate }}
+                </h2>
+
+                <div class="reservation-info">
+                    <div class="info-item">
+                        <strong>
+                            {{ 'reservations.cancel.reservationId' | translate }}:
+                        </strong>
+                        <span>{{ reservation()!.id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>
+                            {{ 'reservations.status.CANCELLED' | translate }}:
+                        </strong>
+                        <tui-chip
+                            size="s"
+                            appearance="error"
+                        >
+                            {{ 'reservations.status.CANCELLED' | translate }}
+                        </tui-chip>
+                    </div>
+                    <div class="info-item">
+                        <strong>
+                            {{ 'reservations.cancel.totalPrice' | translate }}:
+                        </strong>
+                        <span>{{ reservation()!.totalPrice }}€</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Space Details -->
+            <div class="space-details">
+                <h3>
+                    {{ 'reservations.cancel.spaceName' | translate }}
+                </h3>
+
+                <div class="space-card">
+                    <div
+                        class="space-image"
+                        *ngIf="space()!.images && space()!.images.length > 0"
+                    >
+                        <img
+                            [src]="space()!.images[0].url"
+                            [alt]="space()!.name"
+                        >
+                    </div>
+                    <div class="space-info">
+                        <h4>{{ space()!.name }}</h4>
+                        <p class="space-type">{{ getSpaceTypeLabel(space()!.type) }}</p>
+                        <p class="space-description">{{ space()!.description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="reservation-dates">
+                <h3>
+                    {{ 'reservations.cancel.dates' | translate }}
+                </h3>
+                <div class="date-range">
+                    <div class="date-item">
+                        <strong>
+                            {{ 'reservations.cancel.startDate' | translate }}:
+                        </strong>
+                        <span>
+                            {{ formatDate(reservation()!.startDate) }}
+                        </span>
+                    </div>
+                    <div class="date-item">
+                        <strong>
+                            {{ 'reservations.cancel.endDate' | translate }}:
+                        </strong>
+                        <span>
+                            {{ formatDate(reservation()!.endDate) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What happened -->
+            <div class="what-happened">
+                <h3>
+                    {{ 'reservations.cancel.whatHappened' | translate }}
+                </h3>
+                <div class="explanation">
+                    <p>
+                        {{ 'reservations.cancel.paymentCancelledDescription' | translate }}
+                    </p>
+                    <ul>
+                        <li>
+                            {{ 'reservations.cancel.reason1' | translate }}
+                        </li>
+                        <li>
+                            {{ 'reservations.cancel.reason2' | translate }}
+                        </li>
+                        <li>
+                            {{ 'reservations.cancel.reason3' | translate }}
+                        </li>
+                    </ul>
+                    <p>
+                        <strong>
+                            {{ 'reservations.cancel.reassurance' | translate }}
+                        </strong>
+                        {{ 'reservations.cancel.noCharge' | translate }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>
+                    {{ 'reservations.cancel.whatCanYouDo' | translate }}
+                </h3>
+                <ul>
+                    <li>
+                        {{ 'reservations.cancel.option1' | translate }}
+                    </li>
+                    <li>
+                        {{ 'reservations.cancel.option2' | translate }}
+                    </li>
+                    <li>
+                        {{ 'reservations.cancel.option3' | translate }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div
+            *ngIf="!loading() && !error()"
+            class="action-buttons"
+        >
+            <button
+                tuiButton
+                (click)="onRetryPayment()"
+                appearance="primary"
+                size="l"
+                *ngIf="reservation()"
+            >
+                {{ 'reservations.cancel.retryPayment' | translate }}
+            </button>
+            <button
+                tuiButton
+                (click)="onBackToSpaces()"
+                appearance="secondary"
+                size="l"
+            >
+                {{ 'reservations.cancel.chooseAnotherSpace' | translate }}
+            </button>
+            <button
+                tuiButton
+                (click)="onViewReservations()"
+                appearance="outline"
+                size="l"
+            >
+                {{ 'reservations.cancel.myReservations' | translate }}
+            </button>
+        </div>
+    </div>
+</div>

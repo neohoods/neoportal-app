@@ -15,12 +15,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "notification_settings")
 @Data
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "notification_settings")
 public class NotificationSettingsEntity {
     @Id
     private UUID id;
@@ -41,4 +41,5 @@ public class NotificationSettingsEntity {
                 .newsletterEnabled(newsletterEnabled)
                 .build();
     }
+
 }

@@ -17,7 +17,7 @@
 
     <div class="filter-actions">
       <tui-textfield tuiTextfieldSize="m">
-        <input [(ngModel)]="filterInput" [placeholder]="'tosTable.filterPlaceholder' | translate" tuiTextfield (ngModelChange)="fetchData()" />
+        <input [(ngModel)]="filterInput" name="filterInput" [placeholder]="'tosTable.filterPlaceholder' | translate" tuiTextfield (ngModelChange)="fetchData()" />
       </tui-textfield>
     </div>
 
@@ -45,6 +45,7 @@
                       size="s"
                       type="checkbox"
                       [(ngModel)]="column.visible"
+                      name="columnVisibility"
                       (ngModelChange)="onColumnVisibilityChange(column)"
                     />
                     {{ column.label }}

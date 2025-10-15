@@ -1,0 +1,94 @@
+.desktop-calendar {
+    width: 100%;
+    margin-bottom: 1rem;
+    display: block;
+
+    @media (max-width: 768px) {
+        display: none;
+    }
+}
+
+.mobile-calendar {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--tos-border-neutral-1);
+    border-radius: 8px;
+    background: var(--tos-background-base);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 500px;
+
+    @media (max-width: 768px) {
+        display: flex;
+    }
+
+    &:hover {
+        border-color: var(--tos-border-accent-1);
+        background: var(--tos-background-neutral-1);
+    }
+
+    .date {
+        width: 100%;
+        font-size: 0.875rem;
+        color: var(--tos-text-primary);
+        text-align: center;
+
+        &.date_empty {
+            color: var(--tos-text-tertiary);
+        }
+    }
+}
+
+// Calendar cell styling
+:host ::ng-deep {
+
+    // Styles pour les jours occupés (comme dans spaces-view admin)
+    .t-cell[data-type=occupied] {
+        color: var(--tui-text-primary-on-accent-1);
+    }
+
+    .t-cell[data-type=occupied]:after {
+        background: var(--tui-background-accent-1);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .t-cell[data-marker] {
+        background: none !important;
+        color: var(--tos-text-primary-on-accent-1);
+    }
+
+    // Special styling for today when occupied - red text
+    .t-cell_today[data-type=occupied] {
+        color: var(--tui-text-negative) !important;
+    }
+
+    // Styles pour les jours occupés par des espaces partagés (orange)
+    .t-cell[data-type=shared-occupied] {
+        color: var(--tui-text-primary-on-accent-2);
+    }
+
+    .t-cell[data-type=shared-occupied]:after {
+        background: var(--tui-background-accent-2);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .t-cell[data-marker=shared-occupied] {
+        background: none !important;
+        color: var(--tos-text-primary-on-accent-2);
+    }
+
+    // Special styling for today when occupied by shared space - orange text
+    .t-cell_today[data-type=shared-occupied] {
+        color: var(--tui-text-warning) !important;
+    }
+
+    // Class for shared occupied cells
+    .shared-occupied {
+        background-color: rgba(255, 152, 0, 0.3) !important;
+        border-left: 3px solid #ff9800 !important;
+    }
+}

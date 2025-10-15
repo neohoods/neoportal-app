@@ -11,10 +11,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   TuiAlertService,
   TuiButton,
-  TuiIcon,
-  TuiTextfield,
+  TuiTextfield
 } from '@taiga-ui/core';
-import { TuiPassword, TuiSwitch } from '@taiga-ui/kit';
+import { TuiSwitch } from '@taiga-ui/kit';
 import { UIApplication } from '../../../../models/UIApplication';
 import { APPLICATIONS_SERVICE_TOKEN } from '../../admin.providers';
 import { ApplicationsService } from '../../services/applications.service';
@@ -28,8 +27,6 @@ import { ApplicationsService } from '../../services/applications.service';
     ReactiveFormsModule,
     TuiButton,
     TuiTextfield,
-    TuiIcon,
-    TuiPassword,
     TuiSwitch,
     TranslateModule
   ],

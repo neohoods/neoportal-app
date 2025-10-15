@@ -2,6 +2,8 @@ package com.neohoods.portal.platform.services;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.neohoods.portal.platform.entities.SettingsEntity;
@@ -16,6 +18,7 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class SettingsService {
+        private static final Logger log = LoggerFactory.getLogger(SettingsService.class);
         private final SettingsRepository settingsRepository;
 
         private SettingsEntity getOrCreateDefaultSettings() {

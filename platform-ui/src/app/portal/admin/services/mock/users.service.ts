@@ -20,6 +20,11 @@ export class MockUsersService implements UsersService {
     return of(users.find((user) => user.id === id) as UIUser || ({} as UIUser));
   }
 
+  getUsersByIds(userIds: string[]): Observable<UIUser[]> {
+    const foundUsers = users.filter(user => userIds.includes(user.id)) as UIUser[];
+    return of(foundUsers);
+  }
+
   saveUser(user: UIUser): Observable<UIUser> {
     const existingUserIndex = users.findIndex((u) => u.id === user.id);
     if (existingUserIndex >= 0) {

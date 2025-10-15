@@ -1,0 +1,377 @@
+.space-card {
+    background: var(--tos-background-base);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid var(--tos-border-neutral-1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px 0 rgb(0 0 0 / .15), 0 2px 4px -1px rgb(0 0 0 / .1) !important;
+    }
+
+    &.compact {
+        flex-direction: row;
+        height: auto;
+        min-height: 120px;
+
+        .space-image {
+            width: 200px;
+            height: 120px;
+            flex-shrink: 0;
+        }
+
+        .space-content {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .space-actions {
+            display: none;
+        }
+    }
+}
+
+.space-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--tos-background-neutral-1) 0%, var(--tos-background-neutral-2) 100%);
+
+    .space-image-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    &:hover .space-image-img {
+        transform: scale(1.05);
+    }
+
+    // Placeholder when no image
+    &:not(:has(.space-image-img[src])) {
+        background: linear-gradient(135deg, var(--tos-background-neutral-1) 0%, var(--tos-background-neutral-2) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &::before {
+            content: '🏠';
+            font-size: 3rem;
+            opacity: 0.4;
+        }
+    }
+
+    // Fallback for broken images
+    .space-image-img {
+
+        &[src=""],
+        &[src*="placeholder"],
+        &[src*="404"] {
+            display: none;
+        }
+    }
+
+    .space-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.1) 0%,
+                rgba(0, 0, 0, 0.3) 100%);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .space-type-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--tos-text-primary);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .space-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+
+        &.status-active {
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+        }
+
+        &.status-inactive,
+        &.status-maintenance {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+    }
+
+    .favorite-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--tui-text-02);
+
+        &:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        &.favorited {
+            color: var(--tui-error);
+            background: rgba(255, 255, 255, 1);
+        }
+    }
+}
+
+.space-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.space-header {
+    margin-bottom: 0.75rem;
+
+    .space-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--tos-text-primary);
+        margin: 0;
+        line-height: 1.3;
+    }
+}
+
+.space-description {
+    color: var(--tos-text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.space-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+
+        tui-icon {
+            color: var(--tui-text-03);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .detail-label {
+            color: var(--tui-text-03);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            color: var(--tui-text-01);
+            font-weight: 600;
+
+            .price-unit {
+                color: var(--tui-text-02);
+                font-weight: 400;
+                font-size: 0.85rem;
+                margin-left: 0.25rem;
+            }
+        }
+
+        // Premier item (prix) un peu plus visible
+        &:first-child {
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--tos-border-neutral-1);
+
+            .detail-value {
+                font-size: 1.1rem;
+                color: var(--tos-text-primary);
+            }
+
+            tui-icon {
+                color: var(--tos-text-primary);
+            }
+        }
+    }
+}
+
+.quota-section {
+    margin-bottom: 1rem;
+
+    .quota-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+
+        .quota-label {
+            font-size: 0.9rem;
+            color: var(--tui-text-02);
+        }
+
+        .quota-count {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tui-text-01);
+        }
+    }
+
+    .quota-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--tui-base-03);
+        border-radius: 3px;
+        overflow: hidden;
+
+        .quota-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+    }
+}
+
+.rules-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .rule-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--tui-text-03);
+        font-size: 0.85rem;
+
+        tui-icon {
+            font-size: 0.8rem;
+        }
+    }
+}
+
+.space-actions {
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
+    grid-template-columns: 1fr 1fr;
+
+    background: var(--tos-background-base) button[tuiButton] {
+        flex: 1;
+    }
+
+    button[tuiButton] {
+        flex: 1;
+    }
+}
+
+.space-footer {
+    padding: 1rem 1.5rem;
+    background: var(--tos-background-base-alt);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+
+    .footer-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .space-type {
+            font-size: 0.9rem;
+            color: var(--tos-text-secondary);
+        }
+
+        .space-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--tos-text-accent);
+        }
+    }
+
+    .footer-arrow {
+        color: var(--tos-text-tertiary);
+        font-size: 1.2rem;
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .space-card {
+        &.compact {
+            flex-direction: column;
+            height: auto;
+
+            .space-image {
+                width: 100%;
+                height: 200px;
+            }
+        }
+    }
+
+    .space-actions {
+        flex-direction: column;
+
+        button[tuiButton] {
+            flex: unset;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .space-content {
+        padding: 1rem;
+    }
+
+    .space-actions {
+        padding: 1rem;
+    }
+
+    .space-footer {
+        padding: 1rem;
+    }
+}

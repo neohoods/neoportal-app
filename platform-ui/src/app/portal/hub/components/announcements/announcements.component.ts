@@ -133,7 +133,7 @@ export class AnnouncementsComponent implements OnInit {
         })
         .subscribe(response => {
           if (response) {
-            this.announcementsService.createAnnouncement(newAnnouncement).subscribe({
+            this.announcementsService.createAnnouncement(newAnnouncement as any).subscribe({
               next: () => {
                 // Reset form and reload announcements
                 this.pageForm.reset();

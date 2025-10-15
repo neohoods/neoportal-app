@@ -2,8 +2,8 @@ import { NgForOf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiIcon, TuiNotification, TuiTextfield } from '@taiga-ui/core';
-import { TuiChevron, TuiDataListWrapper, TuiPassword, TuiSelect } from '@taiga-ui/kit';
+import { TuiAlertService, TuiButton, TuiNotification, TuiTextfield } from '@taiga-ui/core';
+import { TuiChevron, TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIProperty, UIPropertyType, UIUser } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
@@ -16,9 +16,7 @@ import { ProfileService } from '../../../services/profile.service';
     ReactiveFormsModule,
     NgForOf,
     TuiButton,
-    TuiPassword,
     TuiTextfield,
-    TuiIcon,
     TranslateModule,
     TuiNotification,
     TranslateModule,

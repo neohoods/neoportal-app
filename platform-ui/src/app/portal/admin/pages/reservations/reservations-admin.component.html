@@ -1,0 +1,224 @@
+<div class="reservations-admin-container">
+    <div class="header">
+        <h1>{{ 'reservations.admin.title' | translate }}</h1>
+    </div>
+
+    <div class="filters-section">
+        <div class="filter-group">
+            <label tuiLabel>
+                {{ 'reservations.admin.filterByUser' | translate }}
+                <tui-textfield tuiChevron [stringify]="stringifyUser">
+                    <input
+                        tuiComboBox
+                        [ngModel]="selectedUser()"
+                        (ngModelChange)="onUserChange($event)"
+                        name="userId"
+                        [placeholder]="'reservations.admin.selectUser' | translate"
+                    />
+                    <tui-data-list-wrapper
+                        *tuiTextfieldDropdown
+                        new
+                        [items]="availableUsers() | tuiFilterByInput: userMatcher"
+                        [itemContent]="userContent"
+                    />
+                </tui-textfield>
+            </label>
+            <ng-template #userContent let-item>
+                {{ item.firstName }} {{ item.lastName }} ({{ item.email }})
+            </ng-template>
+        </div>
+
+        <div class="filter-group">
+            <label tuiLabel>
+                {{ 'reservations.admin.filterBySpaceType' | translate }}
+                <tui-textfield tuiChevron [stringify]="stringifySpaceType">
+                    <input
+                        tuiSelect
+                        [ngModel]="selectedSpaceType()"
+                        (ngModelChange)="onSpaceTypeChange($event)"
+                        name="spaceType"
+                        [placeholder]="'reservations.admin.allSpaceTypes' | translate"
+                    />
+                    <tui-data-list-wrapper
+                        *tuiTextfieldDropdown
+                        new
+                        [items]="spaceTypes"
+                        [itemContent]="spaceTypeContent"
+                    ></tui-data-list-wrapper>
+                </tui-textfield>
+            </label>
+            <ng-template #spaceTypeContent let-item>
+                {{ item.label | translate }}
+            </ng-template>
+        </div>
+
+        @if (hasActiveFilters()) {
+            <button tuiButton appearance="secondary" size="m" (click)="onClearFilters()">
+                <tui-icon icon="@tui.x" class="tui-icon-margin-right"></tui-icon>
+                {{ 'reservations.admin.clearFilters' | translate }} ({{ getActiveFiltersCount() }})
+            </button>
+        }
+    </div>
+
+    <div
+        class="tabs-section"
+        *ngIf="!loading()"
+    >
+        <tui-tabs
+            [(activeItemIndex)]="activeTab"
+            (activeItemIndexChange)="selectTab($event)"
+        >
+            <button
+                tuiTab
+                type="button"
+            >
+                {{ 'reservations.admin.past' | translate }} ({{ getPastReservationsCount() }})
+            </button>
+            <button
+                tuiTab
+                type="button"
+            >
+                {{ 'reservations.admin.inProgress' | translate }} ({{ getCurrentReservationsCount() }})
+            </button>
+            <button
+                tuiTab
+                type="button"
+            >
+                {{ 'reservations.admin.future' | translate }} ({{ getFutureReservationsCount() }})
+            </button>
+        </tui-tabs>
+    </div>
+
+    <!-- Reservations List -->
+    <div
+        *ngIf="!loading()"
+        class="reservations-list-container"
+    >
+        <div class="list-header">
+            <h2>{{ 'reservations.admin.title' | translate }}</h2>
+        </div>
+
+        <div class="reservations-grid">
+            <div
+                *ngFor="let reservation of paginatedReservations"
+                class="reservation-card"
+            >
+                <div class="reservation-content">
+                    <!-- Image de l'espace (1/3) -->
+                    <div class="space-image">
+                        <img
+                            *ngIf="hasSpaceImage(reservation)"
+                            [src]="getSpaceImageUrl(reservation)"
+                            [alt]="getSpaceName(reservation)"
+                            class="space-img"
+                        >
+                        <div
+                            *ngIf="!hasSpaceImage(reservation)"
+                            class="no-image"
+                        >
+                            <tui-icon
+                                [icon]="getSpaceTypeIcon(getSpaceType(reservation))"
+                                size="xl"
+                            ></tui-icon>
+                        </div>
+                    </div>
+
+                    <!-- Contenu de la réservation (2/3) -->
+                    <div class="reservation-info">
+                        <div class="reservation-header">
+                            <h3>
+                                {{ getSpaceName(reservation) }}
+                            </h3>
+                            <app-status-chip [status]="reservation.status" size="m"></app-status-chip>
+                        </div>
+                        <div class="reservation-details">
+                            <p>
+                                <strong>{{ 'reservations.admin.user' | translate }}:</strong>
+                                {{ getUserFullName(reservation.userId) }}
+                            </p>
+                            <p>
+                                <strong>{{ 'reservations.admin.dates' | translate }}:</strong>
+                                {{ reservation.startDate | date:'dd/MM/yyyy' }} - {{ reservation.endDate | date:'dd/MM/yyyy' }}
+                            </p>
+                            <p>
+                                <strong>{{ 'reservations.admin.totalPrice' | translate }}:</strong>
+                                {{ reservation.totalPrice | currency:'EUR' }}
+                            </p>
+                            <p>
+                                <strong>{{ 'spaces.admin.type' | translate }}:</strong>
+                                {{ getTranslatedSpaceType(getSpaceType(reservation)) }}
+                            </p>
+                        </div>
+                        <div class="reservation-actions">
+                            <button
+                                tuiButton
+                                appearance="outline"
+                                size="s"
+                                (click)="onViewReservation(reservation)"
+                            >
+                                <tui-icon
+                                    icon="@tui.eye"
+                                    class="tui-icon-margin-right"
+                                ></tui-icon>
+                                {{ 'reservations.admin.view' | translate }}
+                            </button>
+                            <button
+                                tuiButton
+                                appearance="outline"
+                                size="s"
+                                (click)="onRegenerateCode(reservation)"
+                            >
+                                <tui-icon
+                                    icon="@tui.refresh"
+                                    class="tui-icon-margin-right"
+                                ></tui-icon>
+                                {{ 'reservations.admin.regenerateCode' | translate }}
+                            </button>
+                            <button
+                                tuiButton
+                                appearance="destructive"
+                                size="s"
+                                (click)="onCancelReservation(reservation)"
+                            >
+                                <tui-icon
+                                    icon="@tui.x"
+                                    class="tui-icon-margin-right"
+                                ></tui-icon>
+                                {{ 'reservations.admin.cancel' | translate }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+            *ngIf="totalPages() > 1"
+            class="pagination-container"
+        >
+            <div class="pagination-info">
+                {{ 'reservations.admin.showing' | translate }} {{ getStartIndex() }} - {{ getEndIndex() }} {{ 'reservations.admin.of' | translate }} {{ totalItems() }} {{ 'reservations.admin.results' | translate }}
+            </div>
+
+            <tui-pagination
+                [length]="totalPages()"
+                [index]="currentPage() - 1"
+                (indexChange)="goToPage($event + 1)"
+            ></tui-pagination>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+        *ngIf="!loading() && reservations().length === 0"
+        class="empty-state"
+    >
+        <tui-icon
+            icon="@tui.calendar"
+            size="xl"
+        ></tui-icon>
+        <h3>{{ 'reservations.admin.noReservations' | translate }}</h3>
+        <p>{{ 'reservations.admin.noReservationsDescription' | translate }}</p>
+    </div>
+</div>

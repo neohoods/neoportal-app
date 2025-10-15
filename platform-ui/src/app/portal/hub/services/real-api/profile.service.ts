@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { map, Observable } from "rxjs";
 import { NotificationSettings, NotificationsHubApiService, ProfileHubApiService, User } from "../../../../api-client";
 import { UINotificationsSettings } from "../../../../models/UINotificationsSettings";
-import { UIUser, UIUserType } from "../../../../models/UIUser";
+import { UIUser } from "../../../../models/UIUser";
 import { ProfileService } from "../profile.service";
 
 @Injectable({
@@ -25,11 +25,22 @@ export class APIProfileService implements ProfileService {
     );
   }
   updateProfile(user: UIUser): Observable<UIUser> {
-    return this.profileApiService.updateProfile(user).pipe(
+    const apiUser = {
+      ...user,
+      streetAddress: user.streetAddress || '',
+      city: user.city || '',
+      postalCode: user.postalCode || '',
+      country: user.country || ''
+    };
+    return this.profileApiService.updateProfile(apiUser as any).pipe(
       map((user: User) => {
         return {
           ...user,
-          type: user.type as UIUserType,
+          type: user.type as any,
+          properties: user.properties?.map(p => ({
+            ...p,
+            type: p.type as any
+          })) || []
         } as UIUser;
       })
     );

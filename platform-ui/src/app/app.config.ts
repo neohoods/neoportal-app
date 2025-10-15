@@ -80,6 +80,6 @@ export const appConfig: ApplicationConfig = {
       },
     })]),
     NG_EVENT_PLUGINS,
-    provideAnimationsAsync(),
+    provideAnimationsAsync()
   ],
 };

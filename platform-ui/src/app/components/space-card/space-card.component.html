@@ -1,0 +1,146 @@
+<div
+    class="space-card"
+    (click)="onSpaceClick()"
+>
+    <!-- Image -->
+    <div class="space-image">
+        <img
+            class="space-image-img"
+            [src]="space.images[0].url || '/assets/images/placeholder-space.jpg'"
+            [alt]="space.images[0].altText || space.name"
+            loading="lazy"
+        >
+        <div class="space-type-badge">
+            <tui-icon icon="@tui.home"></tui-icon>
+            <span>{{ getSpaceTypeLabel(space.type) }}</span>
+        </div>
+        <div
+            class="space-status"
+            [class]="getStatusClass(space.status)"
+        >
+            {{ getSpaceStatusLabel(space.status) }}
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="space-content">
+        <div class="space-header">
+            <h3 class="space-name">{{ space.name }}</h3>
+        </div>
+
+        <p class="space-description">{{ space.description }}</p>
+
+        <!-- Details - Type specific -->
+        <div
+            class="space-details"
+            *ngIf="!compact"
+        >
+            <!-- Price (Always first if shown) -->
+            <div
+                class="detail-item"
+                *ngIf="shouldShowPrice()"
+            >
+                <tui-icon icon="@tui.euro"></tui-icon>
+                <span class="detail-label">{{ 'spaces.card.price' | translate }}:</span>
+                <span class="detail-value">
+                    {{ getPriceText() }}
+                    <span
+                        class="price-unit"
+                        *ngIf="space.pricing.tenantPrice > 0"
+                    >
+                        {{ 'spaces.detail.perDay' | translate }}
+                    </span>
+                </span>
+            </div>
+
+            <!-- Max Reservations Per Year -->
+            <div
+                class="detail-item"
+                *ngIf="space.rules.maxReservationsPerYear"
+            >
+                <tui-icon icon="@tui.calendar-check"></tui-icon>
+                <span class="detail-label">
+                    {{ 'spaces.card.maxReservationsPerYear' | translate }}:
+                </span>
+                <span class="detail-value">
+                    {{ space.rules.maxReservationsPerYear }}
+                </span>
+            </div>
+
+            <!-- Max Duration (Parking) -->
+            <div
+                class="detail-item"
+                *ngIf="shouldShowMaxDuration()"
+            >
+                <tui-icon icon="@tui.clock"></tui-icon>
+                <span class="detail-label">
+                    {{ 'spaces.card.maxDuration' | translate }}:
+                </span>
+                <span class="detail-value">{{ getMaxDurationText() }}</span>
+            </div>
+
+            <!-- Capacity (Common Room) -->
+            <div
+                class="detail-item"
+                *ngIf="shouldShowCapacity()"
+            >
+                <tui-icon icon="@tui.users"></tui-icon>
+                <span class="detail-label">
+                    {{ 'spaces.card.capacity' | translate }}:
+                </span>
+                <span class="detail-value">{{ getCapacityText() }}</span>
+            </div>
+
+            <!-- Quota (Guest Room) -->
+            <div
+                class="detail-item"
+                *ngIf="hasQuota()"
+            >
+                <tui-icon icon="@tui.calendar-check"></tui-icon>
+                <span class="detail-label">{{ 'spaces.card.quota' | translate }}:</span>
+                <span class="detail-value">{{ getQuotaText() }}</span>
+            </div>
+
+            <!-- Hours (Common Room, Coworking) -->
+            <div
+                class="detail-item"
+                *ngIf="shouldShowHours() && getHoursText()"
+            >
+                <tui-icon icon="@tui.clock"></tui-icon>
+                <span class="detail-label">{{ 'spaces.card.hours' | translate }}:</span>
+                <span class="detail-value">{{ getHoursText() }}</span>
+            </div>
+
+            <!-- Allowed Days (Coworking, Common Room) -->
+            <div
+                class="detail-item"
+                *ngIf="shouldShowAllowedDays()"
+            >
+                <tui-icon icon="@tui.calendar"></tui-icon>
+                <span class="detail-label">
+                    {{ 'spaces.card.allowedDays' | translate }}:
+                </span>
+                <span class="detail-value">{{ getAllowedDaysText() }}</span>
+            </div>
+        </div>
+
+        <!-- Quota removed - no longer tracking usage -->
+    </div>
+
+    <!-- Actions -->
+    <div
+        class="space-actions"
+        *ngIf="showActions"
+    >
+        <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            [disabled]="space.status !== 'ACTIVE' || isLoading()"
+            (click)="onReserveClick($event)"
+        >
+            <tui-icon icon="@tui.calendar"></tui-icon>
+            {{ space.status === 'ACTIVE' ? ('spaces.card.reserve' | translate) : ('spaces.card.unavailable' | translate) }}
+        </button>
+    </div>
+</div>

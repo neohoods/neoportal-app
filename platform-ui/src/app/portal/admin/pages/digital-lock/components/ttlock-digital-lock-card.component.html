@@ -1,0 +1,134 @@
+<div class="ttlock-card">
+    <!-- Device Header -->
+    <div class="device-header">
+        <div class="device-info">
+            <h3 class="device-name">{{ lock.name }}</h3>
+            <p class="device-id">{{ getDeviceId() }}</p>
+            <p class="device-location">{{ getLocation() }}</p>
+        </div>
+
+        <div
+            class="device-status"
+            [style.color]="getStatusColor(lock.status)"
+        >
+            <tui-icon [icon]="getStatusIcon(lock.status)"></tui-icon>
+            {{ 'digitalLock.admin.status.' + lock.status | translate }}
+        </div>
+    </div>
+
+    <!-- Device Details -->
+    <div class="device-details">
+        <div
+            class="detail-item"
+            *ngIf="getBatteryLevel() !== undefined"
+        >
+            <tui-icon icon="@tui.battery"></tui-icon>
+            <span>
+                {{ 'digitalLock.admin.battery' | translate }}: {{ getBatteryLevel() }}%
+            </span>
+        </div>
+
+        <div
+            class="detail-item"
+            *ngIf="getSignalStrength() !== undefined"
+        >
+            <tui-icon icon="@tui.wifi"></tui-icon>
+            <span>
+                {{ 'digitalLock.admin.signal' | translate }}: {{ getSignalStrength() }} dBm
+            </span>
+        </div>
+
+        <div class="detail-item">
+            <tui-icon icon="@tui.clock"></tui-icon>
+            <span>
+                {{ 'digitalLock.admin.lastSeen' | translate }}: {{ formatLastSeen(getLastSeen()) }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Associated Spaces -->
+    <div
+        class="associated-spaces"
+        *ngIf="getAssociatedSpaces().length > 0"
+    >
+        <h4 class="spaces-header">
+            <tui-icon icon="@tui.home"></tui-icon>
+            {{ 'digitalLock.admin.associatedSpaces' | translate }}
+        </h4>
+        <div class="spaces-list">
+            <div
+                class="space-item"
+                *ngFor="let space of getAssociatedSpaces()"
+            >
+                <div class="space-info">
+                    <span class="space-name">{{ space.name }}</span>
+                    <span class="space-type">{{ getSpaceType(space.id) }}</span>
+                </div>
+                <div
+                    class="space-status"
+                    [style.color]="getSpaceStatusColor(space.status)"
+                >
+                    <tui-icon [icon]="getSpaceStatusIcon(space.status)"></tui-icon>
+                    {{ getTranslatedSpaceStatus(space.status) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="no-spaces"
+        *ngIf="getAssociatedSpaces().length === 0"
+    >
+        <p>
+            {{ 'digitalLock.admin.noAssociatedSpaces' | translate }}
+        </p>
+    </div>
+
+    <!-- Device Actions -->
+    <div class="device-actions">
+        <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            class="action-btn generate-btn"
+            (click)="onGenerateCode()"
+        >
+            <tui-icon icon="@tui.key"></tui-icon>
+            {{ 'digitalLock.admin.generateCode' | translate }}
+        </button>
+
+        <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            class="action-btn toggle-btn"
+            [class.active]="lock.status === 'ACTIVE'"
+            (click)="onToggleStatus()"
+        >
+            <tui-icon [icon]="lock.status === 'ACTIVE' ? '@tui.pause' : '@tui.play'"></tui-icon>
+            {{ lock.status === 'ACTIVE' ? ('digitalLock.admin.deactivate' | translate) : ('digitalLock.admin.activate' | translate) }}
+        </button>
+
+        <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            class="action-btn edit-btn"
+            (click)="onEdit()"
+        >
+            <tui-icon icon="@tui.edit"></tui-icon>
+            {{ 'digitalLock.admin.edit' | translate }}
+        </button>
+
+        <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            class="action-btn delete-btn"
+            (click)="onDelete()"
+        >
+            <tui-icon icon="@tui.trash"></tui-icon>
+            {{ 'digitalLock.admin.delete' | translate }}
+        </button>
+    </div>
+</div>

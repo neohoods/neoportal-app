@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { map, Observable } from "rxjs";
 import { AnnouncementsHubApiService } from "../../../../api-client";
 import { CreateAnnouncementRequest } from "../../../../api-client/model/createAnnouncementRequest";
-import { UIAnnouncement, UIAnnouncementCategory, UIPaginatedAnnouncementsResponse, UIPaginationParams } from "../../../../models/UIAnnoncements";
+import { UIAnnouncement, UIPaginatedAnnouncementsResponse, UIPaginationParams } from "../../../../models/UIAnnoncements";
 import { AnnouncementsService } from "../annoncements.service";
 
 @Injectable({
@@ -27,7 +27,7 @@ export class APIAnnouncementsService implements AnnouncementsService {
     return this.announcementsApiService.getAnnouncements().pipe(
       map(response => response.announcements.map(announcement => ({
         ...announcement,
-        category: announcement.category as UIAnnouncementCategory
+        category: announcement.category as any
       })))
     );
   }
@@ -44,7 +44,7 @@ export class APIAnnouncementsService implements AnnouncementsService {
         itemsPerPage: response.itemsPerPage,
         announcements: response.announcements.map(announcement => ({
           ...announcement,
-          category: announcement.category as UIAnnouncementCategory
+          category: announcement.category as any
         }))
       }))
     );
@@ -54,7 +54,7 @@ export class APIAnnouncementsService implements AnnouncementsService {
     return this.announcementsApiService.getAnnouncement(id).pipe(
       map(announcement => ({
         ...announcement,
-        category: announcement.category as UIAnnouncementCategory
+        category: announcement.category as any
       }))
     );
   }

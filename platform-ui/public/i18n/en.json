@@ -165,11 +165,393 @@
     "more": "More",
     "categories": "Categories",
     "security": "Security",
+    "spaceSettings": "Space Settings",
     "pages": "Pages",
     "applications": "Applications",
     "infos": "Info",
     "newsletters": "Newsletters",
-    "emailTemplates": "Email Templates"
+    "emailTemplates": "Email Templates",
+    "spaces": "Spaces",
+    "spacesManagement": "Spaces Management",
+    "reservations": "Reservations",
+    "ttlink": "TTLink"
+  },
+  "spaces": {
+    "title": "Spaces",
+    "subtitle": "Reserve and manage common spaces",
+    "list": {
+      "title": "Space booking",
+      "subtitle": "Book shared spaces in your eco-neighborhood",
+      "searchPlaceholder": "Search for a space...",
+      "typeFilter": "Space type",
+      "typePlaceholder": "Space type",
+      "dateRange": "Period",
+      "dateRangePlaceholder": "Booking period",
+      "availableOnly": "Available only",
+      "clearFilters": "Clear",
+      "clearFiltersButton": "Clear filters",
+      "noResults": "No spaces found",
+      "noSpacesMessage": "Try modifying your search criteria",
+      "loading": "Loading spaces...",
+      "searchPill": "Search: \"{{query}}\"",
+      "typePill": "Type: {{type}}",
+      "dateRangePill": "Period: {{range}}",
+      "availableOnlyPill": "Available only",
+      "allTypes": "All types"
+    },
+    "detail": {
+      "backToSpaces": "Back to spaces",
+      "reserveSpace": "Reserve this space",
+      "selectDates": "Select your reservation dates",
+      "calendar": "Availability calendar",
+      "pricing": "Pricing",
+      "perDay": "/day",
+      "perDayLabel": "Per day",
+      "checkin": "Check-in",
+      "checkout": "Check-out",
+      "rules": "Usage rules",
+      "capacity": "Capacity",
+      "status": "Status"
+    },
+    "types": {
+      "GUEST_ROOM": "Guest room",
+      "COMMON_ROOM": "Common room",
+      "COWORKING": "Coworking space",
+      "PARKING": "Parking spot"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "admin": {
+      "title": "Space management",
+      "subtitle": "Manage spaces available for reservation",
+      "addSpace": "Add a space",
+      "editSpace": "Edit space",
+      "deleteSpace": "Delete space",
+      "viewReservations": "View reservations",
+      "activateSpace": "Activate space",
+      "deactivateSpace": "Deactivate space",
+      "spaceActivated": "Space activated successfully",
+      "spaceDeactivated": "Space deactivated successfully",
+      "spaceDeleted": "Space deleted successfully",
+      "spaceCreated": "Space created successfully",
+      "spaceUpdated": "Space updated successfully",
+      "confirmDelete": "Are you sure you want to delete this space?",
+      "confirmDeactivate": "Are you sure you want to deactivate this space?",
+      "noSpaces": "No spaces configured",
+      "createFirstSpace": "Create the first space",
+      "backToSpaces": "Back to spaces",
+      "loading": "Loading...",
+      "basicInfo": "Basic information",
+      "name": "Name",
+      "namePlaceholder": "Space name",
+      "type": "Type",
+      "description": "Description",
+      "descriptionPlaceholder": "Space description",
+      "instructions": "Instructions",
+      "instructionsPlaceholder": "Usage instructions",
+      "status": "Status",
+      "pricing": "Pricing",
+      "tenantPrice": "Tenant price",
+      "tenantPriceHelp": "Daily price for tenants",
+      "ownerPrice": "Owner price",
+      "ownerPriceHelp": "Daily price for owners (0 = free for owners)",
+      "platformFee": "Platform fee",
+      "subtotal": "Subtotal",
+      "cleaningFee": "Cleaning fee",
+      "deposit": "Deposit",
+      "quota": "Quota",
+      "maxCapacity": "Maximum capacity",
+      "people": "people",
+      "images": "Images",
+      "uploadImages": "Drag and drop images or click to select",
+      "uploadImagesHint": "Supported formats: JPG, PNG, WebP. Max size: 10MB per image",
+      "uploadingImages": "Uploading...",
+      "imagesUploaded": "{{count}} image(s) uploaded successfully",
+      "primaryImage": "Primary image",
+      "reservationRules": "Reservation rules",
+      "minDurationDays": "Minimum duration",
+      "maxDurationDays": "Maximum duration",
+      "maxReservationsPerYear": "Max reservations/year",
+      "allowedDays": "Allowed days",
+      "allowedHoursStart": "Start time",
+      "allowedHoursEnd": "End time",
+      "conflictWithTypes": "Conflicts with types",
+      "requiresApartmentAccess": "Requires apartment access",
+      "days": "days",
+      "reservations": "reservations",
+      "yes": "Yes",
+      "no": "No",
+      "userRegulations": "User Regulations",
+      "generalRules": "General Rules",
+      "generalRulesPlaceholder": "Describe the general rules for using the space...",
+      "safetyInstructions": "Safety Instructions",
+      "safetyInstructionsPlaceholder": "Describe the safety instructions to follow...",
+      "prohibitedItems": "Prohibited Items",
+      "prohibitedItemsPlaceholder": "List prohibited objects or behaviors...",
+      "additionalTerms": "Additional Terms",
+      "additionalTermsPlaceholder": "Add any specific conditions...",
+      "days": {
+        "MONDAY": "Monday",
+        "TUESDAY": "Tuesday",
+        "WEDNESDAY": "Wednesday",
+        "THURSDAY": "Thursday",
+        "FRIDAY": "Friday",
+        "SATURDAY": "Saturday",
+        "SUNDAY": "Sunday"
+      },
+      "cancel": "Cancel",
+      "ttlink": {
+        "admin": {
+          "title": "TTLink Management",
+          "description": "Manage TTLink access devices connected to the system",
+          "addDevice": "Add device",
+          "loading": "Loading devices...",
+          "searchPlaceholder": "Search device...",
+          "clearFilters": "Clear filters",
+          "allDevices": "All devices",
+          "activeDevices": "Active devices",
+          "inactiveDevices": "Inactive devices",
+          "errorDevices": "Error devices",
+          "allStatuses": "All statuses",
+          "status": {
+            "ACTIVE": "Active",
+            "INACTIVE": "Inactive",
+            "ERROR": "Error"
+          },
+          "lastSeen": "Last seen",
+          "battery": "Battery",
+          "signal": "Signal",
+          "edit": "Edit",
+          "activate": "Activate",
+          "deactivate": "Deactivate",
+          "delete": "Delete",
+          "noDevices": "No TTLink devices",
+          "noDevicesDescription": "Start by adding your first TTLink device to manage space access.",
+          "addFirstDevice": "Add first device",
+          "deviceUpdated": "Device {{name}} updated: {{status}}",
+          "deviceDeleted": "Device {{name}} deleted",
+          "justNow": "Just now",
+          "minutesAgo": "{{minutes}} min ago",
+          "hoursAgo": "{{hours}}h ago",
+          "daysAgo": "{{days}} days ago",
+          "editDevice": "Edit Device",
+          "deviceFormDescription": "Configure your TTLink device settings",
+          "basicInformation": "Basic Information",
+          "deviceName": "Device Name",
+          "deviceNamePlaceholder": "Ex: Main Entrance",
+          "deviceId": "Device ID",
+          "deviceIdPlaceholder": "Ex: TTL-001",
+          "location": "Location",
+          "locationPlaceholder": "Ex: Ground Floor",
+          "fieldRequired": "This field is required",
+          "fieldMinLength": "Minimum {min} characters required",
+          "cancel": "Cancel",
+          "createDevice": "Create Device",
+          "updateDevice": "Update"
+        }
+      },
+      "createSpace": "Create space",
+      "updateSpace": "Update",
+      "fieldRequired": "This field is required",
+      "fieldMinLength": "Minimum {min} characters required",
+      "fieldMinValue": "Minimum value: {min}",
+      "errorLoadingSpace": "Error loading space",
+      "filters": "Filters",
+      "search": "Search",
+      "searchPlaceholder": "Search for a space...",
+      "filterByType": "Filter by type",
+      "filterByStatus": "Filter by status",
+      "allTypes": "All types",
+      "allStatuses": "All statuses",
+      "clearFilters": "Clear filters",
+      "showing": "Showing",
+      "of": "of",
+      "results": "results",
+      "previous": "Previous",
+      "next": "Next",
+      "unlimited": "Unlimited",
+      "reservations": "reservations"
+    },
+    "settings": {
+      "title": "Space Settings",
+      "platformFeeConfiguration": "Platform Fee Configuration",
+      "platformFeePercentage": "Platform fee percentage (%)",
+      "platformFixedFee": "Fixed fee per transaction (€)",
+      "platformFeeHelp": "These fees cover Stripe processing costs (ex: 1.9% + 0.25€)",
+      "save": "Save",
+      "saveSuccess": "Settings saved successfully"
+    }
+  },
+          "reservations": {
+            "title": "Reservations",
+            "subtitle": "Manage your space reservations",
+            "myReservations": "My reservations",
+            "current": "Current",
+            "myReservationsTitle": "My reservations",
+            "myReservationsSubtitle": "Manage your space reservations",
+            "loading": "Loading your reservations...",
+            "activeTab": "Active",
+            "pastTab": "Past",
+            "futureTab": "Future",
+            "details": "Details",
+            "cancel": "Cancel",
+            "noReservations": "No reservations",
+            "noReservationsMessage": "You don't have any reservations yet",
+            "noPastReservations": "No past reservations",
+            "noPastReservationsMessage": "You don't have any completed reservations yet",
+            "noActiveReservations": "No active reservations",
+            "noActiveReservationsMessage": "You don't have any reservations in progress",
+            "noFutureReservations": "No future reservations",
+            "noFutureReservationsMessage": "You don't have any upcoming reservations",
+            "reserveSpace": "Reserve a space",
+            "accessCode": "Code: {{code}}",
+            "cancelConfirm": "Are you sure you want to cancel this reservation?",
+            "inProgress": "In Progress",
+            "past": "Past",
+            "future": "Future",
+            "cancelled": "Cancelled",
+            "admin": {
+              "title": "Reservation management",
+              "subtitle": "Manage all space reservations",
+              "calendarView": "Calendar view",
+              "export": "Export",
+              "past": "Past",
+              "inProgress": "In Progress",
+              "future": "Future",
+              "allStatuses": "All Statuses",
+              "allSpaceTypes": "All Space Types",
+              "filterByStatus": "Filter by status",
+              "filterBySpaceType": "Filter by space type",
+              "filterByUser": "Filter by user",
+              "selectUser": "Select a user",
+              "view": "View",
+              "regenerateCode": "Regenerate code",
+              "cancel": "Cancel",
+              "confirmCancel": "Are you sure you want to cancel this reservation?",
+              "confirmRegenerateCode": "Are you sure you want to regenerate the access code?",
+              "reservationCancelled": "Reservation cancelled successfully",
+              "codeRegenerated": "Access code regenerated successfully",
+              "noReservations": "No reservations found",
+              "reservationDetail": "Reservation Detail",
+              "back": "Back",
+              "loading": "Loading...",
+              "overview": "Overview",
+              "userInfo": "User Information",
+              "accessCode": "Access Code",
+              "reservationDates": "Reservation Dates",
+              "startDate": "Start Date",
+              "endDate": "End Date",
+              "duration": "Duration",
+              "days": "days",
+              "pricing": "Pricing",
+              "paymentStatus": "Payment Status",
+              "totalPrice": "Total Price",
+              "reservedBy": "Reserved By",
+              "reservedOn": "Reserved On",
+              "spaceInfo": "Space Information",
+              "spaceId": "Space ID",
+              "viewUser": "View User",
+              "userType": "User Type",
+              "emailVerified": "Email Verified",
+              "createdAt": "Created At",
+              "yes": "Yes",
+              "no": "No",
+              "accessCodeDetails": "Access Code Details",
+              "copy": "Copy",
+              "valid": "Valid",
+              "expired": "Expired",
+              "noAccessCode": "No Access Code",
+              "noAccessCodeDescription": "This reservation has no associated access code.",
+              "codeCopied": "Code copied to clipboard",
+              "reservationNotFound": "Reservation not found",
+              "pendingPayment": "Pending Payment",
+              "paid": "Paid",
+              "cancelled": "Cancelled",
+              "completed": "Completed",
+              "filters": "Filters",
+              "search": "Search",
+              "searchPlaceholder": "Search by user, email or ID...",
+              "filterByStatus": "Filter by status",
+              "allStatuses": "All statuses",
+              "clearFilters": "Clear filters",
+              "dates": "Dates",
+              "user": "User",
+              "totalPrice": "Total price",
+              "accessCode": "Access code",
+              "generatedOn": "Generated on",
+              "validUntil": "Valid until",
+              "showing": "Showing",
+              "of": "of",
+              "results": "results",
+              "previous": "Previous",
+              "next": "Next",
+              "filterByDateRange": "Filter by date range",
+              "filterBySpaceType": "Filter by space type",
+              "allSpaceTypes": "All space types",
+              "filterByPriceRange": "Filter by price range",
+              "minPrice": "Min price",
+              "maxPrice": "Max price",
+              "quickActions": "Quick actions",
+              "exportStarted": "Export of reservations started",
+              "listView": "List view",
+              "past": "Past",
+              "inProgress": "In Progress",
+              "future": "Future"
+            },
+        "status": {
+          "PENDING": "Pending",
+          "PENDING_PAYMENT": "Pending Payment",
+          "CONFIRMED": "Confirmed",
+          "ACTIVE": "Active",
+          "CANCELLED": "Cancelled",
+          "COMPLETED": "Completed",
+          "REFUNDED": "Refunded"
+        },
+    "payment": {
+      "title": "Reservation payment",
+      "reservationSummary": "Reservation summary",
+      "selectedDates": "Selected dates",
+      "numberOfDays": "Number of days",
+      "tenantPrice": "Tenant price",
+      "cleaningFee": "Cleaning fee",
+      "deposit": "Deposit",
+      "depositRefundable": "Deposit (refundable)",
+      "totalPrice": "Total price",
+      "payWithStripe": "Pay with Stripe",
+      "backToSpace": "Back to space",
+      "freeReservationNotice": "This reservation is free. No payment required.",
+      "confirmReservation": "Confirm reservation",
+      "finalizeReservation": "Finalize reservation",
+      "back": "Back",
+      "reservationPeriod": "Reservation period",
+      "arrival": "Arrival",
+      "departure": "Departure",
+      "pricing": "Pricing",
+      "basePrice": "Base price",
+      "cleaningFee": "Cleaning fee",
+      "platformFee": "Platform fee",
+      "platformFeePercentage": "Platform fee (%)",
+      "platformFeeFixed": "Platform fee (fixed)",
+      "deposit": "Deposit",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "loading": "Loading...",
+      "error": "Error",
+      "spaceNotFound": "Space not found",
+      "reservationNotFound": "Reservation not found",
+      "paymentError": "Error initiating payment",
+      "noReservationAvailable": "No reservation available",
+      "confirmationError": "Error confirming reservation",
+      "confirmationSuccess": "Reservation confirmed successfully",
+      "timeRemaining": "Time remaining",
+      "confirmWithinTime": "Please confirm your reservation within the time limit",
+      "payWithinTime": "Please finalize your payment within the time limit",
+      "expired": "The confirmation deadline has expired",
+      "retryPayment": "Retry payment",
+      "retryError": "Error retrying payment"
+    }
   },
   
   "editUser": {
@@ -360,11 +742,150 @@
       "message": "This email is already used by another user.",
       "action": "Please use a different email address."
     },
-   
+    "auth018": {
+      "title": "User Not Found for SSO",
+      "message": "User not found for SSO login. Please sign up first.",
+      "action": "Please create an account before using SSO login."
+    },
+    "auth019": {
+      "title": "Auth0 Linking Failed",
+      "message": "Failed to link Auth0 accounts.",
+      "action": "Please try again later or contact support."
+    },
+    "not001": {
+      "title": "Notification Settings Not Found",
+      "message": "Notification settings could not be found.",
+      "action": "Please contact an administrator to configure notification settings."
+    },
+    "res001": {
+      "title": "Item Not Found",
+      "message": "The specified item could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res002": {
+      "title": "Item Not Available",
+      "message": "The item is not available.",
+      "action": "Please choose another item or try again later."
+    },
+    "res003": {
+      "title": "Item Already Reserved",
+      "message": "The item is already reserved.",
+      "action": "Please choose another item."
+    },
+    "res004": {
+      "title": "Library Not Found",
+      "message": "The specified library could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res005": {
+      "title": "Community Not Found",
+      "message": "The specified community could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res006": {
+      "title": "Member Not Found",
+      "message": "The specified member could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res007": {
+      "title": "Custom Page Not Found",
+      "message": "The specified custom page could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res008": {
+      "title": "Borrow Record Not Found",
+      "message": "The specified borrow record could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res009": {
+      "title": "Help Article Not Found",
+      "message": "The specified help article could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res010": {
+      "title": "Help Category Not Found",
+      "message": "The specified help category could not be found.",
+      "action": "Please check the provided information and try again."
+    },
     "res011": {
       "title": "Settings Not Found",
       "message": "The system settings could not be found.",
       "action": "Please contact an administrator to set up the system settings."
+    },
+    "res012": {
+      "title": "Category Not Found",
+      "message": "The specified category could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res013": {
+      "title": "Application Not Found",
+      "message": "The specified application could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res014": {
+      "title": "Community Infos Not Found",
+      "message": "Community information could not be found.",
+      "action": "Please contact an administrator to configure community information."
+    },
+    "res015": {
+      "title": "Announcement Not Found",
+      "message": "The specified announcement could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res016": {
+      "title": "Newsletter Not Found",
+      "message": "The specified newsletter could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res017": {
+      "title": "Newsletter or User Not Found",
+      "message": "The specified newsletter or user could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res018": {
+      "title": "Reservation Not Found",
+      "message": "The specified reservation could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res019": {
+      "title": "Space Not Found",
+      "message": "The specified space could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "res020": {
+      "title": "Space Not Available",
+      "message": "The space is not available for the selected dates.",
+      "action": "Please choose other dates or another space."
+    },
+    "res021": {
+      "title": "Reservation Already Cancelled",
+      "message": "The reservation is already cancelled.",
+      "action": "No action is necessary."
+    },
+    "res022": {
+      "title": "Reservation Already Completed",
+      "message": "Cannot modify a completed reservation.",
+      "action": "Completed reservations cannot be modified."
+    },
+    "res023": {
+      "title": "Reservation Not Pending Payment",
+      "message": "The reservation is not in pending payment status.",
+      "action": "Please check the reservation status."
+    },
+    "res024": {
+      "title": "Feedback Already Submitted",
+      "message": "Feedback has already been submitted for this reservation.",
+      "action": "You can only submit one feedback per reservation."
+    },
+    "res027": {
+      "title": "Reservation Start Date Not Today",
+      "message": "The reservation start date is not today.",
+      "action": "This action can only be performed on the reservation start date."
+    },
+    "res028": {
+      "title": "Reservation End Date Not Reached",
+      "message": "The reservation end date has not yet been reached.",
+      "action": "Please wait until the reservation end date."
     },
     "val001": {
       "title": "Invalid Input",
@@ -386,7 +907,16 @@
       "message": "Approval is not required for this operation.",
       "action": "You can proceed without approval."
     },
-    
+    "val005": {
+      "title": "Invalid Borrow State",
+      "message": "The borrow state is not valid for this operation.",
+      "action": "Please check the current borrow state."
+    },
+    "val006": {
+      "title": "Invalid Newsletter Status",
+      "message": "The newsletter status is not valid for this operation.",
+      "action": "Please check the newsletter status."
+    },
     "sys001": {
       "title": "Internal Error",
       "message": "An internal error occurred. Our team has been notified.",
@@ -402,15 +932,115 @@
       "message": "We encountered an error while sending the email.",
       "action": "Please try again later or contact support if the problem persists."
     },
+    "sys004": {
+      "title": "Email Send Failed",
+      "message": "Failed to send email.",
+      "action": "Please try again later or contact support."
+    },
+    "dlk001": {
+      "title": "Digital Lock Not Found",
+      "message": "The specified digital lock could not be found.",
+      "action": "Please check the provided information and try again."
+    },
+    "dlk002": {
+      "title": "Digital Lock Offline",
+      "message": "The digital lock is offline.",
+      "action": "Please check the digital lock connection."
+    },
+    "dlk003": {
+      "title": "Digital Lock Error",
+      "message": "An error occurred with the digital lock.",
+      "action": "Please try again later or contact support."
+    },
+    "dlk004": {
+      "title": "Access Code Creation Failed",
+      "message": "Failed to create access code on digital lock.",
+      "action": "Please try again later or contact support."
+    },
+    "dlk005": {
+      "title": "Access Code Update Failed",
+      "message": "Failed to update access code on digital lock.",
+      "action": "Please try again later or contact support."
+    },
+    "dlk006": {
+      "title": "Access Code Delete Failed",
+      "message": "Failed to delete access code from digital lock.",
+      "action": "Please try again later or contact support."
+    },
+    "dlk007": {
+      "title": "TTLock API Error",
+      "message": "An error occurred with the TTLock API.",
+      "action": "Please try again later or contact support."
+    },
+    "dlk008": {
+      "title": "Nuki API Error",
+      "message": "An error occurred with the Nuki API.",
+      "action": "Please try again later or contact support."
+    },
+    "spa002": {
+      "title": "Space Inactive",
+      "message": "The space is not active and cannot be reserved.",
+      "action": "Please choose another active space."
+    },
+    "spa003": {
+      "title": "Reservation Duration Too Short",
+      "message": "The reservation duration is shorter than the minimum allowed.",
+      "action": "Please select a longer duration."
+    },
+    "spa004": {
+      "title": "Reservation Duration Too Long",
+      "message": "The reservation duration is longer than the maximum allowed.",
+      "action": "Please select a shorter duration."
+    },
+    "spa005": {
+      "title": "Space Annual Quota Exceeded",
+      "message": "The space has reached its maximum annual reservation limit.",
+      "action": "The annual reservation quota for this space has been reached."
+    },
     "client_error": {
       "title": "Client Error",
       "message": "An error occurred in your browser.",
       "action": "Please refresh the page and try again."
     },
-    "unknown_error": {
-      "title": "Unknown Error",
-      "message": "An unexpected error occurred.",
+    "res026": {
+      "title": "Reservation Not Completed or Active",
+      "message": "Cannot submit feedback for reservation in this status.",
+      "action": "You can only submit feedback for completed or active reservations."
+    },
+    "res025": {
+      "title": "Feedback Submission Failed",
+      "message": "Failed to submit feedback for this reservation.",
       "action": "Please try again later."
+    },
+    "str001": {
+      "title": "Payment Intent Creation Failed",
+      "message": "Failed to create Stripe payment intent.",
+      "action": "Please try again later."
+    },
+    "str002": {
+      "title": "Checkout Session Creation Failed",
+      "message": "Failed to create Stripe checkout session.",
+      "action": "Please try again later."
+    },
+    "str003": {
+      "title": "Webhook Processing Failed",
+      "message": "Error processing Stripe webhook.",
+      "action": "Please contact support."
+    },
+    "str004": {
+      "title": "Payment Intent Required",
+      "message": "Payment intent must be created before checkout session.",
+      "action": "Please retry the payment process."
+    },
+    "spa001": {
+      "title": "Image Does Not Belong to Space",
+      "message": "This image does not belong to the specified space.",
+      "action": "Please check the selected image."
+    },
+    "acc001": {
+      "title": "Access Code Invalid",
+      "message": "The provided access code is not valid.",
+      "action": "Please check the access code and try again."
     }
   },
   "resetPassword": {
@@ -1010,6 +1640,9 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
+    "required": "This field is required",
+    "minValue": "Value must be at least {{min}}",
+    "maxValue": "Value must not exceed {{max}}",
     "warning": "Warning",
     "info": "Information"
   }

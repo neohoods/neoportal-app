@@ -4,7 +4,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.neohoods.portal.platform.entities.UserEntity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,5 +53,13 @@ public class UserContextService {
     public void clearAllCache() {
         usernameCache.clear();
         log.debug("All user cache cleared");
+    }
+
+    public UserEntity getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
+            return (UserEntity) authentication.getPrincipal();
+        }
+        return null;
     }
 }

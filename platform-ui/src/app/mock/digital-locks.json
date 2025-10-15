@@ -1,0 +1,103 @@
+[
+  {
+    "id": "1",
+    "name": "Entrée principale",
+    "type": "TTLOCK",
+    "status": "ACTIVE",
+    "ttlockConfig": {
+      "id": "1",
+      "deviceId": "ttlock-001",
+      "location": "Rez-de-chaussée",
+      "batteryLevel": 85,
+      "signalStrength": -45,
+      "lastSeen": "2024-01-15T10:30:00Z"
+    },
+    "nukiConfig": null,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "2",
+    "name": "Salle commune",
+    "type": "TTLOCK",
+    "status": "ACTIVE",
+    "ttlockConfig": {
+      "id": "2",
+      "deviceId": "ttlock-002",
+      "location": "Rez-de-chaussée",
+      "batteryLevel": 92,
+      "signalStrength": -38,
+      "lastSeen": "2024-01-15T10:25:00Z"
+    },
+    "nukiConfig": null,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-15T10:25:00Z"
+  },
+  {
+    "id": "3",
+    "name": "Parking souterrain",
+    "type": "TTLOCK",
+    "status": "INACTIVE",
+    "ttlockConfig": {
+      "id": "3",
+      "deviceId": "ttlock-003",
+      "location": "Sous-sol",
+      "batteryLevel": 15,
+      "signalStrength": -78,
+      "lastSeen": "2024-01-14T18:00:00Z"
+    },
+    "nukiConfig": null,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-14T18:00:00Z"
+  },
+  {
+    "id": "4",
+    "name": "Chambre d'amis - Apt 2A",
+    "type": "TTLOCK",
+    "status": "ACTIVE",
+    "ttlockConfig": {
+      "id": "4",
+      "deviceId": "ttlock-004",
+      "location": "2ème étage",
+      "batteryLevel": 78,
+      "signalStrength": -52,
+      "lastSeen": "2024-01-15T09:15:00Z"
+    },
+    "nukiConfig": null,
+    "createdAt": "2024-01-02T00:00:00Z",
+    "updatedAt": "2024-01-15T09:15:00Z"
+  },
+  {
+    "id": "5",
+    "name": "Espace coworking",
+    "type": "TTLOCK",
+    "status": "ERROR",
+    "ttlockConfig": {
+      "id": "5",
+      "deviceId": "ttlock-005",
+      "location": "1er étage",
+      "batteryLevel": 5,
+      "signalStrength": -95,
+      "lastSeen": "2024-01-10T14:22:00Z"
+    },
+    "nukiConfig": null,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-10T14:22:00Z"
+  },
+  {
+    "id": "6",
+    "name": "Porte d'entrée Nuki",
+    "type": "NUKI",
+    "status": "ACTIVE",
+    "ttlockConfig": null,
+    "nukiConfig": {
+      "id": "1",
+      "deviceId": "nuki-001",
+      "token": "nuki-token-789",
+      "batteryLevel": 95,
+      "lastSeen": "2024-01-15T11:00:00Z"
+    },
+    "createdAt": "2024-01-03T00:00:00Z",
+    "updatedAt": "2024-01-15T11:00:00Z"
+  }
+]

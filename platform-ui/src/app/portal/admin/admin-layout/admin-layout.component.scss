@@ -5,7 +5,23 @@ main[tuiNavigationMain] {
     border: none;
     padding: 0 20px;
     margin: 0;
+    background-color: var(--tos-background-base-alt);
+
     /* Reset any inherited styles from hub layout */
+}
+
+#userSettingsMenu {
+    cursor: pointer;
+}
+
+.user-avatar {
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+    }
 }
 
 #logo {
@@ -21,7 +37,7 @@ header[tuiNavigationHeader] {
 
 /* Dropdown button */
 button.dropdown {
-    min-width: 200px;
+    min-width: 250px;
     justify-content: flex-start;
 }
 
@@ -49,7 +65,7 @@ button.dropdown {
     display: flex;
     background-color: #000000;
     /* Use lighter gray for background */
-    padding: 0.5em 0em;
+    padding: 0.5em 1em;
     border-bottom: 1px solid #ccc;
     /* Use theme border color */
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1) !important;
@@ -57,6 +73,8 @@ button.dropdown {
     transition: none !important;
     height: auto;
     min-height: auto;
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
 .t-more {
@@ -68,7 +86,9 @@ button.dropdown {
     text-align: center;
     position: relative;
     /* Allow absolute positioning of the underline */
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
     color: var(--tos-text-primary-on-accent-1);
     /* Use dark text color from theme */
@@ -76,11 +96,8 @@ button.dropdown {
     padding: 0.5em 1em;
     border-radius: 4px;
     transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.horizontal-menu a {
-    display: flex;
-    align-items: center;
+    min-width: 120px;
+    flex-shrink: 0;
     gap: 8px;
 }
 
@@ -125,20 +142,63 @@ button.dropdown {
     color: #fff;
 }
 
-.dropdown a {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin: 10px;
-    color: var(--tos-text-primary);
-    text-decoration: none;
-    gap: 8px;
+/* Spaces dropdown button styling */
+.spaces-dropdown {
+    color: var(--tos-text-primary-on-accent-1) !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0.5em 1em !important;
+    border-radius: 4px !important;
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 120px !important;
+    justify-content: center !important;
+    font-size: small;
+    tui-icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &:hover {
+        background-color: var(--tos-background-neutral-1) !important;
+        color: var(--tos-text-accent) !important;
+    }
+
+    &[tuiDropdownManual="true"] {
+        background-color: var(--tos-background-neutral-1) !important;
+        color: var(--tos-text-accent) !important;
+    }
+}
+
+tui-data-list {
+    min-width: 250px !important;
+    width: 250px !important;
+}
+
+a.dropdown {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    color: var(--tos-text-primary) !important;
+    text-decoration: none !important;
+    gap: 8px !important;
+    text-align: left !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 10px !important;
+    white-space: nowrap !important;
 
     tui-icon {
         flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-right: 8px;
+        margin-left: 8px;
     }
 }
 

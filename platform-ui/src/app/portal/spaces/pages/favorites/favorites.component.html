@@ -1,0 +1,119 @@
+<div class="favorites-container">
+    <!-- Header -->
+    <div class="favorites-header">
+        <h1>Mes favoris</h1>
+        <p class="favorites-subtitle">Vos espaces préférés</p>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>Chargement de vos favoris...</p>
+    </div>
+
+    <!-- Favorites Grid -->
+    <div
+        *ngIf="!loading()"
+        class="favorites-grid"
+    >
+        <div
+            *ngFor="let space of favoriteSpaces()"
+            class="favorite-card"
+        >
+            <div class="favorite-image">
+                <img
+                    *ngIf="space.images && space.images.length > 0"
+                    [src]="space.images[0].url"
+                    [alt]="space.name"
+                >
+                <div
+                    *ngIf="!space.images || space.images.length === 0"
+                    class="no-image"
+                >
+                    <tui-icon
+                        [icon]="getSpaceTypeIcon(space.type)"
+                        size="xl"
+                    ></tui-icon>
+                </div>
+
+                <button
+                    class="remove-favorite"
+                    (click)="onRemoveFavorite(space)"
+                    title="Retirer des favoris"
+                >
+                    <tui-icon tuiIconHeartFilled></tui-icon>
+                </button>
+            </div>
+
+            <div class="favorite-content">
+                <div class="favorite-header">
+                    <h3>{{ space.name }}</h3>
+                    <span class="space-type">
+                        <tui-icon [icon]="getSpaceTypeIcon(space.type)"></tui-icon>
+                        {{ getSpaceTypeLabel(space.type) }}
+                    </span>
+                </div>
+
+                <p class="favorite-description">{{ space.description }}</p>
+
+                <div class="favorite-pricing">
+                    <span class="price">{{ space.pricing.tenantPrice }}€/jour</span>
+                    <span
+                        class="status"
+                        [class]="'status-' + space.status.toLowerCase()"
+                    >
+                        {{ space.status }}
+                    </span>
+                </div>
+
+                <div class="favorite-actions">
+                    <button
+                        tuiButton
+                        appearance="primary"
+                        size="m"
+                        (click)="onReserveClick(space)"
+                    >
+                        <tui-icon tuiIconCalendar></tui-icon>
+                        Réserver
+                    </button>
+
+                    <button
+                        tuiButton
+                        appearance="secondary"
+                        size="m"
+                        (click)="onSpaceClick(space)"
+                    >
+                        <tui-icon tuiIconEye></tui-icon>
+                        Voir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+        *ngIf="!loading() && favoriteSpaces().length === 0"
+        class="empty-state"
+    >
+        <tui-icon
+            tuiIconHeart
+            size="xl"
+        ></tui-icon>
+        <h3>Aucun favori</h3>
+        <p>
+            Vous n'avez pas encore d'espaces favoris
+        </p>
+        <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            routerLink="/spaces"
+        >
+            Découvrir les espaces
+        </button>
+    </div>
+</div>

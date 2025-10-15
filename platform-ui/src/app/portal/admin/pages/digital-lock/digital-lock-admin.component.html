@@ -1,0 +1,198 @@
+<div class="digital-lock-admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="header-content">
+            <h1>
+                <tui-icon icon="@tui.key"></tui-icon>
+                {{ 'digitalLock.admin.title' | translate }}
+            </h1>
+            <p class="header-description">
+                {{ 'digitalLock.admin.description' | translate }}
+            </p>
+        </div>
+
+        <div class="header-actions">
+            <button
+                tuiButton
+                appearance="primary"
+                size="m"
+                (click)="onAddLock()"
+            >
+                <tui-icon icon="@tui.plus"></tui-icon>
+                {{ 'digitalLock.admin.addDevice' | translate }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'digitalLock.admin.loading' | translate }}
+        </p>
+    </div>
+
+    <!-- Content -->
+    <div
+        *ngIf="!loading()"
+        class="admin-content"
+    >
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filters-row">
+                <div class="filter-field">
+                    <tui-textfield>
+                        <input
+                            tuiTextfield
+                            [ngModel]="searchQuery()"
+                            (ngModelChange)="onSearchChange($event)"
+                            [placeholder]="'digitalLock.admin.searchPlaceholder' | translate"
+                        >
+                    </tui-textfield>
+                </div>
+
+                <div class="filter-field">
+                    <tui-textfield
+                        tuiChevron
+                        [stringify]="stringifyStatus"
+                    >
+                        <input
+                            tuiSelect
+                            [ngModel]="statusFilter()"
+                            (ngModelChange)="onStatusChange($event)"
+                            [placeholder]="'digitalLock.admin.filterByStatus' | translate"
+                        >
+                        <tui-data-list-wrapper
+                            *tuiTextfieldDropdown
+                            new
+                            [items]="statusOptions"
+                        ></tui-data-list-wrapper>
+                    </tui-textfield>
+                </div>
+
+                <div class="filter-field">
+                    <tui-textfield
+                        tuiChevron
+                        [stringify]="stringifyType"
+                    >
+                        <input
+                            tuiSelect
+                            [ngModel]="typeFilter()"
+                            (ngModelChange)="onTypeChange($event)"
+                            [placeholder]="'digitalLock.admin.filterByType' | translate"
+                        >
+                        <tui-data-list-wrapper
+                            *tuiTextfieldDropdown
+                            new
+                            [items]="typeOptions"
+                        ></tui-data-list-wrapper>
+                    </tui-textfield>
+                </div>
+
+                <div class="filter-actions">
+                    <button
+                        tuiButton
+                        appearance="secondary"
+                        size="m"
+                        (click)="onClearFilters()"
+                    >
+                        <tui-icon icon="@tui.refresh"></tui-icon>
+                        {{ 'digitalLock.admin.clearFilters' | translate }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-section">
+            <tui-tabs
+                [activeItemIndex]="activeTab()"
+                (activeItemIndexChange)="onTabChange($event)"
+            >
+                <button tuiTab>
+                    {{ 'digitalLock.admin.allDevices' | translate }}
+                    <span class="tab-count">({{ digitalLocks().length }})</span>
+                </button>
+                <button tuiTab>
+                    {{ 'digitalLock.admin.activeDevices' | translate }}
+                    <span class="tab-count">({{ activeLocks().length }})</span>
+                </button>
+                <button tuiTab>
+                    {{ 'digitalLock.admin.inactiveDevices' | translate }}
+                    <span class="tab-count">({{ inactiveLocks().length }})</span>
+                </button>
+                <button tuiTab>
+                    {{ 'digitalLock.admin.errorDevices' | translate }}
+                    <span class="tab-count">({{ errorLocks().length }})</span>
+                </button>
+            </tui-tabs>
+        </div>
+
+        <!-- Devices Grid -->
+        <div class="devices-section">
+            <div
+                *ngIf="getLocksForTab().length === 0"
+                class="no-devices"
+            >
+                <div class="no-devices-content">
+                    <tui-icon
+                        icon="@tui.key"
+                        class="no-devices-icon"
+                    ></tui-icon>
+                    <h3>
+                        {{ 'digitalLock.admin.noDevices' | translate }}
+                    </h3>
+                    <p>
+                        {{ 'digitalLock.admin.noDevicesDescription' | translate }}
+                    </p>
+                    <button
+                        tuiButton
+                        appearance="primary"
+                        size="m"
+                        (click)="onAddLock()"
+                    >
+                        <tui-icon icon="@tui.plus"></tui-icon>
+                        {{ 'digitalLock.admin.addFirstDevice' | translate }}
+                    </button>
+                </div>
+            </div>
+
+            <div
+                *ngIf="getLocksForTab().length > 0"
+                class="devices-grid"
+            >
+                <div
+                    *ngFor="let lock of getLocksForTab()"
+                    class="device-card"
+                >
+                    <ng-container [ngSwitch]="lock.type">
+                        <app-ttlock-digital-lock-card
+                            *ngSwitchCase="'TTLOCK'"
+                            [lock]="lock"
+                            [spaces]="spaces()"
+                            (generateCode)="onGenerateCode(lock)"
+                            (toggleStatus)="onToggleLock(lock)"
+                            (edit)="onEditLock(lock.id)"
+                            (delete)="onDeleteLock(lock)"
+                        ></app-ttlock-digital-lock-card>
+
+                        <app-nuki-digital-lock-card
+                            *ngSwitchCase="'NUKI'"
+                            [lock]="lock"
+                            [spaces]="spaces()"
+                            (generateCode)="onGenerateCode(lock)"
+                            (toggleStatus)="onToggleLock(lock)"
+                            (edit)="onEditLock(lock.id)"
+                            (delete)="onDeleteLock(lock)"
+                        ></app-nuki-digital-lock-card>
+
+                        <!-- Future types: Yale, etc. -->
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -17,7 +17,11 @@ import { InfosComponent } from './pages/infos/infos.component';
 import { NewsletterLogsComponent } from './pages/newsletter-logs/newsletter-logs.component';
 import { NewslettersEditComponent } from './pages/newsletters-edit/newsletters-edit.component';
 import { NewslettersComponent } from './pages/newsletters/newsletters.component';
+import { ReservationDetailComponent } from './pages/reservation-detail/reservation-detail.component';
+import { ReservationsAdminComponent } from './pages/reservations/reservations-admin.component';
 import { SecurityComponent } from './pages/security/security.component';
+import { SpaceSettingsComponent } from './pages/space-settings/space-settings.component';
+import { SpacesAdminComponent } from './pages/spaces/spaces-admin.component';
 import { UsersComponent } from './pages/users/users.component';
 
 export const ADMIN_ROUTES: Routes = [
@@ -32,6 +36,7 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'users/add', component: EditUserComponent },
       { path: 'users/:id/edit', component: EditUserComponent },
       { path: 'security', component: SecurityComponent },
+      { path: 'settings/spaces', component: SpaceSettingsComponent },
       { path: 'pages', component: CustomPagesComponent },
       { path: 'pages/add', component: CustomPagesEditComponent },
       { path: 'pages/help-center/edit', component: HelpCenterEditComponent },
@@ -47,6 +52,16 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'email-templates', component: EmailTemplatesComponent },
       { path: 'email-templates/create', component: EmailTemplatesEditComponent },
       { path: 'email-templates/:id/edit', component: EmailTemplatesEditComponent },
+      { path: 'spaces', component: SpacesAdminComponent },
+      { path: 'spaces/add', loadComponent: () => import('./pages/spaces-edit/spaces-edit.component').then((m) => m.SpacesEditComponent) },
+      { path: 'spaces/:id', loadComponent: () => import('./pages/spaces-view/spaces-view.component').then((m) => m.SpacesViewComponent) },
+      { path: 'spaces/:id/edit', loadComponent: () => import('./pages/spaces-edit/spaces-edit.component').then((m) => m.SpacesEditComponent) },
+      { path: 'reservations', component: ReservationsAdminComponent },
+      { path: 'reservations/:id', component: ReservationDetailComponent },
+      // Digital Locks routes
+      { path: 'digital-locks', loadComponent: () => import('./pages/digital-lock/digital-lock-admin.component').then((m) => m.DigitalLockAdminComponent) },
+      { path: 'digital-locks/add', loadComponent: () => import('./pages/digital-lock/digital-lock-edit.component').then((m) => m.DigitalLockEditComponent) },
+      { path: 'digital-locks/:id/edit', loadComponent: () => import('./pages/digital-lock/digital-lock-edit.component').then((m) => m.DigitalLockEditComponent) },
     ],
   },
 ];

@@ -25,8 +25,8 @@
     {
         "id": "4",
         "name": "Space",
-        "disabled": true,
-        "url": "https://space.neohoods.com",
+        "disabled": false,
+        "url": "/spaces/list",
         "icon": "/assets/applications/space.png",
         "helpText": "Reservation of spaces for the community"
     }

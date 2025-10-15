@@ -1,0 +1,1153 @@
+.spaces-view-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 3rem;
+    min-height: 100vh;
+
+    .view-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--tos-border-neutral-1);
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        text-align: center;
+
+        p {
+            margin-top: 1rem;
+            color: var(--tos-text-secondary);
+            font-size: 1rem;
+        }
+    }
+
+    .space-content {
+        display: grid;
+        gap: 2rem;
+
+        .space-image-section {
+            background: var(--tos-background-base);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+            .primary-image {
+                width: 100%;
+                height: 400px;
+                object-fit: cover;
+                display: block;
+            }
+
+            .image-gallery {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 0.5rem;
+                padding: 1rem;
+                background: var(--tos-background-elevated);
+
+                .gallery-image {
+                    width: 100%;
+                    height: 120px;
+                    object-fit: cover;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: transform 0.2s ease;
+
+                    &:hover {
+                        transform: scale(1.05);
+                    }
+                }
+            }
+        }
+
+        .space-details {
+            display: grid;
+            gap: 1.5rem;
+
+            .detail-section {
+                background: var(--tos-background-base);
+                border-radius: 20px;
+                padding: 2rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                transition: all 0.3s ease;
+
+                &:hover {
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                }
+
+                h1 {
+                    margin: 0 0 1rem 0;
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--tos-text-primary);
+                }
+
+                h2 {
+                    margin: 0 0 1.5rem 0;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: var(--tos-text-primary);
+                    border-bottom: 2px solid var(--tos-border-neutral-1);
+                    padding-bottom: 0.75rem;
+                }
+
+                h3 {
+                    margin: 0 0 0.75rem 0;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    color: var(--tos-text-primary);
+                }
+
+                .section-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 1.5rem;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+
+                    .badges {
+                        display: flex;
+                        gap: 0.75rem;
+                        flex-wrap: wrap;
+
+                        .badge {
+                            padding: 0.5rem 1rem;
+                            border-radius: 12px;
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            white-space: nowrap;
+
+                            &.type-badge {
+                                background: var(--tos-background-primary-subtle);
+                                color: var(--tos-text-primary);
+                                border: 1px solid var(--tos-border-primary);
+                            }
+
+                            &.status-active {
+                                background: var(--tos-background-positive-subtle);
+                                color: var(--tos-text-positive);
+                                border: 1px solid var(--tos-border-positive);
+                            }
+
+                            &.status-inactive {
+                                background: var(--tos-background-neutral-1);
+                                color: var(--tos-text-secondary);
+                                border: 1px solid var(--tos-border-neutral-1);
+                            }
+                        }
+                    }
+                }
+
+                .description,
+                .instructions {
+                    margin-bottom: 1.5rem;
+
+                    p {
+                        margin: 0;
+                        line-height: 1.6;
+                        color: var(--tos-text-secondary);
+                    }
+                }
+            }
+
+            .pricing-section {
+                .pricing-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1.5rem;
+
+                    .pricing-item {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.5rem;
+                        padding: 1.25rem;
+                        background: var(--tos-background-elevated);
+                        border: 1px solid var(--tos-border-neutral-1);
+                        border-radius: 12px;
+
+                        .label {
+                            font-size: 0.875rem;
+                            color: var(--tos-text-secondary);
+                            font-weight: 500;
+                        }
+
+                        .value {
+                            font-size: 1.5rem;
+                            font-weight: 700;
+                            color: var(--tos-text-primary);
+                        }
+                    }
+                }
+            }
+
+            .quota-section {
+                .quota-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    padding: 1rem;
+                    background: var(--tos-background-neutral-1);
+                    border-radius: 8px;
+
+                    .quota-icon {
+                        font-size: 2rem;
+                        color: var(--tos-primary);
+                    }
+
+                    .quota-details {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.25rem;
+
+                        .label {
+                            font-size: 0.875rem;
+                            color: var(--tos-text-secondary);
+                            font-weight: 500;
+                        }
+
+                        .value {
+                            font-size: 1.25rem;
+                            font-weight: 600;
+                            color: var(--tos-text-primary);
+                        }
+                    }
+                }
+            }
+
+            .rules-section {
+                .rules-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1.5rem;
+                    margin-bottom: 1.5rem;
+
+                    .rule-item {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.5rem;
+
+                        .label {
+                            font-size: 0.875rem;
+                            color: var(--tos-text-secondary);
+                            font-weight: 500;
+                        }
+
+                        .value {
+                            font-size: 1.125rem;
+                            font-weight: 600;
+                            color: var(--tos-text-primary);
+                        }
+                    }
+                }
+
+                .hours-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    padding: 1rem 0;
+                    background: var(--tos-background-elevated);
+                    border-radius: 12px;
+                    margin-bottom: 1rem;
+
+                    .label {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-size: 0.9375rem;
+                        color: var(--tos-text-secondary);
+                        font-weight: 500;
+
+                        tui-icon {
+                            font-size: 1.125rem;
+                        }
+                    }
+
+                    .hours-display {
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+
+                        .separator {
+                            font-size: 1.25rem;
+                            font-weight: 600;
+                            color: var(--tos-text-secondary);
+                        }
+
+                        tui-chip {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+                    }
+                }
+
+                .access-info {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 1rem;
+                    background: var(--tos-background-elevated);
+                    border-radius: 12px;
+                    margin-bottom: 1rem;
+                    gap: 1rem;
+
+                    .label {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-size: 0.9375rem;
+                        color: var(--tos-text-secondary);
+                        font-weight: 500;
+
+                        tui-icon {
+                            font-size: 1.125rem;
+                        }
+                    }
+
+                    tui-chip {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        flex-shrink: 0;
+                    }
+                }
+
+                .days-info,
+                .conflict-info {
+                    margin-bottom: 1rem;
+
+                    .label {
+                        display: block;
+                        font-size: 0.9375rem;
+                        color: var(--tos-text-secondary);
+                        font-weight: 500;
+                        margin-bottom: 0.75rem;
+                    }
+
+                    .days-list,
+                    .conflict-list {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.5rem;
+
+                        .day-badge,
+                        .conflict-badge {
+                            padding: 0.5rem 1rem;
+                            background: var(--tos-background-primary-subtle);
+                            color: var(--tos-text-primary);
+                            border: 1px solid var(--tos-border-primary);
+                            border-radius: 8px;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+
+                            &.cleaning {
+                                background: var(--tos-background-warning-subtle);
+                                color: var(--tos-text-warning);
+                                border-color: var(--tos-border-warning);
+                            }
+                        }
+
+                        .conflict-badge {
+                            background: var(--tos-background-negative-subtle);
+                            color: var(--tos-text-negative);
+                            border-color: var(--tos-border-negative);
+                        }
+                    }
+                }
+            }
+
+            .regulations-section {
+                .regulation-item {
+                    margin-bottom: 1.5rem;
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+
+                    h3 {
+                        margin-bottom: 0.75rem;
+                        color: var(--tos-text-primary);
+                    }
+
+                    p {
+                        margin: 0;
+                        line-height: 1.6;
+                        color: var(--tos-text-secondary);
+                        white-space: pre-line;
+                    }
+                }
+            }
+
+            .ttlink-section {
+                .ttlink-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem;
+
+                    .ttlink-info {
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+                        padding: 1.25rem;
+                        background: var(--tos-background-elevated);
+                        border: 1px solid var(--tos-border-primary);
+                        border-radius: 12px;
+
+                        .ttlink-icon {
+                            font-size: 2rem;
+                            color: var(--tos-text-primary);
+                        }
+
+                        .ttlink-details {
+                            flex: 1;
+
+                            .ttlink-label {
+                                margin: 0 0 0.25rem 0;
+                                font-size: 0.875rem;
+                                color: var(--tos-text-secondary);
+                                font-weight: 500;
+                            }
+
+                            .ttlink-value {
+                                margin: 0;
+                                font-size: 1rem;
+                                color: var(--tos-text-primary);
+                                font-weight: 600;
+                            }
+                        }
+                    }
+
+                    .ttlink-actions {
+                        display: flex;
+                        justify-content: center;
+                    }
+
+                    .generated-code {
+                        padding: 1.5rem;
+                        background: linear-gradient(135deg, var(--tos-background-primary-subtle) 0%, var(--tos-background-accent-subtle) 100%);
+                        border: 2px solid var(--tos-border-primary);
+                        border-radius: 16px;
+                        text-align: center;
+
+                        .code-display {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.5rem;
+                            margin-bottom: 1rem;
+
+                            .code-label {
+                                font-size: 0.875rem;
+                                color: var(--tos-text-secondary);
+                                font-weight: 500;
+                            }
+
+                            .code-value {
+                                font-size: 2.5rem;
+                                font-weight: 700;
+                                font-family: 'Courier New', monospace;
+                                color: var(--tos-text-primary);
+                                letter-spacing: 0.3rem;
+                                padding: 1rem;
+                                background: var(--tos-background-base);
+                                border-radius: 12px;
+                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                            }
+                        }
+
+                        .code-info {
+                            .code-expiry {
+                                font-size: 0.875rem;
+                                color: var(--tos-text-secondary);
+                                font-style: italic;
+                            }
+                        }
+                    }
+                }
+
+                &.empty {
+                    .empty-message {
+                        text-align: center;
+                        color: var(--tos-text-secondary);
+                        padding: 2rem;
+                        font-style: italic;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// Responsive design
+@media (max-width: 768px) {
+    .spaces-view-container {
+        padding: 1rem;
+
+        .view-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+
+            .header-actions {
+                width: 100%;
+
+                button {
+                    flex: 1;
+                }
+            }
+        }
+
+        .space-content {
+            .space-image-section {
+                .primary-image {
+                    height: 250px;
+                }
+
+                .image-gallery {
+                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+
+                    .gallery-image {
+                        height: 80px;
+                    }
+                }
+            }
+
+            .space-details {
+                .detail-section {
+                    padding: 1.5rem;
+
+                    h1 {
+                        font-size: 1.5rem;
+                    }
+
+                    .section-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                    }
+                }
+
+                .pricing-section .pricing-grid,
+                .rules-section .rules-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        }
+    }
+}
+
+// Statistics Section - Updated design
+.statistics-section {
+
+    .t-cell[data-type=occupied] {
+        color: var(--tui-text-primary-on-accent-1);
+    }
+
+    .t-cell[data-type=occupied]:after {
+        background: var(--tui-background-accent-1);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .statistics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        h2 {
+            margin: 0;
+        }
+
+        .date-range-selector {
+            min-width: 280px;
+        }
+    }
+
+    .statistics-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 3rem;
+        color: var(--tos-text-secondary);
+    }
+
+    .statistics-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+
+        .metric-card-large {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 1.75rem 1.5rem;
+            background: #1e293b;
+            border-radius: 8px;
+            color: white;
+            min-height: 130px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: white;
+                opacity: 0.3;
+            }
+
+            &:hover {
+                transform: translateY(-2px);
+            }
+
+            &.occupancy::before {
+                background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                opacity: 1;
+            }
+
+            &.revenue::before {
+                background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+                opacity: 1;
+            }
+
+            &.reservations::before {
+                background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+                opacity: 1;
+            }
+
+            &.days::before {
+                background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+                opacity: 1;
+            }
+
+            .metric-value {
+                font-size: 3rem;
+                font-weight: 700;
+                color: white;
+                line-height: 1;
+                margin-bottom: 0.75rem;
+            }
+
+            .metric-label {
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.8);
+                font-weight: 400;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .occupancy-chart-section {
+        margin-bottom: 2.5rem;
+
+        h3 {
+            margin-bottom: 1.5rem;
+            color: var(--tos-text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .axes {
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: var(--tos-background-neutral-1);
+            border-radius: 8px;
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.875rem;
+                color: var(--tos-text-primary);
+                font-weight: 500;
+
+                .legend-bar {
+                    width: 32px;
+                    height: 18px;
+                    border-radius: 4px;
+                    flex-shrink: 0;
+
+                    &.occupied {
+                        background: #1e3a8a;
+                    }
+
+                    &.available {
+                        background: #ec4899;
+                    }
+                }
+            }
+        }
+    }
+
+    .top-users-section {
+        margin-bottom: 2.5rem;
+
+        h3 {
+            margin-bottom: 1.25rem;
+            color: var(--tos-text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .top-users-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+
+            .top-user-card {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1rem 1.25rem;
+                background: var(--tos-background-base);
+                border: 1px solid var(--tos-border-neutral-1);
+                border-radius: 8px;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    border-color: var(--tos-primary-active);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                }
+
+                .user-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.875rem;
+                    flex: 1;
+                    min-width: 0;
+
+                    tui-avatar {
+                        flex-shrink: 0;
+                    }
+
+                    .user-details {
+                        flex: 1;
+                        min-width: 0;
+
+                        .user-name {
+                            font-weight: 600;
+                            color: var(--tos-text-primary);
+                            font-size: 0.95rem;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            margin-bottom: 0.25rem;
+                        }
+
+                        .user-email {
+                            font-size: 0.8rem;
+                            color: var(--tos-text-secondary);
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+                    }
+                }
+
+                .user-metrics {
+                    display: flex;
+                    align-items: center;
+                    gap: 2rem;
+                    flex-shrink: 0;
+
+                    .metric-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.4rem;
+                        font-size: 0.9rem;
+                        color: var(--tos-text-secondary);
+                        white-space: nowrap;
+
+                        tui-icon {
+                            font-size: 1rem;
+                        }
+
+                        span {
+                            min-width: 20px;
+                            text-align: right;
+                        }
+
+                        &.highlight {
+                            .amount {
+                                font-size: 1.05rem;
+                                font-weight: 700;
+                                color: #22c55e;
+                                min-width: 60px;
+                                text-align: right;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .empty-message {
+                text-align: center;
+                color: var(--tos-text-secondary);
+                padding: 3rem 2rem;
+            }
+        }
+    }
+
+    .occupancy-calendar-section {
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+
+            h3 {
+                margin: 0;
+                color: var(--tos-text-primary);
+            }
+
+            .calendar-legend {
+                display: flex;
+                gap: 1.5rem;
+
+                .legend-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: 0.875rem;
+                    color: var(--tos-text-secondary);
+
+                    .legend-color {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 3px;
+
+                        &.occupied {
+                            background: #22c55e;
+                        }
+
+                        &.free {
+                            background: var(--tos-background-base);
+                            border: 2px solid var(--tos-border-neutral-1);
+                        }
+                    }
+                }
+            }
+        }
+
+        .calendar-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 1.5rem;
+
+            tui-calendar {
+                background: var(--tos-background-base);
+                border-radius: 12px;
+                padding: 1rem;
+            }
+
+            @media (max-width: 1200px) {
+                grid-template-columns: repeat(2, 1fr);
+
+                tui-calendar:last-child {
+                    grid-column: 1 / -1;
+                }
+            }
+
+            @media (max-width: 768px) {
+                grid-template-columns: 1fr;
+
+                tui-calendar:last-child {
+                    grid-column: auto;
+                }
+            }
+        }
+
+        .empty-calendar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            background: var(--tos-background-neutral-1);
+            border-radius: 8px;
+            border: 1px solid var(--tos-border-neutral-1);
+
+            p {
+                color: var(--tos-text-secondary);
+                margin: 0;
+            }
+        }
+    }
+
+    // Custom styling for Taiga UI Calendar occupied days
+    tui-calendar {
+
+        // Style cells with markers (occupied days)
+        ::ng-deep [data-marker] {
+            position: relative;
+            background: rgba(34, 197, 94, 0.15) !important;
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #22c55e;
+                box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+            }
+
+            &:hover {
+                background: rgba(34, 197, 94, 0.25) !important;
+            }
+        }
+
+        // Style cells with data-type="occupied"
+        ::ng-deep [data-type="occupied"] {
+            position: relative;
+            background: rgba(34, 197, 94, 0.15) !important;
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #22c55e;
+                box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+            }
+
+            &:hover {
+                background: rgba(34, 197, 94, 0.25) !important;
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        .statistics-header {
+            flex-direction: column;
+            align-items: flex-start;
+
+            .date-range-selector {
+                width: 100%;
+            }
+        }
+
+        .statistics-metrics {
+            grid-template-columns: 1fr;
+
+            .metric-card-large {
+                min-height: 120px;
+
+                .metric-value {
+                    font-size: 2.5rem;
+                }
+            }
+        }
+
+        .top-users-grid {
+            .top-user-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+
+                .user-header {
+                    width: 100%;
+                }
+
+                .user-metrics {
+                    width: 100%;
+                    justify-content: space-around;
+                }
+            }
+        }
+
+        .calendar-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+/* Day Reservations Section */
+.day-reservations-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--tui-base-02);
+    border-radius: 12px;
+    border: 1px solid var(--tui-base-03);
+
+    .section-header {
+        margin-bottom: 1.5rem;
+
+        h4 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--tui-text-01);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    }
+
+    .reservations-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+
+        p {
+            margin: 0;
+            color: var(--tui-text-02);
+        }
+    }
+
+    .reservations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .reservation-card {
+        background: var(--tui-base-01);
+        border: 1px solid var(--tui-base-03);
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--tui-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .reservation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+
+            .reservation-info {
+                h5 {
+                    margin: 0 0 0.25rem 0;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: var(--tui-text-01);
+                }
+
+                .user-email {
+                    margin: 0;
+                    font-size: 0.875rem;
+                    color: var(--tui-text-02);
+                }
+            }
+
+            .reservation-status {
+                flex-shrink: 0;
+            }
+        }
+
+        .reservation-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+
+                .label {
+                    font-weight: 500;
+                    color: var(--tui-text-02);
+                    font-size: 0.875rem;
+                    min-width: 120px;
+                    flex-shrink: 0;
+                }
+
+                .value {
+                    font-weight: 600;
+                    color: var(--tui-text-01);
+                    font-size: 0.875rem;
+                    text-align: right;
+                    flex: 1;
+
+                    &.code {
+                        font-family: 'Courier New', monospace;
+                        background: var(--tui-base-02);
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 4px;
+                        border: 1px solid var(--tui-base-03);
+                        text-align: center;
+                    }
+                }
+            }
+        }
+
+        .reservation-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
+
+    .no-reservations {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+        text-align: center;
+
+        .empty-icon {
+            font-size: 2rem;
+            color: var(--tui-text-03);
+        }
+
+        p {
+            margin: 0;
+            color: var(--tui-text-02);
+            font-size: 0.875rem;
+        }
+    }
+}

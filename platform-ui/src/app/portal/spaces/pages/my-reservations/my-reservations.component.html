@@ -1,0 +1,447 @@
+<div class="my-reservations-container">
+    <!-- Header -->
+    <div class="reservations-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>
+                    {{ 'reservations.myReservationsTitle' | translate }}
+                </h1>
+                <p class="reservations-subtitle">
+                    {{ 'reservations.myReservationsSubtitle' | translate }}
+                </p>
+            </div>
+            <button
+                tuiButton
+                appearance="secondary"
+                size="m"
+                iconStart="@tui.arrow-left"
+                (click)="onBackToSpaces()"
+            >
+                {{ 'reservations.backToSpaces' | translate }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'reservations.loading' | translate }}
+        </p>
+    </div>
+
+    <!-- Reservations Content -->
+    <div
+        *ngIf="!loading()"
+        class="reservations-content"
+    >
+        <!-- Pending Payment Section (Above tabs) -->
+        <div
+            *ngIf="getPendingPaymentReservations().length > 0"
+            class="pending-payment-section"
+        >
+            <h2 class="section-title">
+                {{ 'reservations.pendingPaymentTitle' | translate }}
+                <tui-chip
+                    [style.border-radius.rem]="5"
+                    [style.margin-left.rem]="0.5"
+                    appearance="warning"
+                >
+                    {{ getPendingPaymentCount() }}
+                </tui-chip>
+            </h2>
+            <div class="reservations-grid">
+                <div
+                    *ngFor="let reservation of getPendingPaymentReservations(); trackBy: trackByReservationId"
+                    class="reservation-card"
+                >
+                    <div class="reservation-image">
+                        <img
+                            [src]="getSpaceForReservation(reservation)?.images?.[0]?.url || '/assets/images/placeholder-space.jpg'"
+                            [alt]="getSpaceForReservation(reservation)?.name || 'Espace'"
+                            loading="lazy"
+                        >
+                    </div>
+
+                    <div class="reservation-content">
+                        <div class="reservation-header">
+                            <h3>
+                                {{ getSpaceForReservation(reservation)?.name || 'Espace' }}
+                            </h3>
+                            <tui-chip
+                                [style.border-radius.rem]="5"
+                                [appearance]="getStatusAppearance(reservation.status)"
+                                [style.margin-left.rem]="0.5"
+                            >
+                                {{ getStatusLabel(reservation.status) }}
+                            </tui-chip>
+                        </div>
+
+                        <div class="reservation-details">
+                            <div class="detail-item">
+                                <tui-icon icon="@tui.calendar"></tui-icon>
+                                <span>
+                                    {{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <tui-icon icon="@tui.credit-card"></tui-icon>
+                                <span>
+                                    {{ reservation.totalPrice | currency:'EUR' }}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <tui-icon icon="@tui.home"></tui-icon>
+                                <span>
+                                    {{ getTranslatedSpaceType(getSpaceForReservation(reservation)?.type) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="reservation-actions">
+                            <button
+                                tuiButton
+                                appearance="primary"
+                                size="s"
+                                (click)="onViewDetails(reservation)"
+                            >
+                                <tui-icon
+                                    icon="@tui.eye"
+                                    class="tui-icon-margin-right"
+                                ></tui-icon>
+                                {{ 'reservations.viewDetails' | translate }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs (3 temporal tabs) -->
+        <tui-tabs
+            [(activeItemIndex)]="activeTab"
+            (activeItemIndexChange)="onTabChange($event)"
+        >
+            <!-- Past Tab (Index 0) -->
+            <button tuiTab>
+                <span class="tab-label">
+                    {{ 'reservations.pastTab' | translate }}
+                </span>
+                <tui-chip
+                    [style.border-radius.rem]="5"
+                    [style.margin-left.rem]="0.5"
+                    appearance="primary"
+                    *ngIf="getPastCount() > 0"
+                >
+                    {{ getPastCount() }}
+                </tui-chip>
+            </button>
+
+            <!-- Active Tab (Index 1) -->
+            <button tuiTab>
+                <span class="tab-label">
+                    {{ 'reservations.activeTab' | translate }}
+                </span>
+                <tui-chip
+                    [style.border-radius.rem]="5"
+                    [style.margin-left.rem]="0.5"
+                    appearance="primary"
+                    *ngIf="getActiveCount() > 0"
+                >
+                    {{ getActiveCount() }}
+                </tui-chip>
+            </button>
+
+            <!-- Future Tab (Index 2) -->
+            <button tuiTab>
+                <span class="tab-label">
+                    {{ 'reservations.futureTab' | translate }}
+                </span>
+                <tui-chip
+                    [style.border-radius.rem]="5"
+                    [style.margin-left.rem]="0.5"
+                    appearance="primary"
+                    *ngIf="getFutureCount() > 0"
+                >
+                    {{ getFutureCount() }}
+                </tui-chip>
+            </button>
+        </tui-tabs>
+
+        <!-- Past Reservations (Index 0) -->
+        <div
+            class="reservations-list"
+            *ngIf="activeTab === 0"
+        >
+            <div
+                *ngFor="let reservation of getFilteredReservations('PAST')"
+                class="reservation-card"
+            >
+                <div class="reservation-image">
+                    <img
+                        [src]="getSpaceForReservation(reservation)?.images?.[0]?.url || '/assets/images/placeholder-space.jpg'"
+                        [alt]="getSpaceForReservation(reservation)?.name || 'Espace'"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="reservation-content">
+                    <div class="reservation-header">
+                        <h3>
+                            {{ getSpaceForReservation(reservation)?.name || 'Espace' }}
+                        </h3>
+                        <tui-chip
+                            [style.border-radius.rem]="5"
+                            [appearance]="getStatusAppearance(reservation.status)"
+                            [style.margin-left.rem]="0.5"
+                        >
+                            {{ getStatusLabel(reservation.status) }}
+                        </tui-chip>
+                    </div>
+
+                    <div class="reservation-details">
+                        <div class="detail-item">
+                            <tui-icon icon="@tui.calendar"></tui-icon>
+                            <span>
+                                {{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <tui-icon icon="@tui.credit-card"></tui-icon>
+                            <span>{{ reservation.totalPrice }}€</span>
+                        </div>
+                    </div>
+
+                    <div class="reservation-actions">
+                        <button
+                            tuiButton
+                            appearance="primary"
+                            size="m"
+                            iconStart="@tui.eye"
+                            (click)="onViewDetails(reservation)"
+                        >
+                            {{ 'reservations.details' | translate }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination for Past Reservations -->
+            <div
+                *ngIf="getTotalPagesForStatus('PAST') > 1"
+                class="pagination-container"
+            >
+                <tui-pagination
+                    [length]="getTotalPagesForStatus('PAST')"
+                    [index]="currentPagePast() - 1"
+                    (indexChange)="onPageChange($event + 1, 'past')"
+                ></tui-pagination>
+            </div>
+
+            <!-- No Past Reservations Message -->
+            <div
+                *ngIf="getPastCount() === 0"
+                class="no-reservations-message"
+            >
+                <tui-icon
+                    icon="@tui.calendar"
+                    size="xl"
+                ></tui-icon>
+                <h3>
+                    {{ 'reservations.noPastReservations' | translate }}
+                </h3>
+                <p>
+                    {{ 'reservations.noPastReservationsMessage' | translate }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Active Reservations (Index 1) -->
+        <div
+            class="reservations-list"
+            *ngIf="activeTab === 1"
+        >
+            <div
+                *ngFor="let reservation of getFilteredReservations('ACTIVE')"
+                class="reservation-card"
+            >
+                <div class="reservation-image">
+                    <img
+                        [src]="getSpaceForReservation(reservation)?.images?.[0]?.url || '/assets/images/placeholder-space.jpg'"
+                        [alt]="getSpaceForReservation(reservation)?.name || 'Espace'"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="reservation-content">
+                    <div class="reservation-header">
+                        <h3>
+                            {{ getSpaceForReservation(reservation)?.name || 'Espace' }}
+                        </h3>
+                        <tui-chip
+                            [style.border-radius.rem]="5"
+                            [appearance]="getStatusAppearance(reservation.status)"
+                            [style.margin-left.rem]="0.5"
+                        >
+                            {{ getStatusLabel(reservation.status) }}
+                        </tui-chip>
+                    </div>
+
+                    <div class="reservation-details">
+                        <div class="detail-item">
+                            <tui-icon icon="@tui.calendar"></tui-icon>
+                            <span>
+                                {{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <tui-icon icon="@tui.credit-card"></tui-icon>
+                            <span>{{ reservation.totalPrice }}€</span>
+                        </div>
+                        <div
+                            class="detail-item"
+                            *ngIf="reservation.accessCode"
+                        >
+                            <tui-icon icon="@tui.key"></tui-icon>
+                            <span>
+                                {{ 'reservations.accessCode' | translate: {code: reservation.accessCode.code} }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="reservation-actions">
+                        <button
+                            tuiButton
+                            appearance="primary"
+                            iconStart="@tui.eye"
+                            size="m"
+                            (click)="onViewDetails(reservation)"
+                        >
+                            {{ 'reservations.details' | translate }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination for Active Reservations -->
+            <div
+                *ngIf="getTotalPagesForStatus('ACTIVE') > 1"
+                class="pagination-container"
+            >
+                <tui-pagination
+                    [length]="getTotalPagesForStatus('ACTIVE')"
+                    [index]="currentPageActive() - 1"
+                    (indexChange)="onPageChange($event + 1, 'active')"
+                ></tui-pagination>
+            </div>
+
+            <!-- No Active Reservations Message -->
+            <div
+                *ngIf="getActiveCount() === 0"
+                class="no-reservations-message"
+            >
+                <tui-icon
+                    icon="@tui.calendar"
+                    size="xl"
+                ></tui-icon>
+                <h3>
+                    {{ 'reservations.noActiveReservations' | translate }}
+                </h3>
+                <p>
+                    {{ 'reservations.noActiveReservationsMessage' | translate }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Future Reservations (Index 2) -->
+        <div
+            class="reservations-list"
+            *ngIf="activeTab === 2"
+        >
+            <div
+                *ngFor="let reservation of getFilteredReservations('FUTURE')"
+                class="reservation-card"
+            >
+                <div class="reservation-image">
+                    <img
+                        [src]="getSpaceForReservation(reservation)?.images?.[0]?.url || '/assets/images/placeholder-space.jpg'"
+                        [alt]="getSpaceForReservation(reservation)?.name || 'Espace'"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="reservation-content">
+                    <div class="reservation-header">
+                        <h3>
+                            {{ getSpaceForReservation(reservation)?.name || 'Espace' }}
+                        </h3>
+                        <tui-chip
+                            [style.border-radius.rem]="5"
+                            [appearance]="getStatusAppearance(reservation.status)"
+                            [style.margin-left.rem]="0.5"
+                        >
+                            {{ getStatusLabel(reservation.status) }}
+                        </tui-chip>
+                    </div>
+
+                    <div class="reservation-details">
+                        <div class="detail-item">
+                            <tui-icon icon="@tui.calendar"></tui-icon>
+                            <span>
+                                {{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <tui-icon icon="@tui.credit-card"></tui-icon>
+                            <span>{{ reservation.totalPrice }}€</span>
+                        </div>
+                    </div>
+
+                    <div class="reservation-actions">
+                        <button
+                            tuiButton
+                            appearance="primary"
+                            size="m"
+                            iconStart="@tui.eye"
+                            (click)="onViewDetails(reservation)"
+                        >
+                            {{ 'reservations.details' | translate }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination for Future Reservations -->
+            <div
+                *ngIf="getTotalPagesForStatus('FUTURE') > 1"
+                class="pagination-container"
+            >
+                <tui-pagination
+                    [length]="getTotalPagesForStatus('FUTURE')"
+                    [index]="currentPageFuture() - 1"
+                    (indexChange)="onPageChange($event + 1, 'future')"
+                ></tui-pagination>
+            </div>
+
+            <!-- No Future Reservations Message -->
+            <div
+                *ngIf="getFutureCount() === 0"
+                class="no-reservations-message"
+            >
+                <tui-icon
+                    icon="@tui.calendar"
+                    size="xl"
+                ></tui-icon>
+                <h3>
+                    {{ 'reservations.noFutureReservations' | translate }}
+                </h3>
+                <p>
+                    {{ 'reservations.noFutureReservationsMessage' | translate }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

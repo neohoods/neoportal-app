@@ -9,12 +9,13 @@
             <h3>{{ 'emailTemplates.basicInfo' | translate }}</h3>
             
             <div class="form-field">
+                <label tuiLabel>{{ 'emailTemplates.type' | translate }}</label>
                 <tui-select
                     formControlName="type"
+                    name="type"
                     [readOnly]="!canEdit"
                     [stringify]="stringifyTemplateType"
                 >
-                {{ 'emailTemplates.type' | translate }}
                     <input
                         tuiTextfieldLegacy
                         [placeholder]="'emailTemplates.typePlaceholder' | translate"
@@ -22,9 +23,14 @@
                     <tui-data-list-wrapper
                         *tuiDataList
                         [items]="templateTypes"
+                        [itemContent]="templateTypeContent"
                     ></tui-data-list-wrapper>
                 </tui-select>
             </div>
+
+            <ng-template #templateTypeContent let-item>
+                {{ item.label | translate }}
+            </ng-template>
 
             <div class="form-field">
                 <tui-textfield>

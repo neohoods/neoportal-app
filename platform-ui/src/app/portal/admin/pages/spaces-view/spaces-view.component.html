@@ -1,0 +1,503 @@
+<div class="spaces-view-container">
+  <!-- Header -->
+  <div class="view-header">
+    <button tuiButton appearance="secondary" size="m" (click)="goBack()">
+      <tui-icon icon="@tui.arrow-left" />
+      {{ 'spaces.admin.backToSpaces' | translate }}
+    </button>
+    
+    <div class="header-actions">
+      <button tuiButton appearance="primary" size="m" (click)="editSpace()">
+        <tui-icon icon="@tui.edit" />
+        {{ 'spaces.admin.editSpace' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+  <div class="loading-container">
+    <tui-loader size="xl" />
+    <p>{{ 'spaces.admin.loading' | translate }}</p>
+  </div>
+  }
+
+  <!-- Space Content -->
+  @if (!loading() && space()) {
+  <div class="space-content">
+    <!-- Main Image -->
+    <div class="space-image-section">
+      <img [src]="getPrimaryImage()" [alt]="space()?.name" class="primary-image" />
+      @if (getGalleryImages().length > 0) {
+      <div class="image-gallery">
+        @for (image of getGalleryImages(); track image.id) {
+        <img [src]="image.url" [alt]="space()?.name" class="gallery-image" />
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Space Details -->
+    <div class="space-details">
+      <!-- Basic Info -->
+      <section class="detail-section">
+        <div class="section-header">
+          <h1>{{ space()?.name }}</h1>
+          <div class="badges">
+            <tui-chip appearance="primary">{{ getTypeLabel() }}</tui-chip>
+            <tui-chip [appearance]="space()?.status === 'ACTIVE' ? 'positive' : 'negative'">
+              {{ getStatusLabel() }}
+            </tui-chip>
+          </div>
+        </div>
+
+        @if (space()?.description) {
+        <div class="description">
+          <h3>{{ 'spaces.admin.description' | translate }}</h3>
+          <p>{{ space()?.description }}</p>
+        </div>
+        }
+
+        @if (space()?.instructions) {
+        <div class="instructions">
+          <h3>{{ 'spaces.admin.instructions' | translate }}</h3>
+          <p>{{ space()?.instructions }}</p>
+        </div>
+        }
+      </section>
+
+      <!-- Pricing -->
+      <section class="detail-section pricing-section">
+        <h2>{{ 'spaces.admin.pricing' | translate }}</h2>
+        <div class="pricing-grid">
+          <div class="pricing-item">
+            <span class="label">{{ 'spaces.admin.tenantPrice' | translate }}</span>
+            <span class="value">{{ space()?.pricing?.tenantPrice }} €</span>
+          </div>
+          <div class="pricing-item">
+            <span class="label">{{ 'spaces.admin.ownerPrice' | translate }}</span>
+            <span class="value">{{ space()?.pricing?.ownerPrice }} €</span>
+          </div>
+          <div class="pricing-item">
+            <span class="label">{{ 'spaces.admin.cleaningFee' | translate }}</span>
+            <span class="value">{{ space()?.pricing?.cleaningFee }} €</span>
+          </div>
+          <div class="pricing-item">
+            <span class="label">{{ 'spaces.admin.deposit' | translate }}</span>
+            <span class="value">{{ space()?.pricing?.deposit }} €</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quota -->
+      <section class="detail-section quota-section">
+        <h2>{{ 'spaces.admin.quota-title' | translate }}</h2>
+        <div class="quota-info">
+          <tui-icon icon="@tui.users" class="quota-icon" />
+          <div class="quota-details">
+            <span class="label">{{ 'spaces.admin.maxCapacity' | translate }}</span>
+            <span class="value">{{ space()?.quota?.max }} {{ 'spaces.admin.people' | translate }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reservation Rules -->
+      <section class="detail-section rules-section">
+        <h2>{{ 'spaces.admin.reservationRules' | translate }}</h2>
+        <div class="rules-grid">
+          <div class="rule-item">
+            <span class="label">{{ 'spaces.admin.minDurationDays' | translate }}</span>
+            <span class="value">{{ space()?.rules?.minDurationDays }} {{ 'spaces.admin.days' | translate }}</span>
+          </div>
+          <div class="rule-item">
+            <span class="label">{{ 'spaces.admin.maxDurationDays' | translate }}</span>
+            <span class="value">{{ space()?.rules?.maxDurationDays }} {{ 'spaces.admin.days' | translate }}</span>
+          </div>
+          <div class="rule-item">
+            <span class="label">{{ 'spaces.admin.maxReservationsPerYear' | translate }}</span>
+            <span class="value">{{ space()?.rules?.maxReservationsPerYear }} {{ 'spaces.admin.reservations' | translate }}</span>
+          </div>
+        </div>
+
+        @if (space()?.rules?.allowedHours) {
+        <div class="hours-info">
+          <span class="label">
+            <tui-icon icon="@tui.clock"></tui-icon>
+            {{ 'spaces.admin.allowedHoursStart' | translate }}
+          </span>
+          <div class="hours-display">
+            <tui-chip appearance="accent">
+              <tui-icon icon="@tui.clock"></tui-icon>
+              {{ space()?.rules?.allowedHours?.start }}
+            </tui-chip>
+            <span class="separator">→</span>
+            <tui-chip appearance="accent">
+              <tui-icon icon="@tui.clock"></tui-icon>
+              {{ space()?.rules?.allowedHours?.end }}
+            </tui-chip>
+          </div>
+        </div>
+        }
+
+        @if (getAllowedDaysLabels().length > 0) {
+        <div class="days-info">
+          <span class="label">{{ 'spaces.admin.allowedDays' | translate }}</span>
+          <div class="days-list">
+            @for (day of getAllowedDaysLabels(); track day) {
+            <tui-chip appearance="primary">{{ day }}</tui-chip>
+            }
+          </div>
+        </div>
+        }
+
+        @if (getCleaningDaysLabels().length > 0) {
+        <div class="days-info">
+          <span class="label">{{ 'spaces.admin.cleaningDays' | translate }}</span>
+          <div class="days-list">
+            @for (day of getCleaningDaysLabels(); track day) {
+            <tui-chip appearance="primary">{{ day }}</tui-chip>
+            }
+          </div>
+        </div>
+        }
+
+        @if (getConflictTypesLabels().length > 0) {
+        <div class="conflict-info">
+          <span class="label">{{ 'spaces.admin.conflictWithTypes' | translate }}</span>
+          <div class="conflict-list">
+            @for (space of getShareSpaceWithSpaces(); track space.id) {
+              <tui-chip appearance="accent">
+                {{ space.name }} ({{ 'spaces.types.' + space.type | translate }})
+              </tui-chip>
+            }
+          </div>
+        </div>
+        }
+
+        @if (space()?.rules?.requiresApartmentAccess !== undefined) {
+        <div class="access-info">
+          <span class="label">
+            <tui-icon icon="@tui.key"></tui-icon>
+            {{ 'spaces.admin.requiresApartmentAccess' | translate }}
+          </span>
+          <tui-chip [appearance]="space()?.rules?.requiresApartmentAccess ? 'positive' : 'outline'">
+            <tui-icon [icon]="space()?.rules?.requiresApartmentAccess ? '@tui.check' : '@tui.x'"></tui-icon>
+            {{ space()?.rules?.requiresApartmentAccess ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
+          </tui-chip>
+        </div>
+        }
+      </section>
+
+      <!-- Statistics Section -->
+      <section class="detail-section statistics-section">
+        <div class="statistics-header">
+          <h2>{{ 'spaces.admin.statistics' | translate }}</h2>
+          
+          <!-- Date Range Selector -->
+          <tui-textfield [content]="dateRangeContent" class="date-range-selector">
+            <label tuiLabel>{{ 'spaces.admin.statisticsPeriod' | translate }}</label>
+            <input
+              tuiInputDateRange
+              [formControl]="dateRangeControl"
+            />
+            <tui-calendar-range
+              *tuiTextfieldDropdown
+              [items]="items"
+            />
+          </tui-textfield>
+        </div>
+
+        @if (loadingStatistics()) {
+          <div class="statistics-loading">
+            <tui-loader size="m" />
+            <p>{{ 'spaces.admin.loadingStatistics' | translate }}</p>
+          </div>
+        }
+
+        @if (!loadingStatistics() && statistics()) {
+          <!-- Key Metrics -->
+          <div class="statistics-metrics">
+            <!-- Occupancy Rate -->
+            <div class="metric-card-large occupancy">
+              <div class="metric-value">{{ statistics()!.occupancyRate | number:'1.1-1' }}%</div>
+              <div class="metric-label">{{ 'spaces.admin.occupancyRate' | translate }}</div>
+            </div>
+
+            <!-- Revenue -->
+            <div class="metric-card-large revenue">
+              <div class="metric-value">{{ statistics()!.totalRevenue | number:'1.0-0' }}€</div>
+              <div class="metric-label">{{ 'spaces.admin.totalRevenue' | translate }}</div>
+            </div>
+
+            <!-- Total Reservations -->
+            <div class="metric-card-large reservations">
+              <div class="metric-value">{{ statistics()!.totalReservations }}</div>
+              <div class="metric-label">{{ 'spaces.admin.totalReservations' | translate }}</div>
+            </div>
+
+            <!-- Days Booked -->
+            <div class="metric-card-large days">
+              <div class="metric-value">{{ statistics()!.totalDaysBooked }}</div>
+              <div class="metric-label">{{ 'spaces.admin.totalDaysBooked' | translate }}</div>
+            </div>
+          </div>
+
+          <!-- Monthly Occupancy Chart -->
+          <div class="occupancy-chart-section">
+            <h3>{{ 'spaces.admin.monthlyOccupancy' | translate }}</h3>
+            <tui-axes
+              class="axes"
+              [axisXLabels]="getChartLabelsX()"
+              [axisYLabels]="getChartLabelsY()"
+            >
+              <tui-bar-chart
+                [max]="getChartMax()"
+                [value]="getChartValue()"
+                tuiHint
+                [tuiHintContent]="chartHint"
+              />
+            </tui-axes>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-bar occupied"></span>
+                <span>{{ 'spaces.admin.daysOccupied' | translate }}</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-bar available"></span>
+                <span>{{ 'spaces.admin.daysAvailable' | translate }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Users -->
+          <div class="top-users-section">
+            <h3>{{ 'spaces.admin.topUsers' | translate }}</h3>
+            <div class="top-users-grid">
+              @for (user of statistics()!.topUsers; track user.userId; let index = $index) {
+                <div class="top-user-card">
+                  <div class="user-header">
+                    <tui-avatar
+                      [src]="user.userName | tuiInitials"
+                      [style.background]="user.userName | tuiAutoColor"
+                      size="m"
+                    ></tui-avatar>
+                    <div class="user-details">
+                      <div class="user-name">{{ user.userName }}</div>
+                      <div class="user-email">{{ user.userEmail }}</div>
+                    </div>
+                  </div>
+                  <div class="user-metrics">
+                    <div class="metric-item" [title]="'spaces.admin.reservationsCount' | translate">
+                      <tui-icon icon="@tui.calendar" />
+                      <span>{{ user.reservationCount }} {{ 'spaces.admin.reservations' | translate }}</span>
+                    </div>
+                    <div class="metric-item" [title]="'spaces.admin.daysCount' | translate">
+                      <tui-icon icon="@tui.clock" />
+                      <span>{{ user.totalDays }} {{ 'spaces.admin.days' | translate }}</span>
+                    </div>
+                    <div class="metric-item highlight" [title]="'spaces.admin.totalSpent' | translate">
+                      <span class="amount">{{ user.totalSpent | number:'1.0-0' }}€</span>
+                    </div>
+                  </div>
+                </div>
+              }
+              @if (statistics()!.topUsers.length === 0) {
+                <p class="empty-message">{{ 'spaces.admin.noTopUsers' | translate }}</p>
+              }
+            </div>
+          </div>
+
+          <!-- Occupancy Calendar -->
+          <div class="occupancy-calendar-section">
+            <div class="calendar-header">
+              <h3>{{ 'spaces.admin.occupancyCalendar' | translate }}</h3>
+              <div class="calendar-legend">
+                <div class="legend-item">
+                  <span class="legend-color occupied"></span>
+                  <span>{{ 'spaces.admin.occupied' | translate }} ({{ getOccupiedDays() }})</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color free"></span>
+                  <span>{{ 'spaces.admin.free' | translate }} ({{ getFreeDays() }})</span>
+                </div>
+              </div>
+            </div>
+            
+            @if (statistics()!.occupancyCalendar.length > 0 && occupancyMap().size > 0) {
+              <div class="calendar-wrapper" [attr.data-occupancy-count]="occupancyMap().size">
+                <tui-calendar
+                  [month]="firstMonth()"
+                  [showAdjacent]="false"
+                  [value]="value"
+                  [(hoveredItem)]="hoveredItem"
+                  (dayClick)="onDayClick($event)"
+                  (monthChange)="onMonthChange($event, 0)"
+                />
+                <tui-calendar
+                  [month]="middleMonth()"
+                  [showAdjacent]="false"
+                  [value]="value"
+                  [(hoveredItem)]="hoveredItem"
+                  (dayClick)="onDayClick($event)"
+                  (monthChange)="onMonthChange($event, 1)"
+                />
+                <tui-calendar
+                  [month]="lastMonth()"
+                  [showAdjacent]="false"
+                  [value]="value"
+                  [(hoveredItem)]="hoveredItem"
+                  (dayClick)="onDayClick($event)"
+                  (monthChange)="onMonthChange($event, 2)"
+                />
+              </div>
+            } @else {
+              <div class="empty-calendar">
+                @if (statistics()!.occupancyCalendar.length === 0) {
+                  <p>{{ 'spaces.admin.noCalendarData' | translate }}</p>
+                } @else {
+                  <tui-loader size="xl" />
+                  <p>{{ 'Chargement du calendrier...' }}</p>
+                }
+              </div>
+            }
+
+            <!-- Reservation Details for Selected Day -->
+            @if (selectedDay()) {
+              <div class="day-reservations-section">
+                <div class="section-header">
+                  <h4>
+                    <tui-icon icon="@tui.calendar" />
+                    {{ 'reservations.admin.reservationDetail' | translate }} - {{ formatSelectedDay(selectedDay()!) }}
+                  </h4>
+                </div>
+
+                @if (loadingReservations()) {
+                  <div class="reservations-loading">
+                    <tui-loader size="m" />
+                    <p>{{ 'reservations.admin.loading' | translate }}</p>
+                  </div>
+                } @else if (selectedDayReservations().length > 0) {
+                  <div class="reservations-list">
+                    @for (reservation of selectedDayReservations(); track reservation.id) {
+                      <div class="reservation-card">
+                        <div class="reservation-header">
+                          <div class="reservation-info">
+                            <h5>{{ reservation.user?.firstName }} {{ reservation.user?.lastName }}</h5>
+                            <p class="user-email">{{ reservation.user?.email }}</p>
+                          </div>
+                          <div class="reservation-status">
+                            <tui-chip [appearance]="getReservationStatusAppearance(reservation.status)">
+                              {{ getReservationStatusLabel(reservation.status) }}
+                            </tui-chip>
+                          </div>
+                        </div>
+                        
+                        <div class="reservation-details">
+                          <div class="detail-row">
+                            <span class="label">{{ 'reservations.admin.reservationDates' | translate }}</span>
+                            <span class="value">
+                              {{ formatReservationDate(reservation.startDate) }} → {{ formatReservationDate(reservation.endDate) }}
+                            </span>
+                          </div>
+                          <div class="detail-row">
+                            <span class="label">{{ 'reservations.admin.totalPrice' | translate }}</span>
+                            <span class="value">{{ reservation.totalPrice }}€</span>
+                          </div>
+                          <div class="detail-row">
+                            <span class="label">{{ 'reservations.admin.reservedBy' | translate }}</span>
+                            <span class="value">{{ reservation.user?.firstName }} {{ reservation.user?.lastName }}</span>
+                          </div>
+                          <div class="detail-row">
+                            <span class="label">{{ 'reservations.admin.reservedOn' | translate }}</span>
+                            <span class="value">{{ formatReservationCreatedDate(reservation.createdAt) }}</span>
+                          </div>
+                          @if (reservation.accessCode) {
+                            <div class="detail-row">
+                              <span class="label">{{ 'reservations.admin.accessCode' | translate }}</span>
+                              <span class="value code">{{ reservation.accessCode.code }}</span>
+                            </div>
+                          }
+                        </div>
+                        
+                        <div class="reservation-actions">
+                          <button 
+                            tuiButton 
+                            appearance="primary" 
+                            size="s" 
+                            (click)="goToReservation(reservation.id)"
+                          >
+                            <tui-icon icon="@tui.eye" />
+                            {{ 'reservations.admin.view' | translate }}
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="no-reservations">
+                    <tui-icon icon="@tui.calendar" class="empty-icon" />
+                    <p>{{ 'reservations.admin.noReservations' | translate }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- TTLink Section -->
+      @if (space()?.digitalLockId) {
+      <section class="detail-section ttlink-section">
+        <h2>{{ 'spaces.admin.digitalLockInfo' | translate }}</h2>
+        
+        <div class="ttlink-content">
+          <div class="ttlink-info">
+            <tui-icon icon="@tui.key" class="ttlink-icon" />
+            <div class="ttlink-details">
+              <p class="ttlink-label">{{ 'spaces.admin.digitalLockInfo' | translate }}</p>
+              <p class="ttlink-value">{{ digitalLockName() }}</p>
+            </div>
+          </div>
+
+          <div class="ttlink-actions">
+            <button 
+              tuiButton 
+              appearance="primary" 
+              size="m" 
+              (click)="generateAccessCode()"
+              [disabled]="generatingCode()"
+            >
+              @if (generatingCode()) {
+                <tui-loader size="s" />
+              } @else {
+                <tui-icon icon="@tui.key" />
+              }
+              {{ 'spaces.admin.generateAccessCode' | translate }}
+            </button>
+          </div>
+
+          @if (generatedCode()) {
+            <div class="generated-code">
+              <div class="code-display">
+                <span class="code-label">{{ 'Code d\'accès' }}:</span>
+                <span class="code-value">{{ generatedCode()?.code }}</span>
+              </div>
+              <div class="code-info">
+                <span class="code-expiry">{{ 'Expire le' }}: {{ formatExpiryDate(generatedCode()?.expiresAt) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+      } @else {
+      <section class="detail-section ttlink-section empty">
+        <h2>{{ 'spaces.admin.digitalLockInfo' | translate }}</h2>
+        <p class="empty-message">{{ 'spaces.admin.noTtlinkAssociated' | translate }}</p>
+      </section>
+      }
+
+    </div>
+  </div>
+  }
+</div>
+

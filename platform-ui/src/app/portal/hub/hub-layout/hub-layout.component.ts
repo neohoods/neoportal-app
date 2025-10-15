@@ -1,24 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { tuiAsPortal, TuiPortals } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiAutoColorPipe,
-  TuiButton,
   TuiDataList,
   TuiDropdown,
   TuiDropdownService,
   TuiIcon,
   TuiInitialsPipe,
-  TuiNotification,
   TuiRoot
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
-  TuiChevron,
   TuiFade,
   TuiTabs
 } from '@taiga-ui/kit';
@@ -38,21 +35,17 @@ import { ApplicationsComponent } from '../components/applications/applications.c
   imports: [
     CommonModule,
     FooterComponent,
-    RouterLinkActive,
     RouterOutlet,
     TuiRoot,
     FormsModule,
     RouterLink,
     TuiAppearance,
-    TuiButton,
-    TuiChevron,
     TuiAppearance,
     TuiDataList,
     TuiDropdown,
     TuiFade,
     TuiIcon,
     TuiNavigation,
-    TuiNotification,
     TuiTabs,
     NotificationsPopupComponent,
     ProfileCompletionCheckComponent,

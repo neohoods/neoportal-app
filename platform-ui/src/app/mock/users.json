@@ -285,7 +285,7 @@
         "postalCode": "12345",
         "country": "USA",
         "type": "OWNER",
-        "roles": ["hub"],
+        "roles": ["hub","admin"],
         "properties": [
             {
                 "type": "APARTMENT",

@@ -13,8 +13,6 @@ import {
 } from '@taiga-ui/core';
 import {
     TuiDataListWrapper,
-    TuiFilterByInputPipe,
-    TuiHideSelectedPipe,
     TuiSelect
 } from '@taiga-ui/kit';
 import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
@@ -39,8 +37,6 @@ import { EmailTemplatesService } from '../../services/email-templates.service';
         TuiSelectModule,
         TuiSelect,
         TuiDataListWrapper,
-        TuiFilterByInputPipe,
-        TuiHideSelectedPipe,
         TuiLoader,
         QuillModule
     ],
@@ -91,7 +87,7 @@ export class EmailTemplatesEditComponent implements OnInit {
         private translate: TranslateService
     ) {
         this.form = this.fb.group({
-            type: [this.templateTypes[0], [Validators.required]],
+            type: ['', [Validators.required]],
             name: ['', [Validators.required, Validators.minLength(3)]],
             subject: ['', [Validators.required, Validators.minLength(3)]],
             content: ['', [Validators.required]],

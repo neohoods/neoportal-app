@@ -1,0 +1,50 @@
+<div class="space-settings-container">
+    <h2>
+        {{ 'spaces.settings.title' | translate }}
+    </h2>
+    <p>
+        {{ 'spaces.settings.platformFeeConfiguration' | translate }}
+    </p>
+
+    <form
+        [formGroup]="spaceSettingsForm"
+        (ngSubmit)="onSubmit()"
+        class="tui-space_top-4"
+    >
+        <tui-textfield>
+            <label tuiLabel>
+                {{ 'spaces.settings.platformFeePercentage' | translate }}
+            </label>
+            <input
+                tuiInputNumber
+                formControlName="platformFeePercentage"
+                placeholder="2.0"
+                [min]="0"
+                [max]="100"
+                [postfix]="'%'"
+            >
+        </tui-textfield>
+
+        <tui-textfield class="tui-space_top-4">
+            <label tuiLabel>
+                {{ 'spaces.settings.platformFixedFee' | translate }}
+            </label>
+            <input
+                tuiInputNumber
+                formControlName="platformFixedFee"
+                placeholder="0.25"
+                [min]="0"
+                [postfix]="'€'"
+            >
+        </tui-textfield>
+
+        <button
+            tuiButton
+            type="submit"
+            [disabled]="spaceSettingsForm.invalid || spaceSettingsForm.pristine"
+            class="tui-space_top-4"
+        >
+            {{ 'spaces.settings.save' | translate }}
+        </button>
+    </form>
+</div>

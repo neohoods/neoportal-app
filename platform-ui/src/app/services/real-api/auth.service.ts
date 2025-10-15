@@ -4,7 +4,7 @@ import { TuiAlertService } from '@taiga-ui/core';
 import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { AuthApiService, ProfileHubApiService, Property, SsoPublicApiService, User } from '../../api-client';
-import { UIProperty, UIPropertyType, UIUser, UIUserType } from '../../models/UIUser';
+import { UIProperty, UIUser, UIUserType } from '../../models/UIUser';
 import { AuthService, UserInfo } from '../auth.service';
 
 @Injectable({
@@ -35,6 +35,8 @@ export class APIAuthService implements AuthService {
       type: UIUserType.EXTERNAL,
       roles: ['hub'],
       properties: [],
+      preferredLanguage: 'fr',
+      createdAt: new Date().toISOString()
     },
   };
 
@@ -98,10 +100,10 @@ export class APIAuthService implements AuthService {
 
         return {
           ...user,
-          type: user.type as UIUserType,
+          type: user.type as any,
           properties: (user.properties ?? []).map((property: Property) => ({
             ...property,
-            type: property.type as UIPropertyType,
+            type: property.type as any,
           })) as UIProperty[],
         } as UIUser;
       })
@@ -145,14 +147,16 @@ export class APIAuthService implements AuthService {
               lastName: user.lastName ?? 'unknown',
               streetAddress: user.streetAddress ?? 'unknown',
               city: user.city ?? 'unknown',
-              type: user.type as UIUserType,
+              type: user.type as any,
               roles: user.roles ?? ['hub'],
               properties: (user.properties ?? []).map((property: Property) => ({
                 ...property,
-                type: property.type as UIPropertyType,
+                type: property.type as any,
               })) as UIProperty[],
               postalCode: user.postalCode ?? 'unknown',
               country: user.country ?? 'unknown',
+              preferredLanguage: user.preferredLanguage ?? 'fr',
+              createdAt: user.createdAt ?? new Date().toISOString()
             };
             // Update userRoles with the actual user roles
             this.userRoles = user.roles ?? ['hub'];
@@ -186,7 +190,7 @@ export class APIAuthService implements AuthService {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        type: type,
+        type: type as any,
         password: password,
       })
       .pipe(
@@ -214,10 +218,12 @@ export class APIAuthService implements AuthService {
               roles: response.user.roles ?? ['hub'],
               properties: (response.user.properties ?? []).map((property: any) => ({
                 ...property,
-                type: property.type as UIPropertyType,
+                type: property.type as any,
               })) as UIProperty[],
               postalCode: response.user.postalCode ?? 'unknown',
               country: response.user.country ?? 'unknown',
+              preferredLanguage: response.user.preferredLanguage ?? 'fr',
+              createdAt: response.user.createdAt ?? new Date().toISOString()
             };
           }
 

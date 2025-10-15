@@ -280,7 +280,7 @@ paths:
           required: false
           schema:
             type: integer
-            default: 1
+            default: 0
         - name: pageSize
           in: query
           description: Number of announcements per page
@@ -777,6 +777,39 @@ paths:
                 items:
                   $ref: "#/components/schemas/HelpArticle"
 
+  /admin/users/batch:
+    post:
+      operationId: getUsersByIds
+      summary: Retrieve multiple users by their IDs
+      tags:
+        - users-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+              required:
+                - userIds
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /admin/users:
     get:
       operationId: getUsers
@@ -970,6 +1003,38 @@ paths:
                   ssoScope:
                     type: string
                     example: "openid profile email"
+
+  /admin/settings/spaces:
+    get:
+      operationId: getSpaceSettings
+      summary: Retrieve space settings
+      tags:
+        - space-settings-admin-api
+      responses:
+        "200":
+          description: Space settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformFeeSettings"
+    post:
+      operationId: saveSpaceSettings
+      summary: Save space settings
+      tags:
+        - space-settings-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformFeeSettings"
+      responses:
+        "200":
+          description: Space settings saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformFeeSettings"
 
   /public/settings:
     get:
@@ -1179,7 +1244,7 @@ paths:
           required: false
           schema:
             type: integer
-            default: 1
+            default: 0
         - name: pageSize
           in: query
           description: Number of newsletters per page
@@ -1414,7 +1479,7 @@ paths:
           required: false
           schema:
             type: integer
-            default: 1
+            default: 0
         - name: pageSize
           in: query
           description: Number of log entries per page
@@ -1585,6 +1650,1219 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
+  # ========================================
+  # SPACES & RESERVATIONS API
+  # ========================================
+
+  /spaces/spaces:
+    get:
+      operationId: getSpaces
+      summary: Retrieve all available spaces
+      tags:
+        - spaces-api
+      parameters:
+        - name: type
+          in: query
+          description: Filter by space type
+          required: false
+          schema:
+            $ref: "#/components/schemas/SpaceType"
+        - name: available
+          in: query
+          description: Filter by availability
+          required: false
+          schema:
+            type: boolean
+        - name: startDate
+          in: query
+          description: Filter by start date
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: Filter by end date
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          description: Search query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (1-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+      responses:
+        "200":
+          description: A paginated list of spaces
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSpaces"
+
+  /spaces/spaces/{space-id}:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getSpace
+      summary: Retrieve a specific space by ID
+      tags:
+        - spaces-api
+      responses:
+        "200":
+          description: A single space
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /spaces/spaces/{space-id}/shared-reservations:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getSharedSpaceReservations
+      summary: Retrieve reservations of spaces that share the same physical space
+      description: Returns all reservations from spaces that share the physical space with this space, useful for displaying in calendars
+      tags:
+        - spaces-api
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for filtering reservations
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date for filtering reservations
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: List of reservations from shared spaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /spaces/spaces/{space-id}/availability:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getSpaceAvailability
+      summary: Check availability for a space in a date range
+      tags:
+        - spaces-api
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Availability information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponse"
+
+  /spaces/reservations:
+    get:
+      operationId: getMyReservations
+      summary: Retrieve current user's reservations
+      tags:
+        - reservations-api
+      parameters:
+        - name: status
+          in: query
+          description: Filter by reservation status
+          required: false
+          schema:
+            $ref: "#/components/schemas/ReservationStatus"
+        - name: spaceType
+          in: query
+          description: Filter by space type
+          required: false
+          schema:
+            $ref: "#/components/schemas/SpaceType"
+        - name: page
+          in: query
+          description: Page number (1-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: A paginated list of user's reservations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReservations"
+
+    post:
+      operationId: createReservation
+      summary: Create a new reservation
+      tags:
+        - reservations-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservationRequest"
+      responses:
+        "201":
+          description: Reservation created with Stripe checkout session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateReservationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Conflict - dates not available or quota exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodedError"
+
+  /spaces/reservations/{reservation-id}:
+    parameters:
+      - name: reservation-id
+        in: path
+        description: Reservation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getReservation
+      summary: Retrieve a specific reservation
+      tags:
+        - reservations-api
+      responses:
+        "200":
+          description: A single reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: cancelReservation
+      summary: Cancel a reservation
+      tags:
+        - reservations-api
+      responses:
+        "200":
+          description: Reservation cancelled, refund initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  refundAmount:
+                    type: number
+                    format: float
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          description: Cannot cancel (too late or already completed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodedError"
+
+  /spaces/reservations/{reservation-id}/feedback:
+    parameters:
+      - name: reservation-id
+        in: path
+        description: Reservation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: submitReservationFeedback
+      summary: Submit feedback after reservation completion
+      tags:
+        - reservations-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationFeedbackRequest"
+      responses:
+        "201":
+          description: Feedback submitted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /spaces/reservations/{reservation-id}/payment:
+    parameters:
+      - name: reservation-id
+        in: path
+        description: Reservation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: initiatePayment
+      summary: Initiate payment for a reservation
+      tags:
+        - reservations-api
+      responses:
+        "200":
+          description: Payment session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSessionResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          description: Cannot initiate payment (reservation not in valid state)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodedError"
+
+  /public/stripe/webhook:
+    post:
+      operationId: handleStripeWebhook
+      summary: Handle Stripe webhook events
+      tags:
+        - stripe-webhook-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Stripe event payload
+      responses:
+        "200":
+          description: Webhook processed successfully
+        "400":
+          description: Invalid webhook signature
+
+  /public/reservations/{reservationId}/payment/confirm:
+    post:
+      operationId: confirmReservationPayment
+      summary: Confirm reservation payment status
+      tags:
+        - reservations-api
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  description: Stripe checkout session ID
+                  example: "cs_test_123456789"
+                status:
+                  type: string
+                  enum: [success, cancelled]
+                  description: Payment status from frontend
+              required:
+                - sessionId
+                - status
+      responses:
+        "200":
+          description: Payment status confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservationId:
+                    type: string
+                    format: uuid
+                  status:
+                    $ref: "#/components/schemas/ReservationStatus"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/spaces:
+    get:
+      operationId: getAdminSpaces
+      summary: Retrieve all spaces (admin)
+      tags:
+        - spaces-admin-api
+      parameters:
+        - name: type
+          in: query
+          description: Filter by space type
+          required: false
+          schema:
+            $ref: "#/components/schemas/SpaceType"
+        - name: status
+          in: query
+          description: Filter by space status
+          required: false
+          schema:
+            $ref: "#/components/schemas/SpaceStatus"
+        - name: search
+          in: query
+          description: Search query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (1-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: A paginated list of all spaces
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSpaces"
+
+    post:
+      operationId: createSpace
+      summary: Create a new space
+      tags:
+        - spaces-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpaceRequest"
+      responses:
+        "201":
+          description: Space created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+
+  /admin/spaces/{space-id}:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getAdminSpace
+      summary: Retrieve a specific space (admin)
+      tags:
+        - spaces-admin-api
+      responses:
+        "200":
+          description: A single space
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateSpace
+      summary: Update a space
+      tags:
+        - spaces-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpaceRequest"
+      responses:
+        "200":
+          description: Space updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+
+    delete:
+      operationId: deleteSpace
+      summary: Delete a space
+      tags:
+        - spaces-admin-api
+      responses:
+        "204":
+          description: Space deleted successfully
+
+  /admin/spaces/settings:
+    get:
+      operationId: getSpacesSettings
+      summary: Get all configurable space settings
+      tags:
+        - spaces-admin-api
+      responses:
+        "200":
+          description: Space settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformFeeSettings"
+
+    put:
+      operationId: updateSpaceSettings
+      summary: Update space settings
+      tags:
+        - spaces-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformFeeSettings"
+      responses:
+        "200":
+          description: Settings updated successfully
+
+  /admin/reservations:
+    get:
+      operationId: getAdminReservations
+      summary: Retrieve all reservations (admin)
+      tags:
+        - reservations-admin-api
+      parameters:
+        - name: spaceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ReservationStatus"
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: spaceType
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/SpaceType"
+          description: Filter reservations by space type
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search reservations by space name or description
+        - name: page
+          in: query
+          description: Page number (1-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: A paginated list of all reservations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReservations"
+
+  /admin/reservations/{reservation-id}:
+    parameters:
+      - name: reservation-id
+        in: path
+        description: Reservation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getAdminReservation
+      summary: Retrieve a specific reservation (admin)
+      tags:
+        - reservations-admin-api
+      responses:
+        "200":
+          description: A single reservation with full details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+
+  /admin/reservations/{reservation-id}/access-code:
+    parameters:
+      - name: reservation-id
+        in: path
+        description: Reservation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: regenerateAccessCode
+      summary: Regenerate access code for a reservation
+      tags:
+        - reservations-admin-api
+      responses:
+        "200":
+          description: New access code generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessCode"
+
+    get:
+      operationId: getAccessCode
+      summary: Get access code for a reservation
+      tags:
+        - reservations-admin-api
+      responses:
+        "200":
+          description: Access code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessCode"
+
+  /admin/reservations/{reservation-id}/audit-logs:
+    parameters:
+      - name: reservation-id
+        in: path
+        description: Reservation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getReservationAuditLogs
+      summary: Get audit logs for a specific reservation
+      tags:
+        - reservations-admin-api
+      responses:
+        "200":
+          description: Successfully retrieved audit logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReservationAuditLog"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/digital-locks:
+    get:
+      operationId: getDigitalLocks
+      summary: Retrieve all digital locks
+      tags:
+        - digital-lock-admin-api
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/DigitalLockType"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/DigitalLockStatus"
+      responses:
+        "200":
+          description: List of digital locks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DigitalLock"
+
+    post:
+      operationId: createDigitalLock
+      summary: Create a new digital lock
+      tags:
+        - digital-lock-admin-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DigitalLock"
+      responses:
+        "201":
+          description: Digital lock created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigitalLock"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/digital-locks/{lock-id}:
+    get:
+      operationId: getDigitalLock
+      summary: Retrieve a digital lock by ID
+      tags:
+        - digital-lock-admin-api
+      parameters:
+        - name: lock-id
+          in: path
+          required: true
+          description: Digital lock ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Digital lock details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigitalLock"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateDigitalLock
+      summary: Update a digital lock
+      tags:
+        - digital-lock-admin-api
+      parameters:
+        - name: lock-id
+          in: path
+          required: true
+          description: Digital lock ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DigitalLock"
+      responses:
+        "200":
+          description: Digital lock updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigitalLock"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    delete:
+      operationId: deleteDigitalLock
+      summary: Delete a digital lock
+      tags:
+        - digital-lock-admin-api
+      parameters:
+        - name: lock-id
+          in: path
+          required: true
+          description: Digital lock ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Digital lock deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/digital-locks/{lock-id}/status:
+    patch:
+      operationId: updateDigitalLockStatus
+      summary: Update digital lock status
+      tags:
+        - digital-lock-admin-api
+      parameters:
+        - name: lock-id
+          in: path
+          required: true
+          description: Digital lock ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: "#/components/schemas/DigitalLockStatus"
+      responses:
+        "200":
+          description: Digital lock status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigitalLock"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/digital-locks/{lock-id}/generate-code:
+    post:
+      operationId: generateDigitalLockAccessCode
+      summary: Generate a temporary access code for a digital lock
+      tags:
+        - digital-lock-admin-api
+      parameters:
+        - name: lock-id
+          in: path
+          required: true
+          description: Digital lock ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                duration:
+                  type: integer
+                  description: Duration in hours
+                  example: 24
+                reason:
+                  type: string
+                  description: Reason for generating the code
+                  example: "Temporary access for maintenance"
+      responses:
+        "200":
+          description: Access code generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessCode"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /admin/digital-locks/stats:
+    get:
+      operationId: getDigitalLockStats
+      summary: Get digital lock statistics
+      tags:
+        - digital-lock-admin-api
+      responses:
+        "200":
+          description: Digital lock statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  byStatus:
+                    type: object
+                    properties:
+                      active:
+                        type: integer
+                      inactive:
+                        type: integer
+                      error:
+                        type: integer
+                  byType:
+                    type: object
+                    properties:
+                      ttlock:
+                        type: integer
+                      nuki:
+                        type: integer
+                      yale:
+                        type: integer
+                      other:
+                        type: integer
+
+  /admin/spaces/{space-id}/statistics:
+    get:
+      operationId: getSpaceStatistics
+      summary: Get statistics for a specific space
+      tags:
+        - spaces-admin-api
+      parameters:
+        - name: space-id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Space statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceStatistics"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Image endpoints
+  /api/spaces/images/{imageId}:
+    get:
+      operationId: getImage
+      summary: Get image by ID
+      tags:
+        - images-api
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Image data
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Image not found
+
+  /api/spaces/images/{imageId}/metadata:
+    get:
+      operationId: getImageMetadata
+      summary: Get image metadata
+      tags:
+        - images-api
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Image metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageMetadata"
+        "404":
+          description: Image not found
+
+  /api/admin/images/spaces/{spaceId}:
+    post:
+      operationId: uploadSpaceImage
+      summary: Upload image for a space
+      tags:
+        - images-admin-api
+      parameters:
+        - name: spaceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                altText:
+                  type: string
+                isPrimary:
+                  type: boolean
+                  default: false
+                orderIndex:
+                  type: integer
+      responses:
+        "200":
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceImage"
+        "400":
+          description: Bad request
+        "404":
+          description: Space not found
+    get:
+      operationId: getSpaceImages
+      summary: Get all images for a space
+      tags:
+        - images-admin-api
+      parameters:
+        - name: spaceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of space images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SpaceImage"
+        "404":
+          description: Space not found
+
+  /api/admin/images/spaces/{spaceId}/url:
+    post:
+      operationId: addExternalImage
+      summary: Add external image URL to a space
+      tags:
+        - images-admin-api
+      parameters:
+        - name: spaceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                altText:
+                  type: string
+                isPrimary:
+                  type: boolean
+                  default: false
+                orderIndex:
+                  type: integer
+              required:
+                - url
+      responses:
+        "200":
+          description: External image added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceImage"
+        "404":
+          description: Space not found
+
+  /api/admin/images/{imageId}:
+    put:
+      operationId: updateImage
+      summary: Update image metadata
+      tags:
+        - images-admin-api
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                altText:
+                  type: string
+                isPrimary:
+                  type: boolean
+                orderIndex:
+                  type: integer
+      responses:
+        "200":
+          description: Image updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceImage"
+        "404":
+          description: Image not found
+    delete:
+      operationId: deleteImage
+      summary: Delete an image
+      tags:
+        - images-admin-api
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Image deleted successfully
+        "404":
+          description: Image not found
+
 components:
   #####################################################
   # Predefined Components
@@ -1614,6 +2892,942 @@ components:
         type: string
         format: uuid
   schemas:
+    # ========================================
+    # SPACES & RESERVATIONS SCHEMAS
+    # ========================================
+
+    SpaceType:
+      type: string
+      enum:
+        - GUEST_ROOM
+        - COMMON_ROOM
+        - COWORKING
+        - PARKING
+      description: Type of space available for reservation
+
+    SpaceStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - MAINTENANCE
+      description: Current status of the space
+
+    Space:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - status
+        - description
+        - instructions
+        - pricing
+        - rules
+        - images
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Chambre d'amis - Appartement 2A"
+        type:
+          $ref: "#/components/schemas/SpaceType"
+        status:
+          $ref: "#/components/schemas/SpaceStatus"
+        description:
+          type: string
+          example: "Chambre d'amis de 15m² avec lit double, bureau et placard"
+        instructions:
+          type: string
+          example: "Code d'accès envoyé par email. Nettoyage obligatoire avant départ."
+        pricing:
+          $ref: "#/components/schemas/SpacePricing"
+        rules:
+          $ref: "#/components/schemas/SpaceRules"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceImage"
+        quota:
+          $ref: "#/components/schemas/QuotaInfo"
+        digitalLockId:
+          type: string
+          format: uuid
+          description: "ID of associated digital lock"
+        accessCodeEnabled:
+          type: boolean
+          default: true
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SpacePricing:
+      type: object
+      required:
+        - ownerPrice
+        - tenantPrice
+        - currency
+      properties:
+        ownerPrice:
+          type: number
+          format: float
+          example: 15.0
+          description: "Daily price for owners (propriétaires)"
+        tenantPrice:
+          type: number
+          format: float
+          example: 20.0
+          description: "Daily price for tenants (locataires)"
+        currency:
+          type: string
+          example: "EUR"
+        cleaningFee:
+          type: number
+          format: float
+          example: 25.0
+        deposit:
+          type: number
+          format: float
+          example: 50.0
+
+    PlatformFeeSettings:
+      type: object
+      required:
+        - platformFeePercentage
+        - platformFixedFee
+      properties:
+        platformFeePercentage:
+          type: number
+          format: float
+          example: 2.0
+          description: "Platform fee percentage (e.g., 2.0 for 2.0%)"
+        platformFixedFee:
+          type: number
+          format: float
+          example: 0.25
+          description: "Fixed platform fee per transaction in euros"
+
+    SpaceRules:
+      type: object
+      required:
+        - minDurationDays
+        - maxDurationDays
+        - maxReservationsPerYear
+        - allowedDays
+        - allowedHours
+      properties:
+        minDurationDays:
+          type: integer
+          minimum: 1
+          example: 3
+        maxDurationDays:
+          type: integer
+          minimum: 1
+          example: 7
+        maxReservationsPerYear:
+          type: integer
+          minimum: 1
+          example: 4
+        allowedDays:
+          type: array
+          items:
+            type: string
+            enum:
+              [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY",
+              ]
+          example: ["WEDNESDAY", "SATURDAY", "SUNDAY"]
+        allowedHours:
+          $ref: "#/components/schemas/TimeRange"
+        cleaningDays:
+          type: array
+          items:
+            type: string
+            enum:
+              [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY",
+              ]
+          example: ["MONDAY", "FRIDAY"]
+        requiresApartmentAccess:
+          type: boolean
+          example: true
+        shareSpaceWith:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: "Liste des UUIDs des espaces qui partagent le même espace physique. La bidirectionnalité est gérée automatiquement par le backend."
+          example: ["550e8400-e29b-41d4-a716-446655440001"]
+
+    TimeRange:
+      type: object
+      required:
+        - start
+        - end
+      properties:
+        start:
+          type: string
+          pattern: "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+          example: "08:00"
+        end:
+          type: string
+          pattern: "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+          example: "20:00"
+
+    QuotaInfo:
+      type: object
+      required:
+        - max
+        - period
+      properties:
+        max:
+          type: integer
+          minimum: 1
+          example: 4
+        period:
+          type: string
+          enum: ["YEAR", "MONTH", "WEEK"]
+          example: "YEAR"
+        resetDate:
+          type: string
+          format: date
+          example: "2024-01-01"
+
+    ReservationStatus:
+      type: string
+      enum:
+        - PENDING_PAYMENT
+        - PAYMENT_FAILED
+        - EXPIRED
+        - CONFIRMED
+        - ACTIVE
+        - COMPLETED
+        - CANCELLED
+        - REFUNDED
+      description: Current status of the reservation
+
+    Reservation:
+      type: object
+      required:
+        - id
+        - spaceId
+        - userId
+        - startDate
+        - endDate
+        - status
+        - totalPrice
+        - currency
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        spaceId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        space:
+          $ref: "#/components/schemas/Space"
+        user:
+          $ref: "#/components/schemas/User"
+        startDate:
+          type: string
+          format: date
+          example: "2024-02-15"
+        endDate:
+          type: string
+          format: date
+          example: "2024-02-18"
+        status:
+          $ref: "#/components/schemas/ReservationStatus"
+        totalPrice:
+          type: number
+          format: float
+          example: 60.0
+        currency:
+          type: string
+          example: "EUR"
+        cleaningFee:
+          type: number
+          format: float
+          example: 25.0
+        deposit:
+          type: number
+          format: float
+          example: 50.0
+        platformFeeAmount:
+          type: number
+          format: float
+          example: 1.2
+          description: "Platform fee amount (percentage-based)"
+        platformFixedFeeAmount:
+          type: number
+          format: float
+          example: 0.25
+          description: "Fixed platform fee amount per transaction"
+        stripeSessionId:
+          type: string
+          example: "cs_test_123456789"
+        stripePaymentIntentId:
+          type: string
+          example: "pi_123456789"
+        accessCode:
+          $ref: "#/components/schemas/AccessCode"
+        feedback:
+          $ref: "#/components/schemas/ReservationFeedback"
+        paymentExpiresAt:
+          type: string
+          format: date-time
+          description: "When the payment expires (15 minutes after creation)"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ReservationAuditLog:
+      type: object
+      required:
+        - id
+        - reservationId
+        - eventType
+        - logMessage
+        - performedBy
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        reservationId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - STATUS_CHANGE
+            - CODE_GENERATED
+            - CODE_REGENERATED
+            - PAYMENT_RECEIVED
+            - CANCELLED
+            - CONFIRMED
+            - ENTRY_LOGGED
+            - EXIT_LOGGED
+        oldValue:
+          type: string
+          nullable: true
+        newValue:
+          type: string
+          nullable: true
+        logMessage:
+          type: string
+        performedBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateReservationRequest:
+      type: object
+      required:
+        - spaceId
+        - startDate
+        - endDate
+      properties:
+        spaceId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        specialRequests:
+          type: string
+          maxLength: 500
+
+    CreateReservationResponse:
+      type: object
+      required:
+        - reservation
+      properties:
+        reservation:
+          $ref: "#/components/schemas/Reservation"
+
+    PaymentSessionResponse:
+      type: object
+      required:
+        - stripeCheckoutUrl
+        - paymentIntentId
+      properties:
+        stripeCheckoutUrl:
+          type: string
+          format: uri
+          example: "https://checkout.stripe.com/c/pay/cs_test_123456789"
+        paymentIntentId:
+          type: string
+          example: "pi_123456789"
+
+    AvailabilityResponse:
+      type: object
+      required:
+        - available
+        - conflicts
+        - quota
+      properties:
+        available:
+          type: boolean
+        conflicts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReservationConflict"
+        quota:
+          $ref: "#/components/schemas/QuotaInfo"
+        price:
+          type: number
+          format: float
+        currency:
+          type: string
+
+    ReservationConflict:
+      type: object
+      required:
+        - type
+        - message
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              "SAME_DAY_BLOCK",
+              "QUOTA_EXCEEDED",
+              "CLEANING_DAY",
+              "VACATION_PERIOD",
+            ]
+        message:
+          type: string
+        conflictingReservationId:
+          type: string
+          format: uuid
+
+    AccessCode:
+      type: object
+      required:
+        - code
+        - generatedAt
+        - expiresAt
+      properties:
+        code:
+          type: string
+          example: "ABC123"
+        generatedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+          example: true
+
+    ReservationFeedback:
+      type: object
+      required:
+        - rating
+        - comment
+        - submittedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+        comment:
+          type: string
+          maxLength: 1000
+        cleanliness:
+          type: integer
+          minimum: 1
+          maximum: 5
+        communication:
+          type: integer
+          minimum: 1
+          maximum: 5
+        value:
+          type: integer
+          minimum: 1
+          maximum: 5
+        submittedAt:
+          type: string
+          format: date-time
+
+    ReservationFeedbackRequest:
+      type: object
+      required:
+        - rating
+        - comment
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          maxLength: 1000
+        cleanliness:
+          type: integer
+          minimum: 1
+          maximum: 5
+        communication:
+          type: integer
+          minimum: 1
+          maximum: 5
+        value:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    QuotaResponse:
+      type: object
+      required:
+        - spaceType
+        - max
+        - remaining
+        - period
+      properties:
+        spaceType:
+          $ref: "#/components/schemas/SpaceType"
+        max:
+          type: integer
+          minimum: 1
+        remaining:
+          type: integer
+          minimum: 0
+        period:
+          type: string
+          enum: ["YEAR", "MONTH", "WEEK"]
+        resetDate:
+          type: string
+          format: date
+
+    SpaceRequest:
+      type: object
+      required:
+        - name
+        - type
+        - description
+        - instructions
+        - pricing
+        - rules
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        type:
+          $ref: "#/components/schemas/SpaceType"
+        description:
+          type: string
+          maxLength: 1000
+        instructions:
+          type: string
+          maxLength: 2000
+        pricing:
+          $ref: "#/components/schemas/SpacePricing"
+        rules:
+          $ref: "#/components/schemas/SpaceRules"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceImage"
+        digitalLockId:
+          type: string
+          format: uuid
+          description: "ID of associated digital lock"
+        status:
+          $ref: "#/components/schemas/SpaceStatus"
+          description: "Space status (optional for updates)"
+
+    SpaceTypeSettings:
+      type: object
+      required:
+        - guestRoomSettings
+        - commonRoomSettings
+        - coworkingSettings
+        - parkingSettings
+      properties:
+        guestRoomSettings:
+          $ref: "#/components/schemas/GuestRoomSettings"
+        commonRoomSettings:
+          $ref: "#/components/schemas/CommonRoomSettings"
+        coworkingSettings:
+          $ref: "#/components/schemas/CoworkingSettings"
+        parkingSettings:
+          $ref: "#/components/schemas/ParkingSettings"
+
+    GuestRoomSettings:
+      type: object
+      required:
+        - minDurationDays
+        - maxDurationDays
+        - maxReservationsPerYear
+        - cleaningDays
+        - cleaningFee
+        - ownerPrice
+        - tenantPrice
+      properties:
+        minDurationDays:
+          type: integer
+          minimum: 1
+        maxDurationDays:
+          type: integer
+          minimum: 1
+        maxReservationsPerYear:
+          type: integer
+          minimum: 1
+        cleaningDays:
+          type: array
+          items:
+            type: string
+            enum:
+              [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY",
+              ]
+        cleaningFee:
+          type: number
+          format: float
+        ownerPrice:
+          type: number
+          format: float
+        tenantPrice:
+          type: number
+          format: float
+
+    CommonRoomSettings:
+      type: object
+      required:
+        - allowedDays
+        - allowedHours
+        - ownerPrice
+        - tenantPrice
+        - vacationPeriods
+      properties:
+        allowedDays:
+          type: array
+          items:
+            type: string
+            enum:
+              [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY",
+              ]
+        allowedHours:
+          $ref: "#/components/schemas/TimeRange"
+        ownerPrice:
+          type: number
+          format: float
+        tenantPrice:
+          type: number
+          format: float
+        vacationPeriods:
+          type: array
+          items:
+            $ref: "#/components/schemas/DateRange"
+
+    CoworkingSettings:
+      type: object
+      required:
+        - maxDesks
+        - maxDurationDays
+        - ownerPrice
+        - tenantPrice
+      properties:
+        maxDesks:
+          type: integer
+          minimum: 1
+        maxDurationDays:
+          type: integer
+          minimum: 1
+        ownerPrice:
+          type: number
+          format: float
+        tenantPrice:
+          type: number
+          format: float
+
+    ParkingSettings:
+      type: object
+      required:
+        - maxDurationDays
+        - numberedSpots
+      properties:
+        maxDurationDays:
+          type: integer
+          minimum: 1
+        numberedSpots:
+          type: array
+          items:
+            type: string
+          example: ["A1", "A2", "B1", "B2"]
+
+    DateRange:
+      type: object
+      required:
+        - startDate
+        - endDate
+      properties:
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reason:
+          type: string
+          example: "Vacances d'été"
+
+    SpaceStatistics:
+      type: object
+      required:
+        - spaceId
+        - spaceName
+        - period
+        - occupancyRate
+        - totalRevenue
+        - totalReservations
+        - totalDaysBooked
+        - averageReservationDuration
+        - topUsers
+        - occupancyCalendar
+        - monthlyOccupancy
+      properties:
+        spaceId:
+          type: string
+          format: uuid
+        spaceName:
+          type: string
+        period:
+          type: object
+          required:
+            - startDate
+            - endDate
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+        occupancyRate:
+          type: number
+          format: double
+          description: Percentage of occupied days
+        totalRevenue:
+          type: number
+          format: double
+          description: Total revenue generated in euros
+        totalReservations:
+          type: integer
+          description: Total number of reservations
+        totalDaysBooked:
+          type: integer
+          description: Total number of days booked
+        averageReservationDuration:
+          type: number
+          format: double
+          description: Average duration of reservations in days
+        topUsers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopUser"
+        occupancyCalendar:
+          type: array
+          items:
+            $ref: "#/components/schemas/OccupancyCalendarDay"
+        monthlyOccupancy:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyOccupancy"
+
+    TopUser:
+      type: object
+      required:
+        - userId
+        - userName
+        - userEmail
+        - reservationCount
+        - totalDays
+        - totalSpent
+      properties:
+        userId:
+          type: string
+        userName:
+          type: string
+        userEmail:
+          type: string
+          format: email
+        reservationCount:
+          type: integer
+        totalDays:
+          type: integer
+        totalSpent:
+          type: number
+          format: double
+
+    OccupancyCalendarDay:
+      type: object
+      required:
+        - date
+        - isOccupied
+      properties:
+        date:
+          type: string
+          format: date
+        isOccupied:
+          type: boolean
+        reservationId:
+          type: string
+        userName:
+          type: string
+
+    MonthlyOccupancy:
+      type: object
+      required:
+        - month
+        - daysOccupied
+        - daysAvailable
+      properties:
+        month:
+          type: string
+          description: Month abbreviation (e.g., "Jan", "Fév")
+        daysOccupied:
+          type: integer
+          description: Number of days occupied in the month
+        daysAvailable:
+          type: integer
+          description: Total number of days available in the month
+
+    # ========================================
+    # PAGINATION SCHEMAS
+    # ========================================
+
+    PaginatedSpaces:
+      type: object
+      required:
+        - content
+        - totalElements
+        - totalPages
+        - size
+        - number
+        - first
+        - last
+        - numberOfElements
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Space"
+        totalElements:
+          type: long
+          description: Total number of elements across all pages
+        totalPages:
+          type: integer
+          description: Total number of pages
+        size:
+          type: integer
+          description: Number of elements per page
+        number:
+          type: integer
+          description: Current page number (0-based)
+        first:
+          type: boolean
+          description: Whether this is the first page
+        last:
+          type: boolean
+          description: Whether this is the last page
+        numberOfElements:
+          type: integer
+          description: Number of elements in current page
+
+    PaginatedReservations:
+      type: object
+      required:
+        - content
+        - totalElements
+        - totalPages
+        - size
+        - number
+        - first
+        - last
+        - numberOfElements
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reservation"
+        totalElements:
+          type: number
+          description: Total number of elements across all pages
+        totalPages:
+          type: integer
+          description: Total number of pages
+        size:
+          type: integer
+          description: Number of elements per page
+        number:
+          type: integer
+          description: Current page number (0-based)
+        first:
+          type: boolean
+          description: Whether this is the first page
+        last:
+          type: boolean
+          description: Whether this is the last page
+        numberOfElements:
+          type: integer
+          description: Number of elements in current page
+
+    # ========================================
+    # EXISTING SCHEMAS
+    # ========================================
+
     User:
       type: object
       required:
@@ -1781,6 +3995,94 @@ components:
           type: string
           description: The validation error message
           example: must be a valid email
+
+    DigitalLock:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Entrée principale"
+        type:
+          $ref: "#/components/schemas/DigitalLockType"
+        status:
+          $ref: "#/components/schemas/DigitalLockStatus"
+        ttlockConfig:
+          $ref: "#/components/schemas/TtlockConfig"
+        nukiConfig:
+          $ref: "#/components/schemas/NukiConfig"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TtlockConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceId:
+          type: string
+          example: "ttlock-001"
+        location:
+          type: string
+          example: "Entrée principale"
+        batteryLevel:
+          type: integer
+          example: 85
+        signalStrength:
+          type: integer
+          example: -45
+        lastSeen:
+          type: string
+          format: date-time
+
+    NukiConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceId:
+          type: string
+          example: "nuki-001"
+        token:
+          type: string
+          example: "nuki-token-789"
+        batteryLevel:
+          type: integer
+          example: 95
+        lastSeen:
+          type: string
+          format: date-time
+
+    DigitalLockType:
+      type: string
+      enum:
+        - TTLOCK
+        - NUKI
+        - YALE
+      example: "TTLOCK"
+
+    DigitalLockStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - ERROR
+      example: "ACTIVE"
 
     ValidationError:
       allOf:
@@ -2396,6 +4698,69 @@ components:
         message:
           type: string
           description: "Success message"
+
+    SpaceImage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        spaceId:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+          description: External image URL (optional)
+        mimeType:
+          type: string
+          description: MIME type for images stored in database
+        fileName:
+          type: string
+          description: Original filename
+        fileSize:
+          type: integer
+          description: File size in bytes
+        altText:
+          type: string
+          description: Alt text for accessibility
+        isPrimary:
+          type: boolean
+          description: Whether this is the primary image
+        orderIndex:
+          type: integer
+          description: Display order
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ImageMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        altText:
+          type: string
+        isPrimary:
+          type: boolean
+        orderIndex:
+          type: integer
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+        mimeType:
+          type: string
+        storedInDatabase:
+          type: boolean
+        externalUrl:
+          type: boolean
+        url:
+          type: string
 
   responses:
     OK_200_GET_HELLO_WORLD:

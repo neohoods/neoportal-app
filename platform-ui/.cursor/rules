@@ -1,0 +1,61 @@
+# Cursor Rules for NeoHoods Platform
+
+## CRITICAL RULE: CODE COMPILATION
+
+- **NEVER** provide code that doesn't compile
+- **ALWAYS** run `npm run build` to verify compilation before presenting code
+- **ALWAYS** fix all TypeScript errors before showing any code changes
+- If compilation fails, fix ALL errors before proceeding
+- Never ask user to review non-compiling code
+
+## Code Quality Standards
+
+- Use TypeScript strict mode compliance
+- Follow Angular best practices
+- Use proper type definitions
+- Ensure all imports are correct
+- Remove unused imports and variables
+- Fix all linting errors
+
+## UI/UX Standards
+
+- Use Taiga UI components consistently
+- Ensure proper i18n with @ngx-translate/core
+- Use white backgrounds for cards as requested
+- Implement proper stringify functions for tui-select components
+- Fix all rendering issues (no [object Object] displays)
+
+## Development Workflow
+
+1. Make changes
+2. Run `npm run build` to verify compilation
+3. Fix any errors found
+4. Only then present the working code to user
+5. Never present broken code for review
+
+## Backend Development Rules
+
+- **NEVER** provide Java code that doesn't compile
+- **ALWAYS** run `mvn compile` or `mvn clean install` to verify compilation
+- **ALWAYS** fix all compilation errors before showing any code
+- Ensure all imports are correct and dependencies are properly declared
+- Follow Spring Boot best practices and conventions
+- Use proper JPA annotations and entity relationships
+- Implement proper error handling and validation
+- Follow REST API design principles
+- Ensure all endpoints have proper OpenAPI documentation
+- Use proper security annotations (@PreAuthorize, @Secured, etc.)
+- Implement proper logging with appropriate levels
+- Follow the established project structure and patterns
+- Use proper exception handling with custom exceptions
+- Implement proper DTOs and mappers
+- Follow database migration best practices with Flyway
+- Ensure proper transaction management
+- Use proper caching strategies where appropriate
+
+## User Feedback Priority
+
+- Address all user feedback immediately
+- Fix filtering issues in admin panels
+- Ensure proper service implementations
+- Follow the established patterns in the codebase

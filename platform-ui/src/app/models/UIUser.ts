@@ -1,53 +1,52 @@
 export interface UIUser {
     id: string;
     username: string;
-
+    email: string;
     firstName: string;
     lastName: string;
-
-    email: string;
-    isEmailVerified: boolean;
-
     avatarUrl?: string;
-
+    phone?: string;
+    isEmailVerified: boolean;
     disabled: boolean;
-    preferredLanguage?: string;
-    profileSharingConsent?: boolean;
-    createdAt?: string;
-
+    preferredLanguage: string;
+    createdAt: string;
+    updatedAt?: string;
+    flatNumber?: string;
+    streetAddress?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
     type: UIUserType;
     roles: string[];
-    properties: UIProperty[];
-
-    //address
-    flatNumber?: string;
-    streetAddress: string;
-    city: string;
-    postalCode: string;
-    country: string;
-}
-
-export interface UIProperty {
-    type: UIPropertyType;
-    name: string;
+    properties?: UIProperty[];
+    profileSharingConsent?: boolean;
 }
 
 export enum UIUserType {
-    ADMIN = 'ADMIN',
     OWNER = 'OWNER',
-    LANDLORD = 'LANDLORD',
     TENANT = 'TENANT',
+    ADMIN = 'ADMIN',
+    MODERATOR = 'MODERATOR',
+    LANDLORD = 'LANDLORD',
     SYNDIC = 'SYNDIC',
-    EXTERNAL = 'EXTERNAL',
-    CONTRACTOR = 'CONTRACTOR',
-    COMMERCIAL_PROPERTY_OWNER = 'COMMERCIAL_PROPERTY_OWNER',
-    GUEST = 'GUEST',
+    EXTERNAL = 'EXTERNAL'
+}
+
+export interface UIProperty {
+    id: string;
+    name: string;
+    type: UIPropertyType;
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    flatNumber?: string;
+    isPrimary: boolean;
 }
 
 export enum UIPropertyType {
     APARTMENT = 'APARTMENT',
-    GARAGE = 'GARAGE',
-    PARKING = 'PARKING',
-    COMMERCIAL = 'COMMERCIAL',
-    OTHER = 'OTHER',
+    HOUSE = 'HOUSE',
+    OFFICE = 'OFFICE',
+    COMMERCIAL = 'COMMERCIAL'
 }

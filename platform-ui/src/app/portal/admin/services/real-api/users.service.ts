@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Property, PropertyType, User, UserType } from '../../../../api-client';
+import { Property, User } from '../../../../api-client';
 import { UsersAdminApiService } from '../../../../api-client/api/usersAdminApi.service';
-import { UIProperty, UIPropertyType, UIUser, UIUserType } from '../../../../models/UIUser';
+import { UIProperty, UIUser } from '../../../../models/UIUser';
 import { UsersService } from '../users.service';
 
 @Injectable({
@@ -21,6 +21,12 @@ export class ApiUsersService implements UsersService {
   getUser(id: string): Observable<UIUser> {
     return this.usersAdminApiService.getUser(id).pipe(
       map((user: User) => this.mapToUIUser(user))
+    );
+  }
+
+  getUsersByIds(userIds: string[]): Observable<UIUser[]> {
+    return this.usersAdminApiService.getUsersByIds({ userIds }).pipe(
+      map((users: User[]) => users.map((user: User) => this.mapToUIUser(user)))
     );
   }
 
@@ -45,10 +51,10 @@ export class ApiUsersService implements UsersService {
       id: uiUser.id,
       email: uiUser.email,
       flatNumber: uiUser.flatNumber,
-      streetAddress: uiUser.streetAddress,
-      city: uiUser.city,
-      postalCode: uiUser.postalCode,
-      country: uiUser.country,
+      streetAddress: uiUser.streetAddress || '',
+      city: uiUser.city || '',
+      postalCode: uiUser.postalCode || '',
+      country: uiUser.country || '',
       username: uiUser.username,
       firstName: uiUser.firstName,
       lastName: uiUser.lastName,
@@ -57,11 +63,11 @@ export class ApiUsersService implements UsersService {
       avatarUrl: uiUser.avatarUrl,
       preferredLanguage: uiUser.preferredLanguage,
       roles: uiUser.roles || [],
-      type: uiUser.type as UserType,
+      type: uiUser.type as any,
       createdAt: uiUser.createdAt,
       properties: (uiUser.properties ?? []).map((property: UIProperty) => ({
         name: property.name,
-        type: property.type as PropertyType,
+        type: property.type as any,
       })) as Property[],
     };
   }
@@ -82,12 +88,12 @@ export class ApiUsersService implements UsersService {
       disabled: user.disabled || false,
       avatarUrl: user.avatarUrl || '',
       preferredLanguage: user.preferredLanguage || '',
-      type: user.type as UIUserType,
+      type: user.type as any,
       roles: user.roles || [],
       createdAt: user.createdAt || '',
       properties: (user.properties ?? []).map((property: Property) => ({
         name: property.name,
-        type: property.type as UIPropertyType,
+        type: property.type as any,
       })) as UIProperty[],
     };
   }

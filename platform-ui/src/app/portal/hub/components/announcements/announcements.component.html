@@ -48,6 +48,7 @@
                 [ngModel]="activePostCategory"
                 (ngModelChange)="changePostCategory($event)"
                 [ngModelOptions]="{standalone: true}"
+                name="postCategory"
                 class="category-dropdown"
             >
                 <option
@@ -152,6 +153,7 @@
             (ngModelChange)="onPageSizeChange($event)"
             [ngModel]="paginationParams().pageSize"
             [ngModelOptions]="{standalone: true}"
+            name="pageSize"
         >
             <option value="5">5</option>
             <option value="10">10</option>

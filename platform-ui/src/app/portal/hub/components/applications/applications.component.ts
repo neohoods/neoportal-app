@@ -1,7 +1,7 @@
 import { CommonModule, NgIf } from '@angular/common';
 import { Component, HostListener, Inject, OnDestroy, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { TuiButton, TuiIcon, TuiNotification } from '@taiga-ui/core';
+import { TuiButton, TuiNotification } from '@taiga-ui/core';
 import { UIApplication } from '../../../../models/UIApplication';
 import { APPLICATIONS_SERVICE_TOKEN } from '../../hub.provider';
 import { ApplicationsService } from '../../services/applications.service';
@@ -10,7 +10,7 @@ import { ApplicationComponent } from '../application/application.component';
 
 @Component({
   selector: 'applications',
-  imports: [ApplicationComponent, TuiNotification, TuiButton, TuiIcon, TranslateModule, CommonModule, NgIf],
+  imports: [ApplicationComponent, TuiNotification, TuiButton, TranslateModule, CommonModule, NgIf],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss'
 })

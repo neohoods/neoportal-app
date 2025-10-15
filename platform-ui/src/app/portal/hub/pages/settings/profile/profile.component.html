@@ -41,7 +41,7 @@
     </div>
     
     <tui-textfield tuiChevron [stringify]="stringifyUserType">
-      <input tuiSelect formControlName="type" />
+      <input tuiSelect formControlName="type" name="type" />
 
       <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="userTypes" [itemContent]="userTypeContent" />
     </tui-textfield>

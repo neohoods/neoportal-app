@@ -20,12 +20,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "user_properties")
 @Data
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "user_properties")
 public class PropertyEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -47,4 +47,5 @@ public class PropertyEntity {
                 .name(name)
                 .build();
     }
+
 }

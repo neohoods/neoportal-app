@@ -1,0 +1,415 @@
+<div class="space-detail-container">
+    <!-- Loading State -->
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader size="l"></tui-loader>
+        <p>
+            {{ 'spaces.detail.loading' | translate }}
+        </p>
+    </div>
+
+    <!-- Error State -->
+    <div
+        *ngIf="error()"
+        class="error-container"
+    >
+        <tui-icon
+            tuiIconAlertCircle
+            size="xl"
+        ></tui-icon>
+        <h3>{{ error() }}</h3>
+        <button
+            tuiButton
+            iconStart="@tui.arrow-left"
+            appearance="primary"
+            size="m"
+            (click)="onBackClick()"
+        >
+            {{ 'spaces.detail.backToList' | translate }}
+        </button>
+    </div>
+
+    <!-- Space Detail -->
+    <div
+        *ngIf="space() && !loading()"
+        class="space-detail"
+    >
+        <!-- Header -->
+        <div class="space-header">
+            <button
+                tuiButton
+                appearance="secondary"
+                size="m"
+                iconStart="@tui.arrow-left"
+                (click)="onBackClick()"
+                class="back-button"
+            >
+                {{ 'spaces.detail.back' | translate }}
+            </button>
+
+            <div class="space-title">
+                <h1>{{ space()!.name }}</h1>
+                <div class="space-meta">
+                    <span class="space-type">
+                        <tui-icon [icon]="getSpaceTypeIcon(space()!.type)"></tui-icon>
+                        {{ getSpaceTypeLabel(space()!.type) }}
+                    </span>
+                    <span
+                        class="space-status"
+                        [class]="'status-' + space()!.status.toLowerCase()"
+                    >
+                        {{ getSpaceStatusLabel(space()!.status) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="space-content">
+            <div class="space-main-section">
+                <!-- Images -->
+                <div
+                    class="space-images"
+                    *ngIf="space()!.images && space()!.images.length > 0"
+                >
+                    <div class="main-image">
+                        <img
+                            [src]="space()!.images[0].url"
+                            [alt]="space()!.name"
+                        >
+                    </div>
+                    <div
+                        class="thumbnail-images"
+                        *ngIf="space()!.images.length > 1"
+                    >
+                        <img
+                            *ngFor="let image of space()!.images.slice(1, 4); let i = index"
+                            [src]="image.url"
+                            [alt]="space()!.name"
+                            class="thumbnail"
+                            (click)="onImageClick(i + 1)"
+                        >
+                    </div>
+                </div>
+
+                <!-- Details -->
+                <div class="space-details">
+                    <!-- Description -->
+                    <section class="detail-section">
+                        <h2>
+                            {{ 'spaces.detail.description' | translate }}
+                        </h2>
+                        <p>{{ space()!.description }}</p>
+                    </section>
+
+                    <!-- Instructions -->
+                    <section
+                        class="detail-section"
+                        *ngIf="space()!.instructions"
+                    >
+                        <h2>
+                            {{ 'spaces.admin.instructions' | translate }}
+                        </h2>
+                        <p>{{ space()!.instructions }}</p>
+                    </section>
+
+                    <!-- Reservation Rules -->
+                    <section class="detail-section rules-section">
+                        <h2>{{ 'spaces.detail.rules' | translate }}</h2>
+                        <div class="rules-grid">
+                            <div
+                                class="rule-item"
+                                *ngIf="space()!.quota"
+                            >
+                                <span class="label">
+                                    {{ 'spaces.detail.capacity' | translate }}
+                                </span>
+                                <span class="value">
+                                    {{ space()!.quota?.max }} {{ 'spaces.admin.people' | translate }}
+                                </span>
+                            </div>
+                            <div class="rule-item">
+                                <span class="label">
+                                    {{ 'spaces.admin.minDurationDays' | translate }}
+                                </span>
+                                <span class="value">
+                                    {{ space()!.rules.minDurationDays }} {{ 'spaces.admin.days' | translate }}
+                                </span>
+                            </div>
+                            <div class="rule-item">
+                                <span class="label">
+                                    {{ 'spaces.admin.maxDurationDays' | translate }}
+                                </span>
+                                <span class="value">
+                                    {{ space()!.rules.maxDurationDays }} {{ 'spaces.admin.days' | translate }}
+                                </span>
+                            </div>
+                            <div class="rule-item">
+                                <span class="label">
+                                    {{ 'spaces.admin.maxReservationsPerYear' | translate }}
+                                </span>
+                                <span class="value">
+                                    {{ space()!.rules.maxReservationsPerYear }} {{ 'spaces.admin.reservations' | translate }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Hours display varies by space type -->
+                        <!-- Guest room: Check-in / Check-out -->
+                        <div
+                            class="hours-info"
+                            *ngIf="space()!.rules?.allowedHours && space()!.type === 'GUEST_ROOM'"
+                        >
+                            <span class="label">
+                                {{ 'spaces.detail.checkin' | translate }}
+                            </span>
+                            <span class="value">{{ space()!.rules.allowedHours.start }}</span>
+                        </div>
+                        <div
+                            class="hours-info"
+                            *ngIf="space()!.rules?.allowedHours && space()!.type === 'GUEST_ROOM'"
+                        >
+                            <span class="label">
+                                {{ 'spaces.detail.checkout' | translate }}
+                            </span>
+                            <span class="value">{{ space()!.rules.allowedHours.end }}</span>
+                        </div>
+
+                        <!-- Common room: de x à x -->
+                        <div
+                            class="hours-info"
+                            *ngIf="space()!.rules?.allowedHours && space()!.type === 'COMMON_ROOM'"
+                        >
+                            <span class="label">{{ 'spaces.card.hours' | translate }}</span>
+                            <span class="value">
+                                {{ space()!.rules.allowedHours.start }} - {{ space()!.rules.allowedHours.end }}
+                            </span>
+                        </div>
+
+                        <!-- Parking & Coworking: à la journée, de x à x -->
+                        <div
+                            class="hours-info"
+                            *ngIf="space()!.rules?.allowedHours && (space()!.type === 'PARKING' || space()!.type === 'COWORKING')"
+                        >
+                            <span class="label">
+                                {{ 'spaces.detail.perDayLabel' | translate }}
+                            </span>
+                            <span class="value">
+                                {{ space()!.rules.allowedHours.start }} - {{ space()!.rules.allowedHours.end }}
+                            </span>
+                        </div>
+
+                        <div
+                            class="days-info"
+                            *ngIf="getAllowedDaysLabels().length > 0"
+                        >
+                            <span class="label">
+                                {{ 'spaces.admin.allowedDays' | translate }}
+                            </span>
+                            <div class="days-list">
+                                <span *ngFor="let day of getAllowedDaysLabels()">
+                                    <tui-chip appearance="primary">{{ day }}</tui-chip>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="days-info"
+                            *ngIf="getCleaningDaysLabels().length > 0"
+                        >
+                            <span class="label">
+                                {{ 'spaces.admin.cleaningDays' | translate }}
+                            </span>
+                            <div class="days-list">
+                                <span *ngFor="let day of getCleaningDaysLabels()">
+                                    <tui-chip appearance="primary">{{ day }}</tui-chip>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="shared-info"
+                            *ngIf="getSharedSpacesLabels().length > 0"
+                        >
+                            <span class="label">
+                                {{ 'spaces.detail.sharedWith' | translate }}
+                            </span>
+                            <div class="shared-list">
+                                <span *ngFor="let space of getSharedSpacesLabels()">
+                                    <tui-chip appearance="primary">{{ space }}</tui-chip>
+                                </span>
+                            </div>
+                            <p class="shared-explanation">
+                                {{ 'spaces.detail.sharedReservationExplanation' | translate }}
+                            </p>
+                        </div>
+
+                        <div
+                            class="access-info"
+                            *ngIf="space()!.rules.requiresApartmentAccess !== undefined"
+                        >
+                            <span class="label">
+                                {{ 'spaces.admin.requiresApartmentAccess' | translate }}
+                            </span>
+                            <span class="value">
+                                {{ space()!.rules.requiresApartmentAccess ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
+                            </span>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="space-details-section">
+                <!-- Actions -->
+                <div class="space-actions">
+
+                    <!-- Calendar Section -->
+                    <div
+                        class="space-calendar-section"
+                        *ngIf="space()"
+                    >
+                        <form [formGroup]="reservationForm">
+                            <space-calendar
+                                [space]="space()!"
+                                [currentUser]="currentUser"
+                                [occupancyMap]="occupancyMap()"
+                                [sharedOccupancyMap]="sharedOccupancyMap()"
+                                [loadingOccupancy]="loadingOccupancy()"
+                                (selectedDate)="onDateSelected($event)"
+                            >
+                            </space-calendar>
+
+                            <!-- Legend for calendar -->
+                            <div
+                                class="calendar-legend"
+                                *ngIf="space()?.rules?.shareSpaceWith?.length"
+                            >
+                                <div class="legend-item">
+                                    <span class="legend-color occupied"></span>
+                                    <span>
+                                        {{ 'spaces.detail.occupied' | translate }}
+                                    </span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color shared"></span>
+                                    <span>
+                                        {{ 'spaces.calendar.sharedReservationLegend' | translate }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <tui-notification
+                                size="s"
+                                [style.visibility]="selectedDate() ? 'hidden' : 'visible'"
+                            >
+                                {{ 'spaces.chooseDateRange' | translate }}
+                            </tui-notification>
+
+                            <!-- Loading indicator for occupancy data -->
+                            <div
+                                *ngIf="loadingOccupancy()"
+                                class="occupancy-loading"
+                            >
+                                <tui-loader size="s"></tui-loader>
+                                <span>
+                                    {{ 'spaces.detail.loadingAvailability' | translate }}
+                                </span>
+                            </div>
+                            <div class="space-reserve-button">
+                                <button
+                                    tuiButton
+                                    appearance="primary"
+                                    iconStart="@tui.calendar"
+                                    size="l"
+                                    (click)="onReserveClick()"
+                                    [disabled]="space()!.status !== 'ACTIVE' || !selectedDate()"
+                                >
+                                    {{ 'spaces.detail.reserveSpace' | translate }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+
+                <!-- Pricing -->
+                <section class="detail-section pricing-section">
+                    <h2>
+                        {{ 'spaces.detail.pricing' | translate }}
+                    </h2>
+                    <div class="pricing-grid">
+                        <div class="pricing-item">
+                            <span class="label">
+                                {{ 'spaces.admin.tenantPrice' | translate }}
+                            </span>
+                            <span class="value">
+                                {{ space()!.pricing.tenantPrice }} €{{ 'spaces.detail.perDay' | translate }}
+                            </span>
+                        </div>
+                        <div class="pricing-item">
+                            <span class="label">
+                                {{ 'spaces.admin.ownerPrice' | translate }}
+                            </span>
+                            <span class="value">
+                                {{ space()!.pricing.ownerPrice }} € {{ 'spaces.detail.perDay' | translate }}
+                            </span>
+                        </div>
+                        <div class="pricing-item">
+                            <span class="label">
+                                {{ 'spaces.admin.cleaningFee' | translate }}
+                            </span>
+                            <span class="value">{{ space()!.pricing.cleaningFee }} €</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span class="label">
+                                {{ 'spaces.admin.deposit' | translate }}
+                            </span>
+                            <span class="value">{{ space()!.pricing.deposit }} €</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Quota Section -->
+                <section
+                    *ngIf="space()!.quota && space()!.type === 'GUEST_ROOM'"
+                    class="detail-section quota-section"
+                >
+                    <h2>
+                        {{ 'spaces.detail.yourQuota' | translate }}
+                    </h2>
+                    <div class="quota-card">
+                        <div class="quota-header">
+                            <tui-icon
+                                icon="@tui.users"
+                                class="quota-icon"
+                            ></tui-icon>
+                            <div class="quota-info">
+                                <div class="quota-title">
+                                    {{ 'spaces.detail.quotaUsage' | translate }}
+                                </div>
+                                <div class="quota-text">{{ getUserQuotaText() }}</div>
+                            </div>
+                        </div>
+                        <div class="quota-chart">
+                            <tui-arc-chart
+                                [size]="chartSize"
+                                [value]="getQuotaChartValue()"
+                                [max]="userQuotaMax()"
+                                class="quota-arc-chart"
+                            >
+                                <div class="quota-center">
+                                    <div class="quota-percentage">
+                                        {{ getUserQuotaProgress() | number:'1.0-0' }}%
+                                    </div>
+                                    <div class="quota-status">{{ 'spaces.detail.used' | translate }}</div>
+                                </div>
+                            </tui-arc-chart>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </div>
+</div>

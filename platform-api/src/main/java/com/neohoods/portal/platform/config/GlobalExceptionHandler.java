@@ -14,6 +14,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.exceptions.CodedException;
+import com.neohoods.portal.platform.exceptions.ResourceNotFoundException;
 import com.neohoods.portal.platform.model.CodedError;
 
 import lombok.extern.slf4j.Slf4j;
@@ -92,6 +93,21 @@ public class GlobalExceptionHandler {
                     .traceId(traceId);
 
             return Mono.just(new ResponseEntity<>(error, HttpStatus.FORBIDDEN));
+        });
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public Mono<ResponseEntity<CodedError>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return Mono.deferContextual(ctx -> {
+            String traceId = ctx.getOrDefault("traceId", generateTraceId());
+            logError(traceId, ex);
+
+            CodedError error = new CodedError()
+                    .code("RES001")
+                    .message("The requested resource was not found")
+                    .traceId(traceId);
+
+            return Mono.just(new ResponseEntity<>(error, HttpStatus.NOT_FOUND));
         });
     }
 
