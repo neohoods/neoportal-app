@@ -22,7 +22,7 @@
         <hoverfly.version>0.14.0</hoverfly.version>
         <google.jib.version>3.4.4</google.jib.version>
         <maven.release.plugin.version>3.1.1</maven.release.plugin.version>
-        <openapi.tool.version>0.2.6</openapi.tool.version>
+        <openapi.tool.version>0.2.8</openapi.tool.version>
         <nimbus.oauth2.version>11.22.2</nimbus.oauth2.version>
         <nimbus.jwt.version>10.0.1</nimbus.jwt.version>
         <opentelemetry.version>1.43.0</opentelemetry.version>
