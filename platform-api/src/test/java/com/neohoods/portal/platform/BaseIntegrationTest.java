@@ -104,6 +104,8 @@ public abstract class BaseIntegrationTest {
                 org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any());
         org.mockito.Mockito.doNothing().when(mailService).sendReservationReminderEmail(
                 org.mockito.ArgumentMatchers.any(),
