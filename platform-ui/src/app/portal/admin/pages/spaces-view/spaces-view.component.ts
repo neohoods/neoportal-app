@@ -11,8 +11,7 @@ import { ReservationsAdminApiService } from '../../../../api-client/api/reservat
 import { UIDigitalLock } from '../../../../models/UIDigitalLock';
 import { UISpaceStatistics } from '../../../../models/UISpaceStatistics';
 import { UISpace } from '../../../spaces/services/spaces.service';
-import { SPACE_STATISTICS_SERVICE_TOKEN } from '../../../spaces/spaces.provider';
-import { ADMIN_SPACES_SERVICE_TOKEN } from '../../admin.providers';
+import { ADMIN_SPACE_STATISTICS_SERVICE_TOKEN, ADMIN_SPACES_SERVICE_TOKEN } from '../../admin.providers';
 import { AdminDigitalLockService, DIGITAL_LOCK_SERVICE_TOKEN } from '../../services/digital-lock.service';
 
 interface GeneratedAccessCode {
@@ -55,7 +54,7 @@ interface GeneratedAccessCode {
 })
 export class SpacesViewComponent implements OnInit {
     private spacesService = inject(ADMIN_SPACES_SERVICE_TOKEN);
-    private statisticsService = inject(SPACE_STATISTICS_SERVICE_TOKEN);
+    private statisticsService = inject(ADMIN_SPACE_STATISTICS_SERVICE_TOKEN);
     private digitalLockService: AdminDigitalLockService = inject(DIGITAL_LOCK_SERVICE_TOKEN);
     private reservationsService = inject(ReservationsAdminApiService);
     private route = inject(ActivatedRoute);

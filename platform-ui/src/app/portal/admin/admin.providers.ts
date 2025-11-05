@@ -17,6 +17,7 @@ import { MockNewslettersService } from './services/mock/newsletters.service';
 import { MockAdminReservationsService } from './services/mock/reservations.service';
 import { MockSecuritySettingsService } from './services/mock/security-settings.service';
 import { MockSpaceSettingsService } from './services/mock/space-settings.service';
+import { MockAdminSpaceStatisticsService } from './services/mock/space-statistics.service';
 import { MockAdminSpacesService } from './services/mock/spaces.service';
 import { MockUsersService } from './services/mock/users.service';
 import { NewslettersService } from './services/newsletters.service';
@@ -28,11 +29,13 @@ import { ApiNewslettersService } from './services/real-api/newsletters.service';
 import { RealApiAdminReservationsService } from './services/real-api/reservations.service';
 import { ApiSecuritySettingsService } from './services/real-api/security-settings.service';
 import { RealSpaceSettingsService } from './services/real-api/space-settings.service';
+import { RealApiAdminSpaceStatisticsService } from './services/real-api/space-statistics.service';
 import { RealApiAdminSpacesService } from './services/real-api/spaces.service';
 import { ApiUsersService } from './services/real-api/users.service';
 import { AdminReservationsService } from './services/reservations.service';
 import { SecuritySettingsService } from './services/security-settings.service';
 import { SpaceSettingsService } from './services/space-settings.service';
+import { AdminSpaceStatisticsService } from './services/space-statistics.service';
 import { AdminSpacesService } from './services/spaces.service';
 import { UsersService } from './services/users.service';
 
@@ -67,6 +70,9 @@ export const ADMIN_SPACES_SERVICE_TOKEN = new InjectionToken<AdminSpacesService>
 );
 export const ADMIN_RESERVATIONS_SERVICE_TOKEN = new InjectionToken<AdminReservationsService>(
   'AdminReservationsService',
+);
+export const ADMIN_SPACE_STATISTICS_SERVICE_TOKEN = new InjectionToken<AdminSpaceStatisticsService>(
+  'AdminSpaceStatisticsService',
 );
 
 export const adminProviders: Provider[] = [
@@ -137,5 +143,11 @@ export const adminProviders: Provider[] = [
     useExisting: ConfigService.configuration.useMockApi
       ? SpaceStatisticsMockService
       : SpaceStatisticsRealService,
+  },
+  {
+    provide: ADMIN_SPACE_STATISTICS_SERVICE_TOKEN,
+    useExisting: ConfigService.configuration.useMockApi
+      ? MockAdminSpaceStatisticsService
+      : RealApiAdminSpaceStatisticsService,
   },
 ];
