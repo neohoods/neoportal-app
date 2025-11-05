@@ -296,14 +296,16 @@ public class SpacesService {
         if (finalBasePrice.compareTo(BigDecimal.ZERO) > 0) {
             // Platform fee amount = percentage of base price (before cleaning fee and
             // deposit)
+            // Round up to 1 decimal place (no cents) - always round up
             if (platformFeePercentage != null && platformFeePercentage.compareTo(BigDecimal.ZERO) > 0) {
                 platformFeeAmount = finalBasePrice.multiply(platformFeePercentage)
-                        .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                        .divide(BigDecimal.valueOf(100), 1, java.math.RoundingMode.CEILING);
             }
 
             // Platform fixed fee is constant per transaction (only for paid reservations)
+            // Round up to 1 decimal place (no cents) - always round up
             if (platformFixedFee != null && platformFixedFee.compareTo(BigDecimal.ZERO) > 0) {
-                platformFixedFeeAmount = platformFixedFee;
+                platformFixedFeeAmount = platformFixedFee.setScale(1, java.math.RoundingMode.CEILING);
             }
         }
 

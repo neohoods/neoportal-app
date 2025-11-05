@@ -60,8 +60,31 @@ public class StripeService {
 
     @PostConstruct
     public void initializeStripe() {
+        // Validate Stripe secret key format
+        if (stripeSecretKey == null || stripeSecretKey.trim().isEmpty()) {
+            logger.error("Stripe secret key is not configured. Please set STRIPE_SECRET_KEY environment variable.");
+            throw new IllegalStateException("Stripe secret key is not configured");
+        }
+        
+        // Validate Stripe secret key format (should start with sk_test_ or sk_live_)
+        if (!stripeSecretKey.startsWith("sk_test_") && !stripeSecretKey.startsWith("sk_live_")) {
+            logger.error("Invalid Stripe secret key format. Key must start with 'sk_test_' (test mode) or 'sk_live_' (live mode). " +
+                    "Current key starts with: {}", 
+                    stripeSecretKey.length() > 10 ? stripeSecretKey.substring(0, 10) + "..." : "invalid");
+            throw new IllegalStateException(
+                    "Invalid Stripe secret key format. Key must start with 'sk_test_' or 'sk_live_'. " +
+                    "Please check your STRIPE_SECRET_KEY configuration.");
+        }
+        
+        // Validate publishable key format (should start with pk_test_ or pk_live_)
+        if (stripePublishableKey != null && !stripePublishableKey.trim().isEmpty() &&
+            !stripePublishableKey.startsWith("pk_test_") && !stripePublishableKey.startsWith("pk_live_")) {
+            logger.warn("Invalid Stripe publishable key format. Key should start with 'pk_test_' or 'pk_live_'.");
+        }
+        
         // Initialize Stripe with secret key after dependency injection
         Stripe.apiKey = stripeSecretKey;
+        logger.info("Stripe initialized with {} key", stripeSecretKey.startsWith("sk_test_") ? "test" : "live");
     }
 
     /**

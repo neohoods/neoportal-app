@@ -6,7 +6,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
         >
-        <title th:text="#{reservations.email.confirmation.title}">Confirmation de réservation</title>
+        <title th:text="#{reservations.email.confirmation.title}">Reservation Confirmation</title>
     </head>
     <body>
         <div th:fragment="email-layout">
@@ -32,14 +32,14 @@
                         style="color: #27ae60; margin-bottom: 20px;"
                         th:text="#{reservations.email.confirmation.greeting}"
                     >
-                        Votre réservation a été confirmée !
+                        Your reservation has been confirmed!
                     </h2>
 
                     <p
                         style="color: #34495e; line-height: 1.6;"
                         th:text="#{reservations.email.confirmation.message}"
                     >
-                        Nous vous confirmons que votre réservation a été validée avec succès.
+                        We confirm that your reservation has been successfully validated.
                     </p>
 
                     <!-- Reservation Details -->
@@ -48,7 +48,7 @@
                             style="color: #2c3e50; margin-bottom: 15px;"
                             th:text="#{reservations.email.confirmation.details}"
                         >
-                            Détails de votre réservation
+                            Reservation Details
                         </h3>
 
                         <table style="width: 100%; border-collapse: collapse;">
@@ -58,17 +58,15 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         th:text="#{reservations.email.confirmation.space}"
                                     >
-                                        Espace :
+                                        Space:
                                     </td>
-                                    <td
-                                        style="padding: 8px 0; color: #34495e;"
-                                    >
+                                    <td style="padding: 8px 0; color: #34495e;">
                                         <a
                                             th:href="${spaceUrl}"
                                             th:text="${spaceName}"
                                             style="color: #27ae60; text-decoration: none; font-weight: bold;"
                                         >
-                                            Nom de l'espace
+                                            Space Name
                                         </a>
                                     </td>
                                 </tr>
@@ -77,13 +75,13 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         th:text="#{reservations.email.confirmation.startDate}"
                                     >
-                                        Date de début :
+                                        Start Date:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #34495e;"
                                         th:text="${startDate}"
                                     >
-                                        Date de début
+                                        Start Date
                                     </td>
                                 </tr>
                                 <tr>
@@ -91,13 +89,13 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         th:text="#{reservations.email.confirmation.endDate}"
                                     >
-                                        Date de fin :
+                                        End Date:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #34495e;"
                                         th:text="${endDate}"
                                     >
-                                        Date de fin
+                                        End Date
                                     </td>
                                 </tr>
                                 <tr th:if="${accessCode}">
@@ -105,7 +103,7 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         th:text="#{reservations.email.confirmation.accessCode}"
                                     >
-                                        Code d'accès :
+                                        Access Code:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #e74c3c; font-weight: bold; font-size: 18px;"
@@ -118,7 +116,7 @@
                         </table>
                     </div>
 
-                    <!-- Access Instructions -->
+                    <!-- Access Instructions - When access code is available -->
                     <div
                         th:if="${accessCode}"
                         style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;"
@@ -127,27 +125,44 @@
                             style="color: #856404; margin-bottom: 10px;"
                             th:text="#{reservations.email.confirmation.accessInstructions}"
                         >
-                            Instructions d'accès
+                            Access Instructions
                         </h4>
                         <p
                             style="color: #856404; margin: 0;"
                             th:text="#{reservations.email.confirmation.accessInstructionsText}"
                         >
-                            Utilisez le code d'accès ci-dessus pour accéder à l'espace réservé. Ce code est valide uniquement pour votre réservation.
+                            Use the access code above to access your reserved space. This code is valid only for your reservation.
+                        </p>
+                    </div>
+
+                    <!-- Access Code Information - When access code is not yet available -->
+                    <div
+                        th:unless="${accessCode}"
+                        style="background-color: #d1ecf1; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;"
+                    >
+                        <h4
+                            style="color: #0c5460; margin-bottom: 10px;"
+                            th:text="#{reservations.email.confirmation.accessCodeInfo.title}"
+                        >
+                            Access Code
+                        </h4>
+                        <p
+                            style="color: #0c5460; margin: 0;"
+                            th:text="#{reservations.email.confirmation.accessCodeInfo.message}"
+                        >
+                            Your access code will be provided to you on the morning of your reservation day. This code will be valid only for the duration of your stay.
                         </p>
                     </div>
 
                     <!-- Links -->
                     <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-                        <p style="color: #2e7d32; margin-bottom: 15px; font-weight: bold;">
-                            Liens utiles :
-                        </p>
+                        <p style="color: #2e7d32; margin-bottom: 15px; font-weight: bold;">Useful Links:</p>
                         <p style="margin: 10px 0;">
                             <a
                                 th:href="${reservationUrl}"
                                 style="display: inline-block; background-color: #27ae60; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;"
                             >
-                                Voir ma réservation
+                                View My Reservation
                             </a>
                         </p>
                         <p style="margin: 10px 0;">
@@ -155,7 +170,7 @@
                                 th:href="${spaceUrl}"
                                 style="display: inline-block; background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;"
                             >
-                                Voir l'espace
+                                View Space
                             </a>
                         </p>
                     </div>
@@ -166,14 +181,12 @@
                             style="color: #0c5460; margin-bottom: 10px;"
                             th:text="#{reservations.email.confirmation.nextSteps}"
                         >
-                            Prochaines étapes
+                            Next Steps
                         </h4>
                         <ul style="color: #0c5460; margin: 0; padding-left: 20px;">
-                            <li th:text="#{reservations.email.confirmation.nextSteps1}">Arrivez à l'heure prévue</li>
-                            <li th:text="#{reservations.email.confirmation.nextSteps2}">
-                                Respectez les règles d'utilisation de l'espace
-                            </li>
-                            <li th:text="#{reservations.email.confirmation.nextSteps3}">Nettoyez l'espace après utilisation</li>
+                            <li th:text="#{reservations.email.confirmation.nextSteps1}">Arrive on time</li>
+                            <li th:text="#{reservations.email.confirmation.nextSteps2}">Respect the space usage rules</li>
+                            <li th:text="#{reservations.email.confirmation.nextSteps3}">Clean the space after use</li>
                         </ul>
                     </div>
                 </div>
@@ -181,9 +194,9 @@
                 <!-- Footer -->
                 <div style="text-align: center; color: #7f8c8d; font-size: 14px;">
                     <p th:text="#{reservations.email.confirmation.footer}">
-                        Si vous avez des questions, n'hésitez pas à nous contacter.
+                        If you have any questions, please don't hesitate to contact us.
                     </p>
-                    <p th:text="${teamSignature}">L'équipe NeoHoods</p>
+                    <p th:text="${teamSignature}">The NeoHoods Team</p>
                 </div>
             </div>
         </div>

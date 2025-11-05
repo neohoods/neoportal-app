@@ -164,10 +164,16 @@ public class PricingCalculationTest extends BaseIntegrationTest {
 
         // Platform fees should be greater than 0 for paid spaces
         // Default settings: 2% percentage fee + 0.25€ fixed fee
+        // Platform fees are rounded up to 1 decimal (no cents) - always round up
         assertTrue(priceBreakdown.getPlatformFeeAmount().compareTo(BigDecimal.ZERO) > 0,
                 "Platform fee percentage should be calculated");
-        assertEquals(BigDecimal.valueOf(0.25), priceBreakdown.getPlatformFixedFeeAmount(),
-                "Platform fixed fee should be 0.25€");
+        // Platform fixed fee is rounded up: 0.25 -> 0.3
+        assertEquals(BigDecimal.valueOf(0.3), priceBreakdown.getPlatformFixedFeeAmount(),
+                "Platform fixed fee should be rounded up to 0.3€ (0.25 rounded up)");
+        
+        // Platform fee amount should be rounded up to 1 decimal place
+        assertTrue(priceBreakdown.getPlatformFeeAmount().scale() <= 1,
+                "Platform fee amount should have at most 1 decimal place");
 
         // Verify total includes platform fees
         BigDecimal expectedTotal = priceBreakdown.getBasePrice()
@@ -202,8 +208,15 @@ public class PricingCalculationTest extends BaseIntegrationTest {
 
         assertTrue(reservation.getPlatformFeeAmount().compareTo(BigDecimal.ZERO) > 0,
                 "Platform fee amount should be greater than 0 for paid spaces");
-        assertEquals(BigDecimal.valueOf(0.25), reservation.getPlatformFixedFeeAmount(),
-                "Platform fixed fee should be 0.25€");
+        // Platform fixed fee is rounded up: 0.25 -> 0.3
+        assertEquals(BigDecimal.valueOf(0.3), reservation.getPlatformFixedFeeAmount(),
+                "Platform fixed fee should be rounded up to 0.3€ (0.25 rounded up)");
+        
+        // Platform fees should be rounded up to 1 decimal place (no cents)
+        assertTrue(reservation.getPlatformFeeAmount().scale() <= 1,
+                "Platform fee amount should have at most 1 decimal place");
+        assertTrue(reservation.getPlatformFixedFeeAmount().scale() <= 1,
+                "Platform fixed fee amount should have at most 1 decimal place");
 
         // Verify total price includes platform fees
         BigDecimal expectedTotal = reservation.getTotalPrice();

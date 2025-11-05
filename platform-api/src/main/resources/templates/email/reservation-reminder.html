@@ -6,7 +6,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
         >
-        <title :th:text="#{reservations.email.reminder.title}">Rappel de réservation</title>
+        <title :th:text="#{reservations.email.reminder.title}">Reservation Reminder</title>
     </head>
     <body>
         <div :th:fragment="email-layout">
@@ -32,14 +32,14 @@
                         style="color: #e67e22; margin-bottom: 20px;"
                         :th:text="#{reservations.email.reminder.greeting}"
                     >
-                        Rappel : Votre réservation commence demain !
+                        Reminder: Your reservation starts tomorrow!
                     </h2>
 
                     <p
                         style="color: #34495e; line-height: 1.6;"
                         :th:text="#{reservations.email.reminder.message}"
                     >
-                        Nous vous rappelons que votre réservation commence demain. Voici les informations importantes :
+                        We remind you that your reservation starts tomorrow. Here is the important information:
                     </p>
 
                     <!-- Reservation Details -->
@@ -48,7 +48,7 @@
                             style="color: #2c3e50; margin-bottom: 15px;"
                             :th:text="#{reservations.email.reminder.details}"
                         >
-                            Détails de votre réservation
+                            Reservation Details
                         </h3>
 
                         <table style="width: 100%; border-collapse: collapse;">
@@ -58,13 +58,13 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         :th:text="#{reservations.email.reminder.space}"
                                     >
-                                        Espace :
+                                        Space:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #34495e;"
                                         :th:text="${spaceName}"
                                     >
-                                        Nom de l'espace
+                                        Space Name
                                     </td>
                                 </tr>
                                 <tr>
@@ -72,13 +72,13 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         :th:text="#{reservations.email.reminder.startDate}"
                                     >
-                                        Date de début :
+                                        Start Date:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #34495e;"
                                         :th:text="${startDate}"
                                     >
-                                        Date de début
+                                        Start Date
                                     </td>
                                 </tr>
                                 <tr>
@@ -86,13 +86,13 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         :th:text="#{reservations.email.reminder.endDate}"
                                     >
-                                        Date de fin :
+                                        End Date:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #34495e;"
                                         :th:text="${endDate}"
                                     >
-                                        Date de fin
+                                        End Date
                                     </td>
                                 </tr>
                                 <tr :th:if="${accessCode}">
@@ -100,7 +100,7 @@
                                         style="padding: 8px 0; font-weight: bold; color: #34495e;"
                                         :th:text="#{reservations.email.reminder.accessCode}"
                                     >
-                                        Code d'accès :
+                                        Access Code:
                                     </td>
                                     <td
                                         style="padding: 8px 0; color: #e74c3c; font-weight: bold; font-size: 18px;"
@@ -122,7 +122,7 @@
                             style="color: #2980b9; margin-bottom: 10px;"
                             :th:text="#{reservations.email.reminder.rules}"
                         >
-                            Règles d'utilisation
+                            Usage Rules
                         </h4>
                         <div
                             style="color: #2980b9;"
@@ -141,7 +141,7 @@
                             style="color: #229954; margin-bottom: 10px;"
                             :th:text="#{reservations.email.reminder.instructions}"
                         >
-                            Instructions d'utilisation
+                            Usage Instructions
                         </h4>
                         <div
                             style="color: #229954;"
@@ -157,12 +157,14 @@
                             style="color: #856404; margin-bottom: 10px;"
                             :th:text="#{reservations.email.reminder.whatToBring}"
                         >
-                            À apporter
+                            What to Bring
                         </h4>
                         <ul style="color: #856404; margin: 0; padding-left: 20px;">
-                            <li :th:text="#{reservations.email.reminder.bring1}">Votre code d'accès (si applicable)</li>
-                            <li :th:text="#{reservations.email.reminder.bring2}">Pièce d'identité</li>
-                            <li :th:text="#{reservations.email.reminder.bring3}">Tout matériel nécessaire selon l'espace</li>
+                            <li :th:text="#{reservations.email.reminder.bring1}">Your access code (if applicable)</li>
+                            <li :th:text="#{reservations.email.reminder.bring2}">ID card</li>
+                            <li :th:text="#{reservations.email.reminder.bring3}">
+                                Any necessary equipment according to the space
+                            </li>
                         </ul>
                     </div>
 
@@ -172,23 +174,21 @@
                             style="color: #721c24; margin-bottom: 10px;"
                             :th:text="#{reservations.email.reminder.contact}"
                         >
-                            Besoin d'aide ?
+                            Need Help?
                         </h4>
                         <p
                             style="color: #721c24; margin: 0;"
                             :th:text="#{reservations.email.reminder.contactText}"
                         >
-                            Si vous avez des questions ou des problèmes, n'hésitez pas à nous contacter via l'application ou par email.
+                            If you have any questions or problems, please don't hesitate to contact us via the application or by email.
                         </p>
                     </div>
                 </div>
 
                 <!-- Footer -->
                 <div style="text-align: center; color: #7f8c8d; font-size: 14px;">
-                    <p :th:text="#{reservations.email.reminder.footer}">
-                        Nous vous souhaitons une excellente utilisation de l'espace !
-                    </p>
-                    <p :th:text="${teamSignature}">L'équipe NeoHoods</p>
+                    <p :th:text="#{reservations.email.reminder.footer}">We wish you a great use of the space!</p>
+                    <p :th:text="${teamSignature}">The NeoHoods Team</p>
                 </div>
             </div>
         </div>
