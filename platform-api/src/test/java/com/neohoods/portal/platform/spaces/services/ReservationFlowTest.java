@@ -340,7 +340,7 @@ public class ReservationFlowTest extends BaseIntegrationTest {
     @DisplayName("Complete flow: Annual quota tracked correctly")
     public void testCompleteFlow_AnnualQuota() {
         // Arrange
-        LocalDate startDate = LocalDate.now().plusDays(55);
+        LocalDate startDate = LocalDate.now().plusDays(210); // Far future to avoid conflicts
         LocalDate endDate = startDate.plusDays(4);
 
         int initialUsedReservations = guestRoomSpace.getUsedAnnualReservations();
