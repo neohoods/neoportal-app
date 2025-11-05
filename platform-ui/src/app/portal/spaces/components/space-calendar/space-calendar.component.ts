@@ -71,7 +71,7 @@ export class SpaceCalendarComponent implements AfterViewInit {
     public loadingOccupancy = input<boolean>(false);
     public selectedDate = output<TuiDayRange | null | undefined>();
     public monthChanged = output<Date>();
-
+    public dayClicked = output<TuiDay>();
     /**
      * Minimum length of the date range based on space rules
      */
@@ -215,7 +215,9 @@ export class SpaceCalendarComponent implements AfterViewInit {
                 const dot = cell.querySelector('.t-dot');
                 if (dot) {
                     cell.classList.remove('not-available');
-                    cell.classList.remove('t-cell_disabled');
+                    if (this.maxLength.day === 1) {
+                        cell.classList.remove('t-cell_disabled');
+                    }
                     cell.classList.remove('my-booking');
                     cell.classList.remove('shared-occupied');
                     cell.removeAttribute('data-type');

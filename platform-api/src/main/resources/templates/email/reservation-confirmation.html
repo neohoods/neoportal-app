@@ -156,11 +156,17 @@
 
                     <!-- Links -->
                     <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-                        <p style="color: #2e7d32; margin-bottom: 15px; font-weight: bold;">Useful Links:</p>
+                        <p
+                            style="color: #2e7d32; margin-bottom: 15px; font-weight: bold;"
+                            th:text="#{reservations.email.confirmation.usefulLinks}"
+                        >
+                            Useful Links:
+                        </p>
                         <p style="margin: 10px 0;">
                             <a
                                 th:href="${reservationUrl}"
                                 style="display: inline-block; background-color: #27ae60; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;"
+                                th:text="#{reservations.email.confirmation.viewMyReservation}"
                             >
                                 View My Reservation
                             </a>
@@ -169,6 +175,7 @@
                             <a
                                 th:href="${spaceUrl}"
                                 style="display: inline-block; background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;"
+                                th:text="#{reservations.email.confirmation.viewSpace}"
                             >
                                 View Space
                             </a>
