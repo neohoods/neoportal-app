@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:alpine3.21 as build
+FROM node:alpine3.22.2 as build
 
 # Combine apk commands to reduce layers and improve caching
 RUN apk --no-cache add git vim bash openssh gnupg libxml2-utils jq openjdk21 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
@@ -15,7 +15,8 @@ COPY ./openapi.yaml /usr/local/
 ENV NODE_ENV=development
 
 # Install all the dependencies
-RUN npm ci
+# Using npm install instead of npm ci to handle optional dependencies correctly
+RUN npm install --legacy-peer-deps
 
 # Generate the build of the application
 RUN npm run build -- --verbose --progress
