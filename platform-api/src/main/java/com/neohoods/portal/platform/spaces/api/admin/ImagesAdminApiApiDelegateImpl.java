@@ -13,6 +13,7 @@ import com.neohoods.portal.platform.api.ImagesAdminApiApiDelegate;
 import com.neohoods.portal.platform.model.SpaceImage;
 import com.neohoods.portal.platform.spaces.entities.SpaceImageEntity;
 import com.neohoods.portal.platform.spaces.services.ImagesService;
+import org.springframework.http.codec.multipart.Part;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -44,16 +45,19 @@ public class ImagesAdminApiApiDelegateImpl implements ImagesAdminApiApiDelegate 
 
     @Override
     public Mono<ResponseEntity<SpaceImage>> uploadSpaceImage(
-            UUID spaceId, Flux<org.springframework.http.codec.multipart.Part> file, String altText, Boolean isPrimary,
+            UUID spaceId, org.springframework.http.codec.multipart.Part file, String altText, Boolean isPrimary,
             Integer orderIndex,
             ServerWebExchange exchange) {
-        return file.collectList().flatMap(parts -> {
-            // Upload image using service
-            SpaceImageEntity entity = imagesService.uploadSpaceImage(spaceId, parts, altText, isPrimary, orderIndex);
+        // Convert single Part to List for service
+        List<org.springframework.http.codec.multipart.Part> parts = file != null 
+            ? List.of(file) 
+            : List.of();
+        
+        // Upload image using service
+        SpaceImageEntity entity = imagesService.uploadSpaceImage(spaceId, parts, altText, isPrimary, orderIndex);
 
-            SpaceImage image = convertToApiModel(entity);
-            return Mono.just(ResponseEntity.ok(image));
-        });
+        SpaceImage image = convertToApiModel(entity);
+        return Mono.just(ResponseEntity.ok(image));
     }
 
     @Override
