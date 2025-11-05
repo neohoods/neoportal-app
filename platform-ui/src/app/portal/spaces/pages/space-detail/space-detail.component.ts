@@ -55,6 +55,7 @@ export class SpaceDetailComponent implements OnInit {
 
     // Occupancy data for calendar
     occupancyMap = signal<Map<string, boolean>>(new Map());
+    myReservationsMap = signal<Map<string, string>>(new Map()); // Map<date, reservationId> for current user's reservations
     sharedOccupancyMap = signal<Map<string, boolean>>(new Map()); // New signal for shared space reservations
     loadingOccupancy = signal(false);
 
@@ -122,10 +123,16 @@ export class SpaceDetailComponent implements OnInit {
             next: (stats) => {
                 if (stats.occupancyCalendar) {
                     const newMap = new Map<string, boolean>();
+                    const myReservations = new Map<string, string>();
                     stats.occupancyCalendar.forEach(day => {
                         newMap.set(day.date, day.isOccupied);
+                        // If reservationId is present, it means this is the current user's reservation
+                        if (day.reservationId) {
+                            myReservations.set(day.date, day.reservationId);
+                        }
                     });
                     this.occupancyMap.set(newMap);
+                    this.myReservationsMap.set(myReservations);
                 }
                 this.loadingOccupancy.set(false);
             },
@@ -197,14 +204,21 @@ export class SpaceDetailComponent implements OnInit {
             next: (stats) => {
                 if (stats.occupancyCalendar) {
                     const currentMap = this.occupancyMap();
+                    const currentMyReservations = this.myReservationsMap();
                     const newMap = new Map(currentMap); // Copy existing data
+                    const newMyReservations = new Map(currentMyReservations); // Copy existing reservations
 
                     // Add new data
                     stats.occupancyCalendar.forEach(day => {
                         newMap.set(day.date, day.isOccupied);
+                        // If reservationId is present, it means this is the current user's reservation
+                        if (day.reservationId) {
+                            newMyReservations.set(day.date, day.reservationId);
+                        }
                     });
 
                     this.occupancyMap.set(newMap);
+                    this.myReservationsMap.set(newMyReservations);
                 }
             },
             error: (error) => {

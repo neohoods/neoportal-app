@@ -92,6 +92,16 @@
         color: var(--tos-text-primary-on-accent-2);
     }
 
+    .t-cell[data-type=my-booking] {
+        color: var(--tui-text-primary-on-accent-2);
+    }
+
+    .t-cell[data-type=my-booking]:after {
+        background: var(--tui-background-accent-2);
+        -webkit-mask: none;
+        mask: none;
+    }
+
     // Special styling for today when occupied by shared space - orange text
     .t-cell_today[data-type=shared-occupied] {
         color: var(--tui-text-warning) !important;
@@ -102,4 +112,11 @@
         background-color: rgba(255, 152, 0, 0.3) !important;
         border-left: 3px solid #ff9800 !important;
     }
+
+    .t-cell[data-type=my-booking]:after {
+        background: var(--tui-background-accent-2);
+        -webkit-mask: none;
+        mask: none;
+    }
+
 }

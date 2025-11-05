@@ -176,7 +176,7 @@ public class SpaceStatisticsService {
                         OccupancyCalendarDay day = OccupancyCalendarDay.builder()
                                         .date(currentDate)
                                         .isOccupied(isOccupied)
-                                        .reservationId(isOccupied ? reservation.getId().toString() : null)
+                                        .reservationId(isOccupied ? reservation.getId() : null)
                                         .userName(isOccupied ? getUserNameForReservation(reservation) : null)
                                         .build();
 
@@ -243,6 +243,72 @@ public class SpaceStatisticsService {
                 }
 
                 return monthlyOccupancy;
+        }
+
+        /**
+         * Calculate occupancy calendar for a space for a specific user
+         * Only includes reservationId if the reservation belongs to the current user
+         * This is a standalone implementation optimized for public API use
+         */
+        public List<OccupancyCalendarDay> calculateOccupancyCalendarForUser(UUID spaceId, UUID currentUserId,
+                        LocalDate startDate, LocalDate endDate) {
+                // Get space information
+                SpaceEntity space = spaceRepository.findById(spaceId).orElse(null);
+                if (space == null) {
+                        throw new CodedErrorException(CodedError.SPACE_NOT_FOUND, "spaceId", spaceId);
+                }
+
+                // Get reservations for the date range
+                List<ReservationEntity> reservations = reservationRepository.findReservationsForStatistics(spaceId,
+                                startDate, endDate);
+
+                // Build occupancy calendar
+                List<OccupancyCalendarDay> occupancyCalendar = new ArrayList<>();
+
+                // Create a map to track reservations by date for easier lookup
+                Map<LocalDate, ReservationEntity> reservationsByDate = new HashMap<>();
+                for (ReservationEntity reservation : reservations) {
+                        LocalDate reservationStart = reservation.getStartDate();
+                        LocalDate reservationEnd = reservation.getEndDate();
+
+                        // Ensure we don't go outside our period
+                        LocalDate actualStart = reservationStart.isBefore(startDate) ? startDate : reservationStart;
+                        LocalDate actualEnd = reservationEnd.isAfter(endDate) ? endDate : reservationEnd;
+
+                        // Mark each day in the reservation
+                        LocalDate day = actualStart;
+                        while (!day.isAfter(actualEnd)) {
+                                reservationsByDate.put(day, reservation);
+                                day = day.plusDays(1);
+                        }
+                }
+
+                // Create calendar entries for each day in the period
+                LocalDate currentDate = startDate;
+                while (!currentDate.isAfter(endDate)) {
+                        ReservationEntity reservation = reservationsByDate.get(currentDate);
+                        boolean isOccupied = reservation != null;
+
+                        // Only include reservationId if the reservation belongs to the current user
+                        UUID reservationId = null;
+                        if (isOccupied && reservation.getUser() != null
+                                        && reservation.getUser().getId() != null
+                                        && reservation.getUser().getId().equals(currentUserId)) {
+                                reservationId = reservation.getId();
+                        }
+
+                        OccupancyCalendarDay day = OccupancyCalendarDay.builder()
+                                        .date(currentDate)
+                                        .isOccupied(isOccupied)
+                                        .reservationId(reservationId)
+                                        .userName(null) // Never expose userName in public API
+                                        .build();
+
+                        occupancyCalendar.add(day);
+                        currentDate = currentDate.plusDays(1);
+                }
+
+                return occupancyCalendar;
         }
 
         /**

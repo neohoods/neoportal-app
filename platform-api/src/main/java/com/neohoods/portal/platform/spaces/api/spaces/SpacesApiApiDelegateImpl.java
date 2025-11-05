@@ -14,12 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.SpacesApiApiDelegate;
+import com.neohoods.portal.platform.exceptions.CodedError;
+import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.AvailabilityResponse;
+import com.neohoods.portal.platform.model.OccupancyCalendarDay;
+import com.neohoods.portal.platform.model.OccupancyCalendarDayPublic;
 import com.neohoods.portal.platform.model.PaginatedSpaces;
 import com.neohoods.portal.platform.model.QuotaInfo;
 import com.neohoods.portal.platform.model.Reservation;
 import com.neohoods.portal.platform.model.Space;
 import com.neohoods.portal.platform.model.SpaceImage;
+import com.neohoods.portal.platform.model.SpaceOccupancyCalendarResponse;
 import com.neohoods.portal.platform.model.SpacePricing;
 import com.neohoods.portal.platform.model.SpaceRules;
 import com.neohoods.portal.platform.model.SpaceType;
@@ -29,6 +34,7 @@ import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceImageEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
 import com.neohoods.portal.platform.spaces.services.ReservationMapper;
+import com.neohoods.portal.platform.spaces.services.SpaceStatisticsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
 
 import reactor.core.publisher.Flux;
@@ -42,6 +48,9 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
 
     @Autowired
     private ReservationMapper reservationMapper;
+
+    @Autowired
+    private SpaceStatisticsService spaceStatisticsService;
 
     @Override
     public Mono<ResponseEntity<PaginatedSpaces>> getSpaces(
@@ -113,6 +122,56 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
         response.setCurrency(entity.getCurrency());
 
         return Mono.just(ResponseEntity.ok(response));
+    }
+
+    @Override
+    public Mono<ResponseEntity<SpaceOccupancyCalendarResponse>> getSpaceOccupancyCalendar(
+            UUID spaceId, LocalDate startDate, LocalDate endDate, ServerWebExchange exchange) {
+        // Get current authenticated user ID from security context
+        return exchange.getPrincipal()
+                .map(principal -> UUID.fromString(principal.getName()))
+                .flatMap(currentUserId -> {
+                    // Use default date range if not provided (same logic as admin endpoint)
+                    LocalDate effectiveStartDate = startDate != null ? startDate
+                            : LocalDate.of(LocalDate.now().getYear(), 1, 1);
+                    LocalDate effectiveEndDate = endDate != null ? endDate
+                            : LocalDate.of(LocalDate.now().getYear(), 12, 31);
+
+
+                    // Get occupancy calendar from service
+                    List<OccupancyCalendarDay> occupancyCalendar = spaceStatisticsService
+                            .calculateOccupancyCalendarForUser(spaceId, currentUserId, effectiveStartDate,
+                                    effectiveEndDate);
+
+                    // Map to public API model
+                    List<OccupancyCalendarDayPublic> publicCalendar = occupancyCalendar.stream()
+                            .map(day -> {
+                                OccupancyCalendarDayPublic publicDay = new OccupancyCalendarDayPublic();
+                                publicDay.setDate(day.getDate());
+                                publicDay.setIsOccupied(day.getIsOccupied());
+                                // Convert reservationId from OccupancyCalendarDay (which is UUID) to
+                                // OccupancyCalendarDayPublic (also UUID, nullable)
+                                // The setter accepts @Nullable UUID, which will serialize as null in JSON
+                                UUID reservationIdValue = day.getReservationId();
+                                if (reservationIdValue != null) {
+                                    publicDay.setReservationId(reservationIdValue);
+                                } else {
+                                    // Set to null (will serialize as null in JSON)
+                                    publicDay.setReservationId(null);
+                                }
+                                return publicDay;
+                            })
+                            .toList();
+
+                    // Build response
+                    SpaceOccupancyCalendarResponse response = new SpaceOccupancyCalendarResponse();
+                    response.setOccupancyCalendar(publicCalendar);
+
+                    return Mono.<ResponseEntity<SpaceOccupancyCalendarResponse>>just(ResponseEntity.ok(response));
+                })
+                .switchIfEmpty(
+                        Mono.<ResponseEntity<SpaceOccupancyCalendarResponse>>just(
+                                ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build()));
     }
 
     @Override

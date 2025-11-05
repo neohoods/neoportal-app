@@ -2,6 +2,7 @@ package com.neohoods.portal.platform.spaces.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -246,10 +247,135 @@ public class SpaceStatisticsTest extends BaseIntegrationTest {
                 .filter(day -> day.getDate().isEqual(testStartDate))
                 .findFirst()
                 .map(day -> day.getReservationId() != null
-                        && day.getReservationId().equals(pendingReservation.getId().toString()))
+                        && day.getReservationId().equals(pendingReservation.getId()))
                 .orElse(false);
 
         assertTrue(hasReservationId,
                 "Occupancy calendar should include the reservation ID for the pending payment reservation");
+    }
+
+    @Test
+    @DisplayName("calculateOccupancyCalendarForUser: returns reservationId only for current user's reservations")
+    public void testCalculateOccupancyCalendarForUser_ReservationIdFiltering() {
+        // Arrange
+        LocalDate testStartDate = LocalDate.now().plusDays(600); // Far future to avoid conflicts
+        LocalDate testEndDate = testStartDate.plusDays(2); // 3 days total
+        LocalDate periodStartDate = testStartDate.minusDays(1);
+        LocalDate periodEndDate = testEndDate.plusDays(1);
+
+        // Get two different users
+        UserEntity currentUser = null;
+        UserEntity otherUser = null;
+        Iterable<UserEntity> allUsers = usersRepository.findAll();
+        for (UserEntity user : allUsers) {
+            if (user.getType() == UserType.TENANT) {
+                if (currentUser == null) {
+                    currentUser = user;
+                } else if (otherUser == null) {
+                    otherUser = user;
+                    break;
+                }
+            }
+        }
+        if (currentUser == null) {
+            currentUser = new UserEntity();
+            currentUser.setEmail("test-current-user-stats@neohoods.com");
+            currentUser.setType(UserType.TENANT);
+            currentUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
+            currentUser = usersRepository.save(currentUser);
+        }
+        if (otherUser == null) {
+            otherUser = new UserEntity();
+            otherUser.setEmail("test-other-user-stats@neohoods.com");
+            otherUser.setType(UserType.TENANT);
+            otherUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
+            otherUser = usersRepository.save(otherUser);
+        }
+
+        // Create reservation for current user
+        ReservationEntity currentUserReservation = reservationsService.createReservation(
+                guestRoomSpace, currentUser, testStartDate, testEndDate);
+
+        // Create reservation for other user (different dates)
+        LocalDate otherUserStartDate = testEndDate.plusDays(5);
+        LocalDate otherUserEndDate = otherUserStartDate.plusDays(2);
+        ReservationEntity otherUserReservation = reservationsService.createReservation(
+                guestRoomSpace, otherUser, otherUserStartDate, otherUserEndDate);
+
+        // Act - Calculate occupancy calendar for current user
+        LocalDate calendarStartDate = testStartDate.minusDays(1);
+        LocalDate calendarEndDate = otherUserEndDate.plusDays(1);
+        java.util.List<OccupancyCalendarDay> calendar = statisticsService.calculateOccupancyCalendarForUser(
+                guestRoomSpace.getId(), currentUser.getId(), calendarStartDate, calendarEndDate);
+
+        // Assert
+        assertNotNull(calendar, "Calendar should not be null");
+
+        // Check current user's reservation dates - should have reservationId
+        OccupancyCalendarDay currentUserDay = calendar.stream()
+                .filter(day -> day.getDate().isEqual(testStartDate))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(currentUserDay, "Current user's reservation date should be in calendar");
+        assertTrue(currentUserDay.getIsOccupied(), "Current user's reservation date should be marked as occupied");
+        assertNotNull(currentUserDay.getReservationId(), "Current user's reservation should have reservationId");
+        assertEquals(currentUserReservation.getId(), currentUserDay.getReservationId(),
+                "Current user's reservation should have correct reservationId");
+
+        // Check other user's reservation dates - should NOT have reservationId
+        OccupancyCalendarDay otherUserDay = calendar.stream()
+                .filter(day -> day.getDate().isEqual(otherUserStartDate))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(otherUserDay, "Other user's reservation date should be in calendar");
+        assertTrue(otherUserDay.getIsOccupied(), "Other user's reservation date should be marked as occupied");
+        assertNull(otherUserDay.getReservationId(),
+                "Other user's reservation should NOT have reservationId (only current user's reservations should)");
+
+        // Verify userName is never exposed
+        assertNull(currentUserDay.getUserName(), "userName should never be exposed in public API");
+        assertNull(otherUserDay.getUserName(), "userName should never be exposed in public API");
+    }
+
+    @Test
+    @DisplayName("calculateOccupancyCalendarForUser: throws exception for invalid space ID")
+    public void testCalculateOccupancyCalendarForUser_InvalidSpaceId() {
+        // Arrange
+        java.util.UUID invalidSpaceId = java.util.UUID.randomUUID();
+        java.util.UUID currentUserId = java.util.UUID.randomUUID();
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(30);
+
+        // Act & Assert
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.neohoods.portal.platform.exceptions.CodedErrorException.class,
+                () -> statisticsService.calculateOccupancyCalendarForUser(invalidSpaceId, currentUserId, startDate,
+                        endDate),
+                "Should throw CodedErrorException for invalid space ID");
+    }
+
+    @Test
+    @DisplayName("calculateOccupancyCalendarForUser: returns empty calendar for space with no reservations")
+    public void testCalculateOccupancyCalendarForUser_NoReservations() {
+        // Arrange
+        LocalDate startDate = LocalDate.now().plusDays(800); // Far future
+        LocalDate endDate = startDate.plusDays(10);
+        java.util.UUID currentUserId = ownerUser.getId();
+
+        // Act
+        java.util.List<OccupancyCalendarDay> calendar = statisticsService.calculateOccupancyCalendarForUser(
+                guestRoomSpace.getId(), currentUserId, startDate, endDate);
+
+        // Assert
+        assertNotNull(calendar, "Calendar should not be null");
+        assertEquals(11, calendar.size(), "Calendar should have 11 days (startDate + 10 days)");
+        assertTrue(calendar.stream().noneMatch(OccupancyCalendarDay::getIsOccupied),
+                "No days should be marked as occupied");
+        assertTrue(calendar.stream().allMatch(day -> day.getReservationId() == null),
+                "No reservation IDs should be present");
+        assertTrue(calendar.stream().allMatch(day -> day.getUserName() == null),
+                "No user names should be present");
     }
 }

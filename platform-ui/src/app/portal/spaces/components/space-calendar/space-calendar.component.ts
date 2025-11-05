@@ -4,7 +4,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiMobileCalendar } from '@taiga-ui/addon-mobile';
 import { TuiBooleanHandler, tuiControlValue, TuiDay, TuiDayLike, TuiDayRange, TuiMonth } from '@taiga-ui/cdk';
-import { TUI_MONTHS, TuiButton, tuiCalendarSheetOptionsProvider, TuiHint, TuiLoader } from '@taiga-ui/core';
+import { TUI_MONTHS, tuiCalendarSheetOptionsProvider, TuiHint, TuiLoader } from '@taiga-ui/core';
 import { TuiCalendarRange } from '@taiga-ui/kit';
 import { TuiInputDateRangeModule } from '@taiga-ui/legacy';
 import { combineLatest, map } from 'rxjs';
@@ -23,7 +23,6 @@ const AVAILABLE: string = '';
         CommonModule,
         TuiHint,
         TuiCalendarRange,
-        TuiButton,
         TuiLoader,
         FormsModule,
         ReactiveFormsModule,
@@ -67,6 +66,7 @@ export class SpaceCalendarComponent implements AfterViewInit {
     public space = input.required<Space>();
     public currentUser = input.required<UserInfo>();
     public occupancyMap = input<Map<string, boolean>>(new Map());
+    public myReservationsMap = input<Map<string, string>>(new Map()); // Map<date, reservationId> for current user's reservations
     public sharedOccupancyMap = input<Map<string, boolean>>(new Map()); // New input for shared space reservations
     public loadingOccupancy = input<boolean>(false);
     public selectedDate = output<TuiDayRange | null | undefined>();
@@ -136,6 +136,7 @@ export class SpaceCalendarComponent implements AfterViewInit {
         effect(() => {
             this.space(); // Access the signal to track it
             this.occupancyMap(); // Access the occupancy map to track it
+            this.myReservationsMap(); // Access the my reservations map to track it
             this.sharedOccupancyMap(); // Access the shared occupancy map to track it
             this.updateCellAvailability();
         });
@@ -146,6 +147,8 @@ export class SpaceCalendarComponent implements AfterViewInit {
         if (this.calendarRef) {
             const observer = new MutationObserver(() => {
                 this.detectMonthChange();
+                // Update cell availability when calendar DOM changes
+                this.updateCellAvailability();
             });
 
             observer.observe(this.calendarRef.nativeElement, {
@@ -155,6 +158,11 @@ export class SpaceCalendarComponent implements AfterViewInit {
                 attributeFilter: ['class', 'data-month']
             });
         }
+
+        // Initial call to update cell availability after view is initialized
+        setTimeout(() => {
+            this.updateCellAvailability();
+        }, 100);
     }
 
     private detectMonthChange(): void {
@@ -191,9 +199,19 @@ export class SpaceCalendarComponent implements AfterViewInit {
 
 
     updateCellAvailability() {
-        setTimeout(() => {
-            const cells = document.querySelectorAll('.t-cell');
-            cells.forEach((cell) => {
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+            // Use the calendar wrapper element to scope the query
+            const calendarElement = this.calendarRef?.nativeElement || document;
+            const cells = calendarElement.querySelectorAll('.t-cell');
+
+            if (cells.length === 0) {
+                // If no cells found, try again after a short delay
+                setTimeout(() => this.updateCellAvailability(), 50);
+                return;
+            }
+
+            cells.forEach((cell: Element) => {
                 const dot = cell.querySelector('.t-dot');
                 if (dot) {
                     cell.classList.remove('not-available');
@@ -208,6 +226,9 @@ export class SpaceCalendarComponent implements AfterViewInit {
                         cell.classList.add('t-cell_disabled');
                     } else if (dotColor == BOOKED_BY_ME) {
                         cell.classList.add('my-booking');
+                        cell.classList.add('t-cell_disabled');
+                        cell.setAttribute('data-type', 'my-booking');
+                        cell.setAttribute('data-marker', 'my-booking');
                     } else if (dotColor == BOOKED) {
                         cell.classList.add('not-available');
                         cell.classList.add('t-cell_disabled');
@@ -223,16 +244,24 @@ export class SpaceCalendarComponent implements AfterViewInit {
             });
 
             // Special handling for today's cell
-            const todayCell = document.querySelector('.t-cell_today');
+            const todayCell = calendarElement.querySelector('.t-cell_today');
             if (todayCell) {
                 // Check if today is occupied using the occupancy maps
                 const today = new Date();
                 const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                 const occupancyMap = this.occupancyMap();
+                const myReservationsMap = this.myReservationsMap();
                 const sharedOccupancyMap = this.sharedOccupancyMap();
 
-                if (occupancyMap.has(todayString) && occupancyMap.get(todayString)) {
-                    // Today is occupied by this space
+                // Check if today is the current user's reservation first
+                if (myReservationsMap.has(todayString)) {
+                    // Today is occupied by current user's reservation
+                    todayCell.classList.add('my-booking');
+                    todayCell.classList.add('t-cell_disabled');
+                    todayCell.setAttribute('data-type', 'my-booking');
+                    todayCell.setAttribute('data-marker', 'my-booking');
+                } else if (occupancyMap.has(todayString) && occupancyMap.get(todayString)) {
+                    // Today is occupied by this space (but not by current user)
                     todayCell.classList.add('not-available');
                     todayCell.classList.add('t-cell_disabled');
                     todayCell.setAttribute('data-type', 'occupied');
@@ -258,10 +287,17 @@ export class SpaceCalendarComponent implements AfterViewInit {
             // Check if day is occupied using real occupancy data
             const dayString = `${day.year}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
             const occupancyMap = this.occupancyMap();
+            const myReservationsMap = this.myReservationsMap();
             const sharedOccupancyMap = this.sharedOccupancyMap();
 
+            // Check if this is the current user's reservation first
+            if (myReservationsMap.has(dayString)) {
+                // Day is occupied by current user's reservation
+                return [BOOKED_BY_ME];
+            }
+
             if (occupancyMap.has(dayString) && occupancyMap.get(dayString)) {
-                // Day is occupied by this space
+                // Day is occupied by this space (but not by current user)
                 return [BOOKED];
             }
 
@@ -322,7 +358,13 @@ export class SpaceCalendarComponent implements AfterViewInit {
             // Check if day is occupied using real occupancy data
             const dayString = `${day.year}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
             const occupancyMap = this.occupancyMap();
+            const myReservationsMap = this.myReservationsMap();
             const sharedOccupancyMap = this.sharedOccupancyMap();
+
+            // Check if this is the current user's reservation
+            if (myReservationsMap.has(dayString)) {
+                return true; // Day is occupied by current user's reservation (should be disabled)
+            }
 
             if (occupancyMap.has(dayString) && occupancyMap.get(dayString)) {
                 return true; // Day is occupied by this space

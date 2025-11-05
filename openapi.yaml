@@ -1819,6 +1819,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/AvailabilityResponse"
 
+  /spaces/spaces/{space-id}/occupancy-calendar:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getSpaceOccupancyCalendar
+      summary: Get occupancy calendar for a space (public endpoint)
+      description: Returns occupancy calendar data for a space. Only includes reservationId if the reservation belongs to the current authenticated user.
+      tags:
+        - spaces-api
+      security:
+        - BearerAuthOAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Start date for the calendar range (defaults to January 1st of current year)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: End date for the calendar range (defaults to December 31st of current year)
+      responses:
+        "200":
+          description: Occupancy calendar data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceOccupancyCalendarResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /spaces/reservations:
     get:
       operationId: getMyReservations
@@ -3724,8 +3768,38 @@ components:
           type: boolean
         reservationId:
           type: string
+          format: uuid
         userName:
           type: string
+
+    OccupancyCalendarDayPublic:
+      type: object
+      required:
+        - date
+        - isOccupied
+      properties:
+        date:
+          type: string
+          format: date
+          description: The date for this calendar day
+        isOccupied:
+          type: boolean
+          description: Whether the space is occupied on this day
+        reservationId:
+          type: string
+          format: uuid
+          description: Reservation ID - only populated if the reservation belongs to the current authenticated user
+
+    SpaceOccupancyCalendarResponse:
+      type: object
+      required:
+        - occupancyCalendar
+      properties:
+        occupancyCalendar:
+          type: array
+          items:
+            $ref: "#/components/schemas/OccupancyCalendarDayPublic"
+          description: List of calendar days with occupancy information
 
     MonthlyOccupancy:
       type: object
