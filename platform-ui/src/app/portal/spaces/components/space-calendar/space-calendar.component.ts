@@ -34,11 +34,8 @@ const AVAILABLE: string = '';
     ],
     templateUrl: './space-calendar.component.html',
     styleUrl: './space-calendar.component.scss',
-    providers: [
-        tuiCalendarSheetOptionsProvider({
-            rangeMode: true,
-        }),
-    ],
+    providers: [tuiCalendarSheetOptionsProvider({ rangeMode: true })],
+
 })
 export class SpaceCalendarComponent implements AfterViewInit {
 
@@ -288,15 +285,28 @@ export class SpaceCalendarComponent implements AfterViewInit {
     }
 
     protected onMobileCalendarChange(value: TuiDay | TuiDayRange | readonly TuiDay[] | null): void {
-        // In range mode, value should be TuiDayRange
+        // tui-mobile-calendar in range mode can emit different types
         if (value && 'from' in value && 'to' in value) {
+            // Already a TuiDayRange
             const range = value as TuiDayRange;
-            // Update both controls and emit
+            this.mobileCalendarControl.setValue(range, { emitEvent: false });
+            this.control.setValue(range);
+            this.selectedDate.emit(range);
+        } else if (Array.isArray(value) && value.length === 2) {
+            // Array of two TuiDay - create range
+            const range = new TuiDayRange(value[0], value[1]);
+            this.mobileCalendarControl.setValue(range, { emitEvent: false });
+            this.control.setValue(range);
+            this.selectedDate.emit(range);
+        } else if (value && !Array.isArray(value) && !('from' in value)) {
+            // Single TuiDay - convert to range (same day for start and end)
+            const day = value as TuiDay;
+            const range = new TuiDayRange(day, day);
             this.mobileCalendarControl.setValue(range, { emitEvent: false });
             this.control.setValue(range);
             this.selectedDate.emit(range);
         } else if (value === null) {
-            // Update both controls and emit
+            // Clear selection
             this.mobileCalendarControl.setValue(null, { emitEvent: false });
             this.control.setValue(null);
             this.selectedDate.emit(null);

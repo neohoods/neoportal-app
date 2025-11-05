@@ -340,31 +340,19 @@
                     </h2>
                     <div class="pricing-grid">
                         <div class="pricing-item">
-                            <span class="label">
-                                {{ 'spaces.admin.tenantPrice' | translate }}
-                            </span>
-                            <span class="value">
-                                {{ space()!.pricing.tenantPrice }} €{{ 'spaces.detail.perDay' | translate }}
-                            </span>
+                            <span class="label">{{ 'spaces.admin.tenantPrice' | translate }}</span>
+                            <span class="value">{{ space()!.pricing.tenantPrice }} €{{ 'spaces.detail.perDay' | translate }}</span>
                         </div>
                         <div class="pricing-item">
-                            <span class="label">
-                                {{ 'spaces.admin.ownerPrice' | translate }}
-                            </span>
-                            <span class="value">
-                                {{ space()!.pricing.ownerPrice }} € {{ 'spaces.detail.perDay' | translate }}
-                            </span>
+                            <span class="label">{{ 'spaces.admin.ownerPrice' | translate }}</span>
+                            <span class="value">{{ space()!.pricing.ownerPrice }} €{{ 'spaces.detail.perDay' | translate }}</span>
                         </div>
                         <div class="pricing-item">
-                            <span class="label">
-                                {{ 'spaces.admin.cleaningFee' | translate }}
-                            </span>
+                            <span class="label">{{ 'spaces.admin.cleaningFee' | translate }}</span>
                             <span class="value">{{ space()!.pricing.cleaningFee }} €</span>
                         </div>
                         <div class="pricing-item">
-                            <span class="label">
-                                {{ 'spaces.admin.deposit' | translate }}
-                            </span>
+                            <span class="label">{{ 'spaces.admin.deposit' | translate }}</span>
                             <span class="value">{{ space()!.pricing.deposit }} €</span>
                         </div>
                     </div>

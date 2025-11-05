@@ -21,10 +21,11 @@
 
 <!-- Mobile calendar - only show when occupancy data is loaded -->
 <div *ngIf="!loadingOccupancy()" class="mobile-calendar">
+
+    
     <tui-mobile-calendar
         [min]="min"
         [max]="max"
-        [value]="mobileCalendarControl.value"
         [disabledItemHandler]="disabledItemHandler"
         (valueChange)="onMobileCalendarChange($event)"
         name="mobileCalendar"

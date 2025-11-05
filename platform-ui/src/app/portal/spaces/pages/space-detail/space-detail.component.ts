@@ -218,10 +218,16 @@ export class SpaceDetailComponent implements OnInit {
         if (space && this.selectedDate()) {
             this.loading.set(true);
 
+            // Format dates directly from TuiDay to avoid timezone issues
+            const from = this.selectedDate()!.from;
+            const to = this.selectedDate()!.to;
+            const startDate = `${from.year}-${String(from.month + 1).padStart(2, '0')}-${String(from.day).padStart(2, '0')}`;
+            const endDate = `${to.year}-${String(to.month + 1).padStart(2, '0')}-${String(to.day).padStart(2, '0')}`;
+
             const request: CreateReservationRequest = {
                 spaceId: space.id,
-                startDate: this.selectedDate()!.from.toLocalNativeDate().toISOString().split('T')[0], // YYYY-MM-DD format
-                endDate: this.selectedDate()!.to.toLocalNativeDate().toISOString().split('T')[0] // YYYY-MM-DD format
+                startDate: startDate, // YYYY-MM-DD format
+                endDate: endDate // YYYY-MM-DD format
             };
 
             this.reservationsService.createReservation(request).subscribe({
