@@ -230,7 +230,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
                         "LEFT JOIN FETCH r.user " +
                         "LEFT JOIN FETCH r.accessCode " +
                         "WHERE r.space.id = :spaceId " +
-                        "AND r.startDate < :endDate AND r.endDate > :startDate")
+                        "AND r.startDate <= :startDate AND r.endDate >= :endDate")
         Page<ReservationEntity> findReservationsBySpaceAndDateRange(
                         @Param("spaceId") UUID spaceId,
                         @Param("startDate") LocalDate startDate,

@@ -5,3 +5,4 @@ export interface AdminSpaceStatisticsService {
     getSpaceStatistics(spaceId: string, startDate?: string, endDate?: string): Observable<UISpaceStatistics>;
 }
 
+
