@@ -1,5 +1,6 @@
 import { CommonModule, NgIf } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiHint } from '@taiga-ui/core';
 import { UIApplication } from '../../../../models/UIApplication';
@@ -12,8 +13,15 @@ import { UIApplication } from '../../../../models/UIApplication';
 })
 export class ApplicationComponent {
   @Input({ required: true }) application!: UIApplication;
+  private router = inject(Router);
 
   openLink(url: string): void {
-    window.open(url, '_blank'); // opens in a new tab like target="_blank"
+    // Check if URL is external (starts with http:// or https://)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      window.open(url, '_blank'); // opens in a new tab for external links
+    } else {
+      // Internal link - navigate using Angular router
+      this.router.navigateByUrl(url);
+    }
   }
 }
