@@ -569,6 +569,140 @@
             </div>
         </div>
 
+        <!-- Cleaning Settings -->
+        <div class="form-section">
+            <h2>
+                {{ 'spaces.admin.cleaningSettings' | translate }}
+            </h2>
+
+            <div
+                formGroupName="cleaningSettings"
+                class="cleaning-settings-group"
+            >
+                <div class="form-field">
+                    <label
+                        tuiLabel
+                        class="switch-label"
+                    >
+                        <input
+                            tuiSwitch
+                            type="checkbox"
+                            formControlName="cleaningEnabled"
+                            name="cleaningEnabled"
+                        >
+                        {{ 'spaces.admin.cleaningEnabled' | translate }}
+                    </label>
+                    <small class="help-text">
+                        {{ 'spaces.admin.cleaningEnabledHelp' | translate }}
+                    </small>
+                </div>
+
+                <div
+                    *ngIf="spaceForm.get('cleaningSettings.cleaningEnabled')?.value"
+                    class="cleaning-settings-fields"
+                >
+                    <div class="form-field">
+                        {{ draftSpace?.cleaningSettings?.cleaningEmail }}
+                        <label tuiLabel>
+                            {{ 'spaces.admin.cleaningEmail' | translate }}
+                            <tui-textfield>
+                                <input
+                                    tuiTextfield
+                                    formControlName="cleaningEmail"
+                                    type="email"
+                                    [placeholder]="'spaces.admin.cleaningEmailPlaceholder' | translate"
+                                >
+                            </tui-textfield>
+                        </label>
+                        <small class="help-text">
+                            {{ 'spaces.admin.cleaningEmailHelp' | translate }}
+                        </small>
+                        <div
+                            *ngIf="getNestedFieldError('cleaningSettings', 'cleaningEmail')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('cleaningSettings', 'cleaningEmail') }}
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label
+                            tuiLabel
+                            class="switch-label"
+                        >
+                            <input
+                                tuiSwitch
+                                type="checkbox"
+                                formControlName="cleaningNotificationsEnabled"
+                                name="cleaningNotificationsEnabled"
+                            >
+                            {{ 'spaces.admin.cleaningNotificationsEnabled' | translate }}
+                        </label>
+                        <small class="help-text">
+                            {{ 'spaces.admin.cleaningNotificationsEnabledHelp' | translate }}
+                        </small>
+                    </div>
+
+                    <div class="form-field">
+                        <label
+                            tuiLabel
+                            class="switch-label"
+                        >
+                            <input
+                                tuiSwitch
+                                type="checkbox"
+                                formControlName="cleaningCalendarEnabled"
+                                name="cleaningCalendarEnabled"
+                            >
+                            {{ 'spaces.admin.cleaningCalendarEnabled' | translate }}
+                        </label>
+                        <small class="help-text">
+                            {{ 'spaces.admin.cleaningCalendarEnabledHelp' | translate }}
+                        </small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label tuiLabel>
+                                {{ 'spaces.admin.cleaningDaysAfterCheckout' | translate }}
+                                <tui-textfield>
+                                    <input
+                                        tuiInputNumber
+                                        formControlName="cleaningDaysAfterCheckout"
+                                        placeholder="0"
+                                    >
+                                </tui-textfield>
+                            </label>
+                            <small class="help-text">
+                                {{ 'spaces.admin.cleaningDaysAfterCheckoutHelp' | translate }}
+                            </small>
+                            <div
+                                *ngIf="getNestedFieldError('cleaningSettings', 'cleaningDaysAfterCheckout')"
+                                class="field-error"
+                            >
+                                {{ getNestedFieldError('cleaningSettings', 'cleaningDaysAfterCheckout') }}
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label tuiLabel>
+                                {{ 'spaces.admin.cleaningHour' | translate }}
+                                <tui-textfield>
+                                    <input
+                                        tuiInputTime
+                                        formControlName="cleaningHour"
+                                    >
+                                </tui-textfield>
+                            </label>
+                            <small class="help-text">
+                                {{ 'spaces.admin.cleaningHourHelp' | translate }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Images -->
         <div class="form-section">
             <h2>{{ 'spaces.admin.images' | translate }}</h2>

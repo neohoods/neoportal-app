@@ -59,7 +59,7 @@ export class SpacesEditComponent implements OnInit {
     uploadingImages = signal(false);
     digitalLocks = signal<UIDigitalLock[]>([]);
     availableSpacesForSharing = signal<UISpace[]>([]);
-    private draftSpace: UISpace | null = null;
+    draftSpace: UISpace | null = null;
     private digitalLocksLoaded = signal(false);
     private availableSpacesLoaded = signal(false);
     private isPopulatingForm = false;
@@ -162,7 +162,15 @@ export class SpacesEditComponent implements OnInit {
                 prohibitedItems: [''],
                 additionalTerms: ['']
             }),
-            digitalLockId: [null]
+            digitalLockId: [null],
+            cleaningSettings: this.fb.group({
+                cleaningEnabled: [false],
+                cleaningEmail: [''],
+                cleaningNotificationsEnabled: [false],
+                cleaningCalendarEnabled: [false],
+                cleaningDaysAfterCheckout: [0, [Validators.min(0)]],
+                cleaningHour: ['10:00']
+            })
         });
 
         // Listen to shareSpaceWith changes to update selectedSharedSpaces signal
@@ -321,6 +329,14 @@ export class SpacesEditComponent implements OnInit {
                 cleaningDays: space.rules?.cleaningDays || [],
                 requiresApartmentAccess: space.rules?.requiresApartmentAccess || false,
                 shareSpaceWith: [] // VALEMENT: handled by map only
+            },
+            cleaningSettings: {
+                cleaningEnabled: space.cleaningSettings?.cleaningEnabled || false,
+                cleaningEmail: space.cleaningSettings?.cleaningEmail || '',
+                cleaningNotificationsEnabled: space.cleaningSettings?.cleaningNotificationsEnabled || false,
+                cleaningCalendarEnabled: space.cleaningSettings?.cleaningCalendarEnabled || false,
+                cleaningDaysAfterCheckout: space.cleaningSettings?.cleaningDaysAfterCheckout || 0,
+                cleaningHour: space.cleaningSettings?.cleaningHour || '10:00'
             }
         });
         // Initialise la map pour les checkbox partagés

@@ -132,6 +132,24 @@ public class SpaceEntity {
     @Column(nullable = false)
     private Boolean enableNotifications = true;
 
+    @Column(nullable = false)
+    private Boolean cleaningEnabled = false;
+
+    @Column
+    private String cleaningEmail;
+
+    @Column(nullable = false)
+    private Boolean cleaningNotificationsEnabled = false;
+
+    @Column(nullable = false)
+    private Boolean cleaningCalendarEnabled = false;
+
+    @Column(nullable = false)
+    private Integer cleaningDaysAfterCheckout = 0;
+
+    @Column(nullable = false, length = 5)
+    private String cleaningHour = "10:00";
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -358,6 +376,54 @@ public class SpaceEntity {
 
     public void setEnableNotifications(Boolean enableNotifications) {
         this.enableNotifications = enableNotifications;
+    }
+
+    public Boolean getCleaningEnabled() {
+        return cleaningEnabled;
+    }
+
+    public void setCleaningEnabled(Boolean cleaningEnabled) {
+        this.cleaningEnabled = cleaningEnabled;
+    }
+
+    public String getCleaningEmail() {
+        return cleaningEmail;
+    }
+
+    public void setCleaningEmail(String cleaningEmail) {
+        this.cleaningEmail = cleaningEmail;
+    }
+
+    public Boolean getCleaningNotificationsEnabled() {
+        return cleaningNotificationsEnabled;
+    }
+
+    public void setCleaningNotificationsEnabled(Boolean cleaningNotificationsEnabled) {
+        this.cleaningNotificationsEnabled = cleaningNotificationsEnabled;
+    }
+
+    public Boolean getCleaningCalendarEnabled() {
+        return cleaningCalendarEnabled;
+    }
+
+    public void setCleaningCalendarEnabled(Boolean cleaningCalendarEnabled) {
+        this.cleaningCalendarEnabled = cleaningCalendarEnabled;
+    }
+
+    public Integer getCleaningDaysAfterCheckout() {
+        return cleaningDaysAfterCheckout;
+    }
+
+    public void setCleaningDaysAfterCheckout(Integer cleaningDaysAfterCheckout) {
+        this.cleaningDaysAfterCheckout = cleaningDaysAfterCheckout;
+    }
+
+    public String getCleaningHour() {
+        return cleaningHour;
+    }
+
+    public void setCleaningHour(String cleaningHour) {
+        this.cleaningHour = cleaningHour;
     }
 
     public LocalDateTime getCreatedAt() {

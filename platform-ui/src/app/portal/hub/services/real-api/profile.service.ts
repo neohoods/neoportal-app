@@ -57,6 +57,7 @@ export class APIProfileService implements ProfileService {
     return {
       isNotificationsEnabled: settings.enableNotifications,
       isNewsletterEnabled: settings.newsletterEnabled,
+      calendarUrl: settings.calendarUrl?.toString() || null,
     };
   }
 }

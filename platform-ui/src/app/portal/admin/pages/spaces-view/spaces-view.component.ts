@@ -554,5 +554,20 @@ export class SpacesViewComponent implements OnInit {
                 return 'outline';
         }
     }
+
+    copyCalendarUrl(url: string): void {
+        if (!url) return;
+        
+        navigator.clipboard.writeText(url).then(() => {
+            this.alertService.open(
+                this.translate.instant('spaces.admin.calendarUrlCopied')
+            ).subscribe();
+        }).catch((err) => {
+            console.error('Failed to copy URL:', err);
+            this.alertService.open(
+                this.translate.instant('spaces.admin.errorCopyingUrl') || 'Failed to copy URL'
+            ).subscribe();
+        });
+    }
 }
 

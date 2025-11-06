@@ -170,6 +170,33 @@
                                 </a>
                             </span>
                         </div>
+                        <div
+                            *ngIf="reservation()?.space?.cleaningSettings?.cleaningCalendarEnabled && reservation()?.space?.cleaningSettings?.calendarUrl"
+                            class="info-item calendar-url-item"
+                        >
+                            <span class="info-label">
+                                {{ 'spaces.admin.cleaningCalendarUrl' | translate }}:
+                            </span>
+                            <div class="calendar-url-display">
+                                <tui-textfield class="url-input">
+                                    <input
+                                        tuiTextfield
+                                        [value]="reservation()!.space!.cleaningSettings!.calendarUrl"
+                                        readonly
+                                        [readOnly]="true"
+                                    />
+                                </tui-textfield>
+                                <button
+                                    tuiButton
+                                    appearance="primary"
+                                    size="s"
+                                    (click)="copyCalendarUrl(reservation()!.space!.cleaningSettings!.calendarUrl || '')"
+                                >
+                                    <tui-icon icon="@tui.copy"></tui-icon>
+                                    {{ 'spaces.admin.copyCalendarUrl' | translate }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

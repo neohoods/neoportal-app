@@ -38,7 +38,6 @@ public class UserContextFilter implements WebFilter {
                             return userContextService.getUsername(userId)
                                     .doOnNext(username -> {
                                         MDC.put(USERNAME_MDC_KEY, username);
-                                        System.out.println("DEBUG: Username resolved: " + username);
                                     })
                                     .then(Mono.just(principal));
                         } catch (IllegalArgumentException e) {

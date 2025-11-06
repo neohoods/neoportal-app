@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiAlertService, TuiButton, TuiDialogService, TuiIcon, TuiLoader, TuiTextfield } from '@taiga-ui/core';
 import { TuiTabs } from '@taiga-ui/kit';
 
 import { inject } from '@angular/core';
@@ -30,6 +30,7 @@ interface AuditLog {
         TuiButton,
         TuiIcon,
         TuiLoader,
+        TuiTextfield,
         TranslateModule,
         RouterLink
     ],
@@ -332,6 +333,21 @@ export class ReservationDetailComponent implements OnInit {
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit'
+        });
+    }
+
+    copyCalendarUrl(url: string): void {
+        if (!url) return;
+        
+        navigator.clipboard.writeText(url).then(() => {
+            this.alertService.open(
+                this.translate.instant('spaces.admin.calendarUrlCopied')
+            ).subscribe();
+        }).catch((err) => {
+            console.error('Failed to copy URL:', err);
+            this.alertService.open(
+                this.translate.instant('spaces.admin.errorCopyingUrl') || 'Failed to copy URL'
+            ).subscribe();
         });
     }
 }

@@ -268,6 +268,12 @@ CREATE TABLE spaces (
     digital_lock_id UUID REFERENCES digital_locks(id) ON DELETE SET NULL,
     access_code_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     enable_notifications BOOLEAN NOT NULL DEFAULT TRUE,
+    cleaning_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    cleaning_email VARCHAR(255),
+    cleaning_notifications_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    cleaning_calendar_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    cleaning_days_after_checkout INTEGER NOT NULL DEFAULT 0,
+    cleaning_hour VARCHAR(5) DEFAULT '10:00',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

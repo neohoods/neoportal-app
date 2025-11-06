@@ -188,6 +188,123 @@
         }
       </section>
 
+      <!-- Cleaning Settings -->
+      @if (space()?.cleaningSettings) {
+      <section class="detail-section cleaning-section">
+        <h2>{{ 'spaces.admin.cleaningSettings' | translate }}</h2>
+        
+        <div class="cleaning-info">
+          @if (space()?.cleaningSettings?.cleaningEnabled !== undefined) {
+          <div class="info-item">
+            <span class="label">{{ 'spaces.admin.cleaningEnabled' | translate }}</span>
+            <tui-chip [appearance]="space()?.cleaningSettings?.cleaningEnabled ? 'positive' : 'outline'">
+              <tui-icon [icon]="space()?.cleaningSettings?.cleaningEnabled ? '@tui.check' : '@tui.x'"></tui-icon>
+              {{ space()?.cleaningSettings?.cleaningEnabled ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
+            </tui-chip>
+          </div>
+          }
+          
+          @if (space()?.cleaningSettings?.cleaningEmail) {
+          <div class="info-item">
+            <span class="label">{{ 'spaces.admin.cleaningEmail' | translate }}</span>
+            <span class="value">{{ space()?.cleaningSettings?.cleaningEmail }}</span>
+          </div>
+          }
+          
+          @if (space()?.cleaningSettings?.cleaningNotificationsEnabled !== undefined) {
+          <div class="info-item">
+            <span class="label">{{ 'spaces.admin.cleaningNotificationsEnabled' | translate }}</span>
+            <tui-chip [appearance]="space()?.cleaningSettings?.cleaningNotificationsEnabled ? 'positive' : 'outline'">
+              <tui-icon [icon]="space()?.cleaningSettings?.cleaningNotificationsEnabled ? '@tui.check' : '@tui.x'"></tui-icon>
+              {{ space()?.cleaningSettings?.cleaningNotificationsEnabled ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
+            </tui-chip>
+          </div>
+          }
+          
+          @if (space()?.cleaningSettings?.cleaningCalendarEnabled !== undefined) {
+          <div class="info-item">
+            <span class="label">{{ 'spaces.admin.cleaningCalendarEnabled' | translate }}</span>
+            <tui-chip [appearance]="space()?.cleaningSettings?.cleaningCalendarEnabled ? 'positive' : 'outline'">
+              <tui-icon [icon]="space()?.cleaningSettings?.cleaningCalendarEnabled ? '@tui.check' : '@tui.x'"></tui-icon>
+              {{ space()?.cleaningSettings?.cleaningCalendarEnabled ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
+            </tui-chip>
+          </div>
+          }
+          
+          @if (space()?.cleaningSettings?.cleaningDaysAfterCheckout !== undefined) {
+          <div class="info-item">
+            <span class="label">{{ 'spaces.admin.cleaningDaysAfterCheckout' | translate }}</span>
+            <span class="value">{{ space()?.cleaningSettings?.cleaningDaysAfterCheckout }} {{ 'spaces.admin.days' | translate }}</span>
+          </div>
+          }
+          
+          @if (space()?.cleaningSettings?.cleaningHour) {
+          <div class="info-item">
+            <span class="label">{{ 'spaces.admin.cleaningHour' | translate }}</span>
+            <span class="value">{{ space()?.cleaningSettings?.cleaningHour }}</span>
+          </div>
+          }
+        </div>
+
+        @if (space()?.cleaningSettings?.cleaningCalendarEnabled && space()?.cleaningSettings?.calendarUrl) {
+        <div class="calendar-url-section">
+          <h2>{{ 'spaces.admin.cleaningCalendarUrl' | translate }}</h2>
+          <p class="help-text">{{ 'spaces.admin.cleaningCalendarUrlHelp' | translate }}</p>
+          <div class="url-display">
+            <tui-textfield class="url-input">
+              <input
+                tuiTextfield
+                [value]="space()?.cleaningSettings?.calendarUrl"
+                readonly
+                [readOnly]="true"
+                #calendarUrlInput
+              />
+            </tui-textfield>
+            <button
+              tuiButton
+              appearance="primary"
+              size="m"
+              (click)="copyCalendarUrl(space()?.cleaningSettings?.calendarUrl || '')"
+            >
+              <tui-icon icon="@tui.copy"></tui-icon>
+              {{ 'spaces.admin.copyCalendarUrl' | translate }}
+            </button>
+          </div>
+        </div>
+        }
+      </section>
+      }
+
+      <!-- Reservation Calendar Section -->
+      @if (space()?.reservationCalendarUrl) {
+      <section class="detail-section">
+        <div class="calendar-url-section">
+          <h2>{{ 'spaces.admin.reservationCalendar' | translate }}</h2>
+          <p class="help-text">{{ 'spaces.admin.reservationCalendarHelp' | translate }}</p>
+          <div class="url-display">
+            <tui-textfield class="url-input">
+              <input
+                tuiTextfield
+                [value]="space()?.reservationCalendarUrl"
+                readonly
+                [readOnly]="true"
+                #reservationCalendarUrlInput
+              />
+            </tui-textfield>
+            <button
+              tuiButton
+              appearance="primary"
+              size="m"
+              (click)="copyCalendarUrl(space()?.reservationCalendarUrl || '')"
+            >
+              <tui-icon icon="@tui.copy"></tui-icon>
+              {{ 'spaces.admin.copyCalendarUrl' | translate }}
+            </button>
+          </div>
+        </div>
+      </section>
+      }
+
       <!-- Statistics Section -->
       <section class="detail-section statistics-section">
         <div class="statistics-header">

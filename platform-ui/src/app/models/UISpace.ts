@@ -1,4 +1,4 @@
-import { QuotaInfo, Space, SpaceImage, SpacePricing, SpaceRules, SpaceStatus, SpaceType } from '../api-client';
+import { CleaningSettings, QuotaInfo, Space, SpaceImage, SpacePricing, SpaceRules, SpaceStatus, SpaceType } from '../api-client';
 
 export interface UISpace {
     id: string;
@@ -13,6 +13,8 @@ export interface UISpace {
     quota?: QuotaInfo;
     digitalLockId?: string | null;
     accessCodeEnabled?: boolean;
+    cleaningSettings?: CleaningSettings;
+    reservationCalendarUrl?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -40,6 +42,8 @@ export function fromApiSpace(apiSpace: Space): UISpace {
         quota: apiSpace.quota,
         digitalLockId: apiSpace.digitalLockId,
         accessCodeEnabled: apiSpace.accessCodeEnabled,
+        cleaningSettings: apiSpace.cleaningSettings,
+        reservationCalendarUrl: apiSpace.reservationCalendarUrl || null,
         createdAt: apiSpace.createdAt || new Date().toISOString(),
         updatedAt: apiSpace.updatedAt || new Date().toISOString()
     };
@@ -59,6 +63,7 @@ export function toApiSpace(uiSpace: Partial<UISpace>): Partial<Space> {
         quota: uiSpace.quota,
         digitalLockId: uiSpace.digitalLockId || undefined,
         accessCodeEnabled: uiSpace.accessCodeEnabled,
+        cleaningSettings: uiSpace.cleaningSettings,
         createdAt: uiSpace.createdAt,
         updatedAt: uiSpace.updatedAt
     };

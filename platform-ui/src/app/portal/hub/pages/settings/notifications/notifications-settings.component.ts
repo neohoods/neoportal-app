@@ -1,4 +1,5 @@
 import { Component, Inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
@@ -15,6 +16,7 @@ import { ProfileService } from '../../../services/profile.service';
 @Component({
   selector: 'app-notifications-settings',
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     TuiButton,
     TuiTextfield,
@@ -26,6 +28,7 @@ import { ProfileService } from '../../../services/profile.service';
 })
 export class NotificationsSettingsComponent {
   notificationsForm: FormGroup;
+  calendarUrl: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -48,6 +51,22 @@ export class NotificationsSettingsComponent {
   loadProfile(): void {
     this.profileService.getNotificationsSettings().subscribe((settings) => {
       this.notificationsForm.patchValue(settings);
+      this.calendarUrl = settings.calendarUrl || null;
+    });
+  }
+
+  copyCalendarUrl(): void {
+    if (!this.calendarUrl) return;
+    
+    navigator.clipboard.writeText(this.calendarUrl).then(() => {
+      this.alerts.open(this.translate.instant('notifications.calendar.urlCopied'), {
+        appearance: 'success',
+      }).subscribe();
+    }).catch((err) => {
+      console.error('Failed to copy URL:', err);
+      this.alerts.open(this.translate.instant('notifications.calendar.errorCopying') || 'Failed to copy URL', {
+        appearance: 'error',
+      }).subscribe();
     });
   }
 

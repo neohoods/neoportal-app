@@ -47,3 +47,42 @@ form {
     cursor: pointer;
     user-select: none;
 }
+
+.calendar-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--tui-base-03);
+}
+
+.calendar-description {
+    margin-bottom: 1rem;
+    color: var(--tui-text-02);
+}
+
+.url-display {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+
+    tui-textfield {
+        flex: 1;
+
+        input[readonly] {
+            font-family: monospace;
+            font-size: 0.875rem;
+            cursor: text;
+            background: var(--tui-base-02);
+            border: 1px solid var(--tui-base-04);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    button {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+}

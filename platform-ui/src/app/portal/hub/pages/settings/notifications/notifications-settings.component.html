@@ -36,6 +36,36 @@
             </div>
         </div>
 
+        <div
+            *ngIf="calendarUrl"
+            class="section calendar-section"
+        >
+            <h2>
+                {{ 'notifications.calendar.title' | translate }}
+            </h2>
+            <p class="calendar-description">
+                {{ 'notifications.calendar.description' | translate }}
+            </p>
+            <div class="url-display">
+                <tui-textfield>
+                    <input
+                        tuiTextfield
+                        [value]="calendarUrl"
+                        [readOnly]="true"
+                        (click)="copyCalendarUrl()"
+                    >
+                </tui-textfield>
+                <button
+                    appearance="secondary"
+                    tuiButton
+                    type="button"
+                    (click)="copyCalendarUrl()"
+                >
+                    {{ 'notifications.calendar.copyUrl' | translate }}
+                </button>
+            </div>
+        </div>
+
         <button
             appearance="accent"
             tuiButton

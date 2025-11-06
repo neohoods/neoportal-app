@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.SpacesAdminApiApiDelegate;
+import com.neohoods.portal.platform.model.CleaningSettings;
 import com.neohoods.portal.platform.model.PaginatedSpaces;
 import com.neohoods.portal.platform.model.QuotaInfo;
 import com.neohoods.portal.platform.model.Space;
@@ -32,6 +33,7 @@ import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceImageEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
+import com.neohoods.portal.platform.spaces.services.CleaningCalendarTokenService;
 import com.neohoods.portal.platform.spaces.services.SpaceStatisticsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
 
@@ -45,6 +47,12 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
 
     @Autowired
     private SpaceStatisticsService spaceStatisticsService;
+
+    @Autowired
+    private CleaningCalendarTokenService cleaningCalendarTokenService;
+
+    @org.springframework.beans.factory.annotation.Value("${neohoods.portal.base-url}")
+    private String baseUrl;
 
     @Override
     public Mono<ResponseEntity<PaginatedSpaces>> getAdminSpaces(
@@ -183,6 +191,29 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
                 entity.setStatus(convertApiStatusToEntityStatus(request.getStatus()));
             }
 
+            // Update cleaning settings
+            if (request.getCleaningSettings() != null) {
+                CleaningSettings cleaningSettings = request.getCleaningSettings();
+                if (cleaningSettings.getCleaningEnabled() != null) {
+                    entity.setCleaningEnabled(cleaningSettings.getCleaningEnabled());
+                }
+                if (cleaningSettings.getCleaningEmail() != null) {
+                    entity.setCleaningEmail(cleaningSettings.getCleaningEmail());
+                }
+                if (cleaningSettings.getCleaningNotificationsEnabled() != null) {
+                    entity.setCleaningNotificationsEnabled(cleaningSettings.getCleaningNotificationsEnabled());
+                }
+                if (cleaningSettings.getCleaningCalendarEnabled() != null) {
+                    entity.setCleaningCalendarEnabled(cleaningSettings.getCleaningCalendarEnabled());
+                }
+                if (cleaningSettings.getCleaningDaysAfterCheckout() != null) {
+                    entity.setCleaningDaysAfterCheckout(cleaningSettings.getCleaningDaysAfterCheckout());
+                }
+                if (cleaningSettings.getCleaningHour() != null) {
+                    entity.setCleaningHour(cleaningSettings.getCleaningHour());
+                }
+            }
+
             SpaceEntity updated = spacesService.updateSpace(entity);
             Space space = convertToApiModel(updated);
             return Mono.just(ResponseEntity.ok(space));
@@ -306,7 +337,42 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
             images = new ArrayList<>();
         }
 
+        // Build cleaning settings
+        // Always include cleaning settings if any cleaning-related field is set
+        // This allows displaying calendar URL even if cleaningEnabled is false but
+        // cleaningCalendarEnabled is true
+        CleaningSettings cleaningSettings = null;
+        if (entity.getCleaningEnabled() != null ||
+                entity.getCleaningEmail() != null ||
+                entity.getCleaningCalendarEnabled() != null ||
+                entity.getCleaningNotificationsEnabled() != null) {
+            cleaningSettings = CleaningSettings.builder()
+                    .cleaningEnabled(entity.getCleaningEnabled() != null ? entity.getCleaningEnabled() : false)
+                    .cleaningEmail(entity.getCleaningEmail())
+                    .cleaningNotificationsEnabled(
+                            entity.getCleaningNotificationsEnabled() != null ? entity.getCleaningNotificationsEnabled()
+                                    : false)
+                    .cleaningCalendarEnabled(
+                            entity.getCleaningCalendarEnabled() != null ? entity.getCleaningCalendarEnabled() : false)
+                    .cleaningDaysAfterCheckout(
+                            entity.getCleaningDaysAfterCheckout() != null ? entity.getCleaningDaysAfterCheckout() : 0)
+                    .cleaningHour(entity.getCleaningHour() != null ? entity.getCleaningHour() : "10:00")
+                    .calendarUrl(entity.getCleaningCalendarEnabled() != null && entity.getCleaningCalendarEnabled()
+                            ? java.net.URI
+                                    .create(baseUrl + "/api/public/spaces/" + entity.getId() + "/calendar.ics?token="
+                                            + cleaningCalendarTokenService.generateToken(entity.getId(), "cleaning")
+                                            + "&type=cleaning")
+                            : null)
+                    .build();
+        }
+
         // Build the main Space object
+        // Generate reservation calendar URL (always available for all spaces)
+        java.net.URI reservationCalendarUrl = java.net.URI.create(
+                baseUrl + "/api/public/spaces/" + entity.getId() + "/calendar.ics?token="
+                        + cleaningCalendarTokenService.generateToken(entity.getId(), "reservation")
+                        + "&type=reservation");
+
         return Space.builder()
                 .id(entity.getId())
                 .name(entity.getName())
@@ -320,6 +386,8 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
                 .quota(quota)
                 .digitalLockId(entity.getDigitalLockId())
                 .accessCodeEnabled(entity.getAccessCodeEnabled())
+                .cleaningSettings(cleaningSettings)
+                .reservationCalendarUrl(reservationCalendarUrl)
                 .createdAt(entity.getCreatedAt().atOffset(java.time.ZoneOffset.UTC))
                 .updatedAt(entity.getUpdatedAt().atOffset(java.time.ZoneOffset.UTC))
                 .build();
@@ -395,6 +463,17 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
         // Set digital lock information
         if (request.getDigitalLockId() != null) {
             entity.setDigitalLockId(request.getDigitalLockId());
+        }
+
+        // Set cleaning settings
+        if (request.getCleaningSettings() != null) {
+            CleaningSettings cleaningSettings = request.getCleaningSettings();
+            entity.setCleaningEnabled(cleaningSettings.getCleaningEnabled());
+            entity.setCleaningEmail(cleaningSettings.getCleaningEmail());
+            entity.setCleaningNotificationsEnabled(cleaningSettings.getCleaningNotificationsEnabled());
+            entity.setCleaningCalendarEnabled(cleaningSettings.getCleaningCalendarEnabled());
+            entity.setCleaningDaysAfterCheckout(cleaningSettings.getCleaningDaysAfterCheckout());
+            entity.setCleaningHour(cleaningSettings.getCleaningHour());
         }
 
         return entity;

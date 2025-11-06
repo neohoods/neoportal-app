@@ -62,6 +62,9 @@ public class ReservationsService {
     @Autowired
     private NotificationsService notificationsService;
 
+    @Autowired
+    private CleaningNotificationService cleaningNotificationService;
+
     /**
      * Get all reservations for a user
      */
@@ -320,6 +323,14 @@ public class ReservationsService {
             // Don't fail the reservation confirmation if notification fails
         }
 
+        // Send cleaning company notification
+        try {
+            cleaningNotificationService.sendBookingConfirmationEmail(reservation);
+        } catch (Exception e) {
+            logger.error("Failed to send cleaning notification for reservation {}", reservationId, e);
+            // Don't fail the reservation confirmation if cleaning notification fails
+        }
+
         return reservation;
     }
 
@@ -434,6 +445,14 @@ public class ReservationsService {
         auditService.logStatusChange(reservation.getId(), oldStatus,
                 ReservationStatusForEntity.CANCELLED.toString(), cancelledBy);
         auditService.logCancellation(reservation.getId(), reason, cancelledBy);
+
+        // Send cleaning company cancellation notification
+        try {
+            cleaningNotificationService.sendCancellationEmail(reservation);
+        } catch (Exception e) {
+            logger.error("Failed to send cleaning cancellation notification for reservation {}", reservationId, e);
+            // Don't fail the cancellation if cleaning notification fails
+        }
 
         return reservation;
     }

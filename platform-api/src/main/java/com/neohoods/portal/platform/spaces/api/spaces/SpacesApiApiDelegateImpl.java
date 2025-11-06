@@ -14,9 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.SpacesApiApiDelegate;
-import com.neohoods.portal.platform.exceptions.CodedError;
-import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.AvailabilityResponse;
+import com.neohoods.portal.platform.model.CleaningSettings;
 import com.neohoods.portal.platform.model.OccupancyCalendarDay;
 import com.neohoods.portal.platform.model.OccupancyCalendarDayPublic;
 import com.neohoods.portal.platform.model.PaginatedSpaces;
@@ -136,7 +135,6 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
                             : LocalDate.of(LocalDate.now().getYear(), 1, 1);
                     LocalDate effectiveEndDate = endDate != null ? endDate
                             : LocalDate.of(LocalDate.now().getYear(), 12, 31);
-
 
                     // Get occupancy calendar from service
                     List<OccupancyCalendarDay> occupancyCalendar = spaceStatisticsService
@@ -280,6 +278,19 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
             quota.setMax(entity.getMaxAnnualReservations());
             quota.setPeriod(QuotaInfo.PeriodEnum.YEAR);
             space.setQuota(quota);
+        }
+
+        // Map cleaning settings (public API - no calendar URL)
+        if (entity.getCleaningEnabled() != null && entity.getCleaningEnabled()) {
+            CleaningSettings cleaningSettings = new CleaningSettings();
+            cleaningSettings.setCleaningEnabled(entity.getCleaningEnabled());
+            cleaningSettings.setCleaningEmail(entity.getCleaningEmail());
+            cleaningSettings.setCleaningNotificationsEnabled(entity.getCleaningNotificationsEnabled());
+            cleaningSettings.setCleaningCalendarEnabled(entity.getCleaningCalendarEnabled());
+            cleaningSettings.setCleaningDaysAfterCheckout(entity.getCleaningDaysAfterCheckout());
+            cleaningSettings.setCleaningHour(entity.getCleaningHour());
+            // calendarUrl is not included in public API for security
+            space.setCleaningSettings(cleaningSettings);
         }
 
         return space;

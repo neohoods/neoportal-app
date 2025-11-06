@@ -308,4 +308,152 @@ public class MailService {
                 sendTemplatedEmail(user, "reservations.email.confirmation.title",
                                 "email/reservation-confirmation", variables, locale);
         }
+
+        /**
+         * Send templated email to an email address (not a user entity)
+         */
+        private void sendTemplatedEmailToAddress(String email, String subject, String templateName,
+                        List<TemplateVariable> variables, Locale locale) {
+                try {
+                        Context context = new Context(locale);
+                        for (TemplateVariable variable : variables) {
+                                context.setVariable(variable.getRef(), variable.getValue());
+                        }
+
+                        String htmlContent = templateEngine.process(templateName, context);
+
+                        String finalSubject;
+                        if (subject != null && messageSource != null) {
+                                try {
+                                        finalSubject = messageSource.getMessage(subject, null, locale);
+                                } catch (Exception e) {
+                                        // If translation fails, use the subject as-is
+                                        log.debug("Subject '{}' is not a translation key, using as-is", subject);
+                                        finalSubject = subject;
+                                }
+                        } else {
+                                finalSubject = subject;
+                        }
+
+                        sendMail(email, finalSubject, htmlContent);
+                } catch (Exception e) {
+                        log.error("Failed to process template: {} for email: {}", templateName, email, e);
+                }
+        }
+
+        public void sendCleaningBookingConfirmationEmail(String email, String spaceName, String checkoutDate,
+                        String cleaningDate, String cleaningTime, String guestName, String guestEmail,
+                        String calendarUrl, Locale locale) {
+
+                List<TemplateVariable> variables = new ArrayList<>();
+                variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("spaceName")
+                                .value(spaceName != null ? spaceName : "")
+                                .build());
+                variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("checkoutDate")
+                                .value(checkoutDate != null ? checkoutDate : "")
+                                .build());
+                variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("cleaningDate")
+                                .value(cleaningDate != null ? cleaningDate : "")
+                                .build());
+                variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("cleaningTime")
+                                .value(cleaningTime != null ? cleaningTime : "")
+                                .build());
+                variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("guestName")
+                                .value(guestName != null ? guestName : "")
+                                .build());
+                variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("guestEmail")
+                                .value(guestEmail != null ? guestEmail : "")
+                                .build());
+                if (calendarUrl != null) {
+                        variables.add(TemplateVariable.builder()
+                                        .type(TemplateVariableType.RAW)
+                                        .ref("calendarUrl")
+                                        .value(calendarUrl)
+                                        .build());
+                }
+
+                sendTemplatedEmailToAddress(email, "cleaning.email.bookingConfirmation.subject",
+                                "email/cleaning-booking-confirmation", variables, locale);
+        }
+
+        public void sendCleaningReminderEmail(String email, String spaceName, String cleaningDate,
+                        String cleaningTime, String guestName, Locale locale) {
+
+                List<TemplateVariable> variables = List.of(
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("spaceName")
+                                                .value(spaceName != null ? spaceName : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("cleaningDate")
+                                                .value(cleaningDate != null ? cleaningDate : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("cleaningTime")
+                                                .value(cleaningTime != null ? cleaningTime : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("guestName")
+                                                .value(guestName != null ? guestName : "")
+                                                .build());
+
+                sendTemplatedEmailToAddress(email, "cleaning.email.reminder.subject",
+                                "email/cleaning-reminder", variables, locale);
+        }
+
+        public void sendCleaningCancellationEmail(String email, String spaceName, String checkoutDate,
+                        String cleaningDate, String cleaningTime, String guestName, String guestEmail,
+                        Locale locale) {
+
+                List<TemplateVariable> variables = List.of(
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("spaceName")
+                                                .value(spaceName != null ? spaceName : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("checkoutDate")
+                                                .value(checkoutDate != null ? checkoutDate : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("cleaningDate")
+                                                .value(cleaningDate != null ? cleaningDate : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("cleaningTime")
+                                                .value(cleaningTime != null ? cleaningTime : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("guestName")
+                                                .value(guestName != null ? guestName : "")
+                                                .build(),
+                                TemplateVariable.builder()
+                                                .type(TemplateVariableType.RAW)
+                                                .ref("guestEmail")
+                                                .value(guestEmail != null ? guestEmail : "")
+                                                .build());
+
+                sendTemplatedEmailToAddress(email, "cleaning.email.cancellation.subject",
+                                "email/cleaning-cancellation", variables, locale);
+        }
 }

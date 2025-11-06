@@ -1862,6 +1862,92 @@ paths:
           $ref: "#/components/responses/NotFound"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /public/spaces/{space-id}/calendar.ics:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getSpaceCleaningCalendar
+      summary: Get calendar feed for a space (iCalendar format)
+      description: |
+        Returns an iCalendar (.ics) feed for the space. Requires a valid JWT token for authentication.
+        
+        The `type` parameter determines the calendar content:
+        - `cleaning`: Returns cleaning schedules based on reservation checkout dates
+        - `reservation`: Returns reservation schedules. If userId is present in the JWT token, only that user's reservations are returned; otherwise all space reservations are returned.
+      tags:
+        - public-spaces-api
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: JWT token for calendar access (must include type claim matching the type parameter)
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          description: Calendar type (cleaning or reservation)
+          schema:
+            type: string
+            enum:
+              - cleaning
+              - reservation
+            default: cleaning
+      responses:
+        "200":
+          description: Calendar feed in iCalendar format
+          content:
+            text/calendar:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+          description: Invalid or expired token
+        "404":
+          $ref: "#/components/responses/NotFound"
+          description: Space not found
+
+  /public/users/{user-id}/calendar.ics:
+    parameters:
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getUserCalendar
+      summary: Get user's personal reservation calendar (iCalendar format)
+      description: Returns an iCalendar (.ics) feed containing all reservations across all spaces for the specified user. Requires a valid JWT token where the userId claim matches the path parameter.
+      tags:
+        - public-users-api
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: JWT token for calendar access (must include userId claim matching the user-id path parameter)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Calendar feed in iCalendar format
+          content:
+            text/calendar:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+          description: Invalid or expired token, or userId mismatch
+        "404":
+          $ref: "#/components/responses/NotFound"
+          description: User not found
 
   /spaces/reservations:
     get:
@@ -3006,6 +3092,13 @@ components:
           type: boolean
           default: true
           example: true
+        cleaningSettings:
+          $ref: "#/components/schemas/CleaningSettings"
+        reservationCalendarUrl:
+          type: string
+          format: uri
+          readOnly: true
+          description: Calendar feed URL for all reservations in this space (iCalendar format)
         createdAt:
           type: string
           format: date-time
@@ -3517,6 +3610,9 @@ components:
         status:
           $ref: "#/components/schemas/SpaceStatus"
           description: "Space status (optional for updates)"
+        cleaningSettings:
+          $ref: "#/components/schemas/CleaningSettings"
+          description: "Cleaning company integration settings"
 
     SpaceTypeSettings:
       type: object
@@ -3666,6 +3762,42 @@ components:
         reason:
           type: string
           example: "Vacances d'été"
+
+    CleaningSettings:
+      type: object
+      properties:
+        cleaningEnabled:
+          type: boolean
+          default: false
+          description: Whether cleaning company integration is enabled for this space
+        cleaningEmail:
+          type: string
+          format: email
+          description: Email address of the cleaning company
+        cleaningNotificationsEnabled:
+          type: boolean
+          default: false
+          description: Whether to send email notifications to the cleaning company
+        cleaningCalendarEnabled:
+          type: boolean
+          default: false
+          description: Whether to generate and share calendar feed with the cleaning company
+        cleaningDaysAfterCheckout:
+          type: integer
+          minimum: 0
+          default: 0
+          description: Number of days after checkout when cleaning should occur (0 means same day as checkout)
+        cleaningHour:
+          type: string
+          pattern: "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+          default: "10:00"
+          example: "10:00"
+          description: Time when cleaning should occur (HH:MM format)
+        calendarUrl:
+          type: string
+          format: uri
+          readOnly: true
+          description: Calendar feed URL (only present when cleaningCalendarEnabled is true)
 
     SpaceStatistics:
       type: object
@@ -4183,6 +4315,11 @@ components:
           type: boolean
           description: Whether the user accepts to receive newsletters
           default: true
+        calendarUrl:
+          type: string
+          format: uri
+          readOnly: true
+          description: URL to user's personal reservation calendar (iCalendar format)
       required:
         - enableNotifications
         - newsletterEnabled

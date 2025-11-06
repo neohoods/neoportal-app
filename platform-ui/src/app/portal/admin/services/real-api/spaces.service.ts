@@ -72,7 +72,8 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
             images: apiSpace.images || [],
             quota: apiSpace.quota,
             digitalLockId: apiSpace.digitalLockId,
-            accessCodeEnabled: apiSpace.accessCodeEnabled
+            accessCodeEnabled: apiSpace.accessCodeEnabled,
+            cleaningSettings: apiSpace.cleaningSettings
         };
         return this.spacesAdminApi.createSpace(spaceRequest).pipe(
             map(fromApiSpace)
@@ -92,7 +93,8 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
             images: apiSpace.images || [],
             quota: apiSpace.quota,
             digitalLockId: apiSpace.digitalLockId,
-            accessCodeEnabled: apiSpace.accessCodeEnabled
+            accessCodeEnabled: apiSpace.accessCodeEnabled,
+            cleaningSettings: apiSpace.cleaningSettings
         };
         return this.spacesAdminApi.updateSpace(id, spaceRequest).pipe(
             map(fromApiSpace)
@@ -158,7 +160,8 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
                         images: space.images || [],
                         quota: space.quota,
                         digitalLockId: undefined,
-                        accessCodeEnabled: space.accessCodeEnabled
+                        accessCodeEnabled: space.accessCodeEnabled,
+                        cleaningSettings: space.cleaningSettings
                     };
                     return this.spacesAdminApi.updateSpace(spaceId, spaceRequest);
                 }),
@@ -180,7 +183,8 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
                     images: space.images || [],
                     quota: space.quota,
                     digitalLockId: digitalLockId,
-                    accessCodeEnabled: space.accessCodeEnabled
+                    accessCodeEnabled: space.accessCodeEnabled,
+                    cleaningSettings: space.cleaningSettings
                 };
                 return this.spacesAdminApi.updateSpace(spaceId, spaceRequest);
             }),
