@@ -34,6 +34,11 @@ public class ReservationMapper {
             dto.setUserId(entity.getUser().getId());
         }
 
+        // Map unit information
+        if (entity.getUnit() != null) {
+            dto.setUnitId(entity.getUnit().getId());
+        }
+
         // Map access code information
         if (entity.getAccessCode() != null) {
             // Skip access code mapping for now - the API model doesn't have the right type

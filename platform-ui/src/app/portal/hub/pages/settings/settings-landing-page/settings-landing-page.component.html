@@ -36,6 +36,14 @@
               <tui-icon icon="@tui.home" [style.width.px]="16" />
               {{ 'settings.properties' | translate }}
             </a>
+            <a
+              routerLink="/hub/settings/units"
+              class="dropdown"
+              tuiOption
+            >
+              <tui-icon icon="@tui.home" [style.width.px]="16" />
+              {{ 'settings.units.label' | translate }}
+            </a>
           </tui-data-list>
         </ng-template>
       </button>
@@ -61,6 +69,12 @@
           <a routerLink="/hub/settings/notifications" routerLinkActive="active">
             <tui-icon icon="@tui.bell" [style.width.px]="16" />
             {{ 'settings.notifications' | translate }}
+          </a>
+        </li>
+        <li>
+          <a routerLink="/hub/settings/units" routerLinkActive="active">
+            <tui-icon icon="@tui.home" [style.width.px]="16" />
+            {{ 'settings.units.label' | translate }}
           </a>
         </li>
       </ul>

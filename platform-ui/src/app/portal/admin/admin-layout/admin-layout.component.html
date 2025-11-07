@@ -51,6 +51,15 @@
           tuiOption
           new
           type="button"
+          (click)="navigateTo('/hub/settings/units')"
+        >
+          <tui-icon icon="@tui.home" [style.width.px]="16" />
+          {{ 'hubLayout.units' | translate }}
+        </button>
+        <button
+          tuiOption
+          new
+          type="button"
           (click)="navigateTo('/auth/sign-out')"
         >
           <tui-icon icon="@tui.log-out" [style.width.px]="16" />
@@ -72,6 +81,11 @@
       type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.users" />
       {{ 'adminLayout.users' | translate }}
+    </a>
+    <a (click)="closeMore()" routerLink="/admin/units" routerLinkActive="active" appearance="secondary-grayscale"
+      type="button" i18n="@@borrowItemButton">
+      <tui-icon icon="@tui.home" />
+      {{ 'adminLayout.units' | translate }}
     </a>
     <a (click)="closeMore()" routerLink="/admin/pages/" routerLinkActive="active" appearance="secondary-grayscale"
       type="button" i18n="@@borrowItemButton">
@@ -155,6 +169,15 @@
           >
             <tui-icon icon="@tui.app-window-mac" [style.width.px]="16" />
             {{ 'adminLayout.applications' | translate }}
+          </a>
+          <a
+            (click)="closeMore()"
+            routerLink="/admin/units"
+            class="dropdown"
+            tuiOption
+          >
+            <tui-icon icon="@tui.users" [style.width.px]="16" />
+            {{ 'adminLayout.units' | translate }}
           </a>
           <a
             (click)="closeMore()"

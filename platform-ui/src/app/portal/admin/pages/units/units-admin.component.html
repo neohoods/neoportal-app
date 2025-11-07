@@ -1,0 +1,77 @@
+<tos-table
+  [addActionRoute]="'/admin/units/add'"
+  [addActionIcon]="'@tui.home'"
+  [getDataFunction]="getDataFunction"
+  [columns]="columns"
+>
+  <div add-action-content>
+    {{ 'units.addUnit' | translate }}
+  </div>
+
+  <ng-template #cardTemplate let-item="item">
+    <div class="card-content" (click)="viewUnit(item.id!)" style="cursor: pointer;">
+      <div class="unit-content">
+        <div class="unit-details">
+          <div class="unit-info">
+            <h2>{{ item.name }}</h2>
+            <span class="members-count">
+              <tui-icon icon="@tui.user" />
+              {{ item.members?.length || 0 }} {{ 'units.members' | translate }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #itemActionsTemplate let-item="item">
+    <div class="unit-actions">
+      <button
+        [routerLink]="['/admin/units', item.id]"
+        appearance="outline"
+        iconStart="@tui.eye"
+        size="s"
+        tuiIconButton
+        type="button"
+        [style.border-radius.%]="100"
+      >
+        {{ 'units.view' | translate }}
+      </button>
+      <button
+        [routerLink]="['/admin/units', item.id, 'edit']"
+        appearance="outline"
+        iconStart="@tui.pen"
+        size="s"
+        tuiIconButton
+        type="button"
+        [style.border-radius.%]="100"
+      >
+        {{ 'units.edit' | translate }}
+      </button>
+      <button
+        (click)="deleteUnit(item)"
+        appearance="outline"
+        iconStart="@tui.trash-2"
+        size="s"
+        tuiIconButton
+        type="button"
+        [style.border-radius.%]="100"
+      >
+        {{ 'units.delete' | translate }}
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #itemRowTemplate let-item="item" let-column="column">
+    @if (column.key === "membersCount") {
+      <span class="members-count">
+        <tui-icon icon="@tui.user" />
+        {{ item.members?.length || 0 }}
+      </span>
+    }
+    @if (column.key === "createdAt") {
+      <span class="ellipsis">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+    }
+  </ng-template>
+</tos-table>
+

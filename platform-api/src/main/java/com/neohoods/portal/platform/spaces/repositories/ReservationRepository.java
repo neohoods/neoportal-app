@@ -152,6 +152,47 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
         Long countReservationsByUserAndYear(@Param("user") UserEntity user, @Param("year") int year);
 
         /**
+         * Count reservations by unit and year
+         */
+        @Query("SELECT COUNT(r) FROM ReservationEntity r WHERE " +
+                        "r.unit.id = :unitId " +
+                        "AND YEAR(r.startDate) = :year " +
+                        "AND r.status IN ('CONFIRMED', 'ACTIVE', 'COMPLETED')")
+        Long countReservationsByUnitAndYear(@Param("unitId") UUID unitId, @Param("year") int year);
+
+        /**
+         * Find reservations by unit
+         */
+        @Query("SELECT r FROM ReservationEntity r " +
+                        "LEFT JOIN FETCH r.space " +
+                        "LEFT JOIN FETCH r.user " +
+                        "WHERE r.unit.id = :unitId " +
+                        "ORDER BY r.startDate DESC")
+        List<ReservationEntity> findByUnitId(@Param("unitId") UUID unitId);
+
+        /**
+         * Find reservations by unit with pagination
+         */
+        @Query("SELECT r FROM ReservationEntity r " +
+                        "LEFT JOIN FETCH r.space " +
+                        "LEFT JOIN FETCH r.user " +
+                        "WHERE r.unit.id = :unitId " +
+                        "ORDER BY r.startDate DESC")
+        Page<ReservationEntity> findByUnitId(@Param("unitId") UUID unitId, Pageable pageable);
+
+        /**
+         * Find reservations by unit and status
+         */
+        @Query("SELECT r FROM ReservationEntity r " +
+                        "LEFT JOIN FETCH r.space " +
+                        "LEFT JOIN FETCH r.user " +
+                        "WHERE r.unit.id = :unitId " +
+                        "AND r.status = :status " +
+                        "ORDER BY r.startDate DESC")
+        List<ReservationEntity> findByUnitIdAndStatus(@Param("unitId") UUID unitId, 
+                        @Param("status") ReservationStatusForEntity status);
+
+        /**
          * Find reservations that need to be activated (start date reached)
          */
         @Query("SELECT r FROM ReservationEntity r WHERE " +

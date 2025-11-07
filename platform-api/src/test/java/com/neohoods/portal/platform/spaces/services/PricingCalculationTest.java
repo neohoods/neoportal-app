@@ -17,6 +17,7 @@ import com.neohoods.portal.platform.BaseIntegrationTest;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
@@ -39,6 +40,9 @@ public class PricingCalculationTest extends BaseIntegrationTest {
 
     @Autowired
     private UsersRepository usersRepository;
+
+    @Autowired
+    private UnitsService unitsService;
 
     private SpaceEntity commonRoomSpace;
     private SpaceEntity parkingSpace;
@@ -79,6 +83,11 @@ public class PricingCalculationTest extends BaseIntegrationTest {
             tenantUser.setType(UserType.TENANT);
             tenantUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
             tenantUser = usersRepository.save(tenantUser);
+        }
+
+        // Create unit for tenant user (required for COMMON_ROOM reservations)
+        if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), tenantUser.getId()).block();
         }
     }
 

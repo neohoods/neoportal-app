@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
@@ -24,6 +25,7 @@ import com.neohoods.portal.platform.spaces.entities.SpaceSettingsEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
+import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 
 @Service
 @Transactional
@@ -34,6 +36,12 @@ public class SpacesService {
 
     @Autowired
     private SpaceSettingsService spaceSettingsService;
+
+    @Autowired
+    private com.neohoods.portal.platform.services.UnitsService unitsService;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     @Transactional(readOnly = true)
     public boolean isSpaceAvailable(UUID spaceId, LocalDate startDate, LocalDate endDate) {
@@ -261,14 +269,53 @@ public class SpacesService {
             throw new CodedErrorException(CodedError.SPACE_NOT_AVAILABLE, variables);
         }
 
-        // Check annual quota
-        if (space.getMaxAnnualReservations() > 0 &&
-                space.getUsedAnnualReservations() >= space.getMaxAnnualReservations()) {
-            Map<String, Object> variables = new HashMap<>();
-            variables.put("spaceId", spaceId);
-            variables.put("usedReservations", space.getUsedAnnualReservations());
-            variables.put("maxReservations", space.getMaxAnnualReservations());
-            throw new CodedErrorException(CodedError.SPACE_ANNUAL_QUOTA_EXCEEDED, variables);
+        // Check unit membership for common spaces (COMMON_ROOM, COWORKING)
+        // Note: GUEST_ROOM and PARKING don't require unit membership even if they have quota
+        boolean requiresUnit = space.getType() == SpaceTypeForEntity.COMMON_ROOM ||
+                space.getType() == SpaceTypeForEntity.COWORKING;
+        
+        UnitEntity primaryUnit = null;
+        if (requiresUnit) {
+            // Check that user is TENANT or OWNER of at least one unit
+            try {
+                primaryUnit = unitsService.getPrimaryUnitForUser(userId).block();
+            } catch (CodedErrorException e) {
+                if (e.getError() == CodedError.USER_NOT_TENANT_OR_OWNER) {
+                    Map<String, Object> variables = new HashMap<>();
+                    variables.put("spaceId", spaceId);
+                    variables.put("userId", userId);
+                    throw new CodedErrorException(CodedError.USER_NOT_TENANT_OR_OWNER, variables);
+                }
+                throw e;
+            }
+        } else {
+            // For spaces that don't require unit, try to get primary unit anyway for quota check
+            try {
+                primaryUnit = unitsService.getPrimaryUnitForUser(userId).block();
+            } catch (Exception e) {
+                // User doesn't have a primary unit, that's ok for non-required spaces
+            }
+        }
+
+        // Check annual quota per unit (if unit exists)
+        if (space.getMaxAnnualReservations() > 0 && primaryUnit != null) {
+            int currentYear = LocalDate.now().getYear();
+            Long unitReservationsCount = reservationRepository.countReservationsByUnitAndYear(primaryUnit.getId(), currentYear);
+            if (unitReservationsCount >= space.getMaxAnnualReservations()) {
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("spaceId", spaceId);
+                variables.put("unitId", primaryUnit.getId());
+                throw new CodedErrorException(CodedError.SPACE_ANNUAL_QUOTA_EXCEEDED, variables);
+            }
+        } else if (space.getMaxAnnualReservations() > 0 && primaryUnit == null) {
+            // If space has quota but user has no unit, check global space quota as fallback
+            if (space.getUsedAnnualReservations() >= space.getMaxAnnualReservations()) {
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("spaceId", spaceId);
+                variables.put("usedReservations", space.getUsedAnnualReservations());
+                variables.put("maxReservations", space.getMaxAnnualReservations());
+                throw new CodedErrorException(CodedError.SPACE_ANNUAL_QUOTA_EXCEEDED, variables);
+            }
         }
     }
 

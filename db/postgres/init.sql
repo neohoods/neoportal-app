@@ -19,7 +19,7 @@ CREATE TABLE "users" (
     "is_email_verified" boolean NOT NULL DEFAULT false,
     "disabled" boolean NOT NULL DEFAULT false,
     "status" varchar(255) NOT NULL DEFAULT 'WAITING_FOR_EMAIL' CHECK (status IN ('WAITING_FOR_EMAIL', 'ACTIVE', 'INACTIVE')),
-    "user_type" varchar(255) CHECK (user_type IN ('ADMIN', 'OWNER', 'LANDLORD', 'TENANT', 'SYNDIC', 'EXTERNAL', 'CONTRACTOR', 'COMMERCIAL_PROPERTY_OWNER', 'GUEST'))
+    "user_type" varchar(255) CHECK (user_type IN ('ADMIN', 'OWNER', 'LANDLORD', 'TENANT', 'SYNDIC', 'EXTERNAL', 'CONTRACTOR', 'COMMERCIAL_PROPERTY_OWNER', 'GUEST', 'PROPERTY_MANAGEMENT'))
 );
 
 
@@ -48,7 +48,8 @@ CREATE TABLE "notifications" (
     "payload" jsonb,
     "type" varchar(255) CHECK (type IN (
         'ADMIN_NEW_USER',
-        'NEW_ANNOUNCEMENT'
+        'NEW_ANNOUNCEMENT',
+        'UNIT_INVITATION'
     ))
 );
 
@@ -335,11 +336,62 @@ CREATE TABLE space_cleaning_days (
 
 CREATE INDEX idx_space_cleaning_days_space_id ON space_cleaning_days(space_id);
 
+-- Units table (must be created before reservations as reservations references units)
+CREATE TABLE units (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name varchar(255) NOT NULL,
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Unit members table
+CREATE TABLE unit_members (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    unit_id uuid REFERENCES units(id) ON DELETE CASCADE NOT NULL,
+    user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    role varchar(50) NOT NULL CHECK (role IN ('ADMIN', 'MEMBER')),
+    joined_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(unit_id, user_id)
+);
+CREATE INDEX idx_unit_members_unit_id ON unit_members(unit_id);
+CREATE INDEX idx_unit_members_user_id ON unit_members(user_id);
+
+-- Unit invitations table
+CREATE TABLE unit_invitations (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    unit_id uuid REFERENCES units(id) ON DELETE CASCADE NOT NULL,
+    invited_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+    invited_email varchar(255),
+    invited_by uuid REFERENCES users(id) NOT NULL,
+    status varchar(50) NOT NULL CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED')),
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    responded_at timestamp
+);
+CREATE INDEX idx_unit_invitations_unit_id ON unit_invitations(unit_id);
+CREATE INDEX idx_unit_invitations_invited_user_id ON unit_invitations(invited_user_id);
+CREATE INDEX idx_unit_invitations_status ON unit_invitations(status);
+
+-- Unit join requests table (requests from users to join a unit)
+CREATE TABLE unit_join_requests (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    unit_id uuid REFERENCES units(id) ON DELETE CASCADE NOT NULL,
+    requested_by uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    status varchar(50) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    message text,
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    responded_at timestamp,
+    responded_by uuid REFERENCES users(id) ON DELETE SET NULL
+);
+CREATE INDEX idx_unit_join_requests_unit_id ON unit_join_requests(unit_id);
+CREATE INDEX idx_unit_join_requests_requested_by ON unit_join_requests(requested_by);
+CREATE INDEX idx_unit_join_requests_status ON unit_join_requests(status);
+
 -- Reservations (migrated from V2__Create_reservations_tables.sql)
 CREATE TABLE reservations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     space_id UUID NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    unit_id UUID REFERENCES units(id) ON DELETE SET NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING_PAYMENT' CHECK (status IN ('PENDING_PAYMENT', 'PAYMENT_FAILED', 'EXPIRED', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'REFUNDED')),
@@ -357,6 +409,7 @@ CREATE TABLE reservations (
 
 CREATE INDEX idx_reservations_user_id ON reservations(user_id);
 CREATE INDEX idx_reservations_space_id ON reservations(space_id);
+CREATE INDEX idx_reservations_unit_id ON reservations(unit_id);
 CREATE INDEX idx_reservations_status ON reservations(status);
 CREATE INDEX idx_reservations_payment_status ON reservations(payment_status);
 CREATE INDEX idx_reservations_dates ON reservations(start_date, end_date);
@@ -480,3 +533,29 @@ CREATE TABLE reservation_audit_log (
 CREATE INDEX idx_reservation_audit_log_reservation_id ON reservation_audit_log(reservation_id);
 CREATE INDEX idx_reservation_audit_log_created_at ON reservation_audit_log(created_at);
 CREATE INDEX idx_reservation_audit_log_event_type ON reservation_audit_log(event_type);
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger for units updated_at
+CREATE TRIGGER update_units_updated_at BEFORE UPDATE ON units
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Migration: Update existing reservations with unit_id
+-- Associate reservations with the unit where the user is TENANT or OWNER (based on user.user_type)
+UPDATE reservations 
+SET unit_id = (
+    SELECT um.unit_id 
+    FROM unit_members um 
+    INNER JOIN users u ON u.id = um.user_id
+    WHERE um.user_id = reservations.user_id 
+    AND u.user_type IN ('TENANT', 'OWNER')
+    LIMIT 1
+)
+WHERE unit_id IS NULL;

@@ -458,6 +458,339 @@ paths:
         "204":
           description: Application deleted successfully
 
+  /hub/units:
+    get:
+      operationId: getUnits
+      summary: List units for current user
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: List of units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+
+  /hub/units/{unit-id}:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getUnit
+      summary: Get unit details
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Unit details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/reservations:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getUnitReservations
+      summary: Get reservations for a unit
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Paginated list of reservations for the unit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReservations"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/calendar.ics:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getUnitCalendar
+      summary: Get ICS calendar for unit reservations
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: ICS calendar file
+          content:
+            text/calendar:
+              schema:
+                type: string
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/invite:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: inviteUser
+      summary: Invite user to unit
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteUserRequest"
+      responses:
+        "200":
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitInvitation"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/members/{user-id}/approve:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: approveInvitation
+      summary: Approve pending invitation
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Invitation approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/members/{user-id}/revoke:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: revokeMember
+      summary: Remove member from unit
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Member removed
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/members/{user-id}/promote-admin:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: promoteAdmin
+      summary: Promote member to admin
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Member promoted to admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/members/{user-id}/demote-admin:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: demoteAdmin
+      summary: Remove admin rights from member
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Admin rights removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/invitations/{invitation-id}/accept:
+    parameters:
+      - name: invitation-id
+        in: path
+        description: Invitation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: acceptInvitation
+      summary: Accept invitation
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Invitation accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/invitations/{invitation-id}/reject:
+    parameters:
+      - name: invitation-id
+        in: path
+        description: Invitation ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: rejectInvitation
+      summary: Reject invitation
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Invitation rejected
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /hub/custom-pages/:
     get:
       operationId: getCustomPageRefs
@@ -594,6 +927,249 @@ paths:
           description: Custom page deleted successfully
         "404":
           description: Custom page not found
+
+  /admin/units:
+    get:
+      operationId: getAdminUnits
+      summary: List all units
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          description: Search by unit name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of units
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedUnits"
+    post:
+      operationId: createUnit
+      summary: Create unit
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitRequest"
+      responses:
+        "201":
+          description: Unit created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+
+  /admin/units/{unit-id}:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getAdminUnit
+      summary: Get unit details
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Unit details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateUnit
+      summary: Update unit
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitRequest"
+      responses:
+        "200":
+          description: Unit updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteUnit
+      summary: Delete unit
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Unit deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/units/{unit-id}/members:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: addMember
+      summary: Add member to unit
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteUserRequest"
+      responses:
+        "200":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/units/{unit-id}/members/{user-id}/revoke:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: revokeAdminMember
+      summary: Remove member from unit
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Member removed
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/units/{unit-id}/members/{user-id}/promote-admin:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: promoteAdminMember
+      summary: Promote member to admin
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Member promoted to admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/units/{unit-id}/members/{user-id}/demote-admin:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: demoteAdminMember
+      summary: Remove admin rights from member
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Admin rights removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /admin/help/categories:
     get:
@@ -3286,6 +3862,10 @@ components:
         userId:
           type: string
           format: uuid
+        unitId:
+          type: string
+          format: uuid
+          description: Unit ID associated with this reservation
         space:
           $ref: "#/components/schemas/Space"
         user:
@@ -4114,6 +4694,7 @@ components:
         - CONTRACTOR
         - COMMERCIAL_PROPERTY_OWNER
         - GUEST
+        - PROPERTY_MANAGEMENT
       example: "OWNER"
 
     Property:
@@ -4137,6 +4718,143 @@ components:
         - COMMERCIAL
         - OTHER
       example: "APARTMENT"
+
+    Unit:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+        - members
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnitMember"
+
+    UnitMember:
+      type: object
+      required:
+        - userId
+        - user
+        - role
+        - joinedAt
+      properties:
+        userId:
+          type: string
+          format: uuid
+        user:
+          $ref: "#/components/schemas/User"
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+        joinedAt:
+          type: string
+          format: date-time
+
+    UnitInvitation:
+      type: object
+      required:
+        - id
+        - unitId
+        - invitedBy
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        invitedUserId:
+          type: string
+          format: uuid
+          nullable: true
+        invitedEmail:
+          type: string
+          nullable: true
+        invitedBy:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - PENDING
+            - ACCEPTED
+            - REJECTED
+        createdAt:
+          type: string
+          format: date-time
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    UnitRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        initialAdminId:
+          type: string
+          format: uuid
+
+    InviteUserRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+
+    PaginatedUnits:
+      type: object
+      required:
+        - content
+        - totalElements
+        - totalPages
+        - number
+        - size
+        - first
+        - last
+        - numberOfElements
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Unit"
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        number:
+          type: integer
+        size:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
 
     Location:
       type: object

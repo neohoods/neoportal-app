@@ -1,0 +1,51 @@
+.unit-edit-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.edit-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--tui-base-03);
+}
+
+.back-button {
+  flex-shrink: 0;
+}
+
+h1 {
+  margin: 0;
+  color: var(--tui-text-01);
+  font-size: 1.8em;
+  font-weight: 600;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.unit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: var(--tui-base-01);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--tui-base-03);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+

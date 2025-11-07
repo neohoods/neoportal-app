@@ -4,6 +4,7 @@ export interface UIReservation {
     id: string;
     spaceId: string;
     userId: string;
+    unitId?: string;
     startDate: string;
     endDate: string;
     status: ReservationStatus;
@@ -28,6 +29,7 @@ export function fromApiReservation(apiReservation: Reservation): UIReservation {
         id: apiReservation.id || '',
         spaceId: apiReservation.spaceId || '',
         userId: apiReservation.userId || '',
+        unitId: apiReservation.unitId,
         startDate: apiReservation.startDate || '',
         endDate: apiReservation.endDate || '',
         status: apiReservation.status || 'PENDING_PAYMENT',

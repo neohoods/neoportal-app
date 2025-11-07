@@ -22,6 +22,8 @@ import { ReservationsAdminComponent } from './pages/reservations/reservations-ad
 import { SecurityComponent } from './pages/security/security.component';
 import { SpaceSettingsComponent } from './pages/space-settings/space-settings.component';
 import { SpacesAdminComponent } from './pages/spaces/spaces-admin.component';
+import { UnitEditAdminComponent } from './pages/units/unit-edit/unit-edit-admin.component';
+import { UnitsAdminComponent } from './pages/units/units-admin.component';
 import { UsersComponent } from './pages/users/users.component';
 
 export const ADMIN_ROUTES: Routes = [
@@ -35,6 +37,10 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'users', component: UsersComponent },
       { path: 'users/add', component: EditUserComponent },
       { path: 'users/:id/edit', component: EditUserComponent },
+      { path: 'units', component: UnitsAdminComponent },
+      { path: 'units/add', component: UnitEditAdminComponent },
+      { path: 'units/:id', loadComponent: () => import('./pages/units/unit-detail/unit-detail-admin.component').then(m => m.UnitDetailAdminComponent) },
+      { path: 'units/:id/edit', component: UnitEditAdminComponent },
       { path: 'security', component: SecurityComponent },
       { path: 'settings/spaces', component: SpaceSettingsComponent },
       { path: 'pages', component: CustomPagesComponent },

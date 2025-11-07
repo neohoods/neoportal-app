@@ -20,6 +20,7 @@ import { MockSpaceSettingsService } from './services/mock/space-settings.service
 import { MockAdminSpaceStatisticsService } from './services/mock/space-statistics.service';
 import { MockAdminSpacesService } from './services/mock/spaces.service';
 import { MockUsersService } from './services/mock/users.service';
+import { MockUnitsService } from './services/mock/units.service';
 import { NewslettersService } from './services/newsletters.service';
 import { APIApplicationsService } from './services/real-api/applications.service';
 import { APICustomPagesService } from './services/real-api/custom-pages.service';
@@ -32,17 +33,22 @@ import { RealSpaceSettingsService } from './services/real-api/space-settings.ser
 import { RealApiAdminSpaceStatisticsService } from './services/real-api/space-statistics.service';
 import { RealApiAdminSpacesService } from './services/real-api/spaces.service';
 import { ApiUsersService } from './services/real-api/users.service';
+import { ApiUnitsService } from './services/real-api/units.service';
 import { AdminReservationsService } from './services/reservations.service';
 import { SecuritySettingsService } from './services/security-settings.service';
 import { SpaceSettingsService } from './services/space-settings.service';
 import { AdminSpaceStatisticsService } from './services/space-statistics.service';
 import { AdminSpacesService } from './services/spaces.service';
 import { UsersService } from './services/users.service';
+import { UnitsService } from './services/units.service';
 
 export type { AdminSpacesService };
 
 export const USERS_SERVICE_TOKEN = new InjectionToken<UsersService>(
   'UsersService',
+);
+export const UNITS_SERVICE_TOKEN = new InjectionToken<UnitsService>(
+  'UnitsService',
 );
 export const SECURITY_SETTINGS_SERVICE_TOKEN =
   new InjectionToken<SecuritySettingsService>('SecuritySettingsService');
@@ -79,6 +85,10 @@ export const adminProviders: Provider[] = [
   {
     provide: USERS_SERVICE_TOKEN,
     useExisting: ConfigService.configuration.useMockApi ? MockUsersService : ApiUsersService,
+  },
+  {
+    provide: UNITS_SERVICE_TOKEN,
+    useExisting: ConfigService.configuration.useMockApi ? MockUnitsService : ApiUnitsService,
   },
   {
     provide: SECURITY_SETTINGS_SERVICE_TOKEN,

@@ -148,6 +148,18 @@
                                 <strong>{{ 'spaces.admin.type' | translate }}:</strong>
                                 {{ getTranslatedSpaceType(getSpaceType(reservation)) }}
                             </p>
+                            @if (reservation.unitId) {
+                                <p>
+                                    <strong>{{ 'reservations.admin.unit' | translate }}:</strong>
+                                    <a
+                                        [routerLink]="['/admin/units', reservation.unitId]"
+                                        class="unit-link"
+                                    >
+                                        <tui-icon icon="@tui.home" size="s"></tui-icon>
+                                        {{ getUnitName(reservation.unitId) || reservation.unitId }}
+                                    </a>
+                                </p>
+                            }
                         </div>
                         <div class="reservation-actions">
                             <button

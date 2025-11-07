@@ -1,0 +1,75 @@
+<div class="unit-reservations-container">
+  <div class="header">
+    <button
+      tuiButton
+      appearance="flat"
+      size="m"
+      (click)="onBack()"
+      class="back-button"
+    >
+      <tui-icon icon="@tui.chevron-left"></tui-icon>
+      {{ 'common.back' | translate }}
+    </button>
+    <h1>{{ 'units.reservations.title' | translate }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <tui-loader size="l"></tui-loader>
+      <p>{{ 'common.loading' | translate }}</p>
+    </div>
+  } @else if (error) {
+    <tui-notification appearance="negative" size="l">
+      {{ error }}
+    </tui-notification>
+  } @else if (reservations().length === 0) {
+    <div class="empty-state">
+      <tui-icon icon="@tui.calendar" size="xl"></tui-icon>
+      <p>{{ 'units.reservations.empty' | translate }}</p>
+    </div>
+  } @else {
+    <div class="reservations-list">
+      @for (reservation of reservations(); track reservation.id) {
+        <div class="reservation-card" (click)="viewReservation(reservation.id)">
+          <div class="reservation-header">
+            <h3>{{ reservation.space?.name || 'Espace' }}</h3>
+            <tui-chip
+              [appearance]="getStatusAppearance(reservation.status)"
+              size="s"
+            >
+              {{ getStatusLabel(reservation.status) }}
+            </tui-chip>
+          </div>
+
+          <div class="reservation-details">
+            <div class="detail-item">
+              <tui-icon icon="@tui.calendar" size="s"></tui-icon>
+              <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
+            </div>
+            <div class="detail-item">
+              <tui-icon icon="@tui.credit-card" size="s"></tui-icon>
+              <span>{{ reservation.totalPrice }}€</span>
+            </div>
+            @if (reservation.userId) {
+              <div class="detail-item">
+                <tui-icon icon="@tui.user" size="s"></tui-icon>
+                <span>{{ reservation.userId }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (totalElements() > pageSize) {
+      <div class="pagination">
+        <tui-pagination
+          [length]="Math.ceil(totalElements() / pageSize)"
+          [index]="currentPage()"
+          (indexChange)="onPageChange($event)"
+        ></tui-pagination>
+      </div>
+    }
+  }
+</div>
+

@@ -29,14 +29,17 @@ import {
   TuiConfirmData
 } from '@taiga-ui/kit';
 import { TuiInputModule } from '@taiga-ui/legacy';
-import { map } from 'rxjs';
+import { map, forkJoin } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { UIUser, UIUserType } from '../../../../models/UIUser';
-import { USERS_SERVICE_TOKEN } from '../../admin.providers';
+import { UNITS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../admin.providers';
 import {
   Column,
   TosTableComponent,
 } from '../../components/tos-table/tos-table.component';
 import { UsersService } from '../../services/users.service';
+import { UnitsService } from '../../services/units.service';
+import { Unit } from '../../../../api-client/model/unit';
 
 
 
@@ -62,7 +65,8 @@ import { UsersService } from '../../services/users.service';
     TuiChip,
     TosTableComponent,
     TranslateModule,
-    DatePipe
+    DatePipe,
+    RouterLink
   ],
   selector: 'app-users',
   templateUrl: './users.component.html',
@@ -76,6 +80,9 @@ export class UsersComponent {
 
   // Expose enum for template
   UIUserType = UIUserType;
+
+  // Units mapping: userId -> Unit[]
+  protected userUnitsMap: Map<string, Unit[]> = new Map();
 
   // Available Columns for Display
   columns: Column[] = [];
@@ -91,6 +98,7 @@ export class UsersComponent {
     private dialogs: TuiResponsiveDialogService,
     private alerts: TuiAlertService,
     @Inject(USERS_SERVICE_TOKEN) private usersService: UsersService,
+    @Inject(UNITS_SERVICE_TOKEN) private unitsService: UnitsService,
     private translate: TranslateService
   ) {
     this.columns = [
@@ -133,6 +141,14 @@ export class UsersComponent {
         size: 'm',
       },
       {
+        key: 'units',
+        label: this.translate.instant('users.columns.units'),
+        visible: true,
+        sortable: false,
+        custom: true,
+        size: 'l',
+      },
+      {
         key: 'streetAddress',
         label: this.translate.instant('users.columns.address'),
         visible: false,
@@ -140,7 +156,9 @@ export class UsersComponent {
         size: 'l',
       }
     ];
-    this.usersService.getUsers().subscribe((users) => (this.users = users));
+    
+    // Load users and units
+    this.loadUsersAndUnits();
 
     this.breakpointObserver
       .observe([Breakpoints.Handset])
@@ -217,6 +235,37 @@ export class UsersComponent {
   protected setPassword(user: UIUser): void {
     this.openPasswordDialog = true;
     this.currentUser = user;
+  }
+
+  loadUsersAndUnits(): void {
+    forkJoin({
+      users: this.usersService.getUsers(),
+      units: this.unitsService.getUnits(0, 1000) // Load all units
+    }).subscribe({
+      next: ({ users, units }) => {
+        this.users = users;
+        
+        // Build user -> units mapping
+        this.userUnitsMap.clear();
+        units.content?.forEach(unit => {
+          unit.members?.forEach(member => {
+            if (member.userId) {
+              const existing = this.userUnitsMap.get(member.userId) || [];
+              existing.push(unit);
+              this.userUnitsMap.set(member.userId, existing);
+            }
+          });
+        });
+      },
+      error: (error) => {
+        console.error('Failed to load users or units:', error);
+        this.usersService.getUsers().subscribe((users) => (this.users = users));
+      }
+    });
+  }
+
+  getUnitsForUser(userId: string): Unit[] {
+    return this.userUnitsMap.get(userId) || [];
   }
 
   getDataFunction = (

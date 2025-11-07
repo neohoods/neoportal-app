@@ -127,7 +127,16 @@ public enum CodedError {
         SPACE_DURATION_TOO_LONG("SPA004", "Reservation duration is longer than the maximum allowed",
                         "spaces/duration-too-long"),
         SPACE_ANNUAL_QUOTA_EXCEEDED("SPA005", "Space has reached its maximum annual reservation limit",
-                        "spaces/annual-quota-exceeded");
+                        "spaces/annual-quota-exceeded"),
+        UNIT_NOT_FOUND("UNIT001", "Unit not found", "units/unit-not-found"),
+        UNIT_MEMBER_NOT_FOUND("UNIT002", "Unit member not found", "units/member-not-found"),
+        UNIT_INVITATION_NOT_FOUND("UNIT003", "Unit invitation not found", "units/invitation-not-found"),
+        USER_NOT_MEMBER_OF_UNIT("UNIT004", "User is not a member of this unit", "units/user-not-member"),
+        USER_NOT_ADMIN_OF_UNIT("UNIT005", "User is not an admin of this unit", "units/user-not-admin"),
+        CANNOT_DEMOTE_LAST_ADMIN("UNIT006", "Cannot demote the last admin of a unit", "units/cannot-demote-last-admin"),
+        USER_ALREADY_MEMBER("UNIT007", "User is already a member of this unit", "units/user-already-member"),
+        USER_HAS_NO_UNIT("UNIT008", "User does not belong to any unit", "units/user-has-no-unit"),
+        USER_NOT_TENANT_OR_OWNER("UNIT009", "User is not a tenant or owner of any unit", "units/user-not-tenant-or-owner");
 
         private final String code;
         private final String defaultMessage;

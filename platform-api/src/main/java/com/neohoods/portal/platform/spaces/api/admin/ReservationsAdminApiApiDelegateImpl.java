@@ -14,23 +14,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
+import org.openapitools.jackson.nullable.JsonNullable;
+
 import com.neohoods.portal.platform.api.ReservationsAdminApiApiDelegate;
 import com.neohoods.portal.platform.model.AccessCode;
 import com.neohoods.portal.platform.model.PaginatedReservations;
 import com.neohoods.portal.platform.model.Reservation;
+import com.neohoods.portal.platform.model.ReservationAuditLog;
 import com.neohoods.portal.platform.model.ReservationStatus;
 import com.neohoods.portal.platform.model.Space;
 import com.neohoods.portal.platform.model.SpaceStatus;
 import com.neohoods.portal.platform.model.SpaceType;
 import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.model.UserType;
+import com.neohoods.portal.platform.spaces.entities.ReservationAuditLogEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
+import com.neohoods.portal.platform.spaces.services.ReservationAuditService;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -38,6 +44,9 @@ public class ReservationsAdminApiApiDelegateImpl implements ReservationsAdminApi
 
     @Autowired
     private ReservationsService reservationsService;
+
+    @Autowired
+    private ReservationAuditService auditService;
 
     @Override
     public Mono<ResponseEntity<PaginatedReservations>> getAdminReservations(
@@ -107,6 +116,36 @@ public class ReservationsAdminApiApiDelegateImpl implements ReservationsAdminApi
                 .isActive(true)
                 .build();
         return Mono.just(ResponseEntity.ok(code));
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<ReservationAuditLog>>> getReservationAuditLogs(
+            UUID reservationId, ServerWebExchange exchange) {
+
+        try {
+            List<ReservationAuditLogEntity> auditLogs = auditService.getAuditLogsForReservation(reservationId);
+
+            Flux<ReservationAuditLog> responseLogs = Flux.fromIterable(auditLogs.stream()
+                    .map(this::convertAuditLogToResponse)
+                    .toList());
+
+            return Mono.just(ResponseEntity.ok(responseLogs));
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.internalServerError().build());
+        }
+    }
+
+    private ReservationAuditLog convertAuditLogToResponse(ReservationAuditLogEntity entity) {
+        ReservationAuditLog log = new ReservationAuditLog();
+        log.setId(entity.getId());
+        log.setReservationId(entity.getReservationId());
+        log.setEventType(ReservationAuditLog.EventTypeEnum.fromValue(entity.getEventType()));
+        log.setOldValue(JsonNullable.of(entity.getOldValue()));
+        log.setNewValue(JsonNullable.of(entity.getNewValue()));
+        log.setLogMessage(entity.getLogMessage());
+        log.setPerformedBy(entity.getPerformedBy());
+        log.setCreatedAt(entity.getCreatedAt().atOffset(java.time.ZoneOffset.UTC));
+        return log;
     }
 
     // Helper methods for conversion

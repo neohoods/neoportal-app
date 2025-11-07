@@ -1,0 +1,48 @@
+.card-content {
+  padding: 16px;
+}
+
+.unit-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unit-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.unit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unit-info h2 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.members-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tui-text-02);
+  font-size: 0.9em;
+}
+
+.unit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

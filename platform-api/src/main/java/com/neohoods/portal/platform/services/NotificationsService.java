@@ -173,6 +173,7 @@ public class NotificationsService {
                 emailSubject = "[" + appName + "] " + categoryIcon + " " + announcementTitle;
             } else {
                 // Use translation key for other notification types
+                // The MailService will automatically resolve translation keys
                 emailSubject = "notification." + notification.getType().name().toLowerCase() + ".email.title";
             }
 
@@ -476,6 +477,55 @@ public class NotificationsService {
                             .type(TemplateVariableType.RAW)
                             .ref("adminUrl")
                             .value(frontendUrl + "/admin/users")
+                            .build());
+                }
+                break;
+            case UNIT_INVITATION:
+                // Add variables for unit invitation notification
+                if (notification.getPayload() != null) {
+                    Map<String, Object> payload = notification.getPayload();
+
+                    // Unit ID
+                    if (payload.containsKey("unitId")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("unitId")
+                                .value(payload.get("unitId").toString())
+                                .build());
+                    }
+
+                    // Unit name
+                    if (payload.containsKey("unitName")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("unitName")
+                                .value(payload.get("unitName").toString())
+                                .build());
+                    }
+
+                    // Invitation ID
+                    if (payload.containsKey("invitationId")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("invitationId")
+                                .value(payload.get("invitationId").toString())
+                                .build());
+                    }
+
+                    // Invited by (inviter name)
+                    if (payload.containsKey("invitedBy")) {
+                        variables.add(TemplateVariable.builder()
+                                .type(TemplateVariableType.RAW)
+                                .ref("invitedBy")
+                                .value(payload.get("invitedBy").toString())
+                                .build());
+                    }
+
+                    // URL to view invitations (redirect to units page)
+                    variables.add(TemplateVariable.builder()
+                            .type(TemplateVariableType.RAW)
+                            .ref("appUrl")
+                            .value(frontendUrl + "/hub/units")
                             .build());
                 }
                 break;

@@ -1,0 +1,66 @@
+<div class="unit-edit-container">
+  <div class="edit-header">
+    <button
+      tuiButton
+      appearance="flat"
+      size="m"
+      [routerLink]="isEditMode() ? ['/admin/units', unitId()] : ['/admin/units']"
+      class="back-button"
+    >
+      <tui-icon icon="@tui.chevron-left"></tui-icon>
+      {{ 'common.back' | translate }}
+    </button>
+
+    <h1>
+      @if (isEditMode()) {
+        {{ 'units.editUnit' | translate }}
+      } @else {
+        {{ 'units.addUnit' | translate }}
+      }
+    </h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <tui-loader size="l"></tui-loader>
+    </div>
+  } @else {
+    <form [formGroup]="unitForm" (ngSubmit)="onSubmit()" class="unit-form">
+      <tui-textfield>
+        <label tuiLabel>{{ 'units.name' | translate }}</label>
+        <input
+          tuiTextfield
+          formControlName="name"
+          [placeholder]="'units.namePlaceholder' | translate"
+          [disabled]="saving()"
+        />
+      </tui-textfield>
+
+      <div class="form-actions">
+        <button
+          tuiButton
+          appearance="outline"
+          size="m"
+          type="button"
+          (click)="onCancel()"
+          [disabled]="saving()"
+        >
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          tuiButton
+          appearance="primary"
+          size="m"
+          type="submit"
+          [disabled]="unitForm.invalid || saving()"
+        >
+          @if (saving()) {
+            <tui-loader size="xs"></tui-loader>
+          }
+          {{ isEditMode() ? ('common.save' | translate) : ('common.create' | translate) }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
+

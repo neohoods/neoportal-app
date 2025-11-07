@@ -13,6 +13,7 @@ import { TuiChip } from '@taiga-ui/kit';
 import { QuotaInfoPeriodEnum } from '../../../../api-client/model/quotaInfo';
 import { AUTH_SERVICE_TOKEN } from '../../../../global.provider';
 import { UserInfo } from '../../../../services/auth.service';
+import { UnitsHubApiService } from '../../../../api-client/api/unitsHubApi.service';
 import { SpaceCalendarComponent } from '../../components/space-calendar/space-calendar.component';
 import { CreateReservationRequest } from '../../services/reservations.service';
 import { Space } from '../../services/spaces.service';
@@ -41,6 +42,7 @@ export class SpaceDetailComponent implements OnInit {
     private reservationsService = inject(RESERVATIONS_SERVICE_TOKEN);
     private statisticsService = inject(SPACE_STATISTICS_SERVICE_TOKEN);
     private authService = inject(AUTH_SERVICE_TOKEN);
+    private unitsApiService = inject(UnitsHubApiService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private translate = inject(TranslateService);
@@ -387,7 +389,62 @@ export class SpaceDetailComponent implements OnInit {
         const startDateString = startDate.toISOString().split('T')[0];
         const endDateString = endDate.toISOString().split('T')[0];
 
-        // Load user's reservations for this space in the current period
+        // Load unit's reservations for this space in the current period
+        // First, get user's primary unit
+        this.unitsApiService.getUnits().subscribe({
+            next: (units: any[]) => {
+                if (!units || units.length === 0) {
+                    // No unit, fallback to user reservations
+                    this.loadUserReservationsForQuota(spaceId, startDateString, endDateString);
+                    return;
+                }
+
+                // Get primary unit (first unit where user is TENANT or OWNER)
+                // For now, use first unit - in production, filter by user type
+                const primaryUnit = units[0];
+                if (!primaryUnit || !primaryUnit.id) {
+                    this.loadUserReservationsForQuota(spaceId, startDateString, endDateString);
+                    return;
+                }
+
+                // Load unit reservations
+                (this.unitsApiService as any).getUnitReservations(primaryUnit.id, 0, 1000).subscribe({
+                    next: (response: any) => {
+                        const reservations = response.content || [];
+                        
+                        // Filter reservations for this space and current period
+                        const unitReservations = reservations.filter((reservation: any) =>
+                            reservation.spaceId === spaceId &&
+                            reservation.startDate >= startDateString &&
+                            reservation.startDate <= endDateString &&
+                            (reservation.status === 'CONFIRMED' || reservation.status === 'ACTIVE' || reservation.status === 'COMPLETED')
+                        );
+
+                        // Calculate used quota (count of reservations)
+                        const usedQuota = unitReservations.length;
+
+                        this.userQuotaUsed.set(usedQuota);
+                        this.userQuotaMax.set(space.quota!.max);
+                        this.userQuotaPeriod.set(space.quota!.period);
+                        this.loadingUserQuota.set(false);
+                    },
+                    error: (error: any) => {
+                        console.error('Error loading unit quota:', error);
+                        // Fallback to user reservations
+                        this.loadUserReservationsForQuota(spaceId, startDateString, endDateString);
+                    }
+                });
+            },
+            error: (error: any) => {
+                console.error('Error loading units:', error);
+                // Fallback to user reservations
+                this.loadUserReservationsForQuota(spaceId, startDateString, endDateString);
+            }
+        });
+    }
+
+    private loadUserReservationsForQuota(spaceId: string, startDateString: string, endDateString: string): void {
+        // Fallback: load user's reservations if no unit
         this.reservationsService.getMyReservations().subscribe({
             next: (reservations: any[]) => {
                 if (!reservations) {
@@ -407,8 +464,11 @@ export class SpaceDetailComponent implements OnInit {
                 const usedQuota = userReservations.length;
 
                 this.userQuotaUsed.set(usedQuota);
-                this.userQuotaMax.set(space.quota!.max);
-                this.userQuotaPeriod.set(space.quota!.period);
+                const space = this.space();
+                if (space?.quota) {
+                    this.userQuotaMax.set(space.quota.max);
+                    this.userQuotaPeriod.set(space.quota.period);
+                }
                 this.loadingUserQuota.set(false);
             },
             error: (error: any) => {

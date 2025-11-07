@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{email/fragments/email-layout :: head(~{::title})}">
+        <title th:text="'[' + ${appName} + '] ' + #{notification.unit_invitation.email.title}">[portal NeoHoods] Invitation to Join Unit</title>
+    </head>
+    <body>
+        <th:block th:replace="~{email/fragments/email-layout :: layout}">
+            <!-- Header -->
+            <tr th:replace="~{email/fragments/email-layout :: header}"></tr>
+
+            <!-- Content -->
+            <td th:fragment="content">
+                <h1 th:text="'[' + ${appName} + '] ' + #{notification.unit_invitation.email.title}">[portal NeoHoods] Invitation to Join Unit</h1>
+                <p>
+                    <span th:text="#{notification.unit_invitation.email.greeting(${username})}">Hello username,</span>
+                </p>
+                <p>
+                    <span th:text="#{notification.unit_invitation.email.message(${invitedBy}, ${unitName})}">
+                        You have been invited to join a unit.
+                    </span>
+                </p>
+
+                <div class="announcement-card">
+                    <div class="announcement-details">
+                        <div class="announcement-info">
+                            <div class="announcement-type-badge">
+                                <span>🏠</span>
+                                <span th:text="${unitName}">Unit Name</span>
+                            </div>
+                            <p>
+                                <strong th:text="#{notification.unit_invitation.email.invited_by}">Invited by:</strong>
+                                <span th:text="${invitedBy}">Inviter Name</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <th:block th:replace="~{email/fragments/email-layout :: button(${appUrl}, #{notification.unit_invitation.email.view_invitation})}"></th:block>
+
+                <!-- Button Fallback -->
+                <th:block th:replace="~{email/fragments/email-layout :: button-fallback(${appUrl})}"></th:block>
+
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="content-block">
+                            <p>
+                                <span th:text="#{email.common.signature}">Best regards,</span>
+                                <br>
+                                <span>[[${appName}]] Team</span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <!-- Footer -->
+            <div th:replace="~{email/fragments/email-layout :: footer}"></div>
+        </th:block>
+    </body>
+</html>
+
+

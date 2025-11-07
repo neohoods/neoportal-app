@@ -1,0 +1,250 @@
+.unit-detail-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--tui-base-02);
+  min-height: calc(100vh - 100px);
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--tui-base-03);
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.back-button {
+  flex-shrink: 0;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+h1 {
+  margin: 0;
+  color: var(--tui-text-01);
+  font-size: 1.75em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 20px;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.unit-info-section,
+.members-section {
+  background-color: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--tui-base-03);
+}
+
+h2 {
+  margin: 0 0 24px 0;
+  color: var(--tui-text-01);
+  font-size: 1.35em;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--tui-base-03);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+
+  strong {
+    color: var(--tui-text-02);
+    font-size: 0.875em;
+    font-weight: 500;
+  }
+
+  span {
+    color: var(--tui-text-01);
+    font-size: 1.05em;
+    font-weight: 500;
+  }
+}
+
+.members-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--tui-base-03);
+}
+
+.add-member-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1;
+  min-width: 320px;
+  
+  tui-textfield {
+    flex: 1;
+    min-width: 250px;
+  }
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.member-card {
+  background-color: var(--tui-base-01);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--tui-base-03);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    border-color: var(--tui-base-04);
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+  }
+}
+
+.member-main {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.member-avatar {
+  flex-shrink: 0;
+}
+
+.member-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.member-name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  strong {
+    color: var(--tui-text-01);
+    font-size: 1.1em;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .member-email {
+    color: var(--tui-text-02);
+    font-size: 0.9em;
+    word-break: break-word;
+  }
+}
+
+.member-role {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.role-badge {
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: var(--tui-base-02);
+  color: var(--tui-text-02);
+  border: 1px solid var(--tui-base-03);
+
+  &.admin {
+    background-color: var(--tui-primary);
+    color: var(--tui-text-00-inverted);
+    border-color: var(--tui-primary);
+  }
+}
+
+.member-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85em;
+  color: var(--tui-text-02);
+  
+  tui-icon {
+    color: var(--tui-text-03);
+  }
+}
+
+.member-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.empty-members {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--tui-text-02);
+}
+

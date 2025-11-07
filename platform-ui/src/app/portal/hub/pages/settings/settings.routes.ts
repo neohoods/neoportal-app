@@ -3,6 +3,7 @@ import { NotificationsSettingsComponent } from './notifications/notifications-se
 import { ProfileComponent } from './profile/profile.component';
 import { PropertiesComponent } from './properties/properties.component';
 import { SettingsLandingPageComponent } from './settings-landing-page/settings-landing-page.component';
+import { UnitsComponent } from './units/units.component';
 
 export const SETTINGS_ROUTES: Routes = [
   {
@@ -13,7 +14,9 @@ export const SETTINGS_ROUTES: Routes = [
       { path: 'profile', component: ProfileComponent },
       { path: 'properties', component: PropertiesComponent },
       { path: 'notifications', component: NotificationsSettingsComponent },
-
+      { path: 'units', component: UnitsComponent },
+      { path: 'units/:id', loadComponent: () => import('./units/unit-detail/unit-detail.component').then(m => m.UnitDetailComponent) },
+      { path: 'units/:id/reservations', loadComponent: () => import('./units/unit-detail/unit-reservations.component').then(m => m.UnitReservationsComponent) },
     ],
   },
 ];

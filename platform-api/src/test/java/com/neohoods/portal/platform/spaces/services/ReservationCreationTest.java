@@ -20,6 +20,7 @@ import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
@@ -52,6 +53,9 @@ public class ReservationCreationTest extends BaseIntegrationTest {
 
     @Autowired
     private UsersRepository usersRepository;
+
+    @Autowired
+    private UnitsService unitsService;
 
     private SpaceEntity guestRoomSpace;
     private UserEntity ownerUser;
@@ -100,6 +104,11 @@ public class ReservationCreationTest extends BaseIntegrationTest {
             tenantUser.setType(UserType.TENANT);
             tenantUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
             tenantUser = usersRepository.save(tenantUser);
+        }
+
+        // Create unit for tenant user (required for COWORKING reservations)
+        if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), tenantUser.getId()).block();
         }
     }
 

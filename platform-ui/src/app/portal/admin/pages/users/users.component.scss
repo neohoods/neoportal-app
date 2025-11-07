@@ -89,3 +89,52 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Units List Styling */
+.units-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.unit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  background-color: var(--tui-primary);
+  color: white;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid var(--tui-primary);
+  cursor: pointer;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background-color: var(--tui-primary-hover);
+    border-color: var(--tui-primary-hover);
+    color: white;
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  tui-icon {
+    flex-shrink: 0;
+    color: white;
+  }
+}
+
+.no-units {
+  color: var(--tui-text-03);
+  font-style: italic;
+  font-size: 0.875rem;
+}

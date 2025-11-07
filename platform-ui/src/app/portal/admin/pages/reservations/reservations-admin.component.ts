@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiDialogService, TuiIcon, TuiLabel, TuiTextfield, TuiTextfieldDropdownDirective } from '@taiga-ui/core';
 import { type TuiStringMatcher } from '@taiga-ui/cdk';
@@ -11,7 +11,8 @@ import { ReservationStatus } from '../../../../api-client/model/reservationStatu
 import { SpaceType } from '../../../../api-client/model/spaceType';
 import { UIUser } from '../../../../models/UIUser';
 import { StatusChipComponent } from '../../../../shared/components/status-chip/status-chip.component';
-import { ADMIN_RESERVATIONS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../admin.providers';
+import { ADMIN_RESERVATIONS_SERVICE_TOKEN, UNITS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../admin.providers';
+import { UnitsService } from '../../services/units.service';
 
 @Component({
     selector: 'app-reservations-admin',
@@ -32,7 +33,8 @@ import { ADMIN_RESERVATIONS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../adm
         TuiTabs,
         TuiPagination,
         TranslateModule,
-        StatusChipComponent
+        StatusChipComponent,
+        RouterLink
     ],
     templateUrl: './reservations-admin.component.html',
     styleUrls: ['./reservations-admin.component.scss']
@@ -40,6 +42,7 @@ import { ADMIN_RESERVATIONS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../adm
 export class ReservationsAdminComponent implements OnInit {
     private reservationsService = inject(ADMIN_RESERVATIONS_SERVICE_TOKEN);
     private usersService = inject(USERS_SERVICE_TOKEN);
+    private unitsService = inject(UNITS_SERVICE_TOKEN);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private alertService = inject(TuiAlertService);
@@ -49,6 +52,7 @@ export class ReservationsAdminComponent implements OnInit {
     // Data properties
     reservations = signal<Reservation[]>([]);
     users = signal<Map<string, UIUser>>(new Map());
+    units = signal<Map<string, string>>(new Map()); // unitId -> unitName
     loading = signal(false);
 
     // Count signals
@@ -98,6 +102,7 @@ export class ReservationsAdminComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadAvailableUsers();
+        this.loadUnits();
         this.loadReservations();
         this.loadCounts();
     }
@@ -226,6 +231,24 @@ export class ReservationsAdminComponent implements OnInit {
         });
     }
 
+    private loadUnits(): void {
+        // Load all units to display unit names
+        this.unitsService.getUnits(0, 1000).subscribe({
+            next: (response) => {
+                const unitMap = new Map<string, string>();
+                (response.content || []).forEach((unit: any) => {
+                    if (unit.id && unit.name) {
+                        unitMap.set(unit.id, unit.name);
+                    }
+                });
+                this.units.set(unitMap);
+            },
+            error: (error: any) => {
+                console.error('Error loading units:', error);
+            }
+        });
+    }
+
     // Filter methods
     onUserChange(user: UIUser | null): void {
         this.selectedUser.set(user);
@@ -321,6 +344,10 @@ export class ReservationsAdminComponent implements OnInit {
     getUserFullName(userId: string): string {
         const user = this.users().get(userId);
         return user ? `${user.firstName} ${user.lastName}` : 'N/A';
+    }
+
+    getUnitName(unitId: string): string | null {
+        return this.units().get(unitId) || null;
     }
 
     getTranslatedSpaceType(spaceType: SpaceType | string): string {

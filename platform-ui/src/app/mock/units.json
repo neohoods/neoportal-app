@@ -1,0 +1,75 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440100",
+    "name": "Appartement 808",
+    "createdAt": "2024-01-10T10:00:00Z",
+    "updatedAt": "2024-01-10T10:00:00Z",
+    "members": [
+      {
+        "userId": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+        "role": "ADMIN",
+        "joinedAt": "2024-01-10T10:00:00Z",
+        "user": {
+          "id": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+          "username": "demo",
+          "firstName": "Me",
+          "lastName": "Me",
+          "email": "quentin.castel@neohoods.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440101",
+    "name": "Famille Castel",
+    "createdAt": "2024-01-10T10:00:00Z",
+    "updatedAt": "2024-01-10T10:00:00Z",
+    "members": [
+      {
+        "userId": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+        "role": "ADMIN",
+        "joinedAt": "2024-01-10T10:00:00Z",
+        "user": {
+          "id": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+          "username": "demo",
+          "firstName": "Me",
+          "lastName": "Me",
+          "email": "quentin.castel@neohoods.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440102",
+    "name": "Appartement 123",
+    "createdAt": "2024-01-10T10:00:00Z",
+    "updatedAt": "2024-01-10T10:00:00Z",
+    "members": [
+      {
+        "userId": "8cf28343-7b32-4365-8c04-305f342a2cee",
+        "role": "ADMIN",
+        "joinedAt": "2024-01-10T10:00:00Z",
+        "user": {
+          "id": "8cf28343-7b32-4365-8c04-305f342a2cee",
+          "username": "user1",
+          "firstName": "User",
+          "lastName": "One",
+          "email": "user1@example.com"
+        }
+      },
+      {
+        "userId": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+        "role": "MEMBER",
+        "joinedAt": "2024-01-11T10:00:00Z",
+        "user": {
+          "id": "f71c870e-9daa-4991-accd-61f3c3c14fa2",
+          "username": "demo",
+          "firstName": "Me",
+          "lastName": "Me",
+          "email": "quentin.castel@neohoods.com"
+        }
+      }
+    ]
+  }
+]
+

@@ -9,7 +9,8 @@ public enum UserType {
     EXTERNAL,
     CONTRACTOR,
     COMMERCIAL_PROPERTY_OWNER,
-    GUEST;
+    GUEST,
+    PROPERTY_MANAGEMENT;
 
     /**
      * Converts from OpenAPI UserType to Entity UserType

@@ -7,6 +7,7 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.entities.UnitEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -43,6 +44,10 @@ public class ReservationEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @NotNull
     private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "unit_id", nullable = true)
+    private UnitEntity unit;
 
     @NotNull
     @Column(name = "start_date", nullable = false)
@@ -141,6 +146,17 @@ public class ReservationEntity {
         this.totalPrice = totalPrice;
     }
 
+    public ReservationEntity(SpaceEntity space, com.neohoods.portal.platform.entities.UserEntity user,
+            UnitEntity unit, LocalDate startDate, LocalDate endDate,
+            BigDecimal totalPrice) {
+        this.space = space;
+        this.user = user;
+        this.unit = unit;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.totalPrice = totalPrice;
+    }
+
     // Getters and Setters
     public UUID getId() {
         return id;
@@ -164,6 +180,14 @@ public class ReservationEntity {
 
     public void setUser(com.neohoods.portal.platform.entities.UserEntity user) {
         this.user = user;
+    }
+
+    public UnitEntity getUnit() {
+        return unit;
+    }
+
+    public void setUnit(UnitEntity unit) {
+        this.unit = unit;
     }
 
     public LocalDate getStartDate() {

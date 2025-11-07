@@ -3,7 +3,8 @@ package com.neohoods.portal.platform.entities;
 public enum NotificationType {
     ADMIN_NEW_USER("admin-new-user"),
     NEW_ANNOUNCEMENT("new-announcement"),
-    RESERVATION("reservation");
+    RESERVATION("reservation"),
+    UNIT_INVITATION("unit-invitation");
 
     private String emailTemplate;
 

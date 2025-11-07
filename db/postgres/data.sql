@@ -26,6 +26,34 @@ INSERT INTO user_properties (user_id, property_type, name) VALUES ('1968032b-4a3
 INSERT INTO user_properties (user_id, property_type, name) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'PARKING', 'Parking Spot 12');
 INSERT INTO user_properties (user_id, property_type, name) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', 'APARTMENT', 'Apartment 1111');
 
+-- Units
+INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440100', 'Appartement 808', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440101', 'Famille Castel', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440102', 'Appartement 123', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440103', 'Appartement 456', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440104', 'Appartement 789', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440105', 'Appartement 909', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+
+-- Unit Members
+-- User 'me' (demo) is admin of multiple units
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440100', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440101', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440102', '8cf28343-7b32-4365-8c04-305f342a2cee', 'ADMIN', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440203', '550e8400-e29b-41d4-a716-446655440103', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'ADMIN', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440204', '550e8400-e29b-41d4-a716-446655440104', 'c5c180f1-bd25-443e-8f8a-924ddf13f971', 'ADMIN', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440205', '550e8400-e29b-41d4-a716-446655440105', '1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'ADMIN', '2024-01-10 10:00:00+00');
+-- User 'me' is also a member of other units
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440206', '550e8400-e29b-41d4-a716-446655440102', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'MEMBER', '2024-01-11 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440207', '550e8400-e29b-41d4-a716-446655440103', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'MEMBER', '2024-01-11 10:00:00+00');
+-- Additional members for testing
+-- Appartement 808: add Jane Smith and Emily Davis as members
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440208', '550e8400-e29b-41d4-a716-446655440100', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'MEMBER', '2024-01-12 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440209', '550e8400-e29b-41d4-a716-446655440100', '331f5b7e-3acd-4e91-b64d-9fee522b5f31', 'MEMBER', '2024-01-12 11:00:00+00');
+-- Famille Castel: add John Doe as member
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440210', '550e8400-e29b-41d4-a716-446655440101', '8cf28343-7b32-4365-8c04-305f342a2cee', 'MEMBER', '2024-01-12 12:00:00+00');
+-- Appartement 789: add Bob Brown as member
+INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440211', '550e8400-e29b-41d4-a716-446655440104', '593e726d-14b1-477e-967c-72bec8478a45', 'MEMBER', '2024-01-12 13:00:00+00');
+
 -- Applications
 INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440001', 'BookStack', 'https://books.example.com', '/assets/applications/bookstack.png', 'Access the community knowledge base and documentation', true);
 INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440002', 'Element Matrix', 'https://chat.example.com', '/assets/applications/element.png', 'Join community discussions and real-time chat', false);

@@ -1,0 +1,81 @@
+<div class="units-container">
+  <h1>
+    {{ 'settings.units.title' | translate }}
+  </h1>
+
+  <tui-notification
+    class="units-description"
+    size="l"
+  >
+    {{ 'settings.units.description' | translate }}
+  </tui-notification>
+
+  @if (loading) {
+    <div class="loading">
+      {{ 'settings.units.loading' | translate }}
+    </div>
+  } @else if (error) {
+    <tui-notification
+      appearance="negative"
+      size="l"
+    >
+      {{ error }}
+    </tui-notification>
+  } @else if (units.length === 0) {
+    <div class="empty-state">
+      <p>{{ 'settings.units.empty' | translate }}</p>
+    </div>
+  } @else {
+    <div class="units-list">
+      @for (unit of units; track unit.id) {
+        <div class="unit-card" (click)="viewUnit(unit.id!)">
+          <div class="unit-header">
+            <div class="unit-title-section">
+              <h3>{{ unit.name }}</h3>
+              <div class="unit-meta-inline">
+                <span class="meta-item-inline">
+                  <tui-icon icon="@tui.calendar" size="s"></tui-icon>
+                  {{ unit.createdAt | date:'short' }}
+                </span>
+                <span class="meta-item-inline">
+                  <tui-icon icon="@tui.user" size="s"></tui-icon>
+                  {{ unit.members.length || 0 }} {{ 'settings.units.members' | translate }}
+                </span>
+              </div>
+            </div>
+            <tui-icon icon="@tui.chevron-right" size="m" class="chevron-icon"></tui-icon>
+          </div>
+
+          @if (unit.members && unit.members.length > 0) {
+            <div class="unit-members">
+              <div class="members-grid">
+                @for (member of unit.members; track member.userId) {
+                  <div class="member-item">
+                    <div class="member-avatar">
+                      @if (member.user && member.user.avatarUrl) {
+                        <tui-avatar [src]="member.user.avatarUrl" size="s"></tui-avatar>
+                      } @else if (member.user) {
+                        <tui-avatar 
+                          [src]="(member.user.firstName || '') + ' ' + (member.user.lastName || '') | tuiInitials"
+                          [style.background]="(member.user.firstName || '') + ' ' + (member.user.lastName || '') | tuiAutoColor"
+                          size="s">
+                        </tui-avatar>
+                      }
+                    </div>
+                    <div class="member-info">
+                      <span class="member-name">{{ member.user ? (member.user.firstName || '') + ' ' + (member.user.lastName || '') : '' }}</span>
+                      <span class="member-role" [class.admin]="member.role === 'ADMIN'">
+                        {{ getRoleLabel(member.role || '') }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+

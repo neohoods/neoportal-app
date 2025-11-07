@@ -92,6 +92,7 @@
   },
   "hubLayout": {
     "settings": "Paramètres",
+    "units": "Logements",
     "adminPanel": "Panneau d'administration",
     "logOut": "Se déconnecter",
     "signInAs": "Bonjour {{username}} !",
@@ -174,7 +175,8 @@
     "spacesManagement": "Gestion des Espaces",
     "reservations": "Réservations",
     "ttlink": "TTLink",
-    "digitalLocks": "Serrures Numériques"
+    "digitalLocks": "Serrures Numériques",
+    "units": "Logements"
   },
   "ttlink": {
     "admin": {
@@ -725,6 +727,10 @@
       "loading": "Chargement...",
       "overview": "Aperçu",
       "userInfo": "Informations utilisateur",
+      "user": "Utilisateur",
+      "dates": "Dates",
+      "totalPrice": "Prix total",
+      "unit": "Logement",
       "accessCode": "Code d'accès",
       "reservationDates": "Dates de réservation",
       "datesAndReservationInfo": "Dates et informations de réservation",
@@ -1004,8 +1010,10 @@
       "flatNumber": "Numéro d'appartement",
       "type": "Type",
       "address": "Adresse",
-      "createdAt": "Date d'inscription"
-    }
+      "createdAt": "Date d'inscription",
+      "units": "Logements"
+    },
+    "noUnits": "Aucun logement"
   },
   "emailConfirmation": {
     "title": "Confirmation d'email",
@@ -1597,7 +1605,22 @@
     "more": "Plus",
     "profile": "Profil",
     "properties": "Propriétés",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "units": {
+      "label": "Logements",
+      "title": "Mes Logements",
+      "description": "Gérez vos logements et les membres associés",
+      "loading": "Chargement des logements...",
+      "empty": "Aucun logement trouvé",
+      "createdAt": "Créé le",
+      "membersCount": "Nombre de membres",
+      "members": "Membres",
+      "back": "Retour aux logements",
+      "information": "Informations",
+      "name": "Nom",
+      "joinedAt": "Rejoint le",
+      "noMembers": "Aucun membre"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -2010,6 +2033,7 @@
     "schedule": "Programmer",
     "yes": "Oui",
     "no": "Non",
+    "back": "Retour",
     "loading": "Chargement...",
     "error": "Erreur",
     "success": "Succès",
@@ -2018,5 +2042,75 @@
     "maxValue": "La valeur ne doit pas dépasser {{max}}",
     "warning": "Attention",
     "info": "Information"
-  }
-}
+  },
+  "units": {
+    "addUnit": "Ajouter un logement",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "back": "Retour aux logements",
+    "loading": "Chargement...",
+    "information": "Informations",
+    "name": "Nom",
+    "createdAt": "Créé le",
+    "membersCount": "Nombre de membres",
+    "members": "Membres",
+    "addMember": "Ajouter un membre",
+    "selectUser": "Sélectionner un utilisateur",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "promote": "Promouvoir admin",
+    "demote": "Rétrograder",
+    "joinedAt": "Rejoint le",
+    "noMembers": "Aucun membre",
+    "columns": {
+      "name": "Nom",
+      "membersCount": "Membres",
+      "createdAt": "Créé le"
+    },
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer le logement \"{{name}}\" ?",
+    "deleted": "Logement \"{{name}}\" supprimé avec succès",
+    "deleteError": "Erreur lors de la suppression du logement",
+    "memberAlreadyExists": "Cet utilisateur est déjà membre de ce logement",
+    "memberAdded": "Membre ajouté avec succès",
+    "addMemberError": "Erreur lors de l'ajout du membre",
+    "confirmRemoveMember": "Êtes-vous sûr de vouloir retirer {{name}} de ce logement ?",
+    "memberRemoved": "Membre retiré avec succès",
+    "removeMemberError": "Erreur lors du retrait du membre",
+    "memberPromoted": "Membre promu administrateur avec succès",
+    "promoteError": "Erreur lors de la promotion du membre",
+    "memberDemoted": "Membre rétrogradé avec succès",
+    "demoteError": "Erreur lors de la rétrogradation du membre",
+    "invite": "Inviter",
+    "inviteEmailPlaceholder": "Email de l'utilisateur à inviter",
+    "invalidEmail": "Email invalide",
+    "deleteUnit": "Supprimer le logement \"{{name}}\"",
+    "removeMember": "Retirer {{name}}",
+    "cannotRemoveYourself": "Vous ne pouvez pas vous retirer vous-même du logement",
+    "cannotDemoteYourself": "Vous ne pouvez pas vous rétrograder vous-même",
+    "role": {
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
+    "editUnit": "Modifier le logement",
+    "name": "Nom",
+    "namePlaceholder": "Nom du logement",
+    "loadError": "Erreur lors du chargement du logement",
+    "updated": "Logement \"{{name}}\" modifié avec succès",
+    "updateError": "Erreur lors de la modification du logement",
+    "created": "Logement \"{{name}}\" créé avec succès",
+    "createError": "Erreur lors de la création du logement",
+        "view": "Voir",
+        "information": "Informations",
+        "loading": "Chargement...",
+        "back": "Retour",
+        "reservations": {
+          "title": "Réservations du logement",
+          "view": "Voir les réservations",
+          "empty": "Aucune réservation pour ce logement",
+          "loadError": "Erreur lors du chargement des réservations"
+        },
+        "calendar": {
+          "download": "Télécharger le calendrier"
+        }
+      }
+    }

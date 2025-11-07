@@ -61,6 +61,15 @@
           {{ 'hubLayout.settings' | translate }}
         </button>
         <button
+          tuiOption
+          new
+          type="button"
+          (click)="navigateTo('/hub/settings/units')"
+        >
+          <tui-icon icon="@tui.home" [style.width.px]="16" />
+          {{ 'hubLayout.units' | translate }}
+        </button>
+        <button
           *ngIf="user?.user?.roles?.includes('admin')"
           tuiOption
           new

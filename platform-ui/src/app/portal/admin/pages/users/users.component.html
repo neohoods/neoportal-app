@@ -113,6 +113,19 @@
     @if (column.key === "createdAt") {
       <span class="ellipsis">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
     }
+    @if (column.key === "units") {
+      <div class="units-list">
+        @for (unit of getUnitsForUser(item.id); track unit.id) {
+          <a [routerLink]="['/admin/units', unit.id]" class="unit-link">
+            <tui-icon icon="@tui.home" size="s"></tui-icon>
+            {{ unit.name }}
+          </a>
+        }
+        @if (getUnitsForUser(item.id).length === 0) {
+          <span class="no-units">{{ 'users.noUnits' | translate }}</span>
+        }
+      </div>
+    }
   </ng-template>
 </tos-table>
 

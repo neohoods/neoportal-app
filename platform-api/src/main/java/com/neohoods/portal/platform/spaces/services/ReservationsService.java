@@ -23,6 +23,8 @@ import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.exceptions.ResourceNotFoundException;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
+import com.neohoods.portal.platform.services.UnitsService;
+import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.spaces.entities.AccessCodeEntity;
 import com.neohoods.portal.platform.spaces.entities.PaymentStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationAuditLogEntity;
@@ -64,6 +66,9 @@ public class ReservationsService {
 
     @Autowired
     private CleaningNotificationService cleaningNotificationService;
+
+    @Autowired
+    private UnitsService unitsService;
 
     /**
      * Get all reservations for a user
@@ -224,9 +229,40 @@ public class ReservationsService {
         PriceCalculationResult priceBreakdown = spacesService.calculatePriceBreakdown(space.getId(), startDate, endDate,
                 isOwner);
 
+        // Get primary unit for user (if user is TENANT or OWNER)
+        // For spaces that require unit (COMMON_ROOM, COWORKING), unit will be set
+        // For other spaces, unit may be null
+        UnitEntity unit = null;
+        boolean requiresUnit = space.getType() == SpaceTypeForEntity.COMMON_ROOM ||
+                space.getType() == SpaceTypeForEntity.COWORKING;
+        
+        if (requiresUnit) {
+            try {
+                unit = unitsService.getPrimaryUnitForUser(user.getId()).block();
+            } catch (Exception e) {
+                // If unit is required but not found, validation should have caught this
+                // But if it's not required, we can continue with null unit
+                logger.warn("Could not get primary unit for user {}: {}", user.getId(), e.getMessage());
+            }
+        } else {
+            // For spaces that don't require unit, try to get it anyway if user has one
+            try {
+                unit = unitsService.getPrimaryUnitForUser(user.getId()).block();
+            } catch (Exception e) {
+                // User doesn't have a primary unit, that's ok for non-required spaces
+                logger.debug("User {} does not have a primary unit, continuing without unit", user.getId());
+            }
+        }
+
         // Create the reservation
-        ReservationEntity reservation = new ReservationEntity(space, user, startDate, endDate,
-                priceBreakdown.getTotalPrice());
+        ReservationEntity reservation;
+        if (unit != null) {
+            reservation = new ReservationEntity(space, user, unit, startDate, endDate,
+                    priceBreakdown.getTotalPrice());
+        } else {
+            reservation = new ReservationEntity(space, user, startDate, endDate,
+                    priceBreakdown.getTotalPrice());
+        }
         reservation.setStatus(ReservationStatusForEntity.PENDING_PAYMENT);
         reservation.setPaymentStatus(PaymentStatusForEntity.PENDING);
         reservation.setPaymentExpiresAt(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(15));
@@ -578,7 +614,9 @@ public class ReservationsService {
 
     /**
      * Check if a user has reached their annual reservation quota for a space
+     * @deprecated Use hasUnitReachedAnnualQuota instead
      */
+    @Deprecated
     @Transactional(readOnly = true)
     public boolean hasUserReachedAnnualQuota(UserEntity user, UUID spaceId, int year) {
         SpaceEntity space = spacesService.getSpaceById(spaceId);
@@ -589,6 +627,29 @@ public class ReservationsService {
 
         Long userReservationsCount = reservationRepository.countReservationsByUserAndYear(user, year);
         return userReservationsCount >= space.getMaxAnnualReservations();
+    }
+
+    /**
+     * Check if a unit has reached its annual reservation quota for a space
+     */
+    @Transactional(readOnly = true)
+    public boolean hasUnitReachedAnnualQuota(UUID unitId, UUID spaceId, int year) {
+        SpaceEntity space = spacesService.getSpaceById(spaceId);
+
+        if (space.getMaxAnnualReservations() == 0) {
+            return false; // No quota limit
+        }
+
+        Long unitReservationsCount = reservationRepository.countReservationsByUnitAndYear(unitId, year);
+        return unitReservationsCount >= space.getMaxAnnualReservations();
+    }
+
+    /**
+     * Get reservations for a unit
+     */
+    @Transactional(readOnly = true)
+    public Page<ReservationEntity> getReservationsByUnit(UUID unitId, Pageable pageable) {
+        return reservationRepository.findByUnitId(unitId, pageable);
     }
 
     /**
