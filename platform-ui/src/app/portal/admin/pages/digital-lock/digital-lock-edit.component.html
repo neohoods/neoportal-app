@@ -117,21 +117,21 @@
             <!-- Configuration Section -->
             <div
                 class="form-section"
-                *ngIf="getSelectedType() === 'TTLINK'"
+                *ngIf="getSelectedType() === 'TTLOCK'"
             >
                 <h2>
-                    {{ 'digitalLock.admin.ttlinkConfig' | translate }}
+                    {{ 'digitalLock.admin.ttlockConfig' | translate }}
                 </h2>
 
                 <div formGroupName="config">
                     <div class="form-field">
                         <label tuiLabel>
-                            {{ 'digitalLock.admin.ttlinkDeviceId' | translate }}
+                            {{ 'digitalLock.admin.ttlockDeviceId' | translate }}
                             <tui-textfield>
                                 <input
                                     tuiTextfield
                                     formControlName="deviceId"
-                                    [placeholder]="'digitalLock.admin.ttlinkDeviceIdPlaceholder' | translate"
+                                    [placeholder]="'digitalLock.admin.ttlockDeviceIdPlaceholder' | translate"
                                 >
                             </tui-textfield>
                         </label>

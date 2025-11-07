@@ -562,21 +562,21 @@
         }
       </section>
 
-      <!-- TTLink Section -->
+      <!-- TTLock Section -->
       @if (space()?.digitalLockId) {
-      <section class="detail-section ttlink-section">
+      <section class="detail-section ttlock-section">
         <h2>{{ 'spaces.admin.digitalLockInfo' | translate }}</h2>
         
-        <div class="ttlink-content">
-          <div class="ttlink-info">
-            <tui-icon icon="@tui.key" class="ttlink-icon" />
-            <div class="ttlink-details">
-              <p class="ttlink-label">{{ 'spaces.admin.digitalLockInfo' | translate }}</p>
-              <p class="ttlink-value">{{ digitalLockName() }}</p>
+        <div class="ttlock-content">
+          <div class="ttlock-info">
+            <tui-icon icon="@tui.key" class="ttlock-icon" />
+            <div class="ttlock-details">
+              <p class="ttlock-label">{{ 'spaces.admin.digitalLockInfo' | translate }}</p>
+              <p class="ttlock-value">{{ digitalLockName() }}</p>
             </div>
           </div>
 
-          <div class="ttlink-actions">
+          <div class="ttlock-actions">
             <button 
               tuiButton 
               appearance="primary" 
@@ -607,9 +607,9 @@
         </div>
       </section>
       } @else {
-      <section class="detail-section ttlink-section empty">
+      <section class="detail-section ttlock-section empty">
         <h2>{{ 'spaces.admin.digitalLockInfo' | translate }}</h2>
-        <p class="empty-message">{{ 'spaces.admin.noTtlinkAssociated' | translate }}</p>
+        <p class="empty-message">{{ 'spaces.admin.noTtlockAssociated' | translate }}</p>
       </section>
       }
 

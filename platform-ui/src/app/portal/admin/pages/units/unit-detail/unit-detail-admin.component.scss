@@ -110,13 +110,8 @@ h2 {
 }
 
 .members-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding-bottom: 20px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--tui-base-03);
 }
 
@@ -124,8 +119,9 @@ h2 {
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  flex: 1;
-  min-width: 320px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--tui-base-03);
   
   tui-textfield {
     flex: 1;
@@ -196,6 +192,17 @@ h2 {
     color: var(--tui-text-02);
     font-size: 0.9em;
     word-break: break-word;
+  }
+
+  .member-type {
+    color: var(--tui-text-03);
+    font-size: 0.85em;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 8px;
+    background-color: var(--tui-base-02);
+    display: inline-block;
+    margin-top: 4px;
   }
 }
 

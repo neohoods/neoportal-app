@@ -3,6 +3,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiAutoColorPipe, TuiInitialsPipe, TuiButton, TuiDialogService, TuiIcon, TuiLoader, TuiNotification } from '@taiga-ui/core';
+import { type TuiStringMatcher } from '@taiga-ui/cdk';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 import { TuiComboBox, TuiDataListWrapper, TuiFilterByInputPipe, TuiSelect, TuiChevron } from '@taiga-ui/kit';
@@ -114,6 +115,18 @@ export class UnitDetailAdminComponent implements OnInit {
   getRoleLabel(role: string): string {
     return role === 'ADMIN' ? 'Administrateur' : 'Membre';
   }
+
+  stringifyUser = (user: UIUser | null): string => {
+    if (!user) return '';
+    return `${user.firstName} ${user.lastName} (${user.email})`;
+  };
+
+  readonly userMatcher: TuiStringMatcher<UIUser> = (item, query) => {
+    const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
+    const email = item.email?.toLowerCase() || '';
+    const searchQuery = query.toLowerCase();
+    return fullName.includes(searchQuery) || email.includes(searchQuery);
+  };
 
   addMember(): void {
     const unit = this.unit();

@@ -134,6 +134,9 @@
                       <div class="member-name">
                         <strong>{{ member.user?.firstName || '' }} {{ member.user?.lastName || '' }}</strong>
                         <span class="member-email">{{ member.user?.email || '' }}</span>
+                        @if (member.user?.type) {
+                          <span class="member-type">{{ 'user.type.' + member.user.type | translate }}</span>
+                        }
                       </div>
                       <div class="member-role">
                         <span class="role-badge" [class.admin]="member.role === 'ADMIN'">

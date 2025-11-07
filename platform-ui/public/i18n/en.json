@@ -174,7 +174,7 @@
     "spaces": "Spaces",
     "spacesManagement": "Spaces Management",
     "reservations": "Reservations",
-    "ttlink": "TTLink"
+    "ttlock": "TTLock"
   },
   "spaces": {
     "title": "Spaces",
@@ -302,10 +302,10 @@
         "SUNDAY": "Sunday"
       },
       "cancel": "Cancel",
-      "ttlink": {
+      "ttlock": {
         "admin": {
-          "title": "TTLink Management",
-          "description": "Manage TTLink access devices connected to the system",
+          "title": "TTLock Management",
+          "description": "Manage TTLock access devices connected to the system",
           "addDevice": "Add device",
           "loading": "Loading devices...",
           "searchPlaceholder": "Search device...",
@@ -327,8 +327,8 @@
           "activate": "Activate",
           "deactivate": "Deactivate",
           "delete": "Delete",
-          "noDevices": "No TTLink devices",
-          "noDevicesDescription": "Start by adding your first TTLink device to manage space access.",
+          "noDevices": "No TTLock devices",
+          "noDevicesDescription": "Start by adding your first TTLock device to manage space access.",
           "addFirstDevice": "Add first device",
           "deviceUpdated": "Device {{name}} updated: {{status}}",
           "deviceDeleted": "Device {{name}} deleted",
@@ -337,7 +337,7 @@
           "hoursAgo": "{{hours}}h ago",
           "daysAgo": "{{days}} days ago",
           "editDevice": "Edit Device",
-          "deviceFormDescription": "Configure your TTLink device settings",
+          "deviceFormDescription": "Configure your TTLock device settings",
           "basicInformation": "Basic Information",
           "deviceName": "Device Name",
           "deviceNamePlaceholder": "Ex: Main Entrance",

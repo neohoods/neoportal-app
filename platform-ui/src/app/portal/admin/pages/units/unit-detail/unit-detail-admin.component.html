@@ -74,43 +74,6 @@
       <div class="members-section">
         <div class="members-header">
           <h2>{{ 'units.members' | translate }}</h2>
-          
-          <!-- Add Member Form -->
-          <div class="add-member-form">
-            <label tuiLabel>
-              {{ 'units.addMember' | translate }}
-              <tui-textfield tuiChevron [stringify]="stringifyUser">
-                <input
-                  tuiSelect
-                  [ngModel]="selectedUser()"
-                  (ngModelChange)="selectedUser.set($event)"
-                  name="userSelect"
-                  [placeholder]="'units.selectUser' | translate"
-                />
-                <tui-data-list-wrapper
-                  *tuiTextfieldDropdown
-                  new
-                  [items]="getAvailableUsersForSelect()"
-                  [itemContent]="userContent"
-                ></tui-data-list-wrapper>
-              </tui-textfield>
-            </label>
-
-            <ng-template #userContent let-user>
-              {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
-            </ng-template>
-
-            <button
-              tuiButton
-              appearance="primary"
-              size="m"
-              (click)="addMember()"
-              [disabled]="!selectedUser() || addingMember()"
-            >
-              <tui-icon icon="@tui.plus"></tui-icon>
-              {{ 'units.add' | translate }}
-            </button>
-          </div>
         </div>
         
         @if (unit()?.members && unit()!.members!.length > 0) {
@@ -134,6 +97,9 @@
                       <div class="member-name">
                         <strong>{{ member.user?.firstName || '' }} {{ member.user?.lastName || '' }}</strong>
                         <span class="member-email">{{ member.user?.email || '' }}</span>
+                        @if (member.user?.type) {
+                          <span class="member-type">{{ 'user.type.' + member.user.type | translate }}</span>
+                        }
                       </div>
                       <div class="member-role">
                         <span class="role-badge" [class.admin]="member.role === 'ADMIN'">
@@ -189,6 +155,43 @@
             <p>{{ 'units.noMembers' | translate }}</p>
           </div>
         }
+
+        <!-- Add Member Form -->
+        <div class="add-member-form">
+          <label tuiLabel>
+            {{ 'units.addMember' | translate }}
+            <tui-textfield tuiChevron [stringify]="stringifyUser">
+              <input
+                tuiComboBox
+                [ngModel]="selectedUser()"
+                (ngModelChange)="selectedUser.set($event)"
+                name="userSelect"
+                [placeholder]="'units.selectUser' | translate"
+              />
+              <tui-data-list-wrapper
+                *tuiTextfieldDropdown
+                new
+                [items]="getAvailableUsersForSelect() | tuiFilterByInput: userMatcher"
+                [itemContent]="userContent"
+              ></tui-data-list-wrapper>
+            </tui-textfield>
+          </label>
+
+          <ng-template #userContent let-user>
+            {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+          </ng-template>
+
+          <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            (click)="addMember()"
+            [disabled]="!selectedUser() || addingMember()"
+          >
+            <tui-icon icon="@tui.plus"></tui-icon>
+            {{ 'units.add' | translate }}
+          </button>
+        </div>
       </div>
     </div>
   }

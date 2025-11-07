@@ -156,6 +156,17 @@ h2 {
     font-size: 0.9em;
     word-break: break-word;
   }
+
+  .member-type {
+    color: var(--tui-text-03);
+    font-size: 0.85em;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 8px;
+    background-color: var(--tui-base-02);
+    display: inline-block;
+    margin-top: 4px;
+  }
 }
 
 .member-role {
