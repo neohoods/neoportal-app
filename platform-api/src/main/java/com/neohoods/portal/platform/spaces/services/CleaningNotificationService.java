@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CleaningNotificationService {
 
     private final MailService mailService;
-    private final CleaningCalendarTokenService tokenService;
+    private final CalendarTokenService tokenService;
 
     @Value("${neohoods.portal.base-url}")
     private String baseUrl;

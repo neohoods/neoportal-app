@@ -20,8 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import com.nimbusds.jose.JOSEException;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarService;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarTokenService;
+import com.neohoods.portal.platform.spaces.services.CalendarService;
+import com.neohoods.portal.platform.spaces.services.CalendarTokenService;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -40,10 +40,10 @@ import reactor.test.StepVerifier;
 public class PublicSpacesCalendarControllerTest {
 
     @Mock
-    private CleaningCalendarTokenService tokenService;
+    private CalendarTokenService tokenService;
 
     @Mock
-    private CleaningCalendarService calendarService;
+    private CalendarService calendarService;
 
     @InjectMocks
     private PublicSpacesApiApiDelegateImpl delegate;
@@ -63,8 +63,8 @@ public class PublicSpacesCalendarControllerTest {
     @DisplayName("Get calendar with valid token")
     public void testGetSpaceCleaningCalendar_ValidToken() throws JOSEException {
         // Arrange
-        CleaningCalendarTokenService.TokenVerificationResult tokenResult = 
-                new CleaningCalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
+            CalendarTokenService.TokenVerificationResult tokenResult =
+                new CalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
         when(tokenService.verifyTokenWithClaims(validToken)).thenReturn(tokenResult);
         when(calendarService.generateCalendarIcs(spaceId)).thenReturn(calendarContent);
 
@@ -107,8 +107,8 @@ public class PublicSpacesCalendarControllerTest {
     public void testGetSpaceCleaningCalendar_MismatchedSpaceId() throws JOSEException {
         // Arrange
         UUID tokenSpaceId = UUID.randomUUID();
-        CleaningCalendarTokenService.TokenVerificationResult tokenResult = 
-                new CleaningCalendarTokenService.TokenVerificationResult(tokenSpaceId, null, "cleaning");
+            CalendarTokenService.TokenVerificationResult tokenResult =
+                new CalendarTokenService.TokenVerificationResult(tokenSpaceId, null, "cleaning");
         when(tokenService.verifyTokenWithClaims(validToken)).thenReturn(tokenResult);
 
         // Act
@@ -126,8 +126,8 @@ public class PublicSpacesCalendarControllerTest {
     @DisplayName("Return 404 when space not found")
     public void testGetSpaceCleaningCalendar_SpaceNotFound() throws JOSEException {
         // Arrange
-        CleaningCalendarTokenService.TokenVerificationResult tokenResult = 
-                new CleaningCalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
+            CalendarTokenService.TokenVerificationResult tokenResult =
+                new CalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
         when(tokenService.verifyTokenWithClaims(validToken)).thenReturn(tokenResult);
         when(calendarService.generateCalendarIcs(spaceId))
                 .thenThrow(new IllegalArgumentException("Space not found: " + spaceId));
@@ -147,8 +147,8 @@ public class PublicSpacesCalendarControllerTest {
     @DisplayName("Return 404 when cleaning calendar not enabled")
     public void testGetSpaceCleaningCalendar_CalendarNotEnabled() throws JOSEException {
         // Arrange
-        CleaningCalendarTokenService.TokenVerificationResult tokenResult = 
-                new CleaningCalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
+            CalendarTokenService.TokenVerificationResult tokenResult =
+                new CalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
         when(tokenService.verifyTokenWithClaims(validToken)).thenReturn(tokenResult);
         when(calendarService.generateCalendarIcs(spaceId))
                 .thenThrow(new IllegalStateException("Cleaning calendar is not enabled for this space"));
@@ -168,8 +168,8 @@ public class PublicSpacesCalendarControllerTest {
     @DisplayName("Return 500 when unexpected error occurs")
     public void testGetSpaceCleaningCalendar_UnexpectedError() throws JOSEException {
         // Arrange
-        CleaningCalendarTokenService.TokenVerificationResult tokenResult = 
-                new CleaningCalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
+            CalendarTokenService.TokenVerificationResult tokenResult =
+                new CalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
         when(tokenService.verifyTokenWithClaims(validToken)).thenReturn(tokenResult);
         when(calendarService.generateCalendarIcs(spaceId))
                 .thenThrow(new RuntimeException("Unexpected error"));
@@ -189,8 +189,8 @@ public class PublicSpacesCalendarControllerTest {
     @DisplayName("Calendar response has correct headers")
     public void testGetSpaceCleaningCalendar_ResponseHeaders() throws JOSEException {
         // Arrange
-        CleaningCalendarTokenService.TokenVerificationResult tokenResult = 
-                new CleaningCalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
+            CalendarTokenService.TokenVerificationResult tokenResult =
+                new CalendarTokenService.TokenVerificationResult(spaceId, null, "cleaning");
         when(tokenService.verifyTokenWithClaims(validToken)).thenReturn(tokenResult);
         when(calendarService.generateCalendarIcs(spaceId)).thenReturn(calendarContent);
 

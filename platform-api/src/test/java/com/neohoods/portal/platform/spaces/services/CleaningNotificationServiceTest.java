@@ -46,7 +46,7 @@ public class CleaningNotificationServiceTest {
     private MailService mailService;
 
     @Mock
-    private CleaningCalendarTokenService tokenService;
+    private CalendarTokenService tokenService;
 
     @InjectMocks
     private CleaningNotificationService notificationService;

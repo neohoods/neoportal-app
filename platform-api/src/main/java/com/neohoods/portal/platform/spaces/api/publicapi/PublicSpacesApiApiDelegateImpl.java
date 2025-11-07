@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.PublicSpacesApiApiDelegate;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarService;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarTokenService;
+import com.neohoods.portal.platform.spaces.services.CalendarService;
+import com.neohoods.portal.platform.spaces.services.CalendarTokenService;
 import com.nimbusds.jose.JOSEException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,17 +23,17 @@ import reactor.core.publisher.Mono;
 public class PublicSpacesApiApiDelegateImpl implements PublicSpacesApiApiDelegate {
 
     @Autowired
-    private CleaningCalendarTokenService cleaningCalendarTokenService;
+    private CalendarTokenService calendarTokenService;
 
     @Autowired
-    private CleaningCalendarService cleaningCalendarService;
+    private CalendarService calendarService;
 
     @Override
     public Mono<ResponseEntity<String>> getSpaceCleaningCalendar(
             UUID spaceId, String token, String type, ServerWebExchange exchange) {
         try {
             // Verify token and extract claims
-            CleaningCalendarTokenService.TokenVerificationResult tokenResult = cleaningCalendarTokenService
+            CalendarTokenService.TokenVerificationResult tokenResult = calendarTokenService
                     .verifyTokenWithClaims(token);
 
             // Verify that the token's spaceId matches the path parameter
@@ -57,11 +57,11 @@ public class PublicSpacesApiApiDelegateImpl implements PublicSpacesApiApiDelegat
             if ("reservation".equals(calendarType)) {
                 // For reservation type, use userId from token if present
                 UUID userId = tokenResult.getUserId();
-                calendarContent = cleaningCalendarService.generateReservationCalendarIcs(spaceId, userId);
+                calendarContent = calendarService.generateReservationCalendarIcs(spaceId, userId);
                 filename = "reservation-calendar.ics";
             } else {
                 // Default to cleaning calendar
-                calendarContent = cleaningCalendarService.generateCalendarIcs(spaceId);
+                calendarContent = calendarService.generateCalendarIcs(spaceId);
                 filename = "cleaning-calendar.ics";
             }
 

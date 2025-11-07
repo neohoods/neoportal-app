@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CleaningCalendarService {
+public class CalendarService {
 
     private final SpaceRepository spaceRepository;
     private final ReservationRepository reservationRepository;
@@ -36,6 +36,9 @@ public class CleaningCalendarService {
 
     @org.springframework.beans.factory.annotation.Value("${neohoods.portal.base-url}")
     private String baseUrl;
+
+    @org.springframework.beans.factory.annotation.Value("${neohoods.portal.email.template.app-name}")
+    private String appName;
 
     private static final DateTimeFormatter ICAL_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
@@ -64,6 +67,12 @@ public class CleaningCalendarService {
 
         String cleaningLabel = messageSource.getMessage("cleaning.calendar.cleaning", null, DEFAULT_LOCALE);
         String scheduleForLabel = messageSource.getMessage("cleaning.calendar.scheduleFor", null, DEFAULT_LOCALE);
+        String cleaningInterventionsLabel;
+        try {
+            cleaningInterventionsLabel = messageSource.getMessage("cleaning.calendar.interventions", null, DEFAULT_LOCALE);
+        } catch (org.springframework.context.NoSuchMessageException e) {
+            cleaningInterventionsLabel = "Cleaning interventions";
+        }
 
         StringBuilder ics = new StringBuilder();
         ics.append("BEGIN:VCALENDAR\r\n");
@@ -71,7 +80,7 @@ public class CleaningCalendarService {
         ics.append("PRODID:-//NeoHoods Portal//Cleaning Calendar//EN\r\n");
         ics.append("CALSCALE:GREGORIAN\r\n");
         ics.append("METHOD:PUBLISH\r\n");
-        ics.append("X-WR-CALNAME:").append(escapeText(cleaningLabel + " - " + space.getName())).append("\r\n");
+        ics.append("X-WR-CALNAME:").append(escapeText(appName + " - " + cleaningInterventionsLabel)).append("\r\n");
         ics.append("X-WR-CALDESC:").append(escapeText(scheduleForLabel + " " + space.getName())).append("\r\n");
 
         for (ReservationEntity reservation : reservations) {
@@ -159,7 +168,7 @@ public class CleaningCalendarService {
         ics.append("PRODID:-//NeoHoods Portal//Reservation Calendar//EN\r\n");
         ics.append("CALSCALE:GREGORIAN\r\n");
         ics.append("METHOD:PUBLISH\r\n");
-        ics.append("X-WR-CALNAME:").append(escapeText(reservationLabel + " - " + space.getName())).append("\r\n");
+        ics.append("X-WR-CALNAME:").append(escapeText(appName + " - " + space.getName() + " - " + reservationLabel)).append("\r\n");
         ics.append("X-WR-CALDESC:").append(escapeText(scheduleForLabel + " " + space.getName())).append("\r\n");
 
         String reservationForLabel = messageSource.getMessage("calendar.reservation.reservationFor", null,
@@ -237,8 +246,9 @@ public class CleaningCalendarService {
                         || r.getStatus() == ReservationStatusForEntity.COMPLETED)
                 .toList();
 
-        String reservationLabel = messageSource.getMessage("calendar.reservation.title", null, DEFAULT_LOCALE);
         String scheduleForLabel = messageSource.getMessage("calendar.user.scheduleFor", null, DEFAULT_LOCALE);
+        String myReservationsLabel = messageSource.getMessage("calendar.user.myReservations", null, DEFAULT_LOCALE);
+        String reservationLabel = messageSource.getMessage("calendar.reservation.title", null, DEFAULT_LOCALE);
 
         StringBuilder ics = new StringBuilder();
         ics.append("BEGIN:VCALENDAR\r\n");
@@ -246,7 +256,7 @@ public class CleaningCalendarService {
         ics.append("PRODID:-//NeoHoods Portal//User Calendar//EN\r\n");
         ics.append("CALSCALE:GREGORIAN\r\n");
         ics.append("METHOD:PUBLISH\r\n");
-        ics.append("X-WR-CALNAME:").append(escapeText(scheduleForLabel)).append("\r\n");
+        ics.append("X-WR-CALNAME:").append(escapeText(appName + " - " + myReservationsLabel)).append("\r\n");
         ics.append("X-WR-CALDESC:").append(escapeText(scheduleForLabel)).append("\r\n");
 
         String reservationForLabel = messageSource.getMessage("calendar.reservation.reservationFor", null,

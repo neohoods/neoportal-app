@@ -33,7 +33,7 @@ import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceImageEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarTokenService;
+import com.neohoods.portal.platform.spaces.services.CalendarTokenService;
 import com.neohoods.portal.platform.spaces.services.SpaceStatisticsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
 
@@ -49,7 +49,7 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
     private SpaceStatisticsService spaceStatisticsService;
 
     @Autowired
-    private CleaningCalendarTokenService cleaningCalendarTokenService;
+    private CalendarTokenService calendarTokenService;
 
     @org.springframework.beans.factory.annotation.Value("${neohoods.portal.base-url}")
     private String baseUrl;
@@ -360,7 +360,7 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
                     .calendarUrl(entity.getCleaningCalendarEnabled() != null && entity.getCleaningCalendarEnabled()
                             ? java.net.URI
                                     .create(baseUrl + "/api/public/spaces/" + entity.getId() + "/calendar.ics?token="
-                                            + cleaningCalendarTokenService.generateToken(entity.getId(), "cleaning")
+                                            + calendarTokenService.generateToken(entity.getId(), "cleaning")
                                             + "&type=cleaning")
                             : null)
                     .build();
@@ -370,7 +370,7 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
         // Generate reservation calendar URL (always available for all spaces)
         java.net.URI reservationCalendarUrl = java.net.URI.create(
                 baseUrl + "/api/public/spaces/" + entity.getId() + "/calendar.ics?token="
-                        + cleaningCalendarTokenService.generateToken(entity.getId(), "reservation")
+                        + calendarTokenService.generateToken(entity.getId(), "reservation")
                         + "&type=reservation");
 
         return Space.builder()

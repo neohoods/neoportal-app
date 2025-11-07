@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.users.api.publicapi;
+package com.neohoods.portal.platform.api.publicapi.users;
 
 import java.util.UUID;
 
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.PublicUsersApiApiDelegate;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarService;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarTokenService;
+import com.neohoods.portal.platform.spaces.services.CalendarService;
+import com.neohoods.portal.platform.spaces.services.CalendarTokenService;
 import com.nimbusds.jose.JOSEException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,20 +23,20 @@ import reactor.core.publisher.Mono;
 public class PublicUsersApiApiDelegateImpl implements PublicUsersApiApiDelegate {
 
     @Autowired
-    private CleaningCalendarTokenService cleaningCalendarTokenService;
+    private CalendarTokenService calendarTokenService;
 
     @Autowired
-    private CleaningCalendarService cleaningCalendarService;
+    private CalendarService calendarService;
 
     @Override
     public Mono<ResponseEntity<String>> getUserCalendar(
             UUID userId, String token, ServerWebExchange exchange) {
         try {
             // Verify token and check userId matches
-            cleaningCalendarTokenService.verifyTokenForUser(token, userId);
+            calendarTokenService.verifyTokenForUser(token, userId);
 
             // Generate user calendar
-            String calendarContent = cleaningCalendarService.generateUserCalendarIcs(userId);
+            String calendarContent = calendarService.generateUserCalendarIcs(userId);
 
             // Set headers for iCalendar
             HttpHeaders headers = new HttpHeaders();
@@ -59,4 +59,3 @@ public class PublicUsersApiApiDelegateImpl implements PublicUsersApiApiDelegate 
         }
     }
 }
-

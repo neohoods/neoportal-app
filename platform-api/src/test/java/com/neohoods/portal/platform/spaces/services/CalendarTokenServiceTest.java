@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.nimbusds.jose.JOSEException;
 
 /**
- * Unit tests for CleaningCalendarTokenService.
+ * Unit tests for CalendarTokenService.
  * 
  * Tests:
  * - Token generation
@@ -22,18 +22,18 @@ import com.nimbusds.jose.JOSEException;
  * - Invalid token handling
  * - Token with wrong secret
  */
-public class CleaningCalendarTokenServiceTest {
+public class CalendarTokenServiceTest {
 
-    private CleaningCalendarTokenService tokenService;
-    private CleaningCalendarTokenService tokenServiceWithDifferentSecret;
+    private CalendarTokenService tokenService;
+    private CalendarTokenService tokenServiceWithDifferentSecret;
     private static final String TEST_SECRET = "test-secret-key-for-jwt-signing-minimum-32-chars";
     private static final String DIFFERENT_SECRET = "different-secret-key-for-jwt-signing-minimum-32-chars";
     private static final int TEST_EXPIRATION_HOURS = 24;
 
     @BeforeEach
     public void setUp() {
-        tokenService = new CleaningCalendarTokenService(TEST_SECRET, TEST_EXPIRATION_HOURS);
-        tokenServiceWithDifferentSecret = new CleaningCalendarTokenService(DIFFERENT_SECRET, TEST_EXPIRATION_HOURS);
+        tokenService = new CalendarTokenService(TEST_SECRET, TEST_EXPIRATION_HOURS);
+        tokenServiceWithDifferentSecret = new CalendarTokenService(DIFFERENT_SECRET, TEST_EXPIRATION_HOURS);
     }
 
     @Test

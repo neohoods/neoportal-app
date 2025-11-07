@@ -11,7 +11,7 @@ import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.model.NotificationSettings;
 import com.neohoods.portal.platform.repositories.NotificationSettingsRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.spaces.services.CleaningCalendarTokenService;
+import com.neohoods.portal.platform.spaces.services.CalendarTokenService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 public class NotificationSettingsService {
         private final NotificationSettingsRepository notificationSettingsRepository;
         private final UsersRepository usersRepository;
-        private final CleaningCalendarTokenService cleaningCalendarTokenService;
+        private final CalendarTokenService calendarTokenService;
         
         @Value("${neohoods.portal.base-url}")
         private String baseUrl;
@@ -37,7 +37,7 @@ public class NotificationSettingsService {
                                 .orElseGet(() -> createDefaultSettings(user));
                 
                 // Generate calendar URL for user
-                String token = cleaningCalendarTokenService.generateTokenForUser(userId);
+                String token = calendarTokenService.generateTokenForUser(userId);
                 URI calendarUrl = URI.create(baseUrl + "/api/public/users/" + userId + "/calendar.ics?token=" + token);
                 
                 NotificationSettings settings = entity.toNotificationSettings();
@@ -62,7 +62,7 @@ public class NotificationSettingsService {
                 NotificationSettingsEntity savedEntity = notificationSettingsRepository.save(entity);
                 
                 // Generate calendar URL for user
-                String token = cleaningCalendarTokenService.generateTokenForUser(userId);
+                String token = calendarTokenService.generateTokenForUser(userId);
                 URI calendarUrl = URI.create(baseUrl + "/api/public/users/" + userId + "/calendar.ics?token=" + token);
                 
                 NotificationSettings result = savedEntity.toNotificationSettings();

@@ -24,14 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class CleaningCalendarTokenService {
+public class CalendarTokenService {
 
     private final String jwtSecret;
     private final int jwtExpirationHours;
     private final JWSSigner signer;
     private final JWSVerifier verifier;
 
-    public CleaningCalendarTokenService(
+    public CalendarTokenService(
             @Value("${neohoods.portal.cleaning.calendar.jwt-secret}") String jwtSecret,
             @Value("${neohoods.portal.cleaning.calendar.jwt-expiration-hours:8760}") int jwtExpirationHours) {
         this.jwtSecret = jwtSecret;

@@ -36,7 +36,7 @@ import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 
 /**
- * Unit tests for CleaningCalendarService.
+ * Unit tests for CalendarService.
  * 
  * Tests:
  * - Calendar generation with various reservations
@@ -46,7 +46,7 @@ import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
  * - Error handling
  */
 @ExtendWith(MockitoExtension.class)
-public class CleaningCalendarServiceTest {
+public class CalendarServiceTest {
 
     @Mock
     private SpaceRepository spaceRepository;
@@ -61,7 +61,7 @@ public class CleaningCalendarServiceTest {
     private MessageSource messageSource;
 
     @InjectMocks
-    private CleaningCalendarService calendarService;
+    private CalendarService calendarService;
 
     private SpaceEntity space;
     private UserEntity user;
@@ -69,8 +69,9 @@ public class CleaningCalendarServiceTest {
 
     @BeforeEach
     public void setUp() {
-        // Set baseUrl using reflection
+        // Set baseUrl and appName using reflection
         ReflectionTestUtils.setField(calendarService, "baseUrl", "https://local.portal.neohoods.com:4200");
+        ReflectionTestUtils.setField(calendarService, "appName", "Terres de Laya");
         
         spaceId = UUID.randomUUID();
         space = new SpaceEntity();
