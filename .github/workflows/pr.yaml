@@ -40,11 +40,8 @@ jobs:
       - name: Build and Test
         uses: qcastel/github-actions-maven-cmd@master
         env:
-          # Configure Testcontainers to reuse containers and disable Ryuk for faster tests
-          TESTCONTAINERS_RYUK_DISABLED: true
-          TESTCONTAINERS_REUSE_ENABLE: true
-          # Ensure Docker is available for Testcontainers
-          DOCKER_HOST: unix:///var/run/docker.sock
+          # Use local PostgreSQL (started by the action) instead of Testcontainers
+          USE_LOCAL_POSTGRES: true
         with:
           maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
 

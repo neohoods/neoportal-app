@@ -1,19 +1,49 @@
 FROM qcastel/maven-release:0.0.42
 
-# Installer postgresql-client pour psql
-RUN apk add --no-cache postgresql-client
+# Installer PostgreSQL et postgresql-client
+RUN apk add --no-cache postgresql postgresql-client
+
+# Créer le répertoire de données PostgreSQL
+RUN mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql/data
+
+# Initialiser la base de données PostgreSQL
+USER postgres
+RUN initdb -D /var/lib/postgresql/data
+
+# Configurer PostgreSQL pour accepter les connexions locales (trust pour simplifier)
+RUN echo "host all all 127.0.0.1/32 trust" >> /var/lib/postgresql/data/pg_hba.conf && \
+    echo "host all all ::1/128 trust" >> /var/lib/postgresql/data/pg_hba.conf && \
+    echo "local all all trust" >> /var/lib/postgresql/data/pg_hba.conf && \
+    echo "listen_addresses='*'" >> /var/lib/postgresql/data/postgresql.conf
+
+# Revenir à root pour le reste
+USER root
 
 # Copier le code source
 WORKDIR /github/workspace
 COPY . /github/workspace
 
-# Variables d'environnement pour Testcontainers
-ENV TESTCONTAINERS_RYUK_DISABLED=true
-ENV TESTCONTAINERS_REUSE_ENABLE=true
-ENV DOCKER_HOST=unix:///var/run/docker.sock
-# Forcer Testcontainers à utiliser localhost au lieu du gateway Docker
-ENV TESTCONTAINERS_HOST_OVERRIDE=localhost
+# Script de démarrage qui démarre PostgreSQL puis exécute les tests
+RUN echo '#!/bin/sh' > /start-tests.sh && \
+    echo 'set -e' >> /start-tests.sh && \
+    echo 'echo "Starting PostgreSQL..."' >> /start-tests.sh && \
+    echo 'su-exec postgres pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/data/logfile start' >> /start-tests.sh && \
+    echo 'echo "Waiting for PostgreSQL to be ready..."' >> /start-tests.sh && \
+    echo 'until su-exec postgres pg_isready -U postgres; do sleep 1; done' >> /start-tests.sh && \
+    echo 'echo "PostgreSQL is ready. Running tests..."' >> /start-tests.sh && \
+    echo 'cd platform-api && mvn clean test -Ddockerfile.skip -DdockerCompose.skip -Djib.skip -Dsurefire.forkCount=1 -Dsurefire.parallel=none' >> /start-tests.sh && \
+    echo 'EXIT_CODE=$?' >> /start-tests.sh && \
+    echo 'echo "Stopping PostgreSQL..."' >> /start-tests.sh && \
+    echo 'su-exec postgres pg_ctl -D /var/lib/postgresql/data stop' >> /start-tests.sh && \
+    echo 'exit $EXIT_CODE' >> /start-tests.sh && \
+    chmod +x /start-tests.sh
 
-# Entrypoint pour exécuter la commande Maven SANS parallélisme
-ENTRYPOINT ["bash", "-c"]
-CMD ["cd platform-api && mvn clean test -Ddockerfile.skip -DdockerCompose.skip -Djib.skip -Dsurefire.forkCount=1 -Dsurefire.parallel=none"]
+# Installer su-exec pour changer d'utilisateur
+RUN apk add --no-cache su-exec
+
+# Variable d'environnement pour indiquer qu'on utilise PostgreSQL local
+ENV USE_LOCAL_POSTGRES=true
+
+# Entrypoint pour exécuter le script de démarrage
+ENTRYPOINT ["/start-tests.sh"]

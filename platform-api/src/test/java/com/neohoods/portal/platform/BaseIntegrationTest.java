@@ -60,12 +60,11 @@ public abstract class BaseIntegrationTest {
             return sharedContainer.createDatabaseForTest(className);
         });
         
-        PostgreSQLContainer<?> container = sharedContainer.getContainer();
         // Construire l'URL JDBC avec le nom de la base de données unique
-        String jdbcUrl = container.getJdbcUrl().replace("/postgres", "/" + uniqueDatabaseName);
+        String jdbcUrl = sharedContainer.getJdbcUrl(uniqueDatabaseName);
         registry.add("spring.datasource.url", () -> jdbcUrl);
-        registry.add("spring.datasource.username", container::getUsername);
-        registry.add("spring.datasource.password", container::getPassword);
+        registry.add("spring.datasource.username", sharedContainer::getUsername);
+        registry.add("spring.datasource.password", sharedContainer::getPassword);
     }
     
     private static String getTestClassName() {

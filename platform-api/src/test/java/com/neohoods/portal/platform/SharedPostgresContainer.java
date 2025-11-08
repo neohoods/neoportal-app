@@ -20,25 +20,34 @@ public class SharedPostgresContainer {
     private static volatile SharedPostgresContainer instance;
     private static final Lock lock = new ReentrantLock();
 
-    private final PostgreSQLContainer<?> container;
+    private PostgreSQLContainer<?> container;
+    private boolean useLocalPostgres;
     // Map thread-safe pour garantir une seule DB par classe de test
     private final ConcurrentHashMap<String, String> databasesByTestClass = new ConcurrentHashMap<>();
 
     private SharedPostgresContainer() {
-        // Container partagé avec une base de données par défaut
-        // Les scripts d'init seront exécutés sur chaque nouvelle base de données créée
-        // withReuse(true) permet de réutiliser le container entre les tests et dans la
-        // CI
-        PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16-alpine")
-                .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
-                .withUsername("test")
-                .withPassword("test")
-                .withStartupTimeoutSeconds(120)
-                .withReuse(true); // Réutiliser le container entre les tests
+        // Détecter si on doit utiliser PostgreSQL local (dans un container de build CI)
+        // au lieu de Testcontainers
+        // Utiliser USE_LOCAL_POSTGRES si défini, sinon utiliser Testcontainers
+        useLocalPostgres = System.getenv("USE_LOCAL_POSTGRES") != null;
 
-        // Démarrer le container (Testcontainers le réutilisera s'il existe déjà)
-        container.start();
-        this.container = container; // Assigner après le start pour éviter le warning de resource leak
+        if (useLocalPostgres) {
+            // Dans un environnement conteneurisé (CI), utiliser PostgreSQL local
+            // qui tourne dans le même container
+            this.container = null; // Pas de container Testcontainers
+        } else {
+            // En local, utiliser Testcontainers avec un container partagé
+            PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16-alpine")
+                    .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
+                    .withUsername("test")
+                    .withPassword("test")
+                    .withStartupTimeoutSeconds(120)
+                    .withReuse(true); // Réutiliser le container entre les tests
+
+            // Démarrer le container (Testcontainers le réutilisera s'il existe déjà)
+            container.start();
+            this.container = container; // Assigner après le start pour éviter le warning de resource leak
+        }
     }
 
     public static SharedPostgresContainer getInstance() {
@@ -56,7 +65,30 @@ public class SharedPostgresContainer {
     }
 
     public PostgreSQLContainer<?> getContainer() {
+        if (useLocalPostgres) {
+            throw new IllegalStateException("Cannot get Testcontainers container when using local PostgreSQL");
+        }
         return container;
+    }
+
+    public boolean isUsingLocalPostgres() {
+        return useLocalPostgres;
+    }
+
+    public String getJdbcUrl(String databaseName) {
+        if (useLocalPostgres) {
+            return "jdbc:postgresql://localhost:5432/" + databaseName;
+        } else {
+            return container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/" + databaseName);
+        }
+    }
+
+    public String getUsername() {
+        return useLocalPostgres ? "postgres" : container.getUsername();
+    }
+
+    public String getPassword() {
+        return useLocalPostgres ? "" : container.getPassword();
     }
 
     /**
@@ -76,16 +108,26 @@ public class SharedPostgresContainer {
                     + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 
             try {
-                // Utiliser getJdbcUrl() de Testcontainers qui gère correctement les environnements
-                // conteneurisés. Cette méthode fonctionnait avant avec un container par test.
-                // Dans GitHub Actions, Testcontainers configure automatiquement le réseau Docker.
-                String jdbcUrl = container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/postgres");
+                String jdbcUrl;
+                String username;
+                String password;
 
-                try (java.sql.Connection conn = java.sql.DriverManager.getConnection(jdbcUrl, container.getUsername(),
-                        container.getPassword());
+                if (useLocalPostgres) {
+                    // Utiliser PostgreSQL local (dans le même container)
+                    jdbcUrl = "jdbc:postgresql://localhost:5432/postgres";
+                    username = "postgres";
+                    password = ""; // Pas de mot de passe par défaut pour postgres local
+                } else {
+                    // Utiliser Testcontainers (environnement local)
+                    jdbcUrl = container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/postgres");
+                    username = container.getUsername();
+                    password = container.getPassword();
+                }
+
+                try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
                         Statement stmt = conn.createStatement()) {
 
-                    // Créer la base de données via JDBC (fonctionnait avant)
+                    // Créer la base de données via JDBC
                     stmt.executeUpdate("CREATE DATABASE \"" + databaseName + "\"");
 
                     // Se connecter à la nouvelle base de données et exécuter les scripts via psql
@@ -172,6 +214,13 @@ public class SharedPostgresContainer {
     }
 
     private void executeInitScriptViaPsql(String databaseName, String scriptName) throws Exception {
+        String username = useLocalPostgres ? "postgres" : container.getUsername();
+        String password = useLocalPostgres ? "" : container.getPassword();
+        executeInitScriptViaPsql(databaseName, scriptName, username, password);
+    }
+
+    private void executeInitScriptViaPsql(String databaseName, String scriptName, String username, String password)
+            throws Exception {
         File scriptFile = findScriptFile(scriptName);
 
         if (scriptFile == null || !scriptFile.exists()) {
@@ -186,14 +235,24 @@ public class SharedPostgresContainer {
 
         // Utiliser psql pour exécuter le script (plus fiable pour les fonctions et
         // triggers)
-        // Dans les environnements conteneurisés, utiliser localhost si nécessaire
-        String host = container.getHost();
-        if ("172.17.0.1".equals(host) || host.startsWith("172.")) {
+        String host;
+        int port;
+
+        if (useLocalPostgres) {
+            // PostgreSQL local dans le même container
             host = "localhost";
+            port = 5432;
+        } else {
+            // Utiliser getHost() et getFirstMappedPort() de Testcontainers
+            host = container.getHost();
+            port = container.getFirstMappedPort();
+
+            // Si on est dans un environnement conteneurisé (host commence par 172.),
+            // utiliser localhost car Testcontainers mappe le port sur l'hôte
+            if (host.startsWith("172.")) {
+                host = "localhost";
+            }
         }
-        int port = container.getFirstMappedPort();
-        String username = container.getUsername();
-        String password = container.getPassword();
 
         // Construire la commande psql
         ProcessBuilder pb = new ProcessBuilder(
