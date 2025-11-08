@@ -251,11 +251,6 @@ export class UnitDetailAdminComponent implements OnInit {
     return this.availableUsers().filter(user => !memberUserIds.has(user.id));
   }
 
-  stringifyUser = (user: UIUser | null): string => {
-    if (!user) return '';
-    return `${user.firstName} ${user.lastName} (${user.email})`;
-  };
-
   isCurrentUser(member: UnitMember): boolean {
     const currentUser = this.authService.getCurrentUserInfo().user;
     return member.userId === currentUser.id;
