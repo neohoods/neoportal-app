@@ -13,7 +13,7 @@
     </button>
 
     <h1>
-      {{ unit()?.name || 'Logement' }}
+      {{ unit()!.name || 'Logement' }}
     </h1>
   </div>
 
@@ -47,7 +47,7 @@
               tuiButton
               appearance="outline"
               size="m"
-              [routerLink]="['/hub/settings/units', unit()?.id, 'reservations']"
+              [routerLink]="['/hub/settings/units', unit()!.id, 'reservations']"
             >
               <tui-icon icon="@tui.calendar"></tui-icon>
               {{ 'units.reservations.view' | translate }}
@@ -56,7 +56,7 @@
               tuiButton
               appearance="outline"
               size="m"
-              [href]="'/api/hub/units/' + unit()?.id + '/calendar.ics'"
+              [href]="'/api/hub/units/' + unit()!.id + '/calendar.ics'"
               download
             >
               <tui-icon icon="@tui.download"></tui-icon>
@@ -67,15 +67,15 @@
         <div class="info-grid">
           <div class="info-item">
             <strong>{{ 'settings.units.name' | translate }}:</strong>
-            <span>{{ unit()?.name }}</span>
+            <span>{{ unit()!.name }}</span>
           </div>
           <div class="info-item">
             <strong>{{ 'settings.units.createdAt' | translate }}:</strong>
-            <span>{{ unit()?.createdAt | date:'short' }}</span>
+            <span>{{ unit()!.createdAt | date:'short' }}</span>
           </div>
           <div class="info-item">
             <strong>{{ 'settings.units.membersCount' | translate }}:</strong>
-            <span>{{ unit()?.members?.length || 0 }}</span>
+            <span>{{ unit()!.members.length || 0 }}</span>
           </div>
         </div>
       </div>
@@ -113,18 +113,18 @@
           }
         </div>
         
-        @if (unit()?.members && unit()!.members!.length > 0) {
+        @if (unit()!.members && unit()!.members!.length > 0) {
           <div class="members-list">
             @for (member of unit()!.members; track member.userId) {
               <div class="member-card">
                 <div class="member-main">
                   <div class="member-avatar">
-                    @if (member.user?.avatarUrl) {
+                    @if (member.user.avatarUrl) {
                       <tui-avatar [src]="member.user.avatarUrl" size="m"></tui-avatar>
                     } @else {
                       <tui-avatar 
-                        [src]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiInitials"
-                        [style.background]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiAutoColor"
+                        [src]="(member.user.firstName || '') + ' ' + (member.user.lastName || '') | tuiInitials"
+                        [style.background]="(member.user.firstName || '') + ' ' + (member.user.lastName || '') | tuiAutoColor"
                         size="m">
                       </tui-avatar>
                     }
@@ -132,9 +132,9 @@
                   <div class="member-details">
                     <div class="member-header">
                       <div class="member-name">
-                        <strong>{{ member.user?.firstName || '' }} {{ member.user?.lastName || '' }}</strong>
-                        <span class="member-email">{{ member.user?.email || '' }}</span>
-                        @if (member.user?.type) {
+                        <strong>{{ member.user.firstName || '' }} {{ member.user.lastName || '' }}</strong>
+                        <span class="member-email">{{ member.user.email || '' }}</span>
+                        @if (member.user && member.user.type) {
                           <span class="member-type">{{ 'user.type.' + member.user.type | translate }}</span>
                         }
                       </div>

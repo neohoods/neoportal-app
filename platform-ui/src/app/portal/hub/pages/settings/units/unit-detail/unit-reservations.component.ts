@@ -1,6 +1,6 @@
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiLoader, TuiNotification } from '@taiga-ui/core';
 import { TuiChip, TuiPagination } from '@taiga-ui/kit';
@@ -14,8 +14,6 @@ import { UIReservation } from '../../../../../../models/UIReservation';
   standalone: true,
   imports: [
     CommonModule,
-    DatePipe,
-    RouterLink,
     TranslateModule,
     TuiButton,
     TuiIcon,

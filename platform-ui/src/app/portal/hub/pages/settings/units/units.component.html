@@ -27,7 +27,7 @@
     </div>
   } @else {
     <div class="units-list">
-      @for (unit of units; track unit.id) {
+      @for (unit of units; track trackByUnitId($index, unit)) {
         <div class="unit-card" (click)="viewUnit(unit.id!)">
           <div class="unit-header">
             <div class="unit-title-section">
@@ -66,7 +66,7 @@
           @if (unit.members && unit.members.length > 0) {
             <div class="unit-members">
               <div class="members-grid">
-                @for (member of unit.members; track member.userId) {
+                @for (member of unit.members; track trackByMemberId($index, member)) {
                   <div class="member-item">
                     <div class="member-avatar">
                       @if (member.user && member.user.avatarUrl) {
@@ -82,7 +82,7 @@
                     <div class="member-info">
                       <span class="member-name">{{ member.user ? (member.user.firstName || '') + ' ' + (member.user.lastName || '') : '' }}</span>
                       <span class="member-role" [class.admin]="member.role === 'ADMIN'">
-                        {{ getRoleLabel(member.role || '') }}
+                        {{ getRoleLabelForMember(unit, member.role) }}
                       </span>
                     </div>
                   </div>

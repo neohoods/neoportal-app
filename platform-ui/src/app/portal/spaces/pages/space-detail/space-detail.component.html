@@ -160,7 +160,7 @@
                         <!-- Guest room: Check-in / Check-out -->
                         <div
                             class="hours-info"
-                            *ngIf="space()!.rules?.allowedHours && space()!.type === 'GUEST_ROOM'"
+                            *ngIf="space()!.rules.allowedHours && space()!.type === 'GUEST_ROOM'"
                         >
                             <span class="label">
                                 {{ 'spaces.detail.checkin' | translate }}
@@ -169,7 +169,7 @@
                         </div>
                         <div
                             class="hours-info"
-                            *ngIf="space()!.rules?.allowedHours && space()!.type === 'GUEST_ROOM'"
+                            *ngIf="space()!.rules.allowedHours && space()!.type === 'GUEST_ROOM'"
                         >
                             <span class="label">
                                 {{ 'spaces.detail.checkout' | translate }}
@@ -180,7 +180,7 @@
                         <!-- Common room: de x à x -->
                         <div
                             class="hours-info"
-                            *ngIf="space()!.rules?.allowedHours && space()!.type === 'COMMON_ROOM'"
+                            *ngIf="space()!.rules.allowedHours && space()!.type === 'COMMON_ROOM'"
                         >
                             <span class="label">{{ 'spaces.card.hours' | translate }}</span>
                             <span class="value">
@@ -191,7 +191,7 @@
                         <!-- Parking & Coworking: à la journée, de x à x -->
                         <div
                             class="hours-info"
-                            *ngIf="space()!.rules?.allowedHours && (space()!.type === 'PARKING' || space()!.type === 'COWORKING')"
+                            *ngIf="space()!.rules.allowedHours && (space()!.type === 'PARKING' || space()!.type === 'COWORKING')"
                         >
                             <span class="label">
                                 {{ 'spaces.detail.perDayLabel' | translate }}
@@ -284,7 +284,7 @@
                             <!-- Legend for calendar -->
                             <div
                                 class="calendar-legend"
-                                *ngIf="space()?.rules?.shareSpaceWith?.length"
+                                *ngIf="space()!.rules.shareSpaceWith?.length"
                             >
                                 <div class="legend-item">
                                     <span class="legend-color occupied"></span>
