@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Singleton container PostgreSQL partagé pour tous les tests.
@@ -20,7 +20,7 @@ public class SharedPostgresContainer {
     private static volatile SharedPostgresContainer instance;
     private static final Lock lock = new ReentrantLock();
 
-    private PostgreSQLContainer<?> container;
+    private PostgreSQLContainer container;
     private boolean useLocalPostgres;
     // Map thread-safe pour garantir une seule DB par classe de test
     private final ConcurrentHashMap<String, String> databasesByTestClass = new ConcurrentHashMap<>();
@@ -37,7 +37,7 @@ public class SharedPostgresContainer {
             this.container = null; // Pas de container Testcontainers
         } else {
             // En local, utiliser Testcontainers avec un container partagé
-            PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16-alpine")
+            PostgreSQLContainer container = new PostgreSQLContainer("postgres:16-alpine")
                     .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
                     .withUsername("test")
                     .withPassword("test")
@@ -64,7 +64,7 @@ public class SharedPostgresContainer {
         return instance;
     }
 
-    public PostgreSQLContainer<?> getContainer() {
+    public PostgreSQLContainer getContainer() {
         if (useLocalPostgres) {
             throw new IllegalStateException("Cannot get Testcontainers container when using local PostgreSQL");
         }

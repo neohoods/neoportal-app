@@ -10,7 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.neohoods.portal.platform.services.Auth0Service;
 import com.neohoods.portal.platform.services.MailService;
@@ -47,7 +47,7 @@ public abstract class BaseIntegrationTest {
         });
     }
     
-    protected static PostgreSQLContainer<?> getPostgresContainer() {
+    protected static PostgreSQLContainer getPostgresContainer() {
         return sharedContainer.getContainer();
     }
 
