@@ -1,6 +1,8 @@
 package com.neohoods.portal.platform;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
