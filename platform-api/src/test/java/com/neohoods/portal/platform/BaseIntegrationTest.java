@@ -1,6 +1,5 @@
 package com.neohoods.portal.platform;
 
-import java.io.File;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -11,9 +10,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
 
 import com.neohoods.portal.platform.services.Auth0Service;
 import com.neohoods.portal.platform.services.MailService;
@@ -28,34 +24,78 @@ import com.neohoods.portal.platform.spaces.services.TTlockRemoteAPIService;
         "spring.jpa.hibernate.ddl-auto=none"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Testcontainers
 @ActiveProfiles("test")
 public abstract class BaseIntegrationTest {
 
-    // Isolated container for each test class
-    // Each test class gets its own PostgreSQL container with a unique database name
-    // This ensures complete isolation between test classes
-    private static final String uniqueDatabaseName = "neohoods-test-" + UUID.randomUUID().toString().replace("-", "");
-
-    @Container
-    protected static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName(uniqueDatabaseName)
-            .withUsername("test")
-            .withPassword("test")
-            .withStartupTimeoutSeconds(120)
-            .withCopyFileToContainer(
-                    MountableFile.forHostPath(new File("../db/postgres/init.sql").getAbsolutePath()),
-                    "/docker-entrypoint-initdb.d/1-init.sql")
-            .withCopyFileToContainer(
-                    MountableFile.forHostPath(new File("../db/postgres/data.sql").getAbsolutePath()),
-                    "/docker-entrypoint-initdb.d/2-data.sql");
-    // Each test class gets its own unique database for complete isolation
+    // Container PostgreSQL partagé réutilisé pour tous les tests
+    // Chaque classe de test obtient sa propre base de données dans ce container
+    private static final SharedPostgresContainer sharedContainer = SharedPostgresContainer.getInstance();
+    private static volatile String uniqueDatabaseName;
+    
+    /**
+     * Initialise la base de données pour cette classe de test.
+     * Cette méthode doit être appelée depuis chaque classe de test concrète.
+     */
+    protected static void initializeDatabase(Class<?> testClass) {
+        if (uniqueDatabaseName == null) {
+            synchronized (BaseIntegrationTest.class) {
+                if (uniqueDatabaseName == null) {
+                    String testClassName = testClass.getSimpleName();
+                    uniqueDatabaseName = sharedContainer.createDatabaseForTest(testClassName);
+                }
+            }
+        }
+    }
+    
+    protected static PostgreSQLContainer<?> getPostgresContainer() {
+        return sharedContainer.getContainer();
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
+        // Initialiser la base de données avec le nom de la classe concrète
+        // Utiliser une approche avec reflection pour obtenir la classe appelante
+        String testClassName = getTestClassName();
+        initializeDatabase(testClassName);
+        
+        PostgreSQLContainer<?> container = sharedContainer.getContainer();
+        // Construire l'URL JDBC avec le nom de la base de données unique
+        String jdbcUrl = container.getJdbcUrl().replace("/postgres", "/" + uniqueDatabaseName);
+        registry.add("spring.datasource.url", () -> jdbcUrl);
+        registry.add("spring.datasource.username", container::getUsername);
+        registry.add("spring.datasource.password", container::getPassword);
+    }
+    
+    private static String getTestClassName() {
+        // Obtenir le nom de la classe de test concrète via la stack trace
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : stack) {
+            String className = element.getClassName();
+            try {
+                Class<?> clazz = Class.forName(className);
+                // Vérifier si c'est une classe de test (hérite de BaseIntegrationTest mais n'est pas BaseIntegrationTest)
+                if (BaseIntegrationTest.class.isAssignableFrom(clazz) && 
+                    !clazz.equals(BaseIntegrationTest.class) &&
+                    !clazz.isInterface() &&
+                    !className.contains("$")) {
+                    return clazz.getSimpleName();
+                }
+            } catch (ClassNotFoundException e) {
+                // Ignorer
+            }
+        }
+        // Fallback: utiliser un UUID
+        return "test-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+    }
+    
+    private static void initializeDatabase(String testClassName) {
+        if (uniqueDatabaseName == null) {
+            synchronized (BaseIntegrationTest.class) {
+                if (uniqueDatabaseName == null) {
+                    uniqueDatabaseName = sharedContainer.createDatabaseForTest(testClassName);
+                }
+            }
+        }
     }
 
     @MockBean

@@ -316,8 +316,8 @@ public class ReservationFlowTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Complete flow: Audit log created for each action")
     public void testCompleteFlow_AuditLogs() {
-        // Arrange
-        LocalDate startDate = LocalDate.now().plusDays(50);
+        // Arrange - Use far future date to avoid conflicts with other tests
+        LocalDate startDate = LocalDate.now().plusDays(220);
         LocalDate endDate = startDate.plusDays(4);
 
         // Act

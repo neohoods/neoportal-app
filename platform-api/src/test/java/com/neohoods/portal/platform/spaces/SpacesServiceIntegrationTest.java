@@ -74,6 +74,7 @@ public class SpacesServiceIntegrationTest extends BaseIntegrationTest {
     public void testDatabaseConnection() {
         // This test verifies that the PostgreSQL container is running
         // and the database schema is properly initialized
+        var postgresContainer = getPostgresContainer();
         assertTrue(postgresContainer.isRunning(), "PostgreSQL container should be running");
 
         String jdbcUrl = postgresContainer.getJdbcUrl();
