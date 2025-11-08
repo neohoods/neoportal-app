@@ -6,7 +6,7 @@ import { TuiAlertService, TuiAutoColorPipe, TuiInitialsPipe, TuiButton, TuiDialo
 import { type TuiStringMatcher } from '@taiga-ui/cdk';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
-import { TuiComboBox, TuiDataListWrapper, TuiFilterByInputPipe, TuiSelect, TuiChevron } from '@taiga-ui/kit';
+import { TuiComboBox, TuiDataListWrapper, TuiFilterByInputPipe, TuiSelect, TuiChevron, TuiChip } from '@taiga-ui/kit';
 import { TuiTextfield, TuiTextfieldDropdownDirective, TuiLabel } from '@taiga-ui/core';
 import { FormsModule } from '@angular/forms';
 import { UNITS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../../admin.providers';
@@ -43,7 +43,8 @@ import { AuthService } from '../../../../../services/auth.service';
     TuiLabel,
     TuiAvatar,
     TuiInitialsPipe,
-    TuiAutoColorPipe
+    TuiAutoColorPipe,
+    TuiChip
   ],
   templateUrl: './unit-detail-admin.component.html',
   styleUrl: './unit-detail-admin.component.scss'
@@ -254,6 +255,30 @@ export class UnitDetailAdminComponent implements OnInit {
   isCurrentUser(member: UnitMember): boolean {
     const currentUser = this.authService.getCurrentUserInfo().user;
     return member.userId === currentUser.id;
+  }
+
+  isPrimaryUnit(member: UnitMember): boolean {
+    const unit = this.unit();
+    if (!unit || !member.user) {
+      return false;
+    }
+    return member.user.primaryUnitId === unit.id;
+  }
+
+  setAsPrimaryUnit(member: UnitMember): void {
+    const unit = this.unit();
+    if (!unit) return;
+
+    this.unitsAdminApi.setPrimaryUnitForMember(unit.id!, member.userId).subscribe({
+      next: () => {
+        this.alerts.open(this.translate.instant('units.primaryUnitSet')).subscribe();
+        this.loadUnit(unit.id!);
+      },
+      error: (error: any) => {
+        console.error('Failed to set primary unit:', error);
+        this.alerts.open(this.translate.instant('units.primaryUnitError')).subscribe();
+      }
+    });
   }
 }
 

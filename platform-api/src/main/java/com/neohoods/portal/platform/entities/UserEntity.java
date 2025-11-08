@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import com.neohoods.portal.platform.model.User;
 
+import org.openapitools.jackson.nullable.JsonNullable;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -20,6 +22,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -88,6 +91,10 @@ public class UserEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private NotificationSettingsEntity notificationSettings;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "primary_unit_id")
+    private UnitEntity primaryUnit;
+
     public User.UserBuilder toUser() {
         return User.builder()
                 .id(id)
@@ -108,6 +115,7 @@ public class UserEntity {
                 .createdAt(createdAt)
                 .roles(type == UserType.ADMIN ? Arrays.asList("hub", "admin") : Arrays.asList("hub"))
                 .type(type != null ? type.toOpenApiUserType() : null)
+                .primaryUnitId(primaryUnit != null ? primaryUnit.getId() : null)
                 .properties(properties != null
                         ? properties.stream().map(PropertyEntity::toProperty).collect(Collectors.toList())
                         : List.of());

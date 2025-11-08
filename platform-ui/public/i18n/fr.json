@@ -339,7 +339,8 @@
       "used": "utilisé",
       "sharedWith": "Cet espace est partagé avec",
       "sharedReservation": "Réservation d'un espace partagé",
-      "sharedReservationExplanation": "Les réservations de ces espaces rendent cet espace indisponible."
+      "sharedReservationExplanation": "Les réservations de ces espaces rendent cet espace indisponible.",
+      "reservationRestriction": "Seuls les propriétaires ou locataires associés à un logement peuvent réserver des espaces."
     },
     "card": {
       "annualReservations": "Réservations annuelles",
@@ -658,6 +659,7 @@
     "noActiveReservationsMessage": "Vous n'avez pas de réservations en cours",
     "noFutureReservations": "Aucune réservation future",
     "noFutureReservationsMessage": "Vous n'avez pas de réservations à venir",
+    "reservationRestriction": "Seuls les propriétaires ou locataires associés à un logement peuvent réserver des espaces.",
     "reserveSpace": "Réserver un espace",
     "accessCode": "Code: {{code}}",
     "details": "Détails",
@@ -2088,6 +2090,10 @@
     "removeMember": "Retirer {{name}}",
     "cannotRemoveYourself": "Vous ne pouvez pas vous retirer vous-même du logement",
     "cannotDemoteYourself": "Vous ne pouvez pas vous rétrograder vous-même",
+    "setAsPrimaryUnit": "Définir comme logement principal",
+    "isPrimaryUnit": "Logement principal",
+    "primaryUnitSet": "Logement principal défini avec succès",
+    "primaryUnitError": "Erreur lors de la définition du logement principal",
     "role": {
       "admin": "Administrateur",
       "member": "Membre"

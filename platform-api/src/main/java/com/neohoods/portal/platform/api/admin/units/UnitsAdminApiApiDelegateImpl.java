@@ -233,5 +233,26 @@ public class UnitsAdminApiApiDelegateImpl implements UnitsAdminApiApiDelegate {
                     return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
                 });
     }
+
+    @Override
+    public Mono<ResponseEntity<Void>> setPrimaryUnitForMember(UUID unitId, UUID userId, ServerWebExchange exchange) {
+        // For admin API, we use null as the setBy parameter (admin operation)
+        return unitsService.setPrimaryUnitForUser(userId, unitId, null)
+                .then(Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).<Void>build()))
+                .onErrorResume(e -> {
+                    if (e instanceof CodedErrorException) {
+                        CodedErrorException ex = (CodedErrorException) e;
+                        if (ex.getError() == CodedError.UNIT_NOT_FOUND || ex.getError() == CodedError.USER_NOT_FOUND) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).<Void>build());
+                        }
+                        if (ex.getError() == CodedError.USER_NOT_MEMBER_OF_UNIT) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).<Void>build());
+                        }
+                        return Mono.error(e);
+                    }
+                    log.error("Failed to set primary unit", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Void>build());
+                });
+    }
 }
 

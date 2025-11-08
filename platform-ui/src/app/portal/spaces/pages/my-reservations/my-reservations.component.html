@@ -120,6 +120,18 @@
             </div>
         </div>
 
+        <!-- Warning message if user cannot reserve -->
+        <tui-notification
+            *ngIf="canReserve() === false && !loadingCanReserve()"
+            appearance="warning"
+            size="m"
+            class="reservation-warning"
+            [style.margin-bottom.rem]="1.5"
+        >
+            <tui-icon icon="@tui.alert-circle"></tui-icon>
+            {{ 'reservations.reservationRestriction' | translate }}
+        </tui-notification>
+
         <!-- Tabs (3 temporal tabs) -->
         <tui-tabs
             [(activeItemIndex)]="activeTab"

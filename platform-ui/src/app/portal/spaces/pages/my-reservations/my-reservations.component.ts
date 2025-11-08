@@ -2,10 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiAlertService, TuiButton, TuiDialogService, TuiIcon, TuiLoader, TuiNotification } from '@taiga-ui/core';
 import { TuiChip, TuiPagination, TuiTabs } from '@taiga-ui/kit';
 
 import { inject } from '@angular/core';
+import { AUTH_SERVICE_TOKEN } from '../../../../global.provider';
+import { UserInfo } from '../../../../services/auth.service';
+import { UnitsHubApiService } from '../../../../api-client/api/unitsHubApi.service';
 import { Reservation } from '../../services/reservations.service';
 import { Space } from '../../services/spaces.service';
 import { RESERVATIONS_SERVICE_TOKEN, SPACES_SERVICE_TOKEN } from '../../spaces.provider';
@@ -21,7 +24,8 @@ import { RESERVATIONS_SERVICE_TOKEN, SPACES_SERVICE_TOKEN } from '../../spaces.p
         TuiLoader,
         TuiTabs,
         TuiChip,
-        TuiPagination
+        TuiPagination,
+        TuiNotification
     ],
     templateUrl: './my-reservations.component.html',
     styleUrls: ['./my-reservations.component.scss']
@@ -29,6 +33,8 @@ import { RESERVATIONS_SERVICE_TOKEN, SPACES_SERVICE_TOKEN } from '../../spaces.p
 export class MyReservationsComponent implements OnInit {
     private reservationsService = inject(RESERVATIONS_SERVICE_TOKEN);
     private spacesService = inject(SPACES_SERVICE_TOKEN);
+    private authService = inject(AUTH_SERVICE_TOKEN);
+    private unitsApiService = inject(UnitsHubApiService);
     private translate = inject(TranslateService);
     private router = inject(Router);
     private dialogs = inject(TuiDialogService);
@@ -39,6 +45,11 @@ export class MyReservationsComponent implements OnInit {
     loading = signal(false);
     activeTab = 0; // Past (0), Active (1), Future (2)
 
+    // User can reserve flag
+    canReserve = signal<boolean | null>(null);
+    loadingCanReserve = signal(false);
+    currentUser!: UserInfo;
+
     // Pagination signals - separate for each tab
     currentPagePast = signal(1);
     currentPageActive = signal(1);
@@ -47,7 +58,10 @@ export class MyReservationsComponent implements OnInit {
     itemsPerPage = signal(9);
 
     ngOnInit(): void {
+        this.currentUser = this.authService.getCurrentUserInfo();
         this.loadReservations();
+        // Check if user can make reservations
+        this.checkCanReserve();
     }
 
     // Get count for each status
@@ -295,5 +309,14 @@ export class MyReservationsComponent implements OnInit {
         } else if (tabType === 'future') {
             this.currentPageFuture.set(page);
         }
+    }
+
+    private checkCanReserve(): void {
+        this.loadingCanReserve.set(true);
+        // Check if user has a primary unit set
+        const primaryUnitId = this.currentUser.user.primaryUnitId;
+        const canReserveValue = primaryUnitId != null && primaryUnitId !== '';
+        this.canReserve.set(canReserveValue);
+        this.loadingCanReserve.set(false);
     }
 }

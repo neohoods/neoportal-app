@@ -356,6 +356,10 @@ CREATE TABLE unit_members (
 CREATE INDEX idx_unit_members_unit_id ON unit_members(unit_id);
 CREATE INDEX idx_unit_members_user_id ON unit_members(user_id);
 
+-- Add primary_unit_id column to users table (after units table is created)
+ALTER TABLE users ADD COLUMN primary_unit_id uuid REFERENCES units(id) ON DELETE SET NULL;
+CREATE INDEX idx_users_primary_unit_id ON users(primary_unit_id);
+
 -- Unit invitations table
 CREATE TABLE unit_invitations (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -547,15 +551,16 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_units_updated_at BEFORE UPDATE ON units
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Migration: Update existing reservations with unit_id
--- Associate reservations with the unit where the user is TENANT or OWNER (based on user.user_type)
-UPDATE reservations 
-SET unit_id = (
+-- Migration: Set primary_unit_id for existing users based on their first unit membership
+-- This sets the primary unit for users who are TENANT or OWNER in at least one unit
+UPDATE users 
+SET primary_unit_id = (
     SELECT um.unit_id 
     FROM unit_members um 
-    INNER JOIN users u ON u.id = um.user_id
-    WHERE um.user_id = reservations.user_id 
-    AND u.user_type IN ('TENANT', 'OWNER')
+    WHERE um.user_id = users.id 
     LIMIT 1
 )
-WHERE unit_id IS NULL;
+WHERE primary_unit_id IS NULL 
+AND EXISTS (
+    SELECT 1 FROM unit_members um WHERE um.user_id = users.id
+);

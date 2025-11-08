@@ -1687,3 +1687,18 @@ FROM spaces s
 WHERE reservations.space_id = s.id 
     AND reservations.platform_fee_amount IS NULL;
 
+-- Set primary_unit_id for existing users who have at least one unit
+-- Uses the first unit (by joined_at, or unit_id if joined_at is the same) as primary
+UPDATE users
+SET primary_unit_id = (
+    SELECT um.unit_id
+    FROM unit_members um
+    WHERE um.user_id = users.id
+    ORDER BY um.joined_at ASC, um.unit_id ASC
+    LIMIT 1
+)
+WHERE primary_unit_id IS NULL
+AND EXISTS (
+    SELECT 1 FROM unit_members um WHERE um.user_id = users.id
+);
+

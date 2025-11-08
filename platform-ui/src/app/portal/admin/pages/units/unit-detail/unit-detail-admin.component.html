@@ -105,6 +105,21 @@
                         <span class="role-badge" [class.admin]="member.role === 'ADMIN'">
                           {{ getRoleLabel(member.role || '') }}
                         </span>
+                        @if (isPrimaryUnit(member)) {
+                          <tui-chip
+                            appearance="custom"
+                            [style.background-color]="'var(--tui-background-accent-2)'"
+                            [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                            size="s"
+                          >
+                            <tui-icon
+                              icon="@tui.user-star"
+                              [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                              size="xs"
+                            ></tui-icon>
+                            {{ 'units.isPrimaryUnit' | translate }}
+                          </tui-chip>
+                        }
                       </div>
                     </div>
                     <div class="member-meta">
@@ -113,6 +128,17 @@
                     </div>
                     @if (!isCurrentUser(member)) {
                       <div class="member-actions">
+                        @if (!isPrimaryUnit(member)) {
+                          <button
+                            tuiButton
+                            appearance="outline"
+                            size="s"
+                            (click)="setAsPrimaryUnit(member)"
+                          >
+                            <tui-icon icon="@tui.star"></tui-icon>
+                            {{ 'units.setAsPrimaryUnit' | translate }}
+                          </button>
+                        }
                         @if (member.role === 'ADMIN') {
                           <button
                             tuiButton

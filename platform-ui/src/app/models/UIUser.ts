@@ -20,6 +20,7 @@ export interface UIUser {
     roles: string[];
     properties?: UIProperty[];
     profileSharingConsent?: boolean;
+    primaryUnitId?: string;
 }
 
 export enum UIUserType {

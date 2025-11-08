@@ -74,6 +74,10 @@ export class SpaceDetailComponent implements OnInit {
     // Chart size
     chartSize: TuiSizeXL = 'm';
 
+    // User can reserve flag
+    canReserve = signal<boolean | null>(null);
+    loadingCanReserve = signal(false);
+
     ngOnInit(): void {
         // Scroll to top when component initializes
         this.viewportScroller.scrollToPosition([0, 0]);
@@ -82,6 +86,8 @@ export class SpaceDetailComponent implements OnInit {
         if (spaceId) {
             this.loadSpace(spaceId);
         }
+        // Check if user can make reservations
+        this.checkCanReserve();
     }
 
     private loadSpace(spaceId: string): void {
@@ -504,5 +510,14 @@ export class SpaceDetailComponent implements OnInit {
         if (max === 0) return [];
 
         return [used];
+    }
+
+    private checkCanReserve(): void {
+        this.loadingCanReserve.set(true);
+        // Check if user has a primary unit set
+        const primaryUnitId = this.currentUser.user.primaryUnitId;
+        const canReserveValue = primaryUnitId != null && primaryUnitId !== '';
+        this.canReserve.set(canReserveValue);
+        this.loadingCanReserve.set(false);
     }
 }

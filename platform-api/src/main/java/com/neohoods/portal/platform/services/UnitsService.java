@@ -81,6 +81,14 @@ public class UnitsService {
                 .build();
 
         unitMemberRepository.save(adminMember);
+        
+        // If this is the user's first unit, set it as primary
+        long unitCount = unitMemberRepository.countByUserId(adminId);
+        if (unitCount == 1 && admin.getPrimaryUnit() == null) {
+            admin.setPrimaryUnit(savedUnit);
+            usersRepository.save(admin);
+            log.info("Set unit {} as primary unit for user {} (first unit)", savedUnit.getId(), adminId);
+        }
 
         log.info("Created unit: {} with ID: {}", name, savedUnit.getId());
         return Mono.just(getUnitById(savedUnit.getId()).block());
@@ -168,6 +176,15 @@ public class UnitsService {
                 .build();
 
         UnitMemberEntity saved = unitMemberRepository.save(member);
+        
+        // If this is the user's first unit, set it as primary
+        long unitCount = unitMemberRepository.countByUserId(userId);
+        if (unitCount == 1 && user.getPrimaryUnit() == null) {
+            user.setPrimaryUnit(unit);
+            usersRepository.save(user);
+            log.info("Set unit {} as primary unit for user {} (first unit)", unitId, userId);
+        }
+        
         return Mono.just(saved.toUnitMember());
     }
 
@@ -194,11 +211,29 @@ public class UnitsService {
 
         unitMemberRepository.delete(member);
 
-        // Disable user if they have no other units
-        long unitCount = unitMemberRepository.countByUserId(userId);
-        if (unitCount == 0) {
-            UserEntity user = usersRepository.findById(userId)
-                    .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
+        // Update primary unit if needed
+        UserEntity user = usersRepository.findById(userId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
+        
+        // If the removed unit was the primary unit, clear it or set a new one
+        if (user.getPrimaryUnit() != null && user.getPrimaryUnit().getId().equals(unitId)) {
+            long remainingUnitCount = unitMemberRepository.countByUserId(userId);
+            if (remainingUnitCount == 0) {
+                // No units left, clear primary unit
+                user.setPrimaryUnit(null);
+                user.setDisabled(true);
+                log.info("Cleared primary unit and disabled user {} as they have no units", userId);
+            } else {
+                // Set first remaining unit as primary
+                List<UnitEntity> remainingUnits = unitRepository.findByMembersUserId(userId);
+                if (!remainingUnits.isEmpty()) {
+                    user.setPrimaryUnit(remainingUnits.get(0));
+                    log.info("Set unit {} as new primary unit for user {} after removal", remainingUnits.get(0).getId(), userId);
+                }
+            }
+            usersRepository.save(user);
+        } else if (unitMemberRepository.countByUserId(userId) == 0) {
+            // Disable user if they have no other units
             user.setDisabled(true);
             usersRepository.save(user);
             log.info("Disabled user {} as they have no units", userId);
@@ -291,9 +326,8 @@ public class UnitsService {
     }
 
     /**
-     * Get the primary unit for a user (where user is TENANT or OWNER)
-     * A user should normally only have one unit where they are TENANT or OWNER
-     * If multiple exist (bug), returns the first one
+     * Get the primary unit for a user (explicit primary_unit_id field)
+     * Returns the unit explicitly set as primary, or throws exception if not set
      */
     @Transactional(readOnly = true)
     public Mono<UnitEntity> getPrimaryUnitForUser(UUID userId) {
@@ -302,26 +336,46 @@ public class UnitsService {
         UserEntity user = usersRepository.findById(userId)
                 .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
 
-        // Get all units where user is a member
-        List<UnitEntity> userUnits = unitRepository.findByMembersUserId(userId);
-
-        // Filter to find units where user's type is OWNER or TENANT
-        Optional<UnitEntity> primaryUnit = userUnits.stream()
-                .filter(unit -> {
-                    // Check if user is a member of this unit
-                    List<UnitMemberEntity> members = unitMemberRepository.findByUnitId(unit.getId());
-                    return members.stream()
-                            .anyMatch(member -> member.getUser().getId().equals(userId)
-                                    && (user.getType() == UserType.OWNER || user.getType() == UserType.TENANT));
-                })
-                .findFirst();
-
-        if (primaryUnit.isEmpty()) {
-            throw new CodedErrorException(CodedError.USER_NOT_TENANT_OR_OWNER,
+        if (user.getPrimaryUnit() == null) {
+            throw new CodedErrorException(CodedError.USER_NO_PRIMARY_UNIT,
                     Map.of("userId", userId.toString()));
         }
 
-        return Mono.just(primaryUnit.get());
+        return Mono.just(user.getPrimaryUnit());
+    }
+
+    /**
+     * Set the primary unit for a user
+     * @param userId The user ID
+     * @param unitId The unit ID to set as primary
+     * @param setBy The user ID who is setting this (must be admin of the unit or global admin, null for admin operations)
+     */
+    @Transactional
+    public Mono<Void> setPrimaryUnitForUser(UUID userId, UUID unitId, UUID setBy) {
+        log.info("Setting primary unit {} for user {} by {}", unitId, userId, setBy);
+
+        UserEntity user = usersRepository.findById(userId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
+
+        UnitEntity unit = unitRepository.findById(unitId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+
+        // Verify user is a member of the unit
+        if (!isUserMemberOfUnit(userId, unitId)) {
+            throw new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT,
+                    Map.of("userId", userId.toString(), "unitId", unitId.toString()));
+        }
+
+        // Verify setBy is admin of the unit (skip if null for admin operations)
+        if (setBy != null && !isUserAdminOfUnit(setBy, unitId)) {
+            throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", setBy.toString());
+        }
+
+        user.setPrimaryUnit(unit);
+        usersRepository.save(user);
+
+        log.info("Set unit {} as primary unit for user {}", unitId, userId);
+        return Mono.empty();
     }
 
     @Transactional(readOnly = true)

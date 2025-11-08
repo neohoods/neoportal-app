@@ -1171,6 +1171,37 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /admin/units/{unit-id}/members/{user-id}/set-primary:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: setPrimaryUnitForMember
+      summary: Set this unit as the primary unit for the user
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Primary unit set successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /admin/help/categories:
     get:
       operationId: getAdminHelpCategories
@@ -4677,6 +4708,10 @@ components:
           description: "User registration date"
         type:
           $ref: "#/components/schemas/UserType"
+        primaryUnitId:
+          type: string
+          format: uuid
+          description: "ID of the user's primary unit (for reservations)"
         properties:
           type: array
           items:

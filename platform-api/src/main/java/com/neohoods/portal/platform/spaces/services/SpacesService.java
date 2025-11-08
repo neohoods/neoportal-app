@@ -276,15 +276,15 @@ public class SpacesService {
         
         UnitEntity primaryUnit = null;
         if (requiresUnit) {
-            // Check that user is TENANT or OWNER of at least one unit
+            // Check that user has a primary unit set
             try {
                 primaryUnit = unitsService.getPrimaryUnitForUser(userId).block();
             } catch (CodedErrorException e) {
-                if (e.getError() == CodedError.USER_NOT_TENANT_OR_OWNER) {
+                if (e.getError() == CodedError.USER_NO_PRIMARY_UNIT || e.getError() == CodedError.USER_NOT_TENANT_OR_OWNER) {
                     Map<String, Object> variables = new HashMap<>();
                     variables.put("spaceId", spaceId);
                     variables.put("userId", userId);
-                    throw new CodedErrorException(CodedError.USER_NOT_TENANT_OR_OWNER, variables);
+                    throw new CodedErrorException(CodedError.USER_NO_PRIMARY_UNIT, variables);
                 }
                 throw e;
             }

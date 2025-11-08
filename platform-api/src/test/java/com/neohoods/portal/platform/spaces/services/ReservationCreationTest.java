@@ -110,6 +110,17 @@ public class ReservationCreationTest extends BaseIntegrationTest {
         if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
             unitsService.createUnit("Test Unit " + tenantUser.getId(), tenantUser.getId()).block();
         }
+        
+        // Ensure tenant user has a primary unit set (refresh from DB to get updated primaryUnit)
+        tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        if (tenantUser.getPrimaryUnit() == null) {
+            // Get first unit and set it as primary
+            var units = unitsService.getUserUnits(tenantUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(tenantUser.getId(), units.get(0).getId(), null).block();
+                tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+            }
+        }
     }
 
     @Test

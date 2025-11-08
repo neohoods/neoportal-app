@@ -317,6 +317,17 @@
                                     {{ 'spaces.detail.loadingAvailability' | translate }}
                                 </span>
                             </div>
+                            <!-- Warning message if user cannot reserve -->
+                            <tui-notification
+                                *ngIf="canReserve() === false && !loadingCanReserve()"
+                                appearance="warning"
+                                size="m"
+                                class="reservation-warning"
+                            >
+                                <tui-icon icon="@tui.alert-circle"></tui-icon>
+                                {{ 'spaces.detail.reservationRestriction' | translate }}
+                            </tui-notification>
+
                             <div class="space-reserve-button">
                                 <button
                                     tuiButton
@@ -324,7 +335,7 @@
                                     iconStart="@tui.calendar"
                                     size="l"
                                     (click)="onReserveClick()"
-                                    [disabled]="space()!.status !== 'ACTIVE' || !selectedDate()"
+                                    [disabled]="space()!.status !== 'ACTIVE' || !selectedDate() || canReserve() === false"
                                 >
                                     {{ 'spaces.detail.reserveSpace' | translate }}
                                 </button>

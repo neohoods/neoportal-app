@@ -136,7 +136,8 @@ public enum CodedError {
         CANNOT_DEMOTE_LAST_ADMIN("UNIT006", "Cannot demote the last admin of a unit", "units/cannot-demote-last-admin"),
         USER_ALREADY_MEMBER("UNIT007", "User is already a member of this unit", "units/user-already-member"),
         USER_HAS_NO_UNIT("UNIT008", "User does not belong to any unit", "units/user-has-no-unit"),
-        USER_NOT_TENANT_OR_OWNER("UNIT009", "User is not a tenant or owner of any unit", "units/user-not-tenant-or-owner");
+        USER_NOT_TENANT_OR_OWNER("UNIT009", "User is not a tenant or owner of any unit", "units/user-not-tenant-or-owner"),
+        USER_NO_PRIMARY_UNIT("UNIT010", "User does not have a primary unit set", "units/user-no-primary-unit");
 
         private final String code;
         private final String defaultMessage;

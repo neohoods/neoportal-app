@@ -209,7 +209,9 @@ h2 {
 .member-role {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .role-badge {
@@ -222,12 +224,16 @@ h2 {
   background-color: var(--tui-base-02);
   color: var(--tui-text-02);
   border: 1px solid var(--tui-base-03);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
   &.admin {
     background-color: var(--tui-primary);
     color: var(--tui-text-00-inverted);
     border-color: var(--tui-primary);
   }
+
 }
 
 .member-meta {
