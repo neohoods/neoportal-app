@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.neohoods.portal.platform.BaseIntegrationTest;
+import com.neohoods.portal.platform.SharedPostgresContainer;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
 
@@ -72,16 +73,28 @@ public class SpacesServiceIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testDatabaseConnection() {
-        // This test verifies that the PostgreSQL container is running
+        // This test verifies that the database connection is working
         // and the database schema is properly initialized
-        var postgresContainer = getPostgresContainer();
-        assertTrue(postgresContainer.isRunning(), "PostgreSQL container should be running");
-
-        String jdbcUrl = postgresContainer.getJdbcUrl();
-        assertNotNull(jdbcUrl, "JDBC URL should not be null");
-        assertTrue(jdbcUrl.contains("postgresql"), "JDBC URL should be for PostgreSQL");
-
-        System.out.println("Database connection successful: " + jdbcUrl);
+        SharedPostgresContainer sharedContainer = SharedPostgresContainer.getInstance();
+        
+        if (sharedContainer.isUsingLocalPostgres()) {
+            // When using local PostgreSQL, verify connection by testing a database operation
+            // If we can query spaces, the connection is working
+            List<SpaceEntity> spaces = spacesService.getAllActiveSpaces();
+            assertNotNull(spaces, "Should be able to query database");
+            String jdbcUrl = "jdbc:postgresql://localhost:5432/...";
+            System.out.println("Database connection successful (local PostgreSQL): " + jdbcUrl);
+        } else {
+            // When using Testcontainers, verify the container is running
+            var postgresContainer = getPostgresContainer();
+            assertTrue(postgresContainer.isRunning(), "PostgreSQL container should be running");
+            
+            String jdbcUrl = postgresContainer.getJdbcUrl();
+            assertNotNull(jdbcUrl, "JDBC URL should not be null");
+            assertTrue(jdbcUrl.contains("postgresql"), "JDBC URL should be for PostgreSQL");
+            
+            System.out.println("Database connection successful: " + jdbcUrl);
+        }
     }
 }
 

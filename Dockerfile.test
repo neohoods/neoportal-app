@@ -1,5 +1,7 @@
 FROM qcastel/maven-release:0.0.44
 
+COPY ./mvn-action.sh /usr/local/bin
+
 # Installer PostgreSQL et postgresql-client
 RUN apk add --no-cache postgresql postgresql-client
 
@@ -26,86 +28,6 @@ COPY . /github/workspace
 
 # Installer su-exec pour changer d'utilisateur
 RUN apk add --no-cache su-exec
-
-# Créer le script mvn-action.sh similaire à celui de l'action
-RUN echo '#!/bin/bash' > /usr/local/bin/mvn-action.sh && \
-    echo 'set -e' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo 'pwd' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo '# Start PostgreSQL if it'\''s available and enabled' >> /usr/local/bin/mvn-action.sh && \
-    echo 'if command -v pg_ctl &> /dev/null && [ "${USE_LOCAL_POSTGRES:-false}" = "true" ]; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '    echo "Starting PostgreSQL..."' >> /usr/local/bin/mvn-action.sh && \
-    echo '    ' >> /usr/local/bin/mvn-action.sh && \
-    echo '    # Create /run/postgresql directory for Unix socket lock files' >> /usr/local/bin/mvn-action.sh && \
-    echo '    mkdir -p /run/postgresql' >> /usr/local/bin/mvn-action.sh && \
-    echo '    chown -R postgres:postgres /run/postgresql' >> /usr/local/bin/mvn-action.sh && \
-    echo '    ' >> /usr/local/bin/mvn-action.sh && \
-    echo '    # Ensure log directory exists and has correct permissions' >> /usr/local/bin/mvn-action.sh && \
-    echo '    mkdir -p /var/lib/postgresql/data' >> /usr/local/bin/mvn-action.sh && \
-    echo '    chown -R postgres:postgres /var/lib/postgresql/data' >> /usr/local/bin/mvn-action.sh && \
-    echo '    ' >> /usr/local/bin/mvn-action.sh && \
-    echo '    # Check if PostgreSQL is already running' >> /usr/local/bin/mvn-action.sh && \
-    echo '    if su-exec postgres pg_isready -U postgres &> /dev/null; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '        echo "PostgreSQL is already running."' >> /usr/local/bin/mvn-action.sh && \
-    echo '    else' >> /usr/local/bin/mvn-action.sh && \
-    echo '        # Clean up any stale lock files' >> /usr/local/bin/mvn-action.sh && \
-    echo '        if [ -f /var/lib/postgresql/data/postmaster.pid ]; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '            echo "Removing stale postmaster.pid file..."' >> /usr/local/bin/mvn-action.sh && \
-    echo '            rm -f /var/lib/postgresql/data/postmaster.pid' >> /usr/local/bin/mvn-action.sh && \
-    echo '        fi' >> /usr/local/bin/mvn-action.sh && \
-    echo '        ' >> /usr/local/bin/mvn-action.sh && \
-    echo '        # Check if data directory is initialized' >> /usr/local/bin/mvn-action.sh && \
-    echo '        if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '            echo "Initializing PostgreSQL data directory..."' >> /usr/local/bin/mvn-action.sh && \
-    echo '            su-exec postgres initdb -D /var/lib/postgresql/data' >> /usr/local/bin/mvn-action.sh && \
-    echo '            ' >> /usr/local/bin/mvn-action.sh && \
-    echo '            # Configure PostgreSQL for local connections (as postgres user)' >> /usr/local/bin/mvn-action.sh && \
-    echo '            su-exec postgres sh -c '\''echo "host all all 127.0.0.1/32 trust" >> /var/lib/postgresql/data/pg_hba.conf'\''' >> /usr/local/bin/mvn-action.sh && \
-    echo '            su-exec postgres sh -c '\''echo "host all all ::1/128 trust" >> /var/lib/postgresql/data/pg_hba.conf'\''' >> /usr/local/bin/mvn-action.sh && \
-    echo '            su-exec postgres sh -c '\''echo "local all all trust" >> /var/lib/postgresql/data/pg_hba.conf'\''' >> /usr/local/bin/mvn-action.sh && \
-    echo '            su-exec postgres sh -c '\''echo "listen_addresses=\"*\"\"" >> /var/lib/postgresql/data/postgresql.conf'\''' >> /usr/local/bin/mvn-action.sh && \
-    echo '        fi' >> /usr/local/bin/mvn-action.sh && \
-    echo '        ' >> /usr/local/bin/mvn-action.sh && \
-    echo '        # Start PostgreSQL with wait flag and check for errors' >> /usr/local/bin/mvn-action.sh && \
-    echo '        if ! su-exec postgres pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/data/logfile start -w; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '            echo "ERROR: Failed to start PostgreSQL. Checking log file..."' >> /usr/local/bin/mvn-action.sh && \
-    echo '            if [ -f /var/lib/postgresql/data/logfile ]; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '                cat /var/lib/postgresql/data/logfile' >> /usr/local/bin/mvn-action.sh && \
-    echo '            fi' >> /usr/local/bin/mvn-action.sh && \
-    echo '            exit 1' >> /usr/local/bin/mvn-action.sh && \
-    echo '        fi' >> /usr/local/bin/mvn-action.sh && \
-    echo '        ' >> /usr/local/bin/mvn-action.sh && \
-    echo '        echo "Waiting for PostgreSQL to be ready..."' >> /usr/local/bin/mvn-action.sh && \
-    echo '        until su-exec postgres pg_isready -U postgres; do' >> /usr/local/bin/mvn-action.sh && \
-    echo '            sleep 1' >> /usr/local/bin/mvn-action.sh && \
-    echo '        done' >> /usr/local/bin/mvn-action.sh && \
-    echo '        echo "PostgreSQL is ready."' >> /usr/local/bin/mvn-action.sh && \
-    echo '    fi' >> /usr/local/bin/mvn-action.sh && \
-    echo 'fi' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo 'echo "JAVA_HOME = $JAVA_HOME"' >> /usr/local/bin/mvn-action.sh && \
-    echo 'export JAVA_HOME="/usr/lib/jvm/java-21-openjdk"' >> /usr/local/bin/mvn-action.sh && \
-    echo 'export PATH="$JAVA_HOME/bin:$PATH"' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo '# Execute Maven command' >> /usr/local/bin/mvn-action.sh && \
-    echo 'cd platform-api && mvn -ntp $*' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo '# Capture exit code' >> /usr/local/bin/mvn-action.sh && \
-    echo 'EXIT_CODE=$?' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo '# Stop PostgreSQL if it was started' >> /usr/local/bin/mvn-action.sh && \
-    echo 'if command -v pg_ctl &> /dev/null && [ "${USE_LOCAL_POSTGRES:-false}" = "true" ]; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '    echo "Stopping PostgreSQL..."' >> /usr/local/bin/mvn-action.sh && \
-    echo '    if su-exec postgres pg_isready -U postgres &> /dev/null; then' >> /usr/local/bin/mvn-action.sh && \
-    echo '        su-exec postgres pg_ctl -D /var/lib/postgresql/data stop' >> /usr/local/bin/mvn-action.sh && \
-    echo '    else' >> /usr/local/bin/mvn-action.sh && \
-    echo '        echo "PostgreSQL is not running."' >> /usr/local/bin/mvn-action.sh && \
-    echo '    fi' >> /usr/local/bin/mvn-action.sh && \
-    echo 'fi' >> /usr/local/bin/mvn-action.sh && \
-    echo '' >> /usr/local/bin/mvn-action.sh && \
-    echo 'exit $EXIT_CODE' >> /usr/local/bin/mvn-action.sh && \
-    chmod +x /usr/local/bin/mvn-action.sh
 
 # Variable d'environnement pour indiquer qu'on utilise PostgreSQL local
 ENV USE_LOCAL_POSTGRES=true
