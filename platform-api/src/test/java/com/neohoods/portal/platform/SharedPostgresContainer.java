@@ -128,12 +128,19 @@ public class SharedPostgresContainer {
                         Statement stmt = conn.createStatement()) {
 
                     // Créer la base de données via JDBC
+                    System.out.println("Creating database: " + databaseName);
                     stmt.executeUpdate("CREATE DATABASE \"" + databaseName + "\"");
+                    System.out.println("Database created successfully: " + databaseName);
 
                     // Se connecter à la nouvelle base de données et exécuter les scripts via psql
                     // (psql est nécessaire pour les fonctions et triggers)
-                    executeInitScriptViaPsql(databaseName, "init.sql");
-                    executeInitScriptViaPsql(databaseName, "data.sql");
+                    System.out.println("Executing init.sql for database: " + databaseName);
+                    executeInitScriptViaPsql(databaseName, "init.sql", username, password);
+                    System.out.println("init.sql executed successfully");
+
+                    System.out.println("Executing data.sql for database: " + databaseName);
+                    executeInitScriptViaPsql(databaseName, "data.sql", username, password);
+                    System.out.println("data.sql executed successfully");
                 }
             } catch (Exception e) {
                 // Logger l'erreur complète pour debug
@@ -233,6 +240,8 @@ public class SharedPostgresContainer {
                     ". Please ensure the script exists in db/postgres/ directory.");
         }
 
+        System.out.println("Found SQL script: " + scriptFile.getAbsolutePath());
+
         // Utiliser psql pour exécuter le script (plus fiable pour les fonctions et
         // triggers)
         String host;
@@ -262,24 +271,44 @@ public class SharedPostgresContainer {
                 "-U", username,
                 "-d", databaseName,
                 "-f", scriptFile.getAbsolutePath(),
-                "-q" // Mode quiet pour réduire la sortie
+                "-v", "ON_ERROR_STOP=1" // Arrêter en cas d'erreur SQL
         );
 
         // Définir le mot de passe via variable d'environnement
-        pb.environment().put("PGPASSWORD", password);
+        if (password != null && !password.isEmpty()) {
+            pb.environment().put("PGPASSWORD", password);
+        }
         pb.redirectErrorStream(true);
 
+        System.out.println("Executing psql command: psql -h " + host + " -p " + port + " -U " + username + " -d "
+                + databaseName + " -f " + scriptFile.getAbsolutePath());
+
         Process process = pb.start();
+
+        // Lire la sortie en temps réel pour le debugging
+        java.io.InputStream inputStream = process.getInputStream();
+        StringBuilder output = new StringBuilder();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            String chunk = new String(buffer, 0, bytesRead);
+            output.append(chunk);
+            // Afficher les erreurs immédiatement
+            if (chunk.contains("ERROR") || chunk.contains("FATAL")) {
+                System.err.print(chunk);
+            }
+        }
+
         int exitCode = process.waitFor();
 
         if (exitCode != 0) {
-            // Lire la sortie d'erreur
-            String errorOutput = new String(process.getInputStream().readAllBytes());
-            System.err.println("Warning: Error executing SQL script " + scriptName + ": " + errorOutput);
-            // Ne pas échouer si c'est juste des warnings (comme "already exists")
-            if (!errorOutput.contains("already exists") && !errorOutput.contains("does not exist")) {
-                throw new RuntimeException("Failed to execute SQL script " + scriptName + ": " + errorOutput);
-            }
+            String errorOutput = output.toString();
+            System.err.println("ERROR: Failed to execute SQL script " + scriptName + " (exit code: " + exitCode + ")");
+            System.err.println("Output: " + errorOutput);
+            throw new RuntimeException(
+                    "Failed to execute SQL script " + scriptName + " (exit code: " + exitCode + "): " + errorOutput);
+        } else {
+            System.out.println("SQL script " + scriptName + " executed successfully");
         }
     }
 
