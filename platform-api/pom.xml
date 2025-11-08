@@ -414,11 +414,13 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
                 <configuration>
-                <!-- Sequential execution to avoid DataSource conflicts between test classes -->
-                <parallel>none</parallel>
-                <forkCount>1</forkCount>
-                <reuseForks>false</reuseForks>
-                <threadCount>1</threadCount>
+                    <!-- Parallel execution: classes run in parallel, each with its own DB -->
+                    <!-- forkCount: number of JVM forks (processes) to run in parallel -->
+                    <!-- reuseForks: reuse JVM forks to avoid restarting Spring Boot each time -->
+                    <parallel>classes</parallel>
+                    <forkCount>2</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <threadCount>2</threadCount>
                     <!-- Container PostgreSQL partagé réutilisé, une DB par classe de test -->
                     <!-- Increase timeouts for Testcontainers -->
                     <systemPropertyVariables>
