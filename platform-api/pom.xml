@@ -40,7 +40,7 @@
         <io.specto.hoverfly-java.version>0.20.0</io.specto.hoverfly-java.version>
         <io.specto.hoverfly-java-junit5.version>0.20.0</io.specto.hoverfly-java-junit5.version>
         <org.openapitools.version>7.17.0</org.openapitools.version>
-        <logback.version>1.5.17</logback.version>
+        <logback.version>1.5.20</logback.version>
         <logstash-logback.version>9.0</logstash-logback.version>
         <lombok.version>1.18.36</lombok.version>
     </properties>
