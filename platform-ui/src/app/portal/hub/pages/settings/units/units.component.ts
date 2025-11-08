@@ -1,11 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAutoColorPipe, TuiIcon, TuiInitialsPipe, TuiNotification } from '@taiga-ui/core';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiAvatar, TuiChip } from '@taiga-ui/kit';
 import { UnitsHubApiService } from '../../../../../api-client/api/unitsHubApi.service';
 import { Unit } from '../../../../../api-client/model/unit';
+import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
+import { AuthService } from '../../../../../services/auth.service';
 
 @Component({
     selector: 'app-units',
@@ -18,7 +20,8 @@ import { Unit } from '../../../../../api-client/model/unit';
         TuiAvatar,
         TuiInitialsPipe,
         TuiAutoColorPipe,
-        TuiIcon
+        TuiIcon,
+        TuiChip
     ],
     templateUrl: './units.component.html',
     styleUrl: './units.component.scss'
@@ -31,7 +34,8 @@ export class UnitsComponent implements OnInit {
     constructor(
         private unitsApiService: UnitsHubApiService,
         private router: Router,
-        private translate: TranslateService
+        private translate: TranslateService,
+        @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService
     ) { }
 
     ngOnInit(): void {
@@ -71,6 +75,14 @@ export class UnitsComponent implements OnInit {
             return this.translate.instant('units.role.admin');
         }
         return this.translate.instant('units.role.member');
+    }
+
+    isPrimaryUnit(unit: Unit): boolean {
+        const currentUser = this.authService.getCurrentUserInfo()?.user;
+        if (!currentUser || !currentUser.primaryUnitId) {
+            return false;
+        }
+        return currentUser.primaryUnitId === unit.id;
     }
 }
 

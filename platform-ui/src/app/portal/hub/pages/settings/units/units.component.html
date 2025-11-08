@@ -31,7 +31,24 @@
         <div class="unit-card" (click)="viewUnit(unit.id!)">
           <div class="unit-header">
             <div class="unit-title-section">
-              <h3>{{ unit.name }}</h3>
+              <div class="unit-title-row">
+                <h3>{{ unit.name }}</h3>
+                @if (isPrimaryUnit(unit)) {
+                  <tui-chip
+                    appearance="custom"
+                    [style.background-color]="'var(--tui-background-accent-2)'"
+                    [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                    size="s"
+                  >
+                    <tui-icon
+                      icon="@tui.user-star"
+                      [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                      size="xs"
+                    ></tui-icon>
+                    {{ 'units.isPrimaryUnit' | translate }}
+                  </tui-chip>
+                }
+              </div>
               <div class="unit-meta-inline">
                 <span class="meta-item-inline">
                   <tui-icon icon="@tui.calendar" size="s"></tui-icon>

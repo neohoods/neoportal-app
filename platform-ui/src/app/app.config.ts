@@ -14,8 +14,12 @@ import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TUI_LANGUAGE } from '@taiga-ui/i18n/tokens';
+import { TUI_FRENCH_LANGUAGE, TUI_ENGLISH_LANGUAGE } from '@taiga-ui/i18n/languages';
+import { type TuiLanguage } from '@taiga-ui/i18n/types';
+import { BehaviorSubject } from 'rxjs';
 import { BASE_PATH, Configuration } from './api-client';
 import { routes } from './app.routes';
 import { AUTH_SERVICE_TOKEN, getGlobalProviders } from './global.provider';
@@ -79,6 +83,32 @@ export const appConfig: ApplicationConfig = {
         deps: [HttpClient],
       },
     })]),
+    {
+      provide: TUI_LANGUAGE,
+      useFactory: (translate: TranslateService) => {
+        // Get initial language from ConfigService or TranslateService
+        const initialLang = translate.currentLang || translate.defaultLang || ConfigService.configuration?.defaultLocale || 'fr';
+        const initialLanguage = initialLang === 'fr' ? TUI_FRENCH_LANGUAGE : TUI_ENGLISH_LANGUAGE;
+        
+        // Create a BehaviorSubject that will emit the current language
+        const languageSubject = new BehaviorSubject<TuiLanguage>(initialLanguage);
+
+        // Listen to language changes and update the subject
+        translate.onLangChange.subscribe((event) => {
+          const language = event.lang === 'fr' ? TUI_FRENCH_LANGUAGE : TUI_ENGLISH_LANGUAGE;
+          languageSubject.next(language);
+        });
+
+        // Also listen to default language changes
+        translate.onDefaultLangChange.subscribe((event) => {
+          const language = event.lang === 'fr' ? TUI_FRENCH_LANGUAGE : TUI_ENGLISH_LANGUAGE;
+          languageSubject.next(language);
+        });
+
+        return languageSubject.asObservable();
+      },
+      deps: [TranslateService],
+    },
     NG_EVENT_PLUGINS,
     provideAnimationsAsync()
   ],
