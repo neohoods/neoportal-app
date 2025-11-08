@@ -21,11 +21,13 @@ public class SharedPostgresContainer {
     private static final Lock lock = new ReentrantLock();
     
     private final PostgreSQLContainer<?> container;
-    private final ConcurrentHashMap<String, Boolean> createdDatabases = new ConcurrentHashMap<>();
+    // Map thread-safe pour garantir une seule DB par classe de test
+    private final ConcurrentHashMap<String, String> databasesByTestClass = new ConcurrentHashMap<>();
     
     private SharedPostgresContainer() {
         // Container partagé avec une base de données par défaut
         // Les scripts d'init seront exécutés sur chaque nouvelle base de données créée
+        // withReuse(true) permet de réutiliser le container entre les tests et dans la CI
         PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16-alpine")
                 .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
                 .withUsername("test")
@@ -33,7 +35,7 @@ public class SharedPostgresContainer {
                 .withStartupTimeoutSeconds(120)
                 .withReuse(true); // Réutiliser le container entre les tests
         
-        // Démarrer le container
+        // Démarrer le container (Testcontainers le réutilisera s'il existe déjà)
         container.start();
         this.container = container; // Assigner après le start pour éviter le warning de resource leak
     }
@@ -58,36 +60,35 @@ public class SharedPostgresContainer {
     
     /**
      * Crée une base de données unique pour une classe de test et exécute les scripts d'initialisation.
+     * Garantit qu'une seule DB est créée par classe de test, même en exécution parallèle.
      * @param testClassName Le nom de la classe de test
      * @return Le nom de la base de données créée
      */
     public String createDatabaseForTest(String testClassName) {
-        String databaseName = "neohoods_test_" + testClassName.toLowerCase().replace(".", "_") 
-                + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-        
-        // Vérifier si la base de données a déjà été créée (thread-safe)
-        if (createdDatabases.putIfAbsent(databaseName, true) != null) {
-            return databaseName;
-        }
-        
-        try {
-            // Se connecter à la base de données par défaut "postgres"
-            String jdbcUrl = container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/postgres");
-            try (Connection conn = DriverManager.getConnection(jdbcUrl, container.getUsername(), container.getPassword());
-                 Statement stmt = conn.createStatement()) {
-                
-                // Créer la base de données
-                stmt.executeUpdate("CREATE DATABASE \"" + databaseName + "\"");
-                
-                // Se connecter à la nouvelle base de données et exécuter les scripts via psql
-                executeInitScriptViaPsql(databaseName, "init.sql");
-                executeInitScriptViaPsql(databaseName, "data.sql");
+        // Utiliser computeIfAbsent pour garantir qu'une seule DB est créée par classe de test
+        return databasesByTestClass.computeIfAbsent(testClassName, className -> {
+            String databaseName = "neohoods_test_" + className.toLowerCase().replace(".", "_") 
+                    + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+            
+            try {
+                // Se connecter à la base de données par défaut "postgres"
+                String jdbcUrl = container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/postgres");
+                try (Connection conn = DriverManager.getConnection(jdbcUrl, container.getUsername(), container.getPassword());
+                     Statement stmt = conn.createStatement()) {
+                    
+                    // Créer la base de données
+                    stmt.executeUpdate("CREATE DATABASE \"" + databaseName + "\"");
+                    
+                    // Se connecter à la nouvelle base de données et exécuter les scripts via psql
+                    executeInitScriptViaPsql(databaseName, "init.sql");
+                    executeInitScriptViaPsql(databaseName, "data.sql");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create database " + databaseName + " for test class " + className, e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create database " + databaseName, e);
-        }
-        
-        return databaseName;
+            
+            return databaseName;
+        });
     }
     
     private void executeInitScriptViaPsql(String databaseName, String scriptName) throws Exception {

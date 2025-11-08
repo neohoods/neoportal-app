@@ -56,13 +56,14 @@ AUTH0_CALLBACK_URL: http://localhost:4200/callback
 STRIPE_API_KEY: sk_test_fake_key_for_testing
 STRIPE_WEBHOOK_SECRET: whsec_test_fake_secret
 
-# Logging
+# Logging - Reduced verbosity for faster test execution
 logging:
   level:
-    root: INFO
-    com.neohoods.portal: DEBUG
-    org.springframework.test: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.testcontainers: INFO
+    root: WARN
+    com.neohoods.portal: INFO
+    org.springframework.test: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.testcontainers: WARN
+    org.springframework.boot: WARN
 

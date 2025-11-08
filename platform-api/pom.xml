@@ -421,6 +421,8 @@
                     <forkCount>2</forkCount>
                     <reuseForks>true</reuseForks>
                     <threadCount>2</threadCount>
+                    <!-- Optimize JVM for faster startup -->
+                    <argLine>-Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200</argLine>
                     <!-- Container PostgreSQL partagé réutilisé, une DB par classe de test -->
                     <!-- Increase timeouts for Testcontainers -->
                     <systemPropertyVariables>

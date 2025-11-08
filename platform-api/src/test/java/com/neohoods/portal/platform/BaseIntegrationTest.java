@@ -1,6 +1,7 @@
 package com.neohoods.portal.platform;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,21 +31,20 @@ public abstract class BaseIntegrationTest {
     // Container PostgreSQL partagé réutilisé pour tous les tests
     // Chaque classe de test obtient sa propre base de données dans ce container
     private static final SharedPostgresContainer sharedContainer = SharedPostgresContainer.getInstance();
-    private static volatile String uniqueDatabaseName;
+    
+    // Map thread-safe pour stocker le nom de la DB par classe de test
+    // Permet l'exécution parallèle sans conflits
+    private static final ConcurrentHashMap<String, String> databaseNamesByTestClass = new ConcurrentHashMap<>();
     
     /**
      * Initialise la base de données pour cette classe de test.
      * Cette méthode doit être appelée depuis chaque classe de test concrète.
      */
     protected static void initializeDatabase(Class<?> testClass) {
-        if (uniqueDatabaseName == null) {
-            synchronized (BaseIntegrationTest.class) {
-                if (uniqueDatabaseName == null) {
-                    String testClassName = testClass.getSimpleName();
-                    uniqueDatabaseName = sharedContainer.createDatabaseForTest(testClassName);
-                }
-            }
-        }
+        String testClassName = testClass.getSimpleName();
+        databaseNamesByTestClass.computeIfAbsent(testClassName, className -> {
+            return sharedContainer.createDatabaseForTest(className);
+        });
     }
     
     protected static PostgreSQLContainer<?> getPostgresContainer() {
@@ -56,7 +56,9 @@ public abstract class BaseIntegrationTest {
         // Initialiser la base de données avec le nom de la classe concrète
         // Utiliser une approche avec reflection pour obtenir la classe appelante
         String testClassName = getTestClassName();
-        initializeDatabase(testClassName);
+        String uniqueDatabaseName = databaseNamesByTestClass.computeIfAbsent(testClassName, className -> {
+            return sharedContainer.createDatabaseForTest(className);
+        });
         
         PostgreSQLContainer<?> container = sharedContainer.getContainer();
         // Construire l'URL JDBC avec le nom de la base de données unique
@@ -86,16 +88,6 @@ public abstract class BaseIntegrationTest {
         }
         // Fallback: utiliser un UUID
         return "test-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-    }
-    
-    private static void initializeDatabase(String testClassName) {
-        if (uniqueDatabaseName == null) {
-            synchronized (BaseIntegrationTest.class) {
-                if (uniqueDatabaseName == null) {
-                    uniqueDatabaseName = sharedContainer.createDatabaseForTest(testClassName);
-                }
-            }
-        }
     }
 
     @MockBean
