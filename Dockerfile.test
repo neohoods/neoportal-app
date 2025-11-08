@@ -1,0 +1,19 @@
+FROM qcastel/maven-release:0.0.42
+
+# Installer postgresql-client pour psql
+RUN apk add --no-cache postgresql-client
+
+# Copier le code source
+WORKDIR /github/workspace
+COPY . /github/workspace
+
+# Variables d'environnement pour Testcontainers
+ENV TESTCONTAINERS_RYUK_DISABLED=true
+ENV TESTCONTAINERS_REUSE_ENABLE=true
+ENV DOCKER_HOST=unix:///var/run/docker.sock
+# Forcer Testcontainers à utiliser localhost au lieu du gateway Docker
+ENV TESTCONTAINERS_HOST_OVERRIDE=localhost
+
+# Entrypoint pour exécuter la commande Maven SANS parallélisme
+ENTRYPOINT ["bash", "-c"]
+CMD ["cd platform-api && mvn clean test -Ddockerfile.skip -DdockerCompose.skip -Djib.skip -Dsurefire.forkCount=1 -Dsurefire.parallel=none"]
