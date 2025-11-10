@@ -1,28 +1,37 @@
 #!/bin/bash
 set -e
 
-# Don't set JAVA_HOME - let Maven use the default Java (Java 25 in qcastel/maven-release:0.0.44)
-# The maven-compiler-plugin with <release>21</release> will compile for Java 21
-# even if Maven itself runs on Java 25. This avoids the "Error loading java.security file"
-# issue that occurs when JAVA_HOME is set to Java 21 in this Docker image.
+# CRITICAL: Unset JAVA_HOME FIRST, before ANY command that might trigger Java loading
+# This must be done at the very beginning to prevent Java from trying to access
+# invalid paths (e.g., macOS paths like /Users/.../Library/Java/... in Linux containers)
 #
-# CRITICAL: Unset JAVA_HOME if it points to an invalid path (e.g., macOS path in Linux container)
-# This prevents errors like "NoSuchFileException: /Users/.../Library/Java/..."
+# The error "NoSuchFileException: /Users/.../Library/Java/..." occurs when JAVA_HOME
+# is set to a macOS path in a Linux Docker container, and Java tries to access it
+# before we can unset it.
 if [ -n "$JAVA_HOME" ]; then
-    # Check if JAVA_HOME points to a valid Java installation
+    # Check if JAVA_HOME points to a valid Java installation in the current environment
     if [ ! -d "$JAVA_HOME" ] || [ ! -f "$JAVA_HOME/bin/java" ]; then
         # JAVA_HOME is set but invalid (e.g., macOS path in Linux container)
         echo "WARNING: JAVA_HOME is set to invalid path: $JAVA_HOME"
         echo "Unsetting JAVA_HOME to use system default Java"
         unset JAVA_HOME
+        # Also unset related Java environment variables that might cause issues
+        unset JAVA_TOOL_OPTIONS
+        unset _JAVA_OPTIONS
     elif [ -d "$JAVA_HOME" ] && [ -f "$JAVA_HOME/bin/java" ]; then
         # JAVA_HOME is valid, use it
         export PATH="$JAVA_HOME/bin:$PATH"
         echo "Using existing JAVA_HOME: $JAVA_HOME"
     fi
+else
+    # JAVA_HOME is not set, ensure related variables are also unset
+    unset JAVA_TOOL_OPTIONS
+    unset _JAVA_OPTIONS
 fi
 
-# If JAVA_HOME is not set or was unset, let Maven use system default
+# If JAVA_HOME is not set or was unset, let Maven use system default (Java 25)
+# The maven-compiler-plugin with <release>21</release> will compile for Java 21
+# even if Maven itself runs on Java 25
 if [ -z "$JAVA_HOME" ]; then
     echo "Using system default Java for Maven (maven-compiler-plugin will handle Java 21 compilation)"
 fi
