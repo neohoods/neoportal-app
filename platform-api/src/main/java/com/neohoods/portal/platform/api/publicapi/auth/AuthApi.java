@@ -42,7 +42,6 @@ import com.neohoods.portal.platform.services.EmailTemplateService;
 import com.neohoods.portal.platform.services.JwtService;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
-import com.neohoods.portal.platform.services.SettingsService;
 import com.neohoods.portal.platform.services.UsersService;
 import com.neohoods.portal.platform.services.ValidationService;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -65,7 +64,6 @@ public class AuthApi implements AuthApiApiDelegate {
         private final UsersService usersService;
         private final Auth0Service auth0Service;
         private final ValidationService validationService;
-        private final SettingsService settingsService;
         private final NotificationsService notificationsService;
         private final EmailTemplateService emailTemplateService;
 
@@ -73,6 +71,8 @@ public class AuthApi implements AuthApiApiDelegate {
         private String frontendUrl;
         @Value("${neohoods.portal.email.template.app-name}")
         private String appName;
+        @Value("${neohoods.portal.sso.enabled:false}")
+        private boolean ssoEnabled;
 
         @Override
         public Mono<ResponseEntity<User>> login(Mono<LoginRequest> loginRequest, ServerWebExchange exchange) {
@@ -158,77 +158,52 @@ public class AuthApi implements AuthApiApiDelegate {
                                 }
 
                                 // Step 3: Check settings to determine if Auth0 should be used
-                                return settingsService.getPublicSettings()
-                                                .flatMap(settings -> {
-                                                        if (settings.getSsoEnabled()) {
-                                                                // Use Auth0 for user management when SSO is enabled
-                                                                return auth0Service.userExists(request.getEmail())
-                                                                                .flatMap(userExists -> {
-                                                                                        if (!userExists) {
-                                                                                                // Step 4: Register user
-                                                                                                // in Auth0
-                                                                                                Map<String, Object> userMetadata = new HashMap<>();
-                                                                                                userMetadata.put(
-                                                                                                                "username",
-                                                                                                                request.getUsername());
-                                                                                                userMetadata.put("type",
-                                                                                                                request.getType()
-                                                                                                                                .toString());
-                                                                                                userMetadata.put(
-                                                                                                                "firstName",
-                                                                                                                request.getFirstName());
-                                                                                                userMetadata.put(
-                                                                                                                "lastName",
-                                                                                                                request.getLastName());
+                                if (ssoEnabled) {
+                                        // Use Auth0 for user management when SSO is enabled
+                                        return auth0Service.userExists(request.getEmail())
+                                                        .flatMap(userExists -> {
+                                                                if (!userExists) {
+                                                                        // Step 4: Register user in Auth0
+                                                                        Map<String, Object> userMetadata = new HashMap<>();
+                                                                        userMetadata.put("username", request.getUsername());
+                                                                        userMetadata.put("type", request.getType().toString());
+                                                                        userMetadata.put("firstName", request.getFirstName());
+                                                                        userMetadata.put("lastName", request.getLastName());
 
-                                                                                                try {
-                                                                                                        auth0Service.registerUser(
-                                                                                                                        request.getEmail(),
-                                                                                                                        request.getPassword(),
-                                                                                                                        request.getUsername(),
-                                                                                                                        userMetadata);
-                                                                                                        log.info("Successfully registered user in Auth0: {}",
-                                                                                                                        request.getEmail());
-                                                                                                } catch (CodedErrorException e) {
-                                                                                                        log.error("Failed to register user in Auth0: {}",
-                                                                                                                        request.getEmail(),
-                                                                                                                        e);
-                                                                                                        return Mono.error(
-                                                                                                                        e);
+                                                                        try {
+                                                                                auth0Service.registerUser(
+                                                                                                request.getEmail(),
+                                                                                                request.getPassword(),
+                                                                                                request.getUsername(),
+                                                                                                userMetadata);
+                                                                                log.info("Successfully registered user in Auth0: {}",
+                                                                                                request.getEmail());
+                                                                        } catch (CodedErrorException e) {
+                                                                                log.error("Failed to register user in Auth0: {}",
+                                                                                                request.getEmail(), e);
+                                                                                return Mono.error(e);
+                                                                        }
+
+                                                                        return Mono.just(false);
+                                                                } else {
+                                                                        // User exists in Auth0, check if email is verified
+                                                                        return auth0Service.getUserDetails(request.getEmail())
+                                                                                        .flatMap(userDetails -> {
+                                                                                                boolean emailAlreadyVerified = false;
+                                                                                                if (userDetails != null) {
+                                                                                                        Boolean emailVerified = (Boolean) userDetails.get("email_verified");
+                                                                                                        emailAlreadyVerified = Boolean.TRUE.equals(emailVerified);
                                                                                                 }
-
-                                                                                                return Mono.just(false);
-                                                                                        } else {
-                                                                                                // User exists in
-                                                                                                // Auth0,check if email
-                                                                                                // is verified
-                                                                                                return auth0Service
-                                                                                                                .getUserDetails(request
-                                                                                                                                .getEmail())
-                                                                                                                .flatMap(userDetails -> {
-                                                                                                                        boolean emailAlreadyVerified = false;
-                                                                                                                        if (userDetails != null) {
-                                                                                                                                Boolean emailVerified = (Boolean) userDetails
-                                                                                                                                                .get("email_verified");
-                                                                                                                                emailAlreadyVerified = Boolean.TRUE
-                                                                                                                                                .equals(emailVerified);
-                                                                                                                        }
-                                                                                                                        return Mono.just(
-                                                                                                                                        emailAlreadyVerified);
-                                                                                                                });
-                                                                                        }
-                                                                                })
-                                                                                .flatMap(emailAlreadyVerified -> proceedWithRegistration(
-                                                                                                request,
-                                                                                                exchange,
-                                                                                                emailAlreadyVerified));
-                                                        } else {
-                                                                // Skip Auth0 when SSO is disabled - just save to local
-                                                                // database
-                                                                return proceedWithRegistration(request, exchange,
-                                                                                false);
-                                                        }
-                                                });
+                                                                                                return Mono.just(emailAlreadyVerified);
+                                                                                        });
+                                                                }
+                                                        })
+                                                        .flatMap(emailAlreadyVerified -> proceedWithRegistration(
+                                                                        request, exchange, emailAlreadyVerified));
+                                } else {
+                                        // Skip Auth0 when SSO is disabled - just save to local database
+                                        return proceedWithRegistration(request, exchange, false);
+                                }
 
                         } catch (CodedErrorException e) {
                                 // Re-throw coded exceptions as-is
@@ -276,45 +251,38 @@ public class AuthApi implements AuthApiApiDelegate {
                 }
 
                 // Send appropriate email based on SSO status
-                return settingsService.getPublicSettings()
-                                .flatMap(settings -> {
-                                        try {
-                                                if (settings.getSsoEnabled()) {
-                                                        // Send welcome email when SSO is enabled
-                                                        sendWelcomeEmail(newUser);
-                                                        log.info("Successfully sent welcome email to: {}",
-                                                                        request.getEmail());
-                                                } else {
-                                                        // Send verification email when SSO is disabled
-                                                        sendVerificationEmail(newUser);
-                                                        log.info("Successfully sent verification email to: {}",
-                                                                        request.getEmail());
-                                                }
-                                        } catch (Exception e) {
-                                                log.error("Failed to send email to: {}", request.getEmail(), e);
-                                                // Don't fail the signup for email failures
-                                        }
+                try {
+                        if (ssoEnabled) {
+                                // Send welcome email when SSO is enabled
+                                sendWelcomeEmail(newUser);
+                                log.info("Successfully sent welcome email to: {}", request.getEmail());
+                        } else {
+                                // Send verification email when SSO is disabled
+                                sendVerificationEmail(newUser);
+                                log.info("Successfully sent verification email to: {}", request.getEmail());
+                        }
+                } catch (Exception e) {
+                        log.error("Failed to send email to: {}", request.getEmail(), e);
+                        // Don't fail the signup for email failures
+                }
 
-                                        // Notify admins about new user registration
-                                        return notificationsService
-                                                        .notifyAdminsNewUser(newUser)
-                                                        .then(Mono.just(ResponseEntity
-                                                                        .status(HttpStatus.CREATED)
-                                                                        .body(new SignUp201Response()
-                                                                                        .user(newUser.toUser().build())
-                                                                                        .emailAlreadyVerified(false)
-                                                                                        .message("User registered successfully"))))
-                                                        .flatMap(response -> {
-                                                                // After welcome email and admin notification, check if
-                                                                // email is verified
-                                                                if (emailAlreadyVerified) {
-                                                                        log.info("Email already verified for user: {}, creating session",
-                                                                                        request.getEmail());
-                                                                        return createSessionForExistingUser(newUser,
-                                                                                        exchange);
-                                                                }
-                                                                return Mono.just(response);
-                                                        });
+                // Notify admins about new user registration
+                return notificationsService
+                                .notifyAdminsNewUser(newUser)
+                                .then(Mono.just(ResponseEntity
+                                                .status(HttpStatus.CREATED)
+                                                .body(new SignUp201Response()
+                                                                .user(newUser.toUser().build())
+                                                                .emailAlreadyVerified(false)
+                                                                .message("User registered successfully"))))
+                                .flatMap(response -> {
+                                        // After welcome email and admin notification, check if email is verified
+                                        if (emailAlreadyVerified) {
+                                                log.info("Email already verified for user: {}, creating session",
+                                                                request.getEmail());
+                                                return createSessionForExistingUser(newUser, exchange);
+                                        }
+                                        return Mono.just(response);
                                 });
         }
 
@@ -620,59 +588,48 @@ public class AuthApi implements AuthApiApiDelegate {
                 return request.flatMap(req -> {
                         UserEntity user = usersRepository.findByEmail(req.getEmail());
                         if (user != null) {
-                                return settingsService.getPublicSettings()
-                                                .map(settings -> {
-                                                        if (settings.getSsoEnabled()) {
-                                                                // Auth0 handles password reset when SSO is enabled
-                                                                log.info("Password reset requested for user: {}. Auth0 will handle the reset process.",
-                                                                                req.getEmail());
-                                                                return ResponseEntity.ok().<Void>build();
-                                                        } else {
-                                                                // Send custom password reset email when SSO is disabled
-                                                                try {
-                                                                        String token = jwtService.createToken(
-                                                                                        new JWTClaimsSet.Builder()
-                                                                                                        .subject(user.getId()
-                                                                                                                        .toString())
-                                                                                                        .expirationTime(new Date(
-                                                                                                                        System.currentTimeMillis()
-                                                                                                                                        + 3600000))
-                                                                                                        .claim("type", "PWD_RESET"));
+                                if (ssoEnabled) {
+                                        // Auth0 handles password reset when SSO is enabled
+                                        log.info("Password reset requested for user: {}. Auth0 will handle the reset process.",
+                                                        req.getEmail());
+                                        return Mono.just(ResponseEntity.ok().<Void>build());
+                                } else {
+                                        // Send custom password reset email when SSO is disabled
+                                        try {
+                                                String token = jwtService.createToken(
+                                                                new JWTClaimsSet.Builder()
+                                                                                .subject(user.getId().toString())
+                                                                                .expirationTime(new Date(
+                                                                                                System.currentTimeMillis() + 3600000))
+                                                                                .claim("type", "PWD_RESET"));
 
-                                                                        var usernameVar = MailService.TemplateVariable
-                                                                                        .builder()
-                                                                                        .type(MailService.TemplateVariableType.RAW)
-                                                                                        .ref("username")
-                                                                                        .value(user.getUsername())
-                                                                                        .build();
+                                                var usernameVar = MailService.TemplateVariable
+                                                                .builder()
+                                                                .type(MailService.TemplateVariableType.RAW)
+                                                                .ref("username")
+                                                                .value(user.getUsername())
+                                                                .build();
 
-                                                                        var resetUrlVar = MailService.TemplateVariable
-                                                                                        .builder()
-                                                                                        .type(MailService.TemplateVariableType.RAW)
-                                                                                        .ref("reset_url")
-                                                                                        .value(frontendUrl
-                                                                                                        + "/reset-password?token="
-                                                                                                        + token)
-                                                                                        .build();
+                                                var resetUrlVar = MailService.TemplateVariable
+                                                                .builder()
+                                                                .type(MailService.TemplateVariableType.RAW)
+                                                                .ref("reset_url")
+                                                                .value(frontendUrl + "/reset-password?token=" + token)
+                                                                .build();
 
-                                                                        mailService.sendTemplatedEmail(
-                                                                                        user,
-                                                                                        "Reset Your Password - portal NeoHoods",
-                                                                                        "email/reset-password",
-                                                                                        new ArrayList<>(Arrays.asList(
-                                                                                                        usernameVar,
-                                                                                                        resetUrlVar)),
-                                                                                        user.getLocale());
+                                                mailService.sendTemplatedEmail(
+                                                                user,
+                                                                "Reset Your Password - portal NeoHoods",
+                                                                "email/reset-password",
+                                                                new ArrayList<>(Arrays.asList(usernameVar, resetUrlVar)),
+                                                                user.getLocale());
 
-                                                                        log.info("Password reset email sent to: {}",
-                                                                                        req.getEmail());
-                                                                } catch (Exception e) {
-                                                                        log.error("Failed to process password reset",
-                                                                                        e);
-                                                                }
-                                                                return ResponseEntity.ok().<Void>build();
-                                                        }
-                                                });
+                                                log.info("Password reset email sent to: {}", req.getEmail());
+                                        } catch (Exception e) {
+                                                log.error("Failed to process password reset", e);
+                                        }
+                                        return Mono.just(ResponseEntity.ok().<Void>build());
+                                }
                         }
                         return Mono.just(ResponseEntity.ok().<Void>build()); // Always return OK to not reveal email
                                                                              // existence

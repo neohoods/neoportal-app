@@ -111,7 +111,7 @@ INSERT INTO newsletters (id, subject, content, status, created_at, updated_at, s
 INSERT INTO newsletters (id, subject, content, status, created_at, updated_at, scheduled_at, sent_at, created_by, recipient_count) VALUES ('550e8400-e29b-41d4-a716-446655440052', 'Join Us for New Year Celebrations!', '<h2>New Year Events</h2><p>We are excited to announce our New Year community events. Join us for:</p><ul><li>New Year''s Eve community party in the main hall</li><li>Children''s countdown at 8 PM</li><li>Adult celebration until midnight</li><li>Complimentary refreshments and entertainment</li></ul><p>RSVP by December 28th. Looking forward to celebrating with you!</p>', 'DRAFT', '2024-12-18 14:00:00+00', '2024-12-18 16:00:00+00', null, null, 'f71c870e-9daa-4991-accd-61f3c3c14fa2', null);
 
 -- Default Settings
-INSERT INTO settings (id, is_registration_enabled, sso_enabled, sso_client_id, sso_client_secret, sso_token_endpoint, sso_authorization_endpoint, sso_scope) VALUES ('00000000-0000-0000-0000-000000000001', false, false, '', '', '', '', '');
+INSERT INTO settings (id, is_registration_enabled) VALUES ('00000000-0000-0000-0000-000000000001', false);
 
 INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', true, true);
 INSERT INTO notification_settings (user_id, enable_notifications, newsletter_enabled) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', false, false);

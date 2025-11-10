@@ -18,12 +18,6 @@ export class ApiSecuritySettingsService implements SecuritySettingsService {
       map((response: GetSecuritySettings200Response) => {
         return {
           isRegistrationEnabled: response.isRegistrationEnabled ?? false,
-          ssoEnabled: response.ssoEnabled ?? false,
-          ssoClientId: response.ssoClientId ?? '',
-          ssoClientSecret: response.ssoClientSecret ?? '',
-          ssoTokenEndpoint: response.ssoTokenEndpoint ?? '',
-          ssoAuthorizationEndpoint: response.ssoAuthorizationEndpoint ?? '',
-          ssoScope: response.ssoScope ?? '',
         };
       }),
     );
@@ -36,12 +30,6 @@ export class ApiSecuritySettingsService implements SecuritySettingsService {
       map((response: SaveSecuritySettingsRequest) => {
         return {
           isRegistrationEnabled: response.isRegistrationEnabled ?? false,
-          ssoEnabled: response.ssoEnabled ?? false,
-          ssoClientId: response.ssoClientId ?? '',
-          ssoClientSecret: response.ssoClientSecret ?? '',
-          ssoTokenEndpoint: response.ssoTokenEndpoint ?? '',
-          ssoAuthorizationEndpoint: response.ssoAuthorizationEndpoint ?? '',
-          ssoScope: response.ssoScope ?? '',
         };
       }),
     );

@@ -64,6 +64,13 @@ neohoods:
       client-secret: ${AUTH0_CLIENT_SECRET}
       audience: ${AUTH0_AUDIENCE:https://terresdelaya.eu.auth0.com/api/v2/}
       connection: ${AUTH0_CONNECTION:Username-Password-Authentication}
+    sso:
+      enabled: ${NEOHOODS_PORTAL_SSO_ENABLED:false}
+      client-id: ${NEOHOODS_PORTAL_SSO_CLIENT_ID:}
+      client-secret: ${NEOHOODS_PORTAL_SSO_CLIENT_SECRET:}
+      token-endpoint: ${NEOHOODS_PORTAL_SSO_TOKEN_ENDPOINT:}
+      authorization-endpoint: ${NEOHOODS_PORTAL_SSO_AUTHORIZATION_ENDPOINT:}
+      scope: ${NEOHOODS_PORTAL_SSO_SCOPE:openid profile email}
 mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:

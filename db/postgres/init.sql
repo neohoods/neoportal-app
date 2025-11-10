@@ -59,13 +59,7 @@ CREATE TABLE "notifications" (
 
 CREATE TABLE settings (
     "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-    "is_registration_enabled" BOOLEAN NOT NULL DEFAULT false,
-    "sso_enabled" BOOLEAN NOT NULL DEFAULT false,
-    "sso_client_id" varchar(255),
-    "sso_client_secret" varchar(255),
-    "sso_token_endpoint" varchar(255),
-    "sso_authorization_endpoint" varchar(255),
-    "sso_scope" varchar(255)
+    "is_registration_enabled" BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE TABLE "notification_settings" (

@@ -8,12 +8,6 @@ import { SecuritySettingsService, UISecuritySettings } from '../security-setting
 export class MockSecuritySettingsService implements SecuritySettingsService {
   private securitySettings: UISecuritySettings = {
     isRegistrationEnabled: false,
-    ssoEnabled: false,
-    ssoClientId: '',
-    ssoClientSecret: '',
-    ssoTokenEndpoint: '',
-    ssoAuthorizationEndpoint: '',
-    ssoScope: '',
   };
 
   getSecuritySettings(): Observable<UISecuritySettings> {

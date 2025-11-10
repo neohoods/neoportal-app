@@ -16,11 +16,9 @@ import org.springframework.security.web.server.context.ServerSecurityContextRepo
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.neohoods.portal.platform.entities.SettingsEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
-import com.neohoods.portal.platform.repositories.SettingsRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
@@ -41,38 +39,61 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class SSOService {
 
-    private final SettingsRepository settingsRepository;
     @Value("${neohoods.portal.frontend-url}")
     private String frontendUrl;
+    
+    @Value("${neohoods.portal.sso.enabled:false}")
+    private boolean ssoEnabled;
+    
+    @Value("${neohoods.portal.sso.client-id:}")
+    private String ssoClientId;
+    
+    @Value("${neohoods.portal.sso.client-secret:}")
+    private String ssoClientSecret;
+    
+    @Value("${neohoods.portal.sso.token-endpoint:}")
+    private String ssoTokenEndpoint;
+    
+    @Value("${neohoods.portal.sso.authorization-endpoint:}")
+    private String ssoAuthorizationEndpoint;
+    
+    @Value("${neohoods.portal.sso.scope:openid profile email}")
+    private String ssoScope;
+    
     private final ServerSecurityContextRepository serverSecurityContextRepository;
     private final UsersRepository usersRepository;
     private final Auth0Service auth0Service;
+    
+    public SSOService(ServerSecurityContextRepository serverSecurityContextRepository,
+                      UsersRepository usersRepository,
+                      Auth0Service auth0Service) {
+        this.serverSecurityContextRepository = serverSecurityContextRepository;
+        this.usersRepository = usersRepository;
+        this.auth0Service = auth0Service;
+    }
 
     public URI generateSSOLoginUrl() {
         State state = new State();
         Nonce nonce = new Nonce();
-        SettingsEntity setting = settingsRepository.findTopByOrderByIdAsc().get();
         AuthenticationRequest request = null;
         try {
             // Split the SSO scope string by space and create Scope object
-            String[] scopeArray = setting.getSsoScope().split("\\s+");
+            String[] scopeArray = ssoScope.split("\\s+");
             Scope scope = new Scope(scopeArray);
 
             request = new AuthenticationRequest.Builder(
                     new ResponseType("code"),
                     scope,
-                    new ClientID(setting.getSsoClientId()),
+                    new ClientID(ssoClientId),
                     new URI(frontendUrl + "/token-exchange"))
-                    .endpointURI(new URI(setting.getSsoAuthorizationEndpoint()))
+                    .endpointURI(new URI(ssoAuthorizationEndpoint))
                     .state(state)
                     .nonce(nonce)
                     .build();
@@ -85,14 +106,13 @@ public class SSOService {
     public Mono<Boolean> tokenExchange(ServerWebExchange exchange, String state, String authorizationCode) {
         return Mono.fromCallable(() -> {
             // TODO state and PKCE
-            SettingsEntity setting = settingsRepository.findTopByOrderByIdAsc().get();
             AuthorizationCode code = new AuthorizationCode(authorizationCode);
 
             URI callback;
             URI tokenEndpoint;
             try {
                 callback = new URI(frontendUrl + "/sso/callback");
-                tokenEndpoint = new URI(setting.getSsoTokenEndpoint());
+                tokenEndpoint = new URI(ssoTokenEndpoint);
             } catch (URISyntaxException e) {
                 log.error("Invalid URI configuration", e);
                 throw new CodedErrorException(CodedError.INTERNAL_ERROR,
@@ -101,8 +121,8 @@ public class SSOService {
 
             AuthorizationGrant codeGrant = new AuthorizationCodeGrant(code, callback);
 
-            ClientID clientID = new ClientID(setting.getSsoClientId());
-            Secret clientSecret = new Secret(setting.getSsoClientSecret());
+            ClientID clientID = new ClientID(ssoClientId);
+            Secret clientSecret = new Secret(ssoClientSecret);
             ClientAuthentication clientAuth = new ClientSecretBasic(clientID, clientSecret);
 
             TokenRequest request = new TokenRequest(tokenEndpoint, clientAuth, codeGrant, null);

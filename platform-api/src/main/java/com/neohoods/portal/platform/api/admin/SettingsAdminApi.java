@@ -41,12 +41,6 @@ public class SettingsAdminApi implements SettingsAdminApiApiDelegate {
                                 // Convert saved entity back to request format for response
                                 return SaveSecuritySettingsRequest.builder()
                                         .isRegistrationEnabled(savedEntity.isRegistrationEnabled())
-                                        .ssoEnabled(savedEntity.isSsoEnabled())
-                                        .ssoClientId(savedEntity.getSsoClientId())
-                                        .ssoClientSecret(savedEntity.getSsoClientSecret())
-                                        .ssoTokenEndpoint(savedEntity.getSsoTokenEndpoint())
-                                        .ssoAuthorizationEndpoint(savedEntity.getSsoAuthorizationEndpoint())
-                                        .ssoScope(savedEntity.getSsoScope())
                                         .build();
                             });
                 })

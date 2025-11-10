@@ -37,12 +37,6 @@ export class SecurityComponent implements OnInit {
   ) {
     this.securityForm = this.formBuilder.group({
       isRegistrationEnabled: [false],
-      ssoEnabled: [false],
-      ssoClientId: [''],
-      ssoClientSecret: [''],
-      ssoTokenEndpoint: [''],
-      ssoAuthorizationEndpoint: [''],
-      ssoScope: [''],
     });
   }
 

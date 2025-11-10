@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.neohoods.portal.platform.entities.SettingsEntity;
@@ -21,6 +22,9 @@ public class SettingsService {
         private static final Logger log = LoggerFactory.getLogger(SettingsService.class);
         private final SettingsRepository settingsRepository;
 
+        @Value("${neohoods.portal.sso.enabled:false}")
+        private boolean ssoEnabled;
+
         private SettingsEntity getOrCreateDefaultSettings() {
                 return settingsRepository.findTopByOrderByIdAsc()
                                 .orElseGet(() -> {
@@ -34,12 +38,6 @@ public class SettingsService {
                                                                                                                      // in
                                                                                                                      // data.sql
                                                         .isRegistrationEnabled(false)
-                                                        .ssoEnabled(false)
-                                                        .ssoClientId("")
-                                                        .ssoClientSecret("")
-                                                        .ssoTokenEndpoint("")
-                                                        .ssoAuthorizationEndpoint("")
-                                                        .ssoScope("")
                                                         .build();
                                         return settingsRepository.save(defaultSettings);
                                 });
@@ -50,20 +48,14 @@ public class SettingsService {
 
                 return Mono.just(new GetPublicSettings200Response()
                                 .isRegistrationEnabled(setting.isRegistrationEnabled())
-                                .ssoEnabled(setting.isSsoEnabled()));
+                                .ssoEnabled(ssoEnabled)); // SSO settings are now in application config, not in DB
         }
 
         public Mono<GetSecuritySettings200Response> getSecuritySettings() {
                 SettingsEntity setting = getOrCreateDefaultSettings();
 
                 return Mono.just(new GetSecuritySettings200Response()
-                                .isRegistrationEnabled(setting.isRegistrationEnabled())
-                                .ssoEnabled(setting.isSsoEnabled())
-                                .ssoClientId(setting.getSsoClientId())
-                                .ssoClientSecret(setting.getSsoClientSecret())
-                                .ssoTokenEndpoint(setting.getSsoTokenEndpoint())
-                                .ssoAuthorizationEndpoint(setting.getSsoAuthorizationEndpoint())
-                                .ssoScope(setting.getSsoScope()));
+                                .isRegistrationEnabled(setting.isRegistrationEnabled()));
         }
 
         public Mono<SettingsEntity> saveSecuritySettings(SaveSecuritySettingsRequest request) {
@@ -72,12 +64,6 @@ public class SettingsService {
                 SettingsEntity updatedSetting = SettingsEntity.builder()
                                 .id(existingSetting.getId())
                                 .isRegistrationEnabled(request.getIsRegistrationEnabled())
-                                .ssoEnabled(request.getSsoEnabled())
-                                .ssoClientId(request.getSsoClientId())
-                                .ssoClientSecret(request.getSsoClientSecret())
-                                .ssoTokenEndpoint(request.getSsoTokenEndpoint())
-                                .ssoAuthorizationEndpoint(request.getSsoAuthorizationEndpoint())
-                                .ssoScope(request.getSsoScope())
                                 .build();
                 return Mono.just(settingsRepository.save(updatedSetting));
         }
