@@ -39,11 +39,14 @@ jobs:
           key: ${{ runner.os }}-m2-${{ needs.prepare.outputs.app-version }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build (skip tests for faster release)
+      - name: Build and Test
         uses: qcastel/github-actions-maven-cmd@master
+        env:
+          # Use local PostgreSQL (started by the action) instead of Testcontainers
+          USE_LOCAL_POSTGRES: true
         with:
-          maven-args: "clean package -DskipTests -DskipITs -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
-
+          maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
+          
       - name: Release
         uses: qcastel/github-actions-maven-release@master
         env:
