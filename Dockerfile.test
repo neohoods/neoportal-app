@@ -19,9 +19,9 @@ RUN apk add --no-cache su-exec
 # Variable d'environnement pour indiquer qu'on utilise PostgreSQL local
 ENV USE_LOCAL_POSTGRES=true
 
-# Don't set JAVA_HOME here - let mvn-action.sh handle it
-# This prevents issues with JAVA_HOME being set to an invalid value
-# The script will find and set JAVA_HOME correctly before any Java commands
+# Force JAVA_HOME to Java 21 to avoid TypeTag compilation errors
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Entrypoint pour exécuter le script
 ENTRYPOINT ["/usr/local/bin/mvn-action.sh"]

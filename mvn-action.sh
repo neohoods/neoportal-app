@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# CRITICAL: Unset JAVA_HOME FIRST, before ANY command that might trigger Java loading
+# CRITICAL: Check JAVA_HOME validity, but don't unset if it's already correctly set in Dockerfile
 # This must be done at the very beginning to prevent Java from trying to access
 # invalid paths (e.g., macOS paths like /Users/.../Library/Java/... in Linux containers)
 #
@@ -24,16 +24,10 @@ if [ -n "$JAVA_HOME" ]; then
         echo "Using existing JAVA_HOME: $JAVA_HOME"
     fi
 else
-    # JAVA_HOME is not set, ensure related variables are also unset
-    unset JAVA_TOOL_OPTIONS
-    unset _JAVA_OPTIONS
-fi
-
-# If JAVA_HOME is not set or was unset, let Maven use system default (Java 25)
-# The maven-compiler-plugin with <release>21</release> will compile for Java 21
-# even if Maven itself runs on Java 25
-if [ -z "$JAVA_HOME" ]; then
-    echo "Using system default Java for Maven (maven-compiler-plugin will handle Java 21 compilation)"
+    # JAVA_HOME is not set, set it to Java 21 (default for compilation)
+    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+    export PATH="$JAVA_HOME/bin:$PATH"
+    echo "Setting JAVA_HOME to Java 21: $JAVA_HOME"
 fi
 
 # Start PostgreSQL if it's available and enabled
