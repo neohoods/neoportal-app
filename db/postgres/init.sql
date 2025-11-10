@@ -14,6 +14,7 @@ CREATE TABLE "users" (
     "country" varchar(255),
     "preferred_language" varchar(255),
     "avatar_url" varchar(255),
+    "phone_number" varchar(255),
     "profile_sharing_consent" boolean NOT NULL DEFAULT false,
     "created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
     "is_email_verified" boolean NOT NULL DEFAULT false,
@@ -49,7 +50,9 @@ CREATE TABLE "notifications" (
     "type" varchar(255) CHECK (type IN (
         'ADMIN_NEW_USER',
         'NEW_ANNOUNCEMENT',
-        'UNIT_INVITATION'
+        'RESERVATION',
+        'UNIT_INVITATION',
+        'UNIT_JOIN_REQUEST'
     ))
 );
 
@@ -78,12 +81,6 @@ CREATE TABLE "user_roles" (
     "role" varchar(255)
 );
 
-CREATE TABLE "user_properties" (
-    "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-    "user_id" uuid REFERENCES users(id) ON DELETE CASCADE,
-    "property_type" varchar(255) NOT NULL CHECK (property_type IN ('APARTMENT', 'GARAGE', 'PARKING', 'COMMERCIAL', 'OTHER')),
-    "name" varchar(255) NOT NULL
-);
 
 CREATE TABLE "applications" (
     "id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -340,9 +337,11 @@ CREATE INDEX idx_space_cleaning_days_space_id ON space_cleaning_days(space_id);
 CREATE TABLE units (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     name varchar(255) NOT NULL,
+    type varchar(50) NOT NULL DEFAULT 'FLAT' CHECK (type IN ('FLAT', 'GARAGE', 'PARKING', 'COMMERCIAL', 'OTHER')),
     created_at timestamp DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_units_type ON units(type);
 
 -- Unit members table
 CREATE TABLE unit_members (
@@ -350,11 +349,13 @@ CREATE TABLE unit_members (
     unit_id uuid REFERENCES units(id) ON DELETE CASCADE NOT NULL,
     user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     role varchar(50) NOT NULL CHECK (role IN ('ADMIN', 'MEMBER')),
+    residence_role varchar(50) NOT NULL DEFAULT 'TENANT' CHECK (residence_role IN ('PROPRIETAIRE', 'BAILLEUR', 'MANAGER', 'TENANT')),
     joined_at timestamp DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(unit_id, user_id)
 );
 CREATE INDEX idx_unit_members_unit_id ON unit_members(unit_id);
 CREATE INDEX idx_unit_members_user_id ON unit_members(user_id);
+CREATE INDEX idx_unit_members_residence_role ON unit_members(residence_role);
 
 -- Add primary_unit_id column to users table (after units table is created)
 ALTER TABLE users ADD COLUMN primary_unit_id uuid REFERENCES units(id) ON DELETE SET NULL;

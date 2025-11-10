@@ -56,8 +56,13 @@
         <h2>{{ 'units.information' | translate }}</h2>
         <div class="info-grid">
           <div class="info-item">
-            <strong>{{ 'units.name' | translate }}:</strong>
-            <span>{{ unit()!.name }}</span>
+            <strong>{{ 'units.types.label' | translate }}:</strong>
+            <tui-chip
+              appearance="secondary"
+              size="s"
+            >
+              {{ getTypeLabel(unit()!.type) }}
+            </tui-chip>
           </div>
           <div class="info-item">
             <strong>{{ 'units.createdAt' | translate }}:</strong>
@@ -94,17 +99,71 @@
                   </div>
                   <div class="member-details">
                     <div class="member-header">
-                      <div class="member-name">
-                        <strong>{{ member.user.firstName || '' }} {{ member.user.lastName || '' }}</strong>
+                      <div class="member-name-section">
+                        <div class="member-name-row">
+                          <strong>{{ member.user.firstName || '' }} {{ member.user.lastName || '' }}</strong>
+                        </div>
                         <span class="member-email">{{ member.user.email || '' }}</span>
-                        @if (member.user && member.user.type) {
-                          <span class="member-type">{{ 'user.type.' + member.user.type | translate }}</span>
-                        }
+
+                        <div class="member-residence-role-section">
+                          @if (!isEditingResidenceRole(member) && member.residenceRole) {
+                            <div class="residence-role-display">
+                              <tui-chip
+                              appearance="secondary"
+                                size="m"
+                              >
+                                {{ getResidenceRoleLabel(member.residenceRole) }}
+                              </tui-chip>
+                              <button
+                                tuiButton
+                                appearance="ghost"
+                                size="xs"
+                                (click)="startEditingResidenceRole(member)"
+                                class="edit-residence-role-btn"
+                              >
+                                <tui-icon icon="@tui.edit-2" size="xs"></tui-icon>
+                              </button>
+                            </div>
+                          } @else if (isEditingResidenceRole(member)) {
+                            <div class="residence-role-edit">
+                              <tui-textfield tuiChevron [stringify]="stringifyResidenceRole">
+                                <input
+                                  tuiSelect
+                                  [ngModel]="getResidenceRoleForMember(member)"
+                                  (ngModelChange)="updateMemberResidenceRole(member, $event)"
+                                  name="residenceRole_{{ member.userId }}"
+                                  [placeholder]="'units.updateResidenceRole' | translate"
+                                />
+                                <tui-data-list-wrapper
+                                  *tuiTextfieldDropdown
+                                  new
+                                  [items]="residenceRoleOptions"
+                                  [itemContent]="residenceRoleContentTemplate"
+                                ></tui-data-list-wrapper>
+                              </tui-textfield>
+                              <button
+                                tuiButton
+                                appearance="ghost"
+                                size="xs"
+                                (click)="cancelEditingResidenceRole()"
+                                class="cancel-edit-btn"
+                              >
+                                <tui-icon icon="@tui.x" size="xs"></tui-icon>
+                              </button>
+                            </div>
+                          }
+                        </div>
                       </div>
-                      <div class="member-role">
-                        <span class="role-badge" [class.admin]="member.role === 'ADMIN'">
-                          {{ getRoleLabel(member.role || '') }}
-                        </span>
+                      <div class="member-header-right">
+                        @if (member.role === 'ADMIN') {
+                          <tui-chip
+                            appearance="primary"
+  
+                            size="s"
+                          >
+                            {{ getRoleLabel(member.role || '') }}
+                          </tui-chip>
+                        }
                         @if (isPrimaryUnit(member)) {
                           <tui-chip
                             appearance="custom"
@@ -126,6 +185,9 @@
                       <tui-icon icon="@tui.calendar" size="s"></tui-icon>
                       <span>{{ 'units.joinedAt' | translate }}: {{ member.joinedAt | date:'short' }}</span>
                     </div>
+                    <ng-template #residenceRoleContentTemplate let-item>
+                      {{ item.label | translate }}
+                    </ng-template>
                     @if (!isCurrentUser(member)) {
                       <div class="member-actions">
                         @if (!isPrimaryUnit(member)) {

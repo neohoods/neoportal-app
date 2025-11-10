@@ -8,9 +8,9 @@ import {
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiTextfield } from '@taiga-ui/core';
-import { TuiChevron, TuiDataListWrapper, TuiDataListWrapperComponent, TuiPassword, TuiSelect, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
+import { TuiChevron, TuiDataListWrapper, TuiDataListWrapperComponent, TuiInputPhone, TuiPassword, TuiSelect, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
-import { UIPropertyType, UIUser, UIUserType } from '../../../../../models/UIUser';
+import { UIUser, UIUserType } from '../../../../../models/UIUser';
 import { AuthService } from '../../../../../services/auth.service';
 import { ConfigService, UISettings } from '../../../../../services/config.service';
 import { PROFILE_SERVICE_TOKEN } from '../../../hub.provider';
@@ -38,6 +38,7 @@ interface Character {
     TuiChevron,
     TuiDataListWrapper,
     TuiSelect,
+    TuiInputPhone,
     TuiTextfield
   ],
   templateUrl: './profile.component.html',
@@ -45,7 +46,6 @@ interface Character {
 })
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;
-  propertyTypes = Object.values(UIPropertyType);
   // Filter out ADMIN from user types - users cannot promote themselves to admin
   userTypes = Object.values(UIUserType).filter(type => type !== UIUserType.ADMIN);
   user: UIUser = {} as UIUser;
@@ -75,6 +75,7 @@ export class ProfileComponent implements OnInit {
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
+      phone: [''],
       password: ['', [Validators.minLength(6)]],
       type: [UIUserType.TENANT, Validators.required],
       flatNumber: [''],
@@ -110,6 +111,7 @@ export class ProfileComponent implements OnInit {
       firstName: this.user.firstName,
       lastName: this.user.lastName,
       email: this.user.email,
+      phone: this.user.phone || '',
       type: this.user.type,
       flatNumber: this.user.flatNumber,
       streetAddress: this.user.streetAddress,
@@ -139,6 +141,7 @@ export class ProfileComponent implements OnInit {
       this.user.firstName = formValue.firstName;
       this.user.lastName = formValue.lastName;
       this.user.email = formValue.email;
+      this.user.phone = formValue.phone;
       this.user.type = formValue.type;
       this.user.flatNumber = formValue.flatNumber;
       this.user.streetAddress = formValue.streetAddress;

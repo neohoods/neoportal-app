@@ -603,7 +603,7 @@ public class NewsletterService {
          * Find target users based on audience configuration and newsletter preferences
          */
         private List<UserEntity> findTargetUsersForNewsletter(NewsletterAudience audience) {
-                List<UserEntity> allUsers = usersRepository.findAllWithProperties();
+                List<UserEntity> allUsers = (List<UserEntity>) usersRepository.findAll();
 
                 log.debug("Starting with {} total users", allUsers.size());
 

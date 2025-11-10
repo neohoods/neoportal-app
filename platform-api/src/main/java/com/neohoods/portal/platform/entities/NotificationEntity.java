@@ -49,11 +49,20 @@ public class NotificationEntity {
     private Map<String, Object> payload;
 
     public Notification.NotificationBuilder toNotification() {
+        Notification.TypeEnum typeEnum;
+        try {
+            typeEnum = Notification.TypeEnum.valueOf(type.name());
+        } catch (IllegalArgumentException e) {
+            // Fallback: if enum value doesn't exist, use ADMIN_NEW_USER as default
+            // This can happen if the OpenAPI spec hasn't been regenerated yet
+            typeEnum = Notification.TypeEnum.ADMIN_NEW_USER;
+        }
+        
         return Notification.builder()
                 .id(id)
                 .author(author)
                 .date(date != null ? OffsetDateTime.ofInstant(date, ZoneOffset.UTC) : null)
-                .type(Notification.TypeEnum.valueOf(type.name()))
+                .type(typeEnum)
                 .alreadyRead(alreadyRead)
                 .payload(payload);
     }

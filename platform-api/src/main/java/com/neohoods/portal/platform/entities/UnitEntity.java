@@ -8,9 +8,12 @@ import java.util.stream.Collectors;
 import com.neohoods.portal.platform.model.Unit;
 import com.neohoods.portal.platform.model.UnitMember;
 
+import com.neohoods.portal.platform.model.UnitType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -32,6 +35,10 @@ public class UnitEntity {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UnitTypeForEntity type = UnitTypeForEntity.FLAT;
+
     @Column(name = "created_at")
     @Builder.Default
     private OffsetDateTime createdAt = OffsetDateTime.now();
@@ -51,6 +58,7 @@ public class UnitEntity {
         return new Unit()
                 .id(id)
                 .name(name)
+                .type(UnitType.fromValue(type.name()))
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .members(unitMembers);
@@ -60,11 +68,13 @@ public class UnitEntity {
         return UnitEntity.builder()
                 .id(unit.getId())
                 .name(unit.getName())
+                .type(UnitTypeForEntity.fromString(unit.getType().toString()))
                 .createdAt(unit.getCreatedAt())
                 .updatedAt(unit.getUpdatedAt())
                 .build();
     }
 }
+
 
 
 

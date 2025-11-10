@@ -65,7 +65,16 @@ h1 {
   .unit-title-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .unit-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
@@ -171,6 +180,18 @@ h1 {
     background-color: var(--tui-primary);
     color: var(--tui-text-00-inverted);
     border-color: var(--tui-primary);
+  }
+}
+
+.join-section {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 }
 

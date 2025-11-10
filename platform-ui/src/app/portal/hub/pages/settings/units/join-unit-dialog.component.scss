@@ -1,0 +1,131 @@
+@use 'styles' as *;
+
+.join-unit-dialog {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.dialog-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--tui-base-03);
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--tui-text-01);
+  }
+}
+
+.filters-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+
+  .filter-group {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+.dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 16px;
+  color: var(--tui-text-02);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--tui-text-02);
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+.available-units-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.available-unit-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--tui-base-01);
+  border: 1px solid var(--tui-base-03);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--tui-base-04);
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.05);
+  }
+}
+
+.unit-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--tui-text-01);
+  }
+
+.unit-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--tui-text-02);
+  flex-wrap: wrap;
+
+  tui-icon {
+    color: var(--tui-text-03);
+  }
+}
+}
+
+.unit-actions {
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--tui-base-03);
+}
+
+.dialog-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tui-base-03);
+  display: flex;
+  justify-content: flex-end;
+}
+

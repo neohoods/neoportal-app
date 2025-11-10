@@ -18,7 +18,6 @@ export interface UIUser {
     country?: string;
     type: UIUserType;
     roles: string[];
-    properties?: UIProperty[];
     profileSharingConsent?: boolean;
     primaryUnitId?: string;
 }
@@ -31,23 +30,4 @@ export enum UIUserType {
     LANDLORD = 'LANDLORD',
     SYNDIC = 'SYNDIC',
     EXTERNAL = 'EXTERNAL'
-}
-
-export interface UIProperty {
-    id: string;
-    name: string;
-    type: UIPropertyType;
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    flatNumber?: string;
-    isPrimary: boolean;
-}
-
-export enum UIPropertyType {
-    APARTMENT = 'APARTMENT',
-    HOUSE = 'HOUSE',
-    OFFICE = 'OFFICE',
-    COMMERCIAL = 'COMMERCIAL'
 }

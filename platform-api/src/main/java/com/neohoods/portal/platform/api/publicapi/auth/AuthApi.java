@@ -85,7 +85,7 @@ public class AuthApi implements AuthApiApiDelegate {
                                 .flatMap(authentication -> {
                                         log.info("User authenticated successfully: {}", authentication.getName());
                                         return usersRepository
-                                                        .findByIdWithProperties(
+                                                        .findById(
                                                                         UUID.fromString(authentication.getName()))
                                                         .map(userEntity -> {
                                                                 SecurityContext context = SecurityContextHolder

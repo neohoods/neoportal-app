@@ -14,6 +14,7 @@ import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.entities.UnitInvitationEntity;
 import com.neohoods.portal.platform.entities.UnitInvitationStatus;
 import com.neohoods.portal.platform.entities.UnitMemberEntity;
+import com.neohoods.portal.platform.entities.ResidenceRole;
 import com.neohoods.portal.platform.entities.UnitMemberRole;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.exceptions.CodedError;
@@ -139,6 +140,7 @@ public class UnitInvitationService {
                 .unit(invitation.getUnit())
                 .user(user)
                 .role(UnitMemberRole.MEMBER)
+                .residenceRole(ResidenceRole.TENANT) // Default to TENANT for invited members
                 .joinedAt(OffsetDateTime.now())
                 .build();
 
@@ -231,6 +233,7 @@ public class UnitInvitationService {
                 .unit(invitation.getUnit())
                 .user(user)
                 .role(UnitMemberRole.MEMBER)
+                .residenceRole(ResidenceRole.TENANT) // Default to TENANT for invited members
                 .joinedAt(OffsetDateTime.now())
                 .build();
 

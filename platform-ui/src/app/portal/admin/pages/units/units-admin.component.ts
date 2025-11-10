@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiDialogService, TuiIcon } from '@taiga-ui/core';
@@ -32,6 +32,7 @@ export class UnitsAdminComponent implements OnInit {
     protected currentPage = 0;
     protected pageSize = 10;
     protected searchTerm = '';
+
 
     columns: Column[] = [];
 
@@ -71,7 +72,8 @@ export class UnitsAdminComponent implements OnInit {
         private translate: TranslateService,
         private alerts: TuiAlertService,
         private dialogs: TuiDialogService,
-        private router: Router
+        private router: Router,
+        private cdr: ChangeDetectorRef
     ) {
         this.columns = [
             {

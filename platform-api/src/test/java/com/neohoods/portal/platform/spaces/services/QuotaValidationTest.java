@@ -17,9 +17,11 @@ import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
+import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 
 /**
@@ -41,6 +43,12 @@ public class QuotaValidationTest extends BaseIntegrationTest {
 
     @Autowired
     private UsersRepository usersRepository;
+
+    @Autowired
+    private UnitsService unitsService;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     private SpaceEntity guestRoomSpace;
     private UserEntity ownerUser;
@@ -114,6 +122,13 @@ public class QuotaValidationTest extends BaseIntegrationTest {
         int maxReservations = space.getMaxAnnualReservations();
 
         if (maxReservations > 0) {
+            // Remove primary unit from tenant user to test global quota (usedAnnualReservations)
+            UserEntity user = usersRepository.findById(tenantUser.getId()).orElse(null);
+            if (user != null && user.getPrimaryUnit() != null) {
+                user.setPrimaryUnit(null);
+                usersRepository.save(user);
+            }
+
             // Set used reservations to max
             space.setUsedAnnualReservations(maxReservations);
             space = spaceRepository.save(space);
@@ -160,6 +175,13 @@ public class QuotaValidationTest extends BaseIntegrationTest {
         SpaceEntity space = spaceRepository.findById(guestRoomSpace.getId()).orElse(null);
         if (space == null)
             return;
+
+        // Remove primary unit from tenant user to test global quota (usedAnnualReservations)
+        UserEntity user = usersRepository.findById(tenantUser.getId()).orElse(null);
+        if (user != null && user.getPrimaryUnit() != null) {
+            user.setPrimaryUnit(null);
+            usersRepository.save(user);
+        }
 
         int originalMax = space.getMaxAnnualReservations();
         space.setMaxAnnualReservations(1);
@@ -274,6 +296,18 @@ public class QuotaValidationTest extends BaseIntegrationTest {
         if (space == null || space.getMaxAnnualReservations() <= 0)
             return;
 
+        // Remove primary units from both users to test global quota (usedAnnualReservations)
+        UserEntity owner = usersRepository.findById(ownerUser.getId()).orElse(null);
+        UserEntity tenant = usersRepository.findById(tenantUser.getId()).orElse(null);
+        if (owner != null && owner.getPrimaryUnit() != null) {
+            owner.setPrimaryUnit(null);
+            usersRepository.save(owner);
+        }
+        if (tenant != null && tenant.getPrimaryUnit() != null) {
+            tenant.setPrimaryUnit(null);
+            usersRepository.save(tenant);
+        }
+
         int originalMax = space.getMaxAnnualReservations();
         space.setMaxAnnualReservations(1); // Set quota to 1 so only one reservation is allowed
         space.setUsedAnnualReservations(0);
@@ -283,7 +317,7 @@ public class QuotaValidationTest extends BaseIntegrationTest {
             final LocalDate startDate = LocalDate.now().plusDays(10);
             final SpaceEntity finalSpace3 = space;
 
-            // Owner reserves
+            // Owner reserves (uses global quota)
             reservationsService.createReservation(finalSpace3, ownerUser, startDate, startDate.plusDays(3));
 
             // Act & Assert - Tenant cannot exceed shared quota

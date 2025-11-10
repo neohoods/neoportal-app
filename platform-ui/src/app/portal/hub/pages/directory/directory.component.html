@@ -1,0 +1,172 @@
+<div class="directory-container">
+  <div class="directory-header">
+    <h1>{{ 'directory.title' | translate }}</h1>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-container">
+    <div class="filter-group">
+      <label tuiLabel>
+        {{ 'directory.filters.type' | translate }}
+        <tui-select
+          [ngModel]="getSelectedTypeOption()"
+          (ngModelChange)="onTypeChange($event)"
+          [stringify]="stringifyType"
+          name="typeFilter"
+        >
+          {{ 'directory.filters.type' | translate }}
+          <input
+            tuiTextfieldLegacy
+            [placeholder]="'directory.filters.type' | translate"
+          />
+          <tui-data-list-wrapper
+            *tuiDataList
+            [items]="typeOptions"
+            [itemContent]="typeContentTemplate"
+          ></tui-data-list-wrapper>
+        </tui-select>
+      </label>
+      <ng-template #typeContentTemplate let-item>
+        {{ item.label | translate }}
+      </ng-template>
+    </div>
+
+    <div class="filter-group">
+      <label tuiLabel>
+        {{ 'directory.filters.name' | translate }}
+        <tui-textfield>
+          <input
+            tuiTextfield
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            [placeholder]="'directory.filters.namePlaceholder' | translate"
+            name="searchFilter"
+          />
+        </tui-textfield>
+      </label>
+    </div>
+
+    <div class="filter-group">
+      <label tuiLabel>
+        {{ 'directory.filters.user' | translate }}
+        <tui-textfield tuiChevron [stringify]="stringifyUser">
+          <input
+            tuiComboBox
+            [ngModel]="selectedUser()"
+            (ngModelChange)="onUserChange($event)"
+            name="userFilter"
+            [placeholder]="'directory.filters.user.all' | translate"
+          />
+          <tui-data-list-wrapper
+            *tuiTextfieldDropdown
+            new
+            [items]="availableUsers() | tuiFilterByInput: userMatcher"
+            [itemContent]="userContentTemplate"
+          />
+        </tui-textfield>
+      </label>
+      <ng-template #userContentTemplate let-item>
+        {{ item.firstName }} {{ item.lastName }} ({{ item.email }})
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" class="loading-container">
+    <tui-loader size="l"></tui-loader>
+  </div>
+
+  <!-- Units List -->
+  <div *ngIf="!loading()" class="units-list">
+    <div *ngFor="let unit of units()" class="unit-card">
+      <div class="unit-content">
+        <div class="unit-header">
+          <h2>{{ unit.name }}</h2>
+          <tui-chip
+            appearance="secondary"
+            size="s"
+          >
+            {{ getTypeLabel(unit.type) }}
+          </tui-chip>
+        </div>
+
+        <div class="unit-members">
+          <div *ngIf="unit.members && unit.members.length > 0" class="members-list">
+            <div *ngFor="let member of unit.members" class="member-item">
+              <div class="member-avatar">
+                <tui-avatar
+                  *ngIf="member.user?.avatarUrl"
+                  [src]="member.user.avatarUrl"
+                  size="m"
+                ></tui-avatar>
+                <tui-avatar
+                  *ngIf="!member.user?.avatarUrl"
+                  [src]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiInitials"
+                  [style.background]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiAutoColor"
+                  size="m"
+                ></tui-avatar>
+              </div>
+              <div class="member-content">
+                <div class="member-header">
+                  <div class="member-name-section">
+                    <span class="member-name">
+                      {{ member.user?.firstName }} {{ member.user?.lastName }}
+                    </span>
+                    @if (member.user?.phoneNumber) {
+                      <span class="member-phone">
+                        <tui-icon icon="@tui.phone" size="xs"></tui-icon>
+                        {{ member.user.phoneNumber }}
+                      </span>
+                    }
+                    <div class="member-meta-badges">
+                      <tui-chip
+                        *ngIf="member.residenceRole"
+                        appearance="custom"
+                        [style.background-color]="getResidenceRoleLabel(member.residenceRole) | tuiAutoColor"
+                        size="s"
+                      >
+                        {{ getResidenceRoleLabel(member.residenceRole) }}
+                      </tui-chip>
+                    </div>
+                  </div>
+                  <tui-chip
+                    *ngIf="isPrimaryUnit(unit, member)"
+                    appearance="custom"
+                    [style.background-color]="'var(--tui-background-accent-2)'"
+                    [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                    size="s"
+                    class="primary-unit-chip"
+                  >
+                    <tui-icon
+                      icon="@tui.user-star"
+                      [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                      size="xs"
+                    ></tui-icon>
+                    {{ 'units.isPrimaryUnit' | translate }}
+                  </tui-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!unit.members || unit.members.length === 0" class="no-members">
+            {{ 'directory.noMembers' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="units().length === 0" class="empty-state">
+      <p>{{ 'directory.noUnits' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading() && totalPages() > 1" class="pagination-container">
+    <tui-pagination
+      [length]="totalPages()"
+      [index]="currentPage()"
+      (indexChange)="onPageChange($event)"
+    ></tui-pagination>
+  </div>
+</div>
+

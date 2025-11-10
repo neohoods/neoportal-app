@@ -1,0 +1,64 @@
+<div class="join-requests-admin">
+  <div class="page-header">
+    <h1>{{ 'settings.units.joinRequests.title' | translate }}</h1>
+  </div>
+
+  @if (loadingJoinRequests) {
+    <div class="loading">
+      {{ 'settings.units.loading' | translate }}
+    </div>
+  } @else if (joinRequests.length === 0) {
+    <div class="empty-state">
+      <p>{{ 'settings.units.joinRequests.empty' | translate }}</p>
+    </div>
+  } @else {
+    <div class="join-requests-list">
+      @for (request of joinRequests; track request.id) {
+        <div class="join-request-card">
+          <div class="request-info">
+            <div class="request-unit">
+              <strong>{{ 'units.name' | translate }}:</strong>
+              <a [routerLink]="['/admin/units', request.unitId]">{{ request.unit?.name || request.unitId }}</a>
+            </div>
+            <div class="request-user">
+              <strong>{{ 'settings.units.joinRequests.requestedBy' | translate }}:</strong>
+              <span>{{ request.requestedBy?.firstName || '' }} {{ request.requestedBy?.lastName || '' }}</span>
+              <span class="request-email">{{ request.requestedBy?.email || '' }}</span>
+            </div>
+            @if (request.message) {
+              <div class="request-message">
+                <strong>{{ 'settings.units.joinRequests.message' | translate }}:</strong>
+                <span>{{ request.message }}</span>
+              </div>
+            }
+            <div class="request-meta">
+              <tui-icon icon="@tui.calendar" size="s"></tui-icon>
+              <span>{{ 'settings.units.joinRequests.requestedAt' | translate }}: {{ request.createdAt | date:'short' }}</span>
+            </div>
+          </div>
+          <div class="request-actions">
+            <button
+              tuiButton
+              size="s"
+              appearance="primary"
+              (click)="approveJoinRequest(request.id)"
+            >
+              <tui-icon icon="@tui.check"></tui-icon>
+              {{ 'settings.units.joinRequests.approve' | translate }}
+            </button>
+            <button
+              tuiButton
+              size="s"
+              appearance="outline"
+              (click)="rejectJoinRequest(request.id)"
+            >
+              <tui-icon icon="@tui.close"></tui-icon>
+              {{ 'settings.units.joinRequests.reject' | translate }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

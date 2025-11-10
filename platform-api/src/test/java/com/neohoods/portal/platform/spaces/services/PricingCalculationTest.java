@@ -87,7 +87,7 @@ public class PricingCalculationTest extends BaseIntegrationTest {
 
         // Create unit for tenant user (required for COMMON_ROOM reservations)
         if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
-            unitsService.createUnit("Test Unit " + tenantUser.getId(), tenantUser.getId()).block();
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), null, tenantUser.getId()).block();
         }
     }
 

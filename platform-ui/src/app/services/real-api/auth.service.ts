@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { TuiAlertService } from '@taiga-ui/core';
 import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
-import { AuthApiService, ProfileHubApiService, Property, SsoPublicApiService, User } from '../../api-client';
-import { UIProperty, UIUser, UIUserType } from '../../models/UIUser';
+import { AuthApiService, ProfileHubApiService, SsoPublicApiService, User } from '../../api-client';
+import { UIUser, UIUserType } from '../../models/UIUser';
 import { AuthService, UserInfo } from '../auth.service';
 
 @Injectable({
@@ -34,7 +34,6 @@ export class APIAuthService implements AuthService {
       country: 'unknown',
       type: UIUserType.EXTERNAL,
       roles: ['hub'],
-      properties: [],
       preferredLanguage: 'fr',
       createdAt: new Date().toISOString()
     },
@@ -101,10 +100,6 @@ export class APIAuthService implements AuthService {
         return {
           ...user,
           type: user.type as any,
-          properties: (user.properties ?? []).map((property: Property) => ({
-            ...property,
-            type: property.type as any,
-          })) as UIProperty[],
         } as UIUser;
       })
     );
@@ -149,10 +144,6 @@ export class APIAuthService implements AuthService {
               city: user.city ?? 'unknown',
               type: user.type as any,
               roles: user.roles ?? ['hub'],
-              properties: (user.properties ?? []).map((property: Property) => ({
-                ...property,
-                type: property.type as any,
-              })) as UIProperty[],
               postalCode: user.postalCode ?? 'unknown',
               country: user.country ?? 'unknown',
               preferredLanguage: user.preferredLanguage ?? 'fr',
@@ -216,10 +207,6 @@ export class APIAuthService implements AuthService {
               city: response.user.city ?? 'unknown',
               type: response.user.type as UIUserType,
               roles: response.user.roles ?? ['hub'],
-              properties: (response.user.properties ?? []).map((property: any) => ({
-                ...property,
-                type: property.type as any,
-              })) as UIProperty[],
               postalCode: response.user.postalCode ?? 'unknown',
               country: response.user.country ?? 'unknown',
               preferredLanguage: response.user.preferredLanguage ?? 'fr',

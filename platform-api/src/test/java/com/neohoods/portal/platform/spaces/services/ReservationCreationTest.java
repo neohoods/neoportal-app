@@ -108,7 +108,7 @@ public class ReservationCreationTest extends BaseIntegrationTest {
 
         // Create unit for tenant user (required for COWORKING reservations)
         if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
-            unitsService.createUnit("Test Unit " + tenantUser.getId(), tenantUser.getId()).block();
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), null, tenantUser.getId()).block();
         }
         
         // Ensure tenant user has a primary unit set (refresh from DB to get updated primaryUnit)

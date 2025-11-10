@@ -82,11 +82,36 @@
       <tui-icon icon="@tui.users" />
       {{ 'adminLayout.users' | translate }}
     </a>
-    <a (click)="closeMore()" routerLink="/admin/units" routerLinkActive="active" appearance="secondary-grayscale"
-      type="button" i18n="@@borrowItemButton">
+    <button tuiButton tuiChevron type="button" appearance="flat" class="units-dropdown" [tuiDropdown]="unitsDropdownContent"
+      [tuiDropdownManual]="openUnitsDropdown" (click)="onClickUnitsDropdown()" (tuiActiveZoneChange)="onUnitsActiveZone($event)"
+      (tuiObscured)="onUnitsObscured($event)">
       <tui-icon icon="@tui.home" />
-      {{ 'adminLayout.units' | translate }}
-    </a>
+      {{ 'adminLayout.unitsManagement' | translate }}
+      <ng-template #unitsDropdownContent>
+        <tui-data-list>
+          <a
+            (click)="closeUnitsDropdown()"
+            routerLink="/admin/units"
+            class="dropdown"
+            tuiOption
+            routerLinkActive="active"
+          >
+            <tui-icon icon="@tui.home" [style.width.px]="16" />
+            {{ 'adminLayout.units' | translate }}
+          </a>
+          <a
+            (click)="closeUnitsDropdown()"
+            routerLink="/admin/units/join-requests"
+            class="dropdown"
+            tuiOption
+            routerLinkActive="active"
+          >
+            <tui-icon icon="@tui.user-plus" [style.width.px]="16" />
+            {{ 'adminLayout.joinRequests' | translate }}
+          </a>
+        </tui-data-list>
+      </ng-template>
+    </button>
     <a (click)="closeMore()" routerLink="/admin/pages/" routerLinkActive="active" appearance="secondary-grayscale"
       type="button" i18n="@@borrowItemButton">
       <tui-icon icon="@tui.book-open-text" />

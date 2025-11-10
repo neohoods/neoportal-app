@@ -27,6 +27,13 @@ export const COMMUNITY_ROUTES: Routes = [
             (m) => m.SETTINGS_ROUTES,
           ),
       },
+      {
+        path: 'directory',
+        loadComponent: () =>
+          import('./pages/directory/directory.component').then(
+            (m) => m.DirectoryComponent,
+          ),
+      },
     ],
   },
 ];

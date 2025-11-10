@@ -27,6 +27,12 @@
               <tui-icon icon="@tui.mail" />
               {{ item.email }}
             </span>
+            @if (item.phone) {
+              <span class="phone">
+                <tui-icon icon="@tui.phone" />
+                {{ item.phone }}
+              </span>
+            }
             <span class="flatNumber">
               <tui-icon icon="@tui.home" />
               {{ item.flatNumber }} - {{ item.streetAddress }}

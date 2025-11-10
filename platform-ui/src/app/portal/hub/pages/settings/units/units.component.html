@@ -33,21 +33,38 @@
             <div class="unit-title-section">
               <div class="unit-title-row">
                 <h3>{{ unit.name }}</h3>
-                @if (isPrimaryUnit(unit)) {
-                  <tui-chip
-                    appearance="custom"
-                    [style.background-color]="'var(--tui-background-accent-2)'"
-                    [style.color]="'var(--tos-text-primary-on-accent-1)'"
-                    size="s"
-                  >
-                    <tui-icon
-                      icon="@tui.user-star"
+                <div class="unit-chips">
+                  @if (hasPendingRequest(unit.id)) {
+                    <tui-chip
+                      appearance="custom"
+                      [style.background-color]="'var(--tui-warning-fill)'"
+                      [style.color]="'var(--tui-text-on-dark)'"
+                      size="s"
+                    >
+                      <tui-icon
+                        icon="@tui.clock"
+                        [style.color]="'var(--tui-text-on-dark)'"
+                        size="xs"
+                      ></tui-icon>
+                      {{ 'settings.units.joinRequests.waitingApproval' | translate }}
+                    </tui-chip>
+                  }
+                  @if (isPrimaryUnit(unit)) {
+                    <tui-chip
+                      appearance="custom"
+                      [style.background-color]="'var(--tui-background-accent-2)'"
                       [style.color]="'var(--tos-text-primary-on-accent-1)'"
-                      size="xs"
-                    ></tui-icon>
-                    {{ 'units.isPrimaryUnit' | translate }}
-                  </tui-chip>
-                }
+                      size="s"
+                    >
+                      <tui-icon
+                        icon="@tui.user-star"
+                        [style.color]="'var(--tos-text-primary-on-accent-1)'"
+                        size="xs"
+                      ></tui-icon>
+                      {{ 'units.isPrimaryUnit' | translate }}
+                    </tui-chip>
+                  }
+                </div>
               </div>
               <div class="unit-meta-inline">
                 <span class="meta-item-inline">
@@ -94,5 +111,23 @@
       }
     </div>
   }
+
+  <!-- Join Unit Button -->
+  <div class="join-section">
+    <button
+      tuiButton
+      size="m"
+      appearance="primary"
+      (click)="openJoinUnitDialog()"
+    >
+      <tui-icon icon="@tui.user-plus"></tui-icon>
+      {{ 'settings.units.joinRequests.joinUnit' | translate }}
+    </button>
+  </div>
 </div>
+
+<!-- Join Unit Dialog Template -->
+<ng-template #joinUnitDialogTemplate let-observer>
+  <app-join-unit-dialog [observer]="observer"></app-join-unit-dialog>
+</ng-template>
 

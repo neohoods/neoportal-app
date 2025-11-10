@@ -1,5 +1,6 @@
 import { Unit } from '../api-client/model/unit';
 import { UnitMember, UnitMemberRoleEnum } from '../api-client/model/unitMember';
+import { UnitMemberResidenceRole } from '../api-client/model/unitMemberResidenceRole';
 import { User } from '../api-client/model/user';
 import unitsData from './units.json';
 
@@ -10,6 +11,7 @@ const mapUnit = (unit: any): Unit => {
     createdAt: unit.createdAt,
     updatedAt: unit.updatedAt,
     members: unit.members?.map((member: any): UnitMember => ({
+      residenceRole: (member.residenceRole || UnitMemberResidenceRole.Tenant) as UnitMemberResidenceRole,
       userId: member.userId,
       role: member.role as UnitMemberRoleEnum,
       joinedAt: member.joinedAt,

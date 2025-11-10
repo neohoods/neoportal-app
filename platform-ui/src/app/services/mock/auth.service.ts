@@ -34,7 +34,6 @@ export class MockAuthService implements AuthService {
       country: 'USA',
       type: UIUserType.ADMIN,
       roles: ['hub', 'admin'],
-      properties: [],
       preferredLanguage: 'fr',
       createdAt: new Date().toISOString()
     },
@@ -62,7 +61,6 @@ export class MockAuthService implements AuthService {
       "country": "USA",
       "type": UIUserType.ADMIN,
       "roles": ["hub", "admin"],
-      "properties": [],
       "createdAt": new Date().toISOString()
     };
     this.usersService.getUsers().subscribe((users) => {

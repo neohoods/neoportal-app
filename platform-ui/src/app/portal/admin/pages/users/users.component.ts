@@ -118,6 +118,13 @@ export class UsersComponent {
         size: 'm',
       },
       {
+        key: 'phone',
+        label: this.translate.instant('users.columns.phone'),
+        visible: true,
+        sortable: true,
+        size: 'm',
+      },
+      {
         key: 'flatNumber',
         label: this.translate.instant('users.columns.flatNumber'),
         visible: true,

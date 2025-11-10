@@ -59,6 +59,8 @@ public class UserEntity {
     private String preferredLanguage;
     @Column(name = "avatar_url")
     private String avatarUrl;
+    @Column(name = "phone_number")
+    private String phoneNumber;
     @Column(name = "profile_sharing_consent")
     @Builder.Default
     private boolean profileSharingConsent = false;
@@ -85,9 +87,6 @@ public class UserEntity {
     @Column(name = "user_type")
     private UserType type;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<PropertyEntity> properties;
-
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private NotificationSettingsEntity notificationSettings;
 
@@ -109,16 +108,14 @@ public class UserEntity {
                 .country(country)
                 .preferredLanguage(preferredLanguage)
                 .avatarUrl(avatarUrl)
+                .phoneNumber(phoneNumber)
                 .profileSharingConsent(profileSharingConsent)
                 .disabled(disabled)
                 .isEmailVerified(isEmailVerified)
                 .createdAt(createdAt)
                 .roles(type == UserType.ADMIN ? Arrays.asList("hub", "admin") : Arrays.asList("hub"))
                 .type(type != null ? type.toOpenApiUserType() : null)
-                .primaryUnitId(primaryUnit != null ? primaryUnit.getId() : null)
-                .properties(properties != null
-                        ? properties.stream().map(PropertyEntity::toProperty).collect(Collectors.toList())
-                        : List.of());
+                .primaryUnitId(primaryUnit != null ? primaryUnit.getId() : null);
     }
 
     public Locale getLocale() {

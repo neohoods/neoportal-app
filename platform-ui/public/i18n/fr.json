@@ -123,6 +123,8 @@
     "userTypePlaceholder": "Sélectionnez le type d'utilisateur",
     "email": "Email",
     "emailPlaceholder": "Entrez votre email",
+    "phone": "Téléphone",
+    "phonePlaceholder": "Entrez votre numéro de téléphone",
     "password": "Mot de passe",
     "passwordPlaceholder": "Entrez votre mot de passe",
     "ssoPasswordInfo": "SSO est activé. La gestion du mot de passe n'est pas disponible quand SSO est actif.",
@@ -176,7 +178,9 @@
     "reservations": "Réservations",
     "ttlock": "TTLock",
     "digitalLocks": "Serrures Numériques",
-    "units": "Logements"
+    "units": "Logements",
+    "unitsManagement": "Gestion des logements",
+    "joinRequests": "Demandes d'adhésion"
   },
   "ttlock": {
     "admin": {
@@ -447,8 +451,8 @@
       "pricing": "Tarification",
       "tenantPrice": "Prix locataire",
       "tenantPriceHelp": "Prix par jour pour les locataires",
-        "ownerPrice": "Prix propriétaire",
-        "ownerPriceHelp": "Prix par jour pour les propriétaires (0 = gratuit pour les propriétaires)",
+      "ownerPrice": "Prix propriétaire",
+      "ownerPriceHelp": "Prix par jour pour les propriétaires (0 = gratuit pour les propriétaires)",
       "platformFee": "Frais de plateforme",
       "subtotal": "Sous-total",
       "cleaningFee": "Frais de ménage",
@@ -947,6 +951,7 @@
     "firstName": "Prénom",
     "lastName": "Nom de famille",
     "email": "Email",
+    "phone": "Téléphone",
     "password": "Mot de passe",
     "addressInfo": "Informations d'adresse",
     "flatNumber": "Numéro d'appartement",
@@ -1010,6 +1015,7 @@
     "columns": {
       "username": "Nom d'utilisateur",
       "email": "Email",
+      "phone": "Téléphone",
       "flatNumber": "Numéro d'appartement",
       "type": "Type",
       "address": "Adresse",
@@ -1622,7 +1628,28 @@
       "information": "Informations",
       "name": "Nom",
       "joinedAt": "Rejoint le",
-      "noMembers": "Aucun membre"
+      "noMembers": "Aucun membre",
+      "joinRequests": {
+        "title": "Demandes de rejoindre",
+        "empty": "Aucune demande en attente",
+        "requestToJoin": "Demander à rejoindre",
+        "pendingRequest": "Demande en attente",
+        "waitingApproval": "En attente d'approbation",
+        "approve": "Approuver",
+        "reject": "Rejeter",
+        "requestedBy": "Demandé par",
+        "requestedAt": "Demandé le",
+        "message": "Message",
+        "availableUnits": "Logements disponibles",
+        "joinUnit": "Rejoindre un logement",
+        "selectUnit": "Sélectionnez un logement",
+        "createRequest": "Créer une demande",
+        "requestCreated": "Demande créée avec succès",
+        "requestApproved": "Demande approuvée",
+        "requestRejected": "Demande rejetée",
+        "userAddedDirectly": "Vous avez été ajouté directement au logement (logement vide)",
+        "close": "Fermer"
+      }
     }
   },
   "notifications": {
@@ -2098,26 +2125,51 @@
       "admin": "Administrateur",
       "member": "Membre"
     },
+    "types": {
+      "label": "Type",
+      "FLAT": "Appartement",
+      "GARAGE": "Garage",
+      "PARKING": "Place de parking"
+    },
+    "residenceRoles": {
+      "none": "Aucun",
+      "PROPRIETAIRE": "Propriétaire",
+      "BAILLEUR": "Bailleur",
+      "MANAGER": "Gestionnaire",
+      "TENANT": "Locataire"
+    },
+    "updateResidenceRole": "Mettre à jour le rôle de résidence",
+    "residenceRoleUpdated": "Rôle de résidence mis à jour avec succès",
+    "residenceRoleError": "Erreur lors de la mise à jour du rôle de résidence",
     "editUnit": "Modifier le logement",
-    "name": "Nom",
     "namePlaceholder": "Nom du logement",
-    "loadError": "Erreur lors du chargement du logement",
-    "updated": "Logement \"{{name}}\" modifié avec succès",
-    "updateError": "Erreur lors de la modification du logement",
-    "created": "Logement \"{{name}}\" créé avec succès",
-    "createError": "Erreur lors de la création du logement",
-        "view": "Voir",
-        "information": "Informations",
-        "loading": "Chargement...",
-        "back": "Retour",
-        "reservations": {
-          "title": "Réservations du logement",
-          "view": "Voir les réservations",
-          "empty": "Aucune réservation pour ce logement",
-          "loadError": "Erreur lors du chargement des réservations"
-        },
-        "calendar": {
-          "download": "Télécharger le calendrier"
-        }
-      }
+    "view": "Voir",
+    "reservations": {
+      "title": "Réservations du logement",
+      "view": "Voir les réservations",
+      "empty": "Aucune réservation pour ce logement",
+      "loadError": "Erreur lors du chargement des réservations"
+    },
+    "calendar": {
+      "download": "Télécharger le calendrier"
+    },
+    "relatedParkingGarages": {
+      "title": "Parkings et garages associés",
+      "empty": "Aucun parking ou garage associé"
     }
+  },
+  "directory": {
+    "title": "Répertoire des logements",
+    "filters": {
+      "type": "Type",
+      "name": "Nom du logement",
+      "namePlaceholder": "Rechercher par nom...",
+      "user": "Utilisateur",
+      "user.all": "Tous les utilisateurs",
+      "type.all": "Tous les types"
+    },
+    "members": "Membres",
+    "noMembers": "Aucun membre",
+    "noUnits": "Aucun logement trouvé"
+  }
+}

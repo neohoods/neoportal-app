@@ -79,6 +79,7 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
 
   protected openMore = false;
   protected openSpacesDropdown = false;
+  protected openUnitsDropdown = false;
 
   mobile = false;
 
@@ -136,6 +137,24 @@ export class AdminLayoutComponent extends TuiPortals implements OnInit {
 
   protected onSpacesActiveZone(active: boolean): void {
     this.openSpacesDropdown = active && this.openSpacesDropdown;
+  }
+
+  protected onClickUnitsDropdown(): void {
+    this.openUnitsDropdown = !this.openUnitsDropdown;
+  }
+
+  protected closeUnitsDropdown(): void {
+    this.openUnitsDropdown = false;
+  }
+
+  protected onUnitsObscured(obscured: boolean): void {
+    if (obscured) {
+      this.openUnitsDropdown = false;
+    }
+  }
+
+  protected onUnitsActiveZone(active: boolean): void {
+    this.openUnitsDropdown = active && this.openUnitsDropdown;
   }
 
   navigateTo(path: string) {

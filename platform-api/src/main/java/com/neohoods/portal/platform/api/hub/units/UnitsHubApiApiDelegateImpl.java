@@ -1,33 +1,37 @@
 package com.neohoods.portal.platform.api.hub.units;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.UnitsHubApiApiDelegate;
+import com.neohoods.portal.platform.entities.UnitTypeForEntity;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
+import com.neohoods.portal.platform.model.CreateJoinRequestRequest;
 import com.neohoods.portal.platform.model.InviteUserRequest;
+import com.neohoods.portal.platform.model.PaginatedReservations;
+import com.neohoods.portal.platform.model.Reservation;
 import com.neohoods.portal.platform.model.Unit;
 import com.neohoods.portal.platform.model.UnitInvitation;
+import com.neohoods.portal.platform.model.UnitJoinRequest;
 import com.neohoods.portal.platform.model.UnitMember;
 import com.neohoods.portal.platform.services.UnitInvitationService;
+import com.neohoods.portal.platform.services.UnitJoinRequestService;
 import com.neohoods.portal.platform.services.UnitsService;
+import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.UnitCalendarService;
-import com.neohoods.portal.platform.model.Reservation;
-import com.neohoods.portal.platform.model.PaginatedReservations;
-import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +44,7 @@ import reactor.core.publisher.Mono;
 public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
     private final UnitsService unitsService;
     private final UnitInvitationService invitationService;
+    private final UnitJoinRequestService joinRequestService;
     private final ReservationsService reservationsService;
     private final UnitCalendarService unitCalendarService;
 
@@ -68,9 +73,15 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
     public Mono<ResponseEntity<Unit>> getUnit(UUID unitId, ServerWebExchange exchange) {
         return getCurrentUserId(exchange)
                 .flatMap(userId -> {
-                    // Verify user is member of unit
-                    if (!unitsService.isUserMemberOfUnit(userId, unitId)) {
-                        return Mono.error(new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT, "unitId", unitId.toString()));
+                    // Verify user is member of unit OR has a pending join request
+                    boolean isMember = unitsService.isUserMemberOfUnit(userId, unitId);
+                    if (!isMember) {
+                        // Check if user has a pending join request for this unit
+                        boolean hasPendingRequest = joinRequestService.hasPendingRequestForUnit(userId, unitId);
+                        if (!hasPendingRequest) {
+                            return Mono.error(new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT, "unitId",
+                                    unitId.toString()));
+                        }
                     }
                     return unitsService.getUnitById(unitId);
                 })
@@ -85,7 +96,8 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<UnitInvitation>> inviteUser(UUID unitId, Mono<InviteUserRequest> inviteUserRequest, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<UnitInvitation>> inviteUser(UUID unitId, Mono<InviteUserRequest> inviteUserRequest,
+            ServerWebExchange exchange) {
         return getCurrentUserId(exchange)
                 .flatMap(currentUserId -> inviteUserRequest.flatMap(request -> {
                     UUID userId = request.getUserId();
@@ -116,11 +128,13 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
                     // Find pending invitation for this user in this unit
                     return invitationService.getPendingInvitationsForUnit(unitId)
                             .filter(inv -> {
-                                UUID invitedUserId = inv.getInvitedUserId() != null ? inv.getInvitedUserId().get() : null;
+                                UUID invitedUserId = inv.getInvitedUserId() != null ? inv.getInvitedUserId().get()
+                                        : null;
                                 return invitedUserId != null && invitedUserId.equals(userId);
                             })
                             .next()
-                            .switchIfEmpty(Mono.error(new CodedErrorException(CodedError.UNIT_INVITATION_NOT_FOUND, "userId", userId.toString())))
+                            .switchIfEmpty(Mono.error(new CodedErrorException(CodedError.UNIT_INVITATION_NOT_FOUND,
+                                    "userId", userId.toString())))
                             .flatMap(inv -> invitationService.approveInvitation(inv.getId(), currentUserId))
                             .map(member -> {
                                 UnitMember apiMember = new UnitMember();
@@ -258,33 +272,35 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
                 });
     }
 
-    // Note: These methods will be added to the interface when OpenAPI is regenerated
+    // Note: These methods will be added to the interface when OpenAPI is
+    // regenerated
     // For now, we implement them here and they'll be available after regeneration
-    
+
     public Mono<ResponseEntity<PaginatedReservations>> getUnitReservations(
             UUID unitId, Integer page, Integer size, ServerWebExchange exchange) {
         return getCurrentUserId(exchange)
                 .flatMap(userId -> {
                     // Verify user is member of unit
                     if (!unitsService.isUserMemberOfUnit(userId, unitId)) {
-                        return Mono.error(new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT, "unitId", unitId.toString()));
+                        return Mono.error(new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT, "unitId",
+                                unitId.toString()));
                     }
-                    
+
                     Pageable pageable = PageRequest.of(page != null ? page : 0, size != null ? size : 20);
                     Page<ReservationEntity> pageResult = reservationsService.getReservationsByUnit(unitId, pageable);
-                    
+
                     // Convert to API models
                     List<Reservation> reservations = pageResult.getContent().stream()
                             .map(this::convertToApiModel)
                             .collect(Collectors.toList());
-                    
+
                     PaginatedReservations response = PaginatedReservations.builder()
                             .content(reservations)
                             .totalElements(BigDecimal.valueOf(pageResult.getTotalElements()))
                             .number(pageResult.getNumber())
                             .size(pageResult.getSize())
                             .build();
-                    
+
                     return Mono.just(ResponseEntity.ok(response));
                 })
                 .onErrorResume(e -> {
@@ -305,9 +321,10 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
                 .flatMap(userId -> {
                     // Verify user is member of unit
                     if (!unitsService.isUserMemberOfUnit(userId, unitId)) {
-                        return Mono.error(new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT, "unitId", unitId.toString()));
+                        return Mono.error(new CodedErrorException(CodedError.USER_NOT_MEMBER_OF_UNIT, "unitId",
+                                unitId.toString()));
                     }
-                    
+
                     String icsContent = unitCalendarService.generateICSForUnit(unitId);
                     return Mono.just(ResponseEntity.ok()
                             .contentType(MediaType.parseMediaType("text/calendar"))
@@ -336,26 +353,31 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
                 .status(convertEntityStatusToApiStatus(entity.getStatus()))
                 .totalPrice(entity.getTotalPrice().floatValue())
                 .currency(entity.getSpace().getCurrency())
-                .cleaningFee(entity.getSpace().getCleaningFee() != null 
-                        ? entity.getSpace().getCleaningFee().floatValue() : null)
-                .deposit(entity.getSpace().getDeposit() != null 
-                        ? entity.getSpace().getDeposit().floatValue() : null)
-                .platformFeeAmount(entity.getPlatformFeeAmount() != null 
-                        ? entity.getPlatformFeeAmount().floatValue() : null)
-                .platformFixedFeeAmount(entity.getPlatformFixedFeeAmount() != null 
-                        ? entity.getPlatformFixedFeeAmount().floatValue() : null)
+                .cleaningFee(entity.getSpace().getCleaningFee() != null
+                        ? entity.getSpace().getCleaningFee().floatValue()
+                        : null)
+                .deposit(entity.getSpace().getDeposit() != null
+                        ? entity.getSpace().getDeposit().floatValue()
+                        : null)
+                .platformFeeAmount(entity.getPlatformFeeAmount() != null
+                        ? entity.getPlatformFeeAmount().floatValue()
+                        : null)
+                .platformFixedFeeAmount(entity.getPlatformFixedFeeAmount() != null
+                        ? entity.getPlatformFixedFeeAmount().floatValue()
+                        : null)
                 .stripePaymentIntentId(entity.getStripePaymentIntentId())
                 .stripeSessionId(entity.getStripeSessionId())
                 .paymentExpiresAt(entity.getPaymentExpiresAt() != null
-                        ? entity.getPaymentExpiresAt().atOffset(java.time.ZoneOffset.UTC) : null)
+                        ? entity.getPaymentExpiresAt().atOffset(java.time.ZoneOffset.UTC)
+                        : null)
                 .createdAt(entity.getCreatedAt().atOffset(java.time.ZoneOffset.UTC))
                 .updatedAt(entity.getUpdatedAt().atOffset(java.time.ZoneOffset.UTC));
-        
+
         // Add unitId if present
         if (entity.getUnit() != null) {
             builder.unitId(entity.getUnit().getId());
         }
-        
+
         return builder.build();
     }
 
@@ -372,5 +394,191 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
             case REFUNDED -> com.neohoods.portal.platform.model.ReservationStatus.REFUNDED;
         };
     }
-}
 
+    @Override
+    public Mono<ResponseEntity<com.neohoods.portal.platform.model.PaginatedUnits>> getUnitsDirectory(
+            Integer page, Integer size, com.neohoods.portal.platform.model.UnitType type, String search, UUID userId,
+            ServerWebExchange exchange) {
+        int pageNum = page != null ? Math.max(0, page) : 0;
+        int pageSize = size != null ? size : 20;
+
+        UnitTypeForEntity unitType = null;
+        if (type != null) {
+            try {
+                unitType = UnitTypeForEntity.fromString(type.getValue());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid unit type: {}", type);
+            }
+        }
+
+        return unitsService.getUnitsDirectoryPaginated(pageNum, pageSize, unitType, search, userId)
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> {
+                    log.error("Failed to get units directory", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
+    }
+
+    public Mono<ResponseEntity<Flux<Unit>>> getRelatedParkingGarages(UUID userId, ServerWebExchange exchange) {
+        return getCurrentUserId(exchange)
+                .flatMap(currentUserId -> {
+                    // Only allow users to see their own related parking/garages
+                    if (!currentUserId.equals(userId)) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).<Flux<Unit>>build());
+                    }
+                    return unitsService.getRelatedParkingGaragesForUser(userId)
+                            .map(units -> ResponseEntity.ok(Flux.fromIterable(units)));
+                })
+                .onErrorResume(e -> {
+                    log.error("Failed to get related parking garages", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Flux<Unit>>build());
+                });
+    }
+
+    @Override
+    public Mono<ResponseEntity<UnitJoinRequest>> createJoinRequest(UUID unitId,
+            Mono<CreateJoinRequestRequest> requestBody, ServerWebExchange exchange) {
+        return getCurrentUserId(exchange)
+                .flatMap(currentUserId -> {
+                    // Handle both empty Mono, null body, and empty object body
+                    // Extract message from request body, defaulting to null if not provided
+                    return requestBody
+                            .switchIfEmpty(Mono.just(new CreateJoinRequestRequest())) // Handle empty body
+                            .flatMap(request -> {
+                                // Extract message from request
+                                String message = request != null ? request.getMessage() : null;
+
+                                // Process the join request with the extracted message
+                                com.neohoods.portal.platform.entities.UnitJoinRequestEntity joinRequest = joinRequestService
+                                        .createJoinRequest(unitId, currentUserId, message);
+
+                                // If null, user was added directly (unit was empty)
+                                if (joinRequest == null) {
+                                    // Return a special response indicating user was added directly
+                                    UnitJoinRequest response = new UnitJoinRequest();
+                                    response.setUnitId(unitId);
+                                    response.setRequestedById(currentUserId);
+                                    response.setStatus(
+                                            com.neohoods.portal.platform.model.UnitJoinRequestStatus
+                                                    .fromValue("APPROVED"));
+                                    return Mono.just(ResponseEntity.ok(response));
+                                }
+
+                                return Mono.just(ResponseEntity.ok(joinRequest.toUnitJoinRequest()));
+                            });
+                })
+                .onErrorResume(e -> {
+                    if (e instanceof CodedErrorException) {
+                        CodedErrorException ex = (CodedErrorException) e;
+                        if (ex.getError() == CodedError.UNIT_NOT_FOUND || ex.getError() == CodedError.USER_NOT_FOUND) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+                        }
+                        if (ex.getError() == CodedError.USER_ALREADY_MEMBER
+                                || ex.getError() == CodedError.INVALID_INPUT) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+                        }
+                        return Mono.error(e);
+                    }
+                    log.error("Failed to create join request", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<UnitJoinRequest>>> getJoinRequests(UUID unitId, ServerWebExchange exchange) {
+        return getCurrentUserId(exchange)
+                .flatMap(currentUserId -> {
+                    // Verify user is admin of the unit
+                    if (!unitsService.isUserAdminOfUnit(currentUserId, unitId)) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).<Flux<UnitJoinRequest>>build());
+                    }
+
+                    List<com.neohoods.portal.platform.entities.UnitJoinRequestEntity> requests = joinRequestService
+                            .getPendingRequestsForUnit(unitId);
+                    List<UnitJoinRequest> apiRequests = requests.stream()
+                            .map(com.neohoods.portal.platform.entities.UnitJoinRequestEntity::toUnitJoinRequest)
+                            .collect(Collectors.toList());
+                    return Mono.just(ResponseEntity.ok(Flux.fromIterable(apiRequests)));
+                })
+                .onErrorResume(e -> {
+                    log.error("Failed to get join requests", e);
+                    return Mono.just(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Flux<UnitJoinRequest>>build());
+                });
+    }
+
+    @Override
+    public Mono<ResponseEntity<UnitMember>> approveJoinRequest(UUID requestId, ServerWebExchange exchange) {
+        return getCurrentUserId(exchange)
+                .flatMap(currentUserId -> {
+                    com.neohoods.portal.platform.entities.UnitJoinRequestEntity request = joinRequestService
+                            .approveRequest(requestId, currentUserId);
+                    // Get the unit to find the member
+                    return unitsService.getUnitById(request.getUnit().getId())
+                            .map(unit -> {
+                                UnitMember member = unit.getMembers().stream()
+                                        .filter(m -> m.getUserId().equals(request.getRequestedBy().getId()))
+                                        .findFirst()
+                                        .orElseThrow(() -> new RuntimeException("Member not found after approval"));
+                                return ResponseEntity.ok(member);
+                            });
+                })
+                .onErrorResume(e -> {
+                    if (e instanceof CodedErrorException) {
+                        CodedErrorException ex = (CodedErrorException) e;
+                        if (ex.getError() == CodedError.UNIT_NOT_FOUND || ex.getError() == CodedError.USER_NOT_FOUND) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+                        }
+                        if (ex.getError() == CodedError.USER_NOT_ADMIN_OF_UNIT
+                                || ex.getError() == CodedError.INVALID_INPUT) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+                        }
+                        return Mono.error(e);
+                    }
+                    log.error("Failed to approve join request", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
+    }
+
+    @Override
+    public Mono<ResponseEntity<Void>> rejectJoinRequest(UUID requestId, ServerWebExchange exchange) {
+        return getCurrentUserId(exchange)
+                .flatMap(currentUserId -> {
+                    joinRequestService.rejectRequest(requestId, currentUserId);
+                    return Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).<Void>build());
+                })
+                .onErrorResume(e -> {
+                    if (e instanceof CodedErrorException) {
+                        CodedErrorException ex = (CodedErrorException) e;
+                        if (ex.getError() == CodedError.UNIT_NOT_FOUND || ex.getError() == CodedError.USER_NOT_FOUND) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).<Void>build());
+                        }
+                        if (ex.getError() == CodedError.USER_NOT_ADMIN_OF_UNIT
+                                || ex.getError() == CodedError.INVALID_INPUT) {
+                            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).<Void>build());
+                        }
+                        return Mono.error(e);
+                    }
+                    log.error("Failed to reject join request", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Void>build());
+                });
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<UnitJoinRequest>>> getMyJoinRequests(ServerWebExchange exchange) {
+        return getCurrentUserId(exchange)
+                .flatMap(currentUserId -> {
+                    List<com.neohoods.portal.platform.entities.UnitJoinRequestEntity> requests = joinRequestService
+                            .getPendingRequestsForUser(currentUserId);
+                    List<UnitJoinRequest> apiRequests = requests.stream()
+                            .map(com.neohoods.portal.platform.entities.UnitJoinRequestEntity::toUnitJoinRequest)
+                            .collect(java.util.stream.Collectors.toList());
+                    return Mono.just(ResponseEntity.ok(Flux.fromIterable(apiRequests)));
+                })
+                .onErrorResume(e -> {
+                    log.error("Failed to get my join requests", e);
+                    return Mono.just(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Flux<UnitJoinRequest>>build());
+                });
+    }
+}

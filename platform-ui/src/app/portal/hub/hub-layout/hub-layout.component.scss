@@ -11,6 +11,9 @@ main[tuiNavigationMain] {
 
 #userSettingsMenu {
     cursor: pointer;
+    position: relative;
+    z-index: 1001;
+    /* Ensure dropdown trigger is above other elements */
 }
 
 .user-avatar {
@@ -56,6 +59,9 @@ header[tuiNavigationHeader][tuiNavigationHeader] {
     min-height: 47px !important;
     max-height: 47px !important;
     transition: none !important;
+    position: relative;
+    z-index: 1000;
+    /* Ensure header and dropdowns appear above content */
 }
 
 header[tuiNavigationHeader][tuiNavigationHeader]:before {

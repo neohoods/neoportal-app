@@ -15,50 +15,54 @@ INSERT INTO users (id, username, email, password, first_name, last_name, flat_nu
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, profile_sharing_consent, is_email_verified, disabled, user_type) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', 'mia_hall', 'mia.hall@example.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Mia', 'Hall', '1111', '1111 Oak St', 'Somewhere', '12345', 'USA', '26e85b52-9b3c-4692-b9f0-3551d8e07607', '', false, true, false, 'LANDLORD');
 INSERT INTO users (id, username, email, password, first_name, last_name, flat_number, street_address, city, postal_code, country, preferred_language, avatar_url, profile_sharing_consent, is_email_verified, disabled, user_type) VALUES ('ff25a41d-a417-416c-9feb-dd61a7fcb2d6', 'qcastel', 'quentincastel86@gmail.com', '$2a$10$FZLU/ajV2PZmD9cXiZqNMuruo592lNW13uKcICG5oEBdnfYNbej1e', 'Quentin', 'Castel', '', '119 route des oriolleres', 'Mignaloux-Beauvoir', '86550', 'France', 'cfbfbd43-7f04-4722-937c-bb25332a0a34', '', true, true, false, 'ADMIN');
 
--- User Properties
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('8cf28343-7b32-4365-8c04-305f342a2cee', 'APARTMENT', 'Apartment 123');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', 'APARTMENT', 'Apartment 456');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('c4e8c95e-682b-440d-b6d5-6297f0d13633', 'GARAGE', 'Garage A');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('c5c180f1-bd25-443e-8f8a-924ddf13f971', 'APARTMENT', 'Apartment 789');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('331f5b7e-3acd-4e91-b64d-9fee522b5f31', 'COMMERCIAL', 'Office Building');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('a42d1145-cb3a-4088-a9f8-eba1310a9e80', 'COMMERCIAL', 'Shopping Mall Unit 505');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'APARTMENT', 'Apartment 909');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'PARKING', 'Parking Spot 12');
-INSERT INTO user_properties (user_id, property_type, name) VALUES ('a668f324-debb-4cf0-a543-10a8ce7ed8e2', 'APARTMENT', 'Apartment 1111');
+-- User Properties removed - concept has been replaced by Units
 
 -- Units
-INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440100', 'Appartement 808', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
-INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440101', 'Famille Castel', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
-INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440102', 'Appartement 123', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
-INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440103', 'Appartement 456', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
-INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440104', 'Appartement 789', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
-INSERT INTO units (id, name, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440105', 'Appartement 909', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440100', 'Appartement 808', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440101', 'Famille Castel', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440102', 'Appartement 123', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440103', 'Appartement 456', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440104', 'Appartement 789', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440105', 'Appartement 909', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+-- Garages for testing
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440106', 'Garage A1', 'GARAGE', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440107', 'Garage B2', 'GARAGE', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440108', 'Place Parking 12', 'PARKING', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440109', 'Place Parking 34', 'PARKING', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 
 -- Unit Members
 -- User 'me' (demo) is admin of multiple units
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440100', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', '2024-01-10 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440101', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', '2024-01-10 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440102', '8cf28343-7b32-4365-8c04-305f342a2cee', 'ADMIN', '2024-01-10 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440203', '550e8400-e29b-41d4-a716-446655440103', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'ADMIN', '2024-01-10 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440204', '550e8400-e29b-41d4-a716-446655440104', 'c5c180f1-bd25-443e-8f8a-924ddf13f971', 'ADMIN', '2024-01-10 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440205', '550e8400-e29b-41d4-a716-446655440105', '1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'ADMIN', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440100', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440101', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440102', '8cf28343-7b32-4365-8c04-305f342a2cee', 'ADMIN', 'TENANT', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440203', '550e8400-e29b-41d4-a716-446655440103', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440204', '550e8400-e29b-41d4-a716-446655440104', 'c5c180f1-bd25-443e-8f8a-924ddf13f971', 'ADMIN', 'BAILLEUR', '2024-01-10 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440205', '550e8400-e29b-41d4-a716-446655440105', '1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
 -- User 'me' is also a member of other units
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440206', '550e8400-e29b-41d4-a716-446655440102', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'MEMBER', '2024-01-11 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440207', '550e8400-e29b-41d4-a716-446655440103', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'MEMBER', '2024-01-11 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440206', '550e8400-e29b-41d4-a716-446655440102', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'MEMBER', 'TENANT', '2024-01-11 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440207', '550e8400-e29b-41d4-a716-446655440103', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'MEMBER', 'TENANT', '2024-01-11 10:00:00+00');
 -- Additional members for testing
 -- Appartement 808: add Jane Smith and Emily Davis as members
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440208', '550e8400-e29b-41d4-a716-446655440100', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'MEMBER', '2024-01-12 10:00:00+00');
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440209', '550e8400-e29b-41d4-a716-446655440100', '331f5b7e-3acd-4e91-b64d-9fee522b5f31', 'MEMBER', '2024-01-12 11:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440208', '550e8400-e29b-41d4-a716-446655440100', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'MEMBER', 'TENANT', '2024-01-12 10:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440209', '550e8400-e29b-41d4-a716-446655440100', '331f5b7e-3acd-4e91-b64d-9fee522b5f31', 'MEMBER', 'MANAGER', '2024-01-12 11:00:00+00');
 -- Famille Castel: add John Doe as member
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440210', '550e8400-e29b-41d4-a716-446655440101', '8cf28343-7b32-4365-8c04-305f342a2cee', 'MEMBER', '2024-01-12 12:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440210', '550e8400-e29b-41d4-a716-446655440101', '8cf28343-7b32-4365-8c04-305f342a2cee', 'MEMBER', 'TENANT', '2024-01-12 12:00:00+00');
 -- Appartement 789: add Bob Brown as member
-INSERT INTO unit_members (id, unit_id, user_id, role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440211', '550e8400-e29b-41d4-a716-446655440104', '593e726d-14b1-477e-967c-72bec8478a45', 'MEMBER', '2024-01-12 13:00:00+00');
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440211', '550e8400-e29b-41d4-a716-446655440104', '593e726d-14b1-477e-967c-72bec8478a45', 'MEMBER', 'TENANT', '2024-01-12 13:00:00+00');
+-- Garage and Parking members (for testing related units feature)
+-- Garage A1: owned by user 'me' (PROPRIETAIRE) - linked to Appartement 808
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440212', '550e8400-e29b-41d4-a716-446655440106', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
+-- Garage B2: owned by Jane Smith (PROPRIETAIRE) - linked to Appartement 456
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440213', '550e8400-e29b-41d4-a716-446655440107', 'c4e8c95e-682b-440d-b6d5-6297f0d13633', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
+-- Place Parking 12: owned by Ava Walker (PROPRIETAIRE) - linked to Appartement 909
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440214', '550e8400-e29b-41d4-a716-446655440108', '1968032b-4a3f-4044-bbf3-947b0c96f7a0', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
+-- Place Parking 34: owned by user 'me' (PROPRIETAIRE) - linked to Famille Castel
+INSERT INTO unit_members (id, unit_id, user_id, role, residence_role, joined_at) VALUES ('550e8400-e29b-41d4-a716-446655440215', '550e8400-e29b-41d4-a716-446655440109', 'f71c870e-9daa-4991-accd-61f3c3c14fa2', 'ADMIN', 'PROPRIETAIRE', '2024-01-10 10:00:00+00');
 
 -- Applications
-INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440001', 'BookStack', 'https://books.example.com', '/assets/applications/bookstack.png', 'Access the community knowledge base and documentation', true);
-INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440002', 'Element Matrix', 'https://chat.example.com', '/assets/applications/element.png', 'Join community discussions and real-time chat', false);
-INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440003', 'Zammad Support', 'https://support.example.com', '/assets/applications/zammad.png', 'Get help with technical issues and submit tickets', true);
+INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440002', 'Chat', 'https://chat.example.com', '/assets/applications/chat.png', 'Join community discussions and real-time chat', false);
 INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440004', 'Space', '/spaces', '/assets/applications/space.png', 'Book shared spaces and view availability', false);
+INSERT INTO applications (id, name, url, icon, help_text, disabled) VALUES ('550e8400-e29b-41d4-a716-446655440005', 'Directory', '/hub/directory', '/assets/applications/directory.png', 'Directory of the community', false);
 
 -- Community Information
 INSERT INTO infos (id, next_ag_date, rules_url) VALUES ('00000000-0000-0000-0000-000000000001', '2025-10-13 10:00:00+00', 'https://community.example.com/rules');

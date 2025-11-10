@@ -18,6 +18,12 @@ import { APICustomPageService } from './services/real-api/custom-pages.service';
 import { APIHelpService } from './services/real-api/help.service';
 import { APIInfosService } from './services/real-api/infos.service';
 import { APIProfileService } from './services/real-api/profile.service';
+import { UnitsService } from './services/units.service';
+import { MockUnitsService } from './services/mock/units.service';
+import { APIUnitsService } from './services/real-api/units.service';
+import { UsersService } from '../admin/services/users.service';
+import { MockUsersService } from '../admin/services/mock/users.service';
+import { ApiUsersService } from '../admin/services/real-api/users.service';
 
 
 export const ANNOUNCEMENTS_SERVICE_TOKEN = new InjectionToken<AnnouncementsService>(
@@ -37,6 +43,12 @@ export const APPLICATIONS_SERVICE_TOKEN = new InjectionToken<ApplicationsService
 );
 export const PROFILE_SERVICE_TOKEN = new InjectionToken<ProfileService>(
   'ProfileService',
+);
+export const UNITS_SERVICE_TOKEN = new InjectionToken<UnitsService>(
+  'UnitsService',
+);
+export const USERS_SERVICE_TOKEN = new InjectionToken<UsersService>(
+  'UsersService',
 );
 
 export const hubProviders: Provider[] = [
@@ -71,5 +83,17 @@ export const hubProviders: Provider[] = [
     useExisting: ConfigService.configuration.useMockApi
       ? MockProfileService
       : APIProfileService,
+  },
+  {
+    provide: UNITS_SERVICE_TOKEN,
+    useExisting: ConfigService.configuration.useMockApi
+      ? MockUnitsService
+      : APIUnitsService,
+  },
+  {
+    provide: USERS_SERVICE_TOKEN,
+    useExisting: ConfigService.configuration.useMockApi
+      ? MockUsersService
+      : ApiUsersService,
   },
 ];

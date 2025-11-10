@@ -51,6 +51,9 @@ neohoods:
         leafs-url: ${neohoods.portal.frontend-url}/leafs-primary-left.png
         leafs-accent-url: ${neohoods.portal.frontend-url}/leafs-accent.png
         notifications-url: ${neohoods.portal.frontend-url}/hub/settings/notifications
+    mail:
+      silent-mode: ${NEOHOODS_PORTAL_MAIL_SILENT_MODE:false}
+      whitelist: ${NEOHOODS_PORTAL_MAIL_WHITELIST:}
     cleaning:
       calendar:
         jwt-secret: ${CLEANING_CALENDAR_JWT_SECRET:change-me-in-production}

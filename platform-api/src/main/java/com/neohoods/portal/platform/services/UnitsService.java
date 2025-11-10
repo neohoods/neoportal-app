@@ -15,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.entities.UnitMemberEntity;
+import com.neohoods.portal.platform.entities.ResidenceRole;
 import com.neohoods.portal.platform.entities.UnitMemberRole;
+import com.neohoods.portal.platform.entities.UnitTypeForEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedError;
@@ -41,12 +43,13 @@ public class UnitsService {
     private final UsersRepository usersRepository;
 
     @Transactional
-    public Mono<Unit> createUnit(String name, UUID initialAdminId) {
-        log.info("Creating unit: {} with initial admin: {}", name, initialAdminId);
+    public Mono<Unit> createUnit(String name, UnitTypeForEntity type, UUID initialAdminId) {
+        log.info("Creating unit: {} of type {} with initial admin: {}", name, type, initialAdminId);
 
         UnitEntity unit = UnitEntity.builder()
                 .id(UUID.randomUUID())
                 .name(name)
+                .type(type != null ? type : UnitTypeForEntity.FLAT)
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
                 .build();
@@ -77,6 +80,7 @@ public class UnitsService {
                 .unit(savedUnit)
                 .user(admin)
                 .role(UnitMemberRole.ADMIN)
+                .residenceRole(ResidenceRole.PROPRIETAIRE) // Default to PROPRIETAIRE for admin
                 .joinedAt(OffsetDateTime.now())
                 .build();
 
@@ -154,7 +158,12 @@ public class UnitsService {
 
         // Verify addedBy is admin (skip if null for admin operations)
         if (addedBy != null && !isUserAdminOfUnit(addedBy, unitId)) {
-            throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", addedBy.toString());
+            // Check if user is global admin (ADMIN type)
+            UserEntity addedByUser = usersRepository.findById(addedBy)
+                    .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", addedBy.toString()));
+            if (addedByUser.getType() != com.neohoods.portal.platform.entities.UserType.ADMIN) {
+                throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", addedBy.toString());
+            }
         }
 
         UnitEntity unit = unitRepository.findById(unitId)
@@ -172,6 +181,7 @@ public class UnitsService {
                 .unit(unit)
                 .user(user)
                 .role(UnitMemberRole.MEMBER)
+                .residenceRole(ResidenceRole.TENANT) // Default to TENANT for new members
                 .joinedAt(OffsetDateTime.now())
                 .build();
 
@@ -410,5 +420,116 @@ public class UnitsService {
                 .build();
 
         return Mono.just(paginatedUnits);
+    }
+
+    @Transactional(readOnly = true)
+    public Mono<PaginatedUnits> getUnitsDirectoryPaginated(int page, int size, UnitTypeForEntity type, String search, UUID userId) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<UnitEntity> filteredUnits;
+
+        // Apply filters
+        if (userId != null) {
+            // Filter by user membership
+            if (type != null) {
+                filteredUnits = unitRepository.findByMembersUserIdAndType(userId, type);
+            } else {
+                filteredUnits = unitRepository.findByMembersUserId(userId);
+            }
+        } else if (type != null) {
+            // Filter by type only
+            if (search != null && !search.trim().isEmpty()) {
+                filteredUnits = unitRepository.findByTypeAndNameContainingIgnoreCase(type, search);
+            } else {
+                filteredUnits = unitRepository.findByType(type);
+            }
+        } else if (search != null && !search.trim().isEmpty()) {
+            // Filter by search only
+            filteredUnits = unitRepository.findByNameContainingIgnoreCase(search);
+        } else {
+            // No filters - get all
+            filteredUnits = unitRepository.findAll();
+        }
+
+        // Manual pagination
+        int start = page * size;
+        int end = Math.min(start + size, filteredUnits.size());
+        List<UnitEntity> pagedUnits = start < filteredUnits.size() ? filteredUnits.subList(start, end) : List.of();
+        Page<UnitEntity> pageResult = new org.springframework.data.domain.PageImpl<>(pagedUnits, pageable, filteredUnits.size());
+
+        List<Unit> units = pageResult.getContent().stream()
+                .map(UnitEntity::toUnit)
+                .collect(Collectors.toList());
+
+        PaginatedUnits paginatedUnits = PaginatedUnits.builder()
+                .content(units)
+                .totalElements((int) pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .number(pageResult.getNumber())
+                .size(pageResult.getSize())
+                .first(pageResult.isFirst())
+                .last(pageResult.isLast())
+                .numberOfElements((int) pageResult.getNumberOfElements())
+                .build();
+
+        return Mono.just(paginatedUnits);
+    }
+
+    @Transactional(readOnly = true)
+    public Mono<List<Unit>> getRelatedParkingGaragesForUser(UUID userId) {
+        UserEntity user = usersRepository.findById(userId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
+
+        // Check if user has a primary unit of type FLAT
+        if (user.getPrimaryUnit() == null || user.getPrimaryUnit().getType() != UnitTypeForEntity.FLAT) {
+            return Mono.just(List.of());
+        }
+
+        // Find GARAGE and PARKING units where user is PROPRIETAIRE
+        List<UnitMemberEntity> proprietaireMembers = unitMemberRepository.findByUserIdAndResidenceRole(
+                userId, ResidenceRole.PROPRIETAIRE);
+
+        List<Unit> relatedUnits = proprietaireMembers.stream()
+                .map(UnitMemberEntity::getUnit)
+                .filter(unit -> unit.getType() == UnitTypeForEntity.GARAGE || unit.getType() == UnitTypeForEntity.PARKING)
+                .map(UnitEntity::toUnit)
+                .collect(Collectors.toList());
+
+        return Mono.just(relatedUnits);
+    }
+
+    @Transactional
+    public Mono<UnitMember> updateMemberResidenceRole(UUID unitId, UUID memberUserId, ResidenceRole residenceRole, UUID updatedBy) {
+        log.info("Updating residence role for member {} in unit {} by {}", memberUserId, unitId, updatedBy);
+
+        // Residence role is now required
+        if (residenceRole == null) {
+            throw new CodedErrorException(CodedError.INVALID_INPUT, "residenceRole", "Residence role is required");
+        }
+
+        // Check unit exists first
+        UnitEntity unit = unitRepository.findById(unitId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+
+        // Verify updatedBy is admin (only if provided)
+        if (updatedBy != null && !isUserAdminOfUnit(updatedBy, unitId)) {
+            throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", updatedBy.toString());
+        }
+
+        UnitMemberEntity member = unitMemberRepository.findByUnitIdAndUserId(unitId, memberUserId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", memberUserId.toString()));
+
+        member.setResidenceRole(residenceRole);
+        UnitMemberEntity saved = unitMemberRepository.save(member);
+        
+        // Refresh to ensure we have the latest data
+        unitMemberRepository.flush();
+        saved = unitMemberRepository.findByUnitIdAndUserId(unitId, memberUserId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", memberUserId.toString()));
+
+        log.info("Updated residence role for member {} in unit {} to {}", memberUserId, unitId, residenceRole);
+        log.debug("Saved member residenceRole: {}", saved.getResidenceRole());
+        UnitMember result = saved.toUnitMember();
+        log.debug("Result member residenceRole: {}", result.getResidenceRole());
+        return Mono.just(result);
     }
 }

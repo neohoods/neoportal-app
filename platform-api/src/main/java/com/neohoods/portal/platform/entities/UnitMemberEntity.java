@@ -43,6 +43,11 @@ public class UnitMemberEntity {
     @Enumerated(EnumType.STRING)
     private UnitMemberRole role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "residence_role", nullable = false)
+    @Builder.Default
+    private ResidenceRole residenceRole = ResidenceRole.TENANT;
+
     @Column(name = "joined_at")
     @Builder.Default
     private OffsetDateTime joinedAt = OffsetDateTime.now();
@@ -55,6 +60,21 @@ public class UnitMemberEntity {
         if (role != null) {
             member.setRole(UnitMember.RoleEnum.fromValue(role.name()));
         }
+        // Set residenceRole (now required, uses UnitMemberResidenceRole directly)
+        // Both enums have the same names, so we can use fromValue with the enum name
+        com.neohoods.portal.platform.model.UnitMemberResidenceRole apiResidenceRole;
+        if (residenceRole != null) {
+            try {
+                apiResidenceRole = com.neohoods.portal.platform.model.UnitMemberResidenceRole.fromValue(residenceRole.name());
+            } catch (IllegalArgumentException e) {
+                // Fallback: try direct enum value match
+                apiResidenceRole = com.neohoods.portal.platform.model.UnitMemberResidenceRole.valueOf(residenceRole.name());
+            }
+        } else {
+            // Default to TENANT if somehow null (should not happen due to @Builder.Default)
+            apiResidenceRole = com.neohoods.portal.platform.model.UnitMemberResidenceRole.TENANT;
+        }
+        member.setResidenceRole(apiResidenceRole);
         return member;
     }
 }

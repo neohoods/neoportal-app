@@ -1,6 +1,7 @@
 package com.neohoods.portal.platform.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -63,7 +64,63 @@ public class MailService {
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;
 
+        @Value("${neohoods.portal.mail.silent-mode:false}")
+        private boolean mailSilentMode;
+
+        @Value("${neohoods.portal.mail.whitelist:}")
+        private String mailWhitelistString;
+
+        /**
+         * Get the mail whitelist as a list
+         */
+        private List<String> getMailWhitelist() {
+                if (mailWhitelistString == null || mailWhitelistString.trim().isEmpty()) {
+                        return List.of();
+                }
+                return Arrays.stream(mailWhitelistString.split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.toList());
+        }
+
+        /**
+         * Check if email should be sent based on silent mode and whitelist configuration
+         */
+        private boolean shouldSendEmail(String to) {
+                // If silent mode is disabled, send all emails
+                if (!mailSilentMode) {
+                        return true;
+                }
+
+                // Get whitelist
+                List<String> whitelist = getMailWhitelist();
+
+                // If silent mode is enabled but whitelist is empty, don't send any emails
+                if (whitelist.isEmpty()) {
+                        log.debug("Mail silent mode enabled with empty whitelist - blocking email to: {}", to);
+                        return false;
+                }
+
+                // Check if email is in whitelist
+                boolean isWhitelisted = whitelist.stream()
+                                .anyMatch(whitelistedEmail -> whitelistedEmail.equalsIgnoreCase(to));
+
+                if (isWhitelisted) {
+                        log.debug("Email to {} is whitelisted - allowing send", to);
+                        return true;
+                } else {
+                        log.info("Mail silent mode enabled - blocking email to: {} (not in whitelist)", to);
+                        return false;
+                }
+        }
+
         public void sendMail(String to, String subject, String htmlContent) {
+                // Check if email should be sent
+                if (!shouldSendEmail(to)) {
+                        log.info("Email blocked by silent mode: to={}, subject={}", to, subject);
+                        return;
+                }
+
                 log.info("Sending email via MailerSend to: {}, subject: {}", to, subject);
 
                 try {

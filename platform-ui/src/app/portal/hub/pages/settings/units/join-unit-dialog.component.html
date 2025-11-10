@@ -1,0 +1,126 @@
+<div class="join-unit-dialog">
+  <div class="dialog-header">
+    <h2>{{ 'settings.units.joinRequests.joinUnit' | translate }}</h2>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-container">
+    <div class="filter-group">
+      <label tuiLabel>
+        {{ 'directory.filters.type' | translate }}
+        <tui-select
+          [ngModel]="getSelectedTypeOption()"
+          (ngModelChange)="onTypeChange($event)"
+          [stringify]="stringifyType"
+          name="typeFilter"
+        >
+          {{ 'directory.filters.type' | translate }}
+          <input
+            tuiTextfieldLegacy
+            [placeholder]="'directory.filters.type' | translate"
+          />
+          <tui-data-list-wrapper
+            *tuiDataList
+            [items]="typeOptions"
+            [itemContent]="typeContentTemplate"
+          ></tui-data-list-wrapper>
+        </tui-select>
+      </label>
+      <ng-template #typeContentTemplate let-item>
+        {{ item.label | translate }}
+      </ng-template>
+    </div>
+
+    <div class="filter-group">
+      <label tuiLabel>
+        {{ 'directory.filters.name' | translate }}
+        <tui-textfield>
+          <input
+            tuiTextfield
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            [placeholder]="'directory.filters.namePlaceholder' | translate"
+            name="searchFilter"
+          />
+        </tui-textfield>
+      </label>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loadingAvailable()) {
+    <div class="loading">
+      <tui-loader size="m"></tui-loader>
+      <p>{{ 'settings.units.loading' | translate }}</p>
+    </div>
+  }
+
+  <!-- Content -->
+  @if (!loadingAvailable()) {
+    @if (availableUnits().length === 0) {
+      <div class="empty-state">
+        <p>{{ 'settings.units.joinRequests.empty' | translate }}</p>
+      </div>
+    } @else {
+      <div class="available-units-list">
+        @for (unit of availableUnits(); track unit.id || $index) {
+          <div class="available-unit-card">
+            <div class="unit-info">
+              <h4>{{ unit.name || '' }}</h4>
+              <div class="unit-meta">
+                <span>
+                  <tui-icon icon="@tui.user" size="s"></tui-icon>
+                  {{ (unit.members?.length ?? 0) }} {{ 'settings.units.members' | translate }}
+                </span>
+                @if (unit.type) {
+                  <tui-chip size="s" appearance="secondary">
+                    {{ 'units.types.' + unit.type | translate }}
+                  </tui-chip>
+                }
+              </div>
+            </div>
+            <div class="unit-actions">
+              @if (unit.id && hasPendingRequest(unit.id)) {
+                <tui-chip appearance="custom" size="s">
+                  {{ 'settings.units.joinRequests.pendingRequest' | translate }}
+                </tui-chip>
+              } @else if (unit.id) {
+                <button
+                  tuiButton
+                  size="s"
+                  appearance="primary"
+                  (click)="requestToJoinUnit(unit.id)"
+                >
+                  {{ 'settings.units.joinRequests.requestToJoin' | translate }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination-container">
+          <tui-pagination
+            [length]="totalPages()"
+            [index]="currentPage()"
+            (indexChange)="onPageChange($event)"
+          ></tui-pagination>
+        </div>
+      }
+    }
+  }
+
+  <!-- Footer -->
+  <div class="dialog-footer">
+    <button
+      tuiButton
+      size="m"
+      appearance="secondary"
+      (click)="closeDialog()"
+    >
+      {{ 'settings.units.joinRequests.close' | translate }}
+    </button>
+  </div>
+</div>

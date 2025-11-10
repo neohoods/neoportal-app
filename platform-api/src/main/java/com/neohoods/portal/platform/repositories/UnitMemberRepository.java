@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.neohoods.portal.platform.entities.UnitMemberEntity;
+import com.neohoods.portal.platform.entities.ResidenceRole;
 import com.neohoods.portal.platform.entities.UnitMemberRole;
 
 @Repository
@@ -25,7 +26,12 @@ public interface UnitMemberRepository extends JpaRepository<UnitMemberEntity, UU
     long countByUserId(UUID userId);
 
     List<UnitMemberEntity> findByUnitIdAndRole(UUID unitId, UnitMemberRole role);
+
+    List<UnitMemberEntity> findByUserIdAndResidenceRole(UUID userId, ResidenceRole role);
+
+    List<UnitMemberEntity> findByUnitIdAndResidenceRole(UUID unitId, ResidenceRole role);
 }
+
 
 
 

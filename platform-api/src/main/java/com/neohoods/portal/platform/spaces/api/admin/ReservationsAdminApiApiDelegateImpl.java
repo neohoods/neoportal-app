@@ -237,7 +237,6 @@ public class ReservationsAdminApiApiDelegateImpl implements ReservationsAdminApi
                 .postalCode(entity.getPostalCode())
                 .country(entity.getCountry())
                 .createdAt(entity.getCreatedAt())
-                .properties(new java.util.ArrayList<>())
                 .build();
     }
 

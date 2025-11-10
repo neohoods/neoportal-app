@@ -37,10 +37,6 @@ export class APIProfileService implements ProfileService {
         return {
           ...user,
           type: user.type as any,
-          properties: user.properties?.map(p => ({
-            ...p,
-            type: p.type as any
-          })) || []
         } as UIUser;
       })
     );

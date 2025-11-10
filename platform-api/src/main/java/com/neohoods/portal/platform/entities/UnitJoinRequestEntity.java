@@ -54,5 +54,21 @@ public class UnitJoinRequestEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responded_by", nullable = true)
     private UserEntity respondedBy;
+
+    public com.neohoods.portal.platform.model.UnitJoinRequest toUnitJoinRequest() {
+        com.neohoods.portal.platform.model.UnitJoinRequest request = new com.neohoods.portal.platform.model.UnitJoinRequest();
+        request.setId(id);
+        request.setUnitId(unit != null ? unit.getId() : null);
+        request.setUnit(unit != null ? unit.toUnit() : null);
+        request.setRequestedById(requestedBy != null ? requestedBy.getId() : null);
+        request.setRequestedBy(requestedBy != null ? requestedBy.toUser().build() : null);
+        request.setStatus(com.neohoods.portal.platform.model.UnitJoinRequestStatus.fromValue(status.name()));
+        request.setMessage(message);
+        request.setCreatedAt(createdAt);
+        request.setRespondedAt(respondedAt);
+        request.setRespondedById(respondedBy != null ? respondedBy.getId() : null);
+        request.setRespondedBy(respondedBy != null ? respondedBy.toUser().build() : null);
+        return request;
+    }
 }
 

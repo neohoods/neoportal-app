@@ -16,21 +16,5 @@ public interface UsersRepository extends CrudRepository<UserEntity, UUID> {
 
     UserEntity findByEmail(String email);
 
-    // Methods to fetch users with their properties using LEFT JOIN FETCH
-    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.properties WHERE u.id = :id")
-    Optional<UserEntity> findByIdWithProperties(@Param("id") UUID id);
-
-    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.properties WHERE u.username = :username")
-    Optional<UserEntity> findByUsernameWithProperties(@Param("username") String username);
-
-    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.properties WHERE u.email = :email")
-    Optional<UserEntity> findByEmailWithProperties(@Param("email") String email);
-
-    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.properties")
-    List<UserEntity> findAllWithProperties();
-
-    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.properties WHERE u.id IN :ids")
-    List<UserEntity> findAllByIdWithProperties(@Param("ids") List<UUID> ids);
-
     List<UserEntity> findByType(UserType type);
 }

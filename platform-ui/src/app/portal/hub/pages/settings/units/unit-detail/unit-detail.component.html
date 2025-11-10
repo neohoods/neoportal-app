@@ -1,20 +1,38 @@
 <div class="unit-detail-container">
   <!-- Header -->
   <div class="detail-header">
-    <button
-      tuiButton
-      appearance="flat"
-      size="m"
-      (click)="onBack()"
-      class="back-button"
-    >
-      <tui-icon icon="@tui.chevron-left"></tui-icon>
-      {{ 'settings.units.back' | translate }}
-    </button>
+    <div class="header-left">
+      <button
+        tuiButton
+        appearance="flat"
+        size="m"
+        (click)="onBack()"
+        class="back-button"
+      >
+        <tui-icon icon="@tui.chevron-left"></tui-icon>
+        {{ 'settings.units.back' | translate }}
+      </button>
 
-    <h1>
-      {{ unit()!.name || 'Logement' }}
-    </h1>
+      <h1>
+        {{ unit()?.name || 'Logement' }}
+      </h1>
+    </div>
+
+    @if (hasPendingRequest()) {
+      <tui-chip
+        appearance="custom"
+        [style.background-color]="'var(--tui-warning-fill)'"
+        [style.color]="'var(--tui-text-on-dark)'"
+        size="m"
+      >
+        <tui-icon
+          icon="@tui.clock"
+          [style.color]="'var(--tui-text-on-dark)'"
+          size="xs"
+        ></tui-icon>
+        {{ 'settings.units.joinRequests.waitingApproval' | translate }}
+      </tui-chip>
+    }
   </div>
 
   <!-- Loading State -->
@@ -42,43 +60,70 @@
       <div class="unit-info-section">
         <div class="section-header">
           <h2>{{ 'settings.units.information' | translate }}</h2>
-          <div class="section-actions">
-            <button
-              tuiButton
-              appearance="outline"
-              size="m"
-              [routerLink]="['/hub/settings/units', unit()!.id, 'reservations']"
-            >
-              <tui-icon icon="@tui.calendar"></tui-icon>
-              {{ 'units.reservations.view' | translate }}
-            </button>
-            <a
-              tuiButton
-              appearance="outline"
-              size="m"
-              [href]="'/api/hub/units/' + unit()!.id + '/calendar.ics'"
-              download
-            >
-              <tui-icon icon="@tui.download"></tui-icon>
-              {{ 'units.calendar.download' | translate }}
-            </a>
-          </div>
+          @if (!hasPendingRequest()) {
+            <div class="section-actions">
+              <button
+                tuiButton
+                appearance="outline"
+                size="m"
+                [routerLink]="['/hub/settings/units', unit()?.id, 'reservations']"
+              >
+                <tui-icon icon="@tui.calendar"></tui-icon>
+                {{ 'units.reservations.view' | translate }}
+              </button>
+              <a
+                tuiButton
+                appearance="outline"
+                size="m"
+                [href]="'/api/hub/units/' + (unit()?.id || '') + '/calendar.ics'"
+                download
+              >
+                <tui-icon icon="@tui.download"></tui-icon>
+                {{ 'units.calendar.download' | translate }}
+              </a>
+            </div>
+          }
         </div>
         <div class="info-grid">
           <div class="info-item">
             <strong>{{ 'settings.units.name' | translate }}:</strong>
-            <span>{{ unit()!.name }}</span>
+            <span>{{ unit()?.name }}</span>
           </div>
           <div class="info-item">
             <strong>{{ 'settings.units.createdAt' | translate }}:</strong>
-            <span>{{ unit()!.createdAt | date:'short' }}</span>
+            <span>{{ unit()?.createdAt | date:'short' }}</span>
           </div>
           <div class="info-item">
             <strong>{{ 'settings.units.membersCount' | translate }}:</strong>
-            <span>{{ unit()!.members.length || 0 }}</span>
+            <span>{{ unit()?.members?.length || 0 }}</span>
           </div>
+          @if (unit()?.type) {
+            <div class="info-item">
+              <strong>{{ 'units.types.label' | translate }}:</strong>
+              <span>{{ getTypeLabel(unit()?.type?.toString()) }}</span>
+            </div>
+          }
         </div>
       </div>
+
+      <!-- Related Parking/Garages Section -->
+      @if (unit()?.type === 'FLAT' && relatedParkingGarages().length > 0) {
+        <div class="related-parking-garages-section">
+          <div class="section-header">
+            <h2>{{ 'units.relatedParkingGarages.title' | translate }}</h2>
+          </div>
+          <div class="related-units-list">
+            @for (relatedUnit of relatedParkingGarages(); track relatedUnit.id) {
+              <div class="related-unit-card">
+                <a [routerLink]="['/hub/settings/units', relatedUnit.id]">
+                  <strong>{{ relatedUnit.name }}</strong>
+                  <span class="unit-type">{{ getTypeLabel(relatedUnit.type?.toString()) }}</span>
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+      }
 
       <!-- Members Section -->
       <div class="members-section">
@@ -113,9 +158,9 @@
           }
         </div>
         
-        @if (unit()!.members && unit()!.members!.length > 0) {
+        @if (unit()?.members && (unit()?.members?.length ?? 0) > 0) {
           <div class="members-list">
-            @for (member of unit()!.members; track member.userId) {
+            @for (member of unit()?.members; track member.userId) {
               <div class="member-card">
                 <div class="member-main">
                   <div class="member-avatar">
@@ -131,23 +176,89 @@
                   </div>
                   <div class="member-details">
                     <div class="member-header">
-                      <div class="member-name">
-                        <strong>{{ member.user.firstName || '' }} {{ member.user.lastName || '' }}</strong>
+                      <div class="member-name-section">
+                        <div class="member-name-row">
+                          <strong>{{ member.user.firstName || '' }} {{ member.user.lastName || '' }}</strong>
+                        </div>
                         <span class="member-email">{{ member.user.email || '' }}</span>
                         @if (member.user && member.user.type) {
                           <span class="member-type">{{ 'user.type.' + member.user.type | translate }}</span>
                         }
+
+                        <div class="member-residence-role-section">
+                          @if (isAdmin() && !isEditingResidenceRole(member) && member.residenceRole) {
+                            <div class="residence-role-display">
+                              <tui-chip
+                                appearance="secondary"
+                                size="m"
+                              >
+                                {{ getResidenceRoleLabel(member.residenceRole) }}
+                              </tui-chip>
+                              <button
+                                tuiButton
+                                appearance="ghost"
+                                size="xs"
+                                (click)="startEditingResidenceRole(member)"
+                                class="edit-residence-role-btn"
+                              >
+                                <tui-icon icon="@tui.edit-2" size="xs"></tui-icon>
+                              </button>
+                            </div>
+                          } @else if (isAdmin() && isEditingResidenceRole(member)) {
+                            <div class="residence-role-edit">
+                              <tui-textfield tuiChevron [stringify]="stringifyResidenceRole">
+                                <input
+                                  tuiSelect
+                                  [ngModel]="getResidenceRoleForMember(member)"
+                                  (ngModelChange)="updateMemberResidenceRole(member, $event)"
+                                  name="residenceRole_{{ member.userId }}"
+                                  [placeholder]="'units.updateResidenceRole' | translate"
+                                />
+                                <tui-data-list-wrapper
+                                  *tuiTextfieldDropdown
+                                  new
+                                  [items]="residenceRoleOptions"
+                                  [itemContent]="residenceRoleContentTemplate"
+                                ></tui-data-list-wrapper>
+                              </tui-textfield>
+                              <button
+                                tuiButton
+                                appearance="ghost"
+                                size="xs"
+                                (click)="cancelEditingResidenceRole()"
+                                class="cancel-edit-btn"
+                              >
+                                <tui-icon icon="@tui.x" size="xs"></tui-icon>
+                              </button>
+                            </div>
+                          } @else if (!isAdmin() && member.residenceRole) {
+                            <tui-chip
+                              appearance="secondary"
+                              size="m"
+                            >
+                              {{ getResidenceRoleLabel(member.residenceRole) }}
+                            </tui-chip>
+                          }
+                        </div>
                       </div>
-                      <div class="member-role">
-                        <span class="role-badge" [class.admin]="member.role === 'ADMIN'">
-                          {{ getRoleLabel(member.role || '') }}
-                        </span>
+                      <div class="member-header-right">
+                        @if (member.role === 'ADMIN') {
+                          <tui-chip
+                            appearance="primary"
+                            size="s"
+                          >
+                            {{ getRoleLabel(member.role || '') }}
+                          </tui-chip>
+                        }
                       </div>
                     </div>
                     <div class="member-meta">
                       <tui-icon icon="@tui.calendar" size="s"></tui-icon>
                       <span>{{ 'settings.units.joinedAt' | translate }}: {{ member.joinedAt | date:'short' }}</span>
                     </div>
+                    <ng-template #residenceRoleContentTemplate let-item>
+                      {{ item.label | translate }}
+                    </ng-template>
                     @if (isAdmin() && !isCurrentUser(member)) {
                       <div class="member-actions">
                         @if (member.role === 'ADMIN') {
@@ -193,6 +304,68 @@
           </div>
         }
       </div>
+
+      <!-- Join Requests Section (Admin only) -->
+      @if (isAdmin()) {
+        <div class="join-requests-section">
+          <div class="section-header">
+            <h2>{{ 'settings.units.joinRequests.title' | translate }}</h2>
+          </div>
+          @if (loadingJoinRequests()) {
+            <div class="loading">
+              <tui-loader size="m"></tui-loader>
+            </div>
+          } @else if (joinRequests().length === 0) {
+            <div class="empty-state">
+              <p>{{ 'settings.units.joinRequests.empty' | translate }}</p>
+            </div>
+          } @else {
+            <div class="join-requests-list">
+              @for (request of joinRequests(); track request.id) {
+                <div class="join-request-card">
+                  <div class="request-info">
+                    <div class="request-user">
+                      <strong>{{ 'settings.units.joinRequests.requestedBy' | translate }}:</strong>
+                      <span>{{ request.requestedBy?.firstName || '' }} {{ request.requestedBy?.lastName || '' }}</span>
+                      <span class="request-email">{{ request.requestedBy?.email || '' }}</span>
+                    </div>
+                    @if (request.message) {
+                      <div class="request-message">
+                        <strong>{{ 'settings.units.joinRequests.message' | translate }}:</strong>
+                        <span>{{ request.message }}</span>
+                      </div>
+                    }
+                    <div class="request-meta">
+                      <tui-icon icon="@tui.calendar" size="s"></tui-icon>
+                      <span>{{ 'settings.units.joinRequests.requestedAt' | translate }}: {{ request.createdAt | date:'short' }}</span>
+                    </div>
+                  </div>
+                  <div class="request-actions">
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="primary"
+                      (click)="approveJoinRequest(request.id)"
+                    >
+                      <tui-icon icon="@tui.check"></tui-icon>
+                      {{ 'settings.units.joinRequests.approve' | translate }}
+                    </button>
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="outline"
+                      (click)="rejectJoinRequest(request.id)"
+                    >
+                      <tui-icon icon="@tui.close"></tui-icon>
+                      {{ 'settings.units.joinRequests.reject' | translate }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 </div>

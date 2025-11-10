@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.neohoods.portal.platform.entities.PropertyEntity;
-import com.neohoods.portal.platform.entities.PropertyType;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
@@ -30,20 +28,20 @@ public class UsersService {
         private final PasswordEncoder passwordEncoder;
 
         public Mono<User> getUserById(UUID id) {
-                return Mono.justOrEmpty(usersRepository.findByIdWithProperties(id)
+                return Mono.justOrEmpty(usersRepository.findById(id)
                                 .map(UserEntity::toUser)
                                 .map(User.UserBuilder::build)
                                 .orElse(null));
         }
 
         public Flux<User> getUsers() {
-                return Flux.fromIterable(usersRepository.findAllWithProperties())
+                return Flux.fromIterable(usersRepository.findAll())
                                 .map(UserEntity::toUser)
                                 .map(User.UserBuilder::build);
         }
 
         public Flux<User> getUsersByIds(List<UUID> userIds) {
-                return Flux.fromIterable(usersRepository.findAllByIdWithProperties(userIds))
+                return Flux.fromIterable(usersRepository.findAllById(userIds))
                                 .map(UserEntity::toUser)
                                 .map(User.UserBuilder::build);
         }
@@ -51,7 +49,7 @@ public class UsersService {
         public Mono<User> updateProfile(UUID userId, User user) {
                 log.info("Updating profile for user: {}", userId);
 
-                UserEntity userEntity = usersRepository.findByIdWithProperties(userId)
+                UserEntity userEntity = usersRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
                 // Check if email is already taken by another user
@@ -83,38 +81,22 @@ public class UsersService {
                         userEntity.setType(UserType.fromOpenApiUserType(user.getType()));
                 }
 
-                // Handle properties - replace entire collection
-                if (user.getProperties() != null) {
-                        // Create new properties list
-                        List<PropertyEntity> newPropertyEntities = user.getProperties().stream()
-                                        .map(property -> PropertyEntity.builder()
-                                                        .type(PropertyType.fromOpenApiPropertyType(property.getType()))
-                                                        .name(property.getName())
-                                                        .user(userEntity)
-                                                        .build())
-                                        .collect(Collectors.toList());
-
-                        // Replace the entire collection to ensure proper cascade handling
-                        userEntity.setProperties(newPropertyEntities);
-                }
-
                 UserEntity savedEntity = usersRepository.save(userEntity);
                 log.info("Profile updated successfully for user: {}", userId);
-                // Reload the entity with properties to avoid lazy loading issues
-                UserEntity reloadedEntity = usersRepository.findByIdWithProperties(savedEntity.getId())
+                UserEntity reloadedEntity = usersRepository.findById(savedEntity.getId())
                                 .orElseThrow(() -> new RuntimeException("User not found after save"));
                 return Mono.just(reloadedEntity.toUser().build());
         }
 
         public Mono<User> getProfile(UUID userId) {
                 log.info("Get profile for user: {}", userId);
-                UserEntity userEntity = usersRepository.findByIdWithProperties(userId)
+                UserEntity userEntity = usersRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
                 return Mono.just(userEntity.toUser().build());
         }
 
         public Mono<User> saveUser(User user) {
-                UserEntity entity = user.getId() != null ? usersRepository.findByIdWithProperties(user.getId())
+                UserEntity entity = user.getId() != null ? usersRepository.findById(user.getId())
                                 .orElseThrow(() -> new RuntimeException("User not found"))
                                 : UserEntity.builder()
                                                 .id(UUID.randomUUID())
@@ -153,24 +135,12 @@ public class UsersService {
                         entity.setType(UserType.fromOpenApiUserType(user.getType()));
                 }
 
-                // Handle properties
-                if (user.getProperties() != null) {
-                        List<PropertyEntity> propertyEntities = user.getProperties().stream()
-                                        .map(property -> PropertyEntity.builder()
-                                                        .type(PropertyType.fromOpenApiPropertyType(property.getType()))
-                                                        .name(property.getName())
-                                                        .user(entity)
-                                                        .build())
-                                        .collect(Collectors.toList());
-                        entity.setProperties(propertyEntities);
-                }
-
                 UserEntity savedEntity = usersRepository.save(entity);
                 return getUserById(savedEntity.getId());
         }
 
         public Mono<Void> setUserPassword(UUID userId, String password) {
-                UserEntity user = usersRepository.findByIdWithProperties(userId)
+                UserEntity user = usersRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
                 user.setPassword(passwordEncoder.encode(password));
                 usersRepository.save(user);
@@ -180,7 +150,7 @@ public class UsersService {
         public Mono<Boolean> deleteUser(UUID userId) {
                 log.info("Deleting user: {}", userId);
 
-                Optional<UserEntity> userOpt = usersRepository.findByIdWithProperties(userId);
+                Optional<UserEntity> userOpt = usersRepository.findById(userId);
                 if (userOpt.isEmpty()) {
                         log.warn("User not found for deletion: {}", userId);
                         return Mono.just(false);

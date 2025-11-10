@@ -1,7 +1,6 @@
 import { NgForOf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import {
-  FormArray,
   FormBuilder,
   FormGroup,
   FormsModule,
@@ -16,9 +15,9 @@ import {
   TuiIcon,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiPassword } from '@taiga-ui/kit';
+import { TuiInputPhone, TuiPassword } from '@taiga-ui/kit';
 import { TuiSelectModule } from '@taiga-ui/legacy';
-import { UIProperty, UIPropertyType, UIUser, UIUserType } from '../../../../models/UIUser';
+import { UIUser, UIUserType } from '../../../../models/UIUser';
 import { USERS_SERVICE_TOKEN } from '../../admin.providers';
 import { UsersService } from '../../services/users.service';
 @Component({
@@ -34,6 +33,7 @@ import { UsersService } from '../../services/users.service';
     TuiTextfield,
     TuiIcon,
     TuiPassword,
+    TuiInputPhone,
     TuiSelectModule,
     TranslateModule
   ],
@@ -46,16 +46,10 @@ export class EditUserComponent implements OnInit {
   userId: string | null = null;
 
   userTypes = Object.values(UIUserType);
-  propertyTypes = Object.values(UIPropertyType);
 
   // Stringify function for user type select
   readonly stringifyUserType = (userType: UIUserType): string => {
     return this.translate.instant(`user.type.${userType}`);
-  };
-
-  // Stringify function for property type select
-  readonly stringifyPropertyType = (propertyType: UIPropertyType): string => {
-    return this.translate.instant(`property.type.${propertyType}`);
   };
 
   constructor(
@@ -82,12 +76,8 @@ export class EditUserComponent implements OnInit {
       isEmailVerified: [false],
       preferredLanguage: ['en'],
       avatarUrl: [''],
-      properties: this.fb.array([])
+      phoneNumber: ['']
     });
-  }
-
-  get properties(): FormArray {
-    return this.editUserForm.get('properties') as FormArray;
   }
 
   ngOnInit() {
@@ -110,39 +100,14 @@ export class EditUserComponent implements OnInit {
           disabled: user.disabled,
           isEmailVerified: user.isEmailVerified,
           preferredLanguage: user.preferredLanguage,
-          avatarUrl: user.avatarUrl
+          avatarUrl: user.avatarUrl,
+          phoneNumber: user.phone || ''
         });
-        this.setProperties(user.properties || []);
       });
     } else {
       // Add password field for new users
       this.editUserForm.addControl('password', this.fb.control('', Validators.required));
     }
-  }
-
-  createPropertyFormGroup(): FormGroup {
-    return this.fb.group({
-      name: ['', Validators.required],
-      type: [UIPropertyType.APARTMENT, Validators.required]
-    });
-  }
-
-  setProperties(properties: UIProperty[]) {
-    const propertyFormArray = this.properties;
-    propertyFormArray.clear();
-    properties.forEach(property => {
-      const propertyGroup = this.createPropertyFormGroup();
-      propertyGroup.patchValue(property);
-      propertyFormArray.push(propertyGroup);
-    });
-  }
-
-  addProperty() {
-    this.properties.push(this.createPropertyFormGroup());
-  }
-
-  removeProperty(index: number) {
-    this.properties.removeAt(index);
   }
 
   onSubmit() {
@@ -158,7 +123,6 @@ export class EditUserComponent implements OnInit {
         disabled: formValue.disabled,
         type: formValue.type,
         roles: formValue.roles,
-        properties: formValue.properties,
         flatNumber: formValue.flatNumber,
         streetAddress: formValue.streetAddress,
         city: formValue.city,
@@ -166,6 +130,7 @@ export class EditUserComponent implements OnInit {
         country: formValue.country,
         avatarUrl: formValue.avatarUrl,
         preferredLanguage: formValue.preferredLanguage,
+        phone: formValue.phoneNumber,
         createdAt: this.user.createdAt || new Date().toISOString()
       };
 

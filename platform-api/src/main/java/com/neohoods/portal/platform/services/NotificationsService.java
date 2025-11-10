@@ -202,7 +202,7 @@ public class NotificationsService {
 
         try {
             // Find all users
-            List<UserEntity> allUsers = usersRepository.findAllWithProperties();
+            List<UserEntity> allUsers = (List<UserEntity>) usersRepository.findAll();
 
             if (allUsers.isEmpty()) {
                 log.warn("No users found to notify about new announcement");

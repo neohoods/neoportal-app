@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Property, User } from '../../../../api-client';
+import { User } from '../../../../api-client';
 import { UsersAdminApiService } from '../../../../api-client/api/usersAdminApi.service';
-import { UIProperty, UIUser } from '../../../../models/UIUser';
+import { UIUser } from '../../../../models/UIUser';
 import { UsersService } from '../users.service';
 
 @Injectable({
@@ -65,10 +65,6 @@ export class ApiUsersService implements UsersService {
       roles: uiUser.roles || [],
       type: uiUser.type as any,
       createdAt: uiUser.createdAt,
-      properties: (uiUser.properties ?? []).map((property: UIProperty) => ({
-        name: property.name,
-        type: property.type as any,
-      })) as Property[],
     };
   }
 
@@ -91,10 +87,6 @@ export class ApiUsersService implements UsersService {
       type: user.type as any,
       roles: user.roles || [],
       createdAt: user.createdAt || '',
-      properties: (user.properties ?? []).map((property: Property) => ({
-        name: property.name,
-        type: property.type as any,
-      })) as UIProperty[],
     };
   }
 }

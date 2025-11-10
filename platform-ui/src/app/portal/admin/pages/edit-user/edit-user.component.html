@@ -51,6 +51,11 @@
       <input formControlName="email" type="email" tuiTextfield />
     </tui-textfield>
 
+    <tui-textfield class="form-field">
+      <label tuiLabel>{{ 'editUser.phone' | translate }}</label>
+      <input formControlName="phoneNumber" tuiInputPhone />
+    </tui-textfield>
+
     @if (!userId) {
       <tui-textfield class="form-field">
         <label tuiLabel>{{ 'editUser.password' | translate }}</label>
@@ -88,67 +93,6 @@
       <label tuiLabel>{{ 'editUser.country' | translate }}</label>
       <input formControlName="country" type="text" tuiTextfield />
     </tui-textfield>
-
-    <!-- Properties Section -->
-    <div formArrayName="properties">
-      <h3>{{ 'editUser.ownedProperties' | translate }}</h3>
-      
-      <div *ngFor="let property of properties.controls; let i = index" [formGroupName]="i" 
-           class="property-card">
-        <div class="property-header">
-          <h4>{{ 'editUser.property' | translate }} {{i + 1}}</h4>
-          <button
-            type="button"
-            tuiButton
-            size="s"
-            appearance="destructive"
-            (click)="removeProperty(i)"
-          >
-            {{ 'editUser.remove' | translate }}
-          </button>
-        </div>
-        
-        <div class="grid-two-columns">
-          <tui-textfield>
-            <label tuiLabel>{{ 'editUser.propertyName' | translate }}</label>
-            <input formControlName="name" type="text" tuiTextfield />
-          </tui-textfield>
-          
-          <tui-select
-            tuiTextfieldSize="s"
-            formControlName="type"
-            name="propertyType"
-            [stringify]="stringifyPropertyType"
-          >
-            {{ 'editUser.propertyType' | translate }}
-            <input
-              placeholder="{{ 'editUser.propertyTypePlaceholder' | translate }}"
-              tuiTextfieldLegacy
-            />
-            <tui-data-list-wrapper
-              *tuiDataList
-              [items]="propertyTypes"
-              [itemContent]="propertyTypeContent"
-            ></tui-data-list-wrapper>
-          </tui-select>
-
-          <ng-template #propertyTypeContent let-item>
-            {{ 'property.type.' + item | translate }}
-          </ng-template>
-        </div>
-      </div>
-      
-      <button
-        type="button"
-        tuiButton
-        size="m"
-        appearance="secondary"
-        (click)="addProperty()"
-        class="form-field"
-      >
-        {{ 'editUser.addProperty' | translate }}
-      </button>
-    </div>
 
     <button
       type="submit"

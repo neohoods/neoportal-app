@@ -84,17 +84,8 @@ export class ProfileCompletionCheckComponent implements OnInit, OnDestroy {
         }
         if (!user.type) {
             missing.push('type');
-        } else if (user.properties && user.properties.length === 0) {
-            if (user.type === UIUserType.OWNER) {
-                missing.push('properties');
-            } else if (user.type === UIUserType.LANDLORD) {
-                missing.push('properties');
-            } else if (user.type === UIUserType.SYNDIC) {
-                missing.push('properties');
-            } else if (user.type === UIUserType.TENANT) {
-                missing.push('properties');
-            }
         }
+        // Properties check removed - properties concept has been removed
 
         // Check address fields
         if (!user.streetAddress?.trim()) {

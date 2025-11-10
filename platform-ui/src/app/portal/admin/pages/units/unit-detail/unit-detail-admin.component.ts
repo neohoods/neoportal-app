@@ -1,24 +1,20 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiAutoColorPipe, TuiInitialsPipe, TuiButton, TuiDialogService, TuiIcon, TuiLoader, TuiNotification } from '@taiga-ui/core';
 import { type TuiStringMatcher } from '@taiga-ui/cdk';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
-import { TuiComboBox, TuiDataListWrapper, TuiFilterByInputPipe, TuiSelect, TuiChevron, TuiChip } from '@taiga-ui/kit';
-import { TuiTextfield, TuiTextfieldDropdownDirective, TuiLabel } from '@taiga-ui/core';
-import { FormsModule } from '@angular/forms';
-import { UNITS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../../admin.providers';
-import { UnitsService } from '../../../services/units.service';
-import { UsersService } from '../../../services/users.service';
-import { Unit } from '../../../../../api-client/model/unit';
-import { UnitMember } from '../../../../../api-client/model/unitMember';
-import { UIUser } from '../../../../../models/UIUser';
+import { TuiAlertService, TuiAutoColorPipe, TuiButton, TuiDialogService, TuiIcon, TuiInitialsPipe, TuiLabel, TuiLoader, TuiNotification, TuiTextfield, TuiTextfieldDropdownDirective } from '@taiga-ui/core';
+import { TUI_CONFIRM, TuiAvatar, TuiChevron, TuiChip, TuiComboBox, TuiConfirmData, TuiDataListWrapper, TuiFilterByInputPipe, TuiSelect } from '@taiga-ui/kit';
+import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
 import { UnitsAdminApiService } from '../../../../../api-client/api/unitsAdminApi.service';
 import { InviteUserRequest } from '../../../../../api-client/model/inviteUserRequest';
+import { Unit } from '../../../../../api-client/model/unit';
+import { UnitMember } from '../../../../../api-client/model/unitMember';
+import { UpdateMemberResidenceRoleRequest } from '../../../../../api-client/model/updateMemberResidenceRoleRequest';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
-import { AuthService } from '../../../../../services/auth.service';
+import { UIUser } from '../../../../../models/UIUser';
+import { UNITS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../../admin.providers';
 
 @Component({
   selector: 'app-unit-detail-admin',
@@ -44,7 +40,9 @@ import { AuthService } from '../../../../../services/auth.service';
     TuiAvatar,
     TuiInitialsPipe,
     TuiAutoColorPipe,
-    TuiChip
+    TuiChip,
+    TuiSelectModule,
+    TuiInputModule
   ],
   templateUrl: './unit-detail-admin.component.html',
   styleUrl: './unit-detail-admin.component.scss'
@@ -53,6 +51,7 @@ export class UnitDetailAdminComponent implements OnInit {
   private unitsService = inject(UNITS_SERVICE_TOKEN);
   private usersService = inject(USERS_SERVICE_TOKEN);
   private unitsAdminApi = inject(UnitsAdminApiService);
+  // unitsHubApi removed - using unitsAdminApi instead
   private authService = inject(AUTH_SERVICE_TOKEN);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -63,13 +62,30 @@ export class UnitDetailAdminComponent implements OnInit {
   unit = signal<Unit | null>(null);
   loading = signal(true);
   error: string | null = null;
-  
+
   // Member management
   availableUsers = signal<UIUser[]>([]);
   selectedUser = signal<UIUser | null>(null);
   addingMember = signal(false);
 
-  constructor() {}
+  // Track which member is being edited
+  editingResidenceRoleFor = signal<string | null>(null);
+
+  // Residence role options
+  residenceRoleOptions = [
+    { value: null, label: 'units.residenceRoles.none' },
+    { value: 'PROPRIETAIRE', label: 'units.residenceRoles.PROPRIETAIRE' },
+    { value: 'BAILLEUR', label: 'units.residenceRoles.BAILLEUR' },
+    { value: 'MANAGER', label: 'units.residenceRoles.MANAGER' },
+    { value: 'TENANT', label: 'units.residenceRoles.TENANT' },
+  ];
+
+  stringifyResidenceRole = (item: any): string => {
+    if (!item || !item.label) return '';
+    return this.translate.instant(item.label);
+  };
+
+  constructor() { }
 
   ngOnInit(): void {
     const unitId = this.route.snapshot.paramMap.get('id');
@@ -132,7 +148,7 @@ export class UnitDetailAdminComponent implements OnInit {
   addMember(): void {
     const unit = this.unit();
     const selectedUser = this.selectedUser();
-    
+
     if (!unit || !selectedUser) {
       return;
     }
@@ -277,6 +293,87 @@ export class UnitDetailAdminComponent implements OnInit {
       error: (error: any) => {
         console.error('Failed to set primary unit:', error);
         this.alerts.open(this.translate.instant('units.primaryUnitError')).subscribe();
+      }
+    });
+  }
+
+  getTypeLabel(type: any): string {
+    if (!type) return '';
+    const typeValue = typeof type === 'string' ? type : (type?.value || type?.toString() || '');
+    if (!typeValue) return '';
+    const key = `units.types.${typeValue}`;
+    return this.translate.instant(key);
+  }
+
+  getResidenceRoleLabel(role: any): string {
+    if (!role) return '';
+    // Handle both string and object (enum) cases
+    let roleValue: string;
+    if (typeof role === 'string') {
+      roleValue = role;
+    } else if (role?.value) {
+      roleValue = role.value;
+    } else if (role?.toString && role.toString() !== '[object Object]') {
+      roleValue = role.toString();
+    } else {
+      // If it's an object without proper toString, try to get the enum value
+      roleValue = Object.values(role)[0] as string || '';
+    }
+    if (!roleValue || roleValue === '[object Object]') return '';
+    const key = `units.residenceRoles.${roleValue}`;
+    return this.translate.instant(key);
+  }
+
+  getResidenceRoleForMember(member: UnitMember): string | null {
+    if (!member.residenceRole) return null;
+    const role = member.residenceRole as any;
+    const roleValue = typeof role === 'string'
+      ? role
+      : (role?.value || role?.toString() || null);
+    return roleValue;
+  }
+
+  startEditingResidenceRole(member: UnitMember): void {
+    this.editingResidenceRoleFor.set(member.userId);
+  }
+
+  cancelEditingResidenceRole(): void {
+    this.editingResidenceRoleFor.set(null);
+  }
+
+  isEditingResidenceRole(member: UnitMember): boolean {
+    return this.editingResidenceRoleFor() === member.userId;
+  }
+
+  updateMemberResidenceRole(member: UnitMember, residenceRole: any): void {
+    const unit = this.unit();
+    if (!unit) return;
+
+    // Extract value if it's an object, otherwise use the value directly
+    let roleValue: string | null = null;
+    if (residenceRole !== null && residenceRole !== undefined) {
+      if (typeof residenceRole === 'string') {
+        roleValue = residenceRole;
+      } else if (residenceRole.value !== undefined) {
+        roleValue = residenceRole.value;
+      } else {
+        roleValue = residenceRole.toString();
+      }
+    }
+
+    const request: UpdateMemberResidenceRoleRequest = {
+      residenceRole: roleValue as any,
+    };
+
+    this.unitsAdminApi.updateMemberResidenceRole(unit.id!, member.userId, request).subscribe({
+      next: () => {
+        this.alerts.open(this.translate.instant('units.residenceRoleUpdated')).subscribe();
+        this.editingResidenceRoleFor.set(null); // Hide select after update
+        this.loadUnit(unit.id!);
+      },
+      error: (error: any) => {
+        console.error('Failed to update residence role:', error);
+        this.alerts.open(this.translate.instant('units.residenceRoleError')).subscribe();
       }
     });
   }

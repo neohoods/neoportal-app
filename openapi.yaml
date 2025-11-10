@@ -476,6 +476,51 @@ paths:
                 items:
                   $ref: "#/components/schemas/Unit"
 
+  /hub/units/directory:
+    get:
+      operationId: getUnitsDirectory
+      summary: Get paginated directory of units with filters
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            default: 20
+        - name: type
+          in: query
+          description: Filter by unit type
+          schema:
+            $ref: "#/components/schemas/UnitType"
+        - name: search
+          in: query
+          description: Search by unit name
+          schema:
+            type: string
+        - name: userId
+          in: query
+          description: Filter by user membership
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Paginated list of units
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedUnits"
+
   /hub/units/{unit-id}:
     parameters:
       - name: unit-id
@@ -743,6 +788,36 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /hub/units/users/{user-id}/related-parking-garages:
+    parameters:
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getRelatedParkingGarages
+      summary: Get related parking and garages for a user
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: List of related parking and garage units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /hub/units/invitations/{invitation-id}/accept:
     parameters:
       - name: invitation-id
@@ -788,6 +863,216 @@ paths:
       responses:
         "204":
           description: Invitation rejected
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/join-request:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: createJoinRequest
+      summary: Create a join request for a unit
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJoinRequestRequest"
+      responses:
+        "200":
+          description: Join request created (or user added directly if unit is empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitJoinRequest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/{unit-id}/join-requests:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getJoinRequests
+      summary: Get pending join requests for a unit (admin only)
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: List of pending join requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnitJoinRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/join-requests/{request-id}/approve:
+    parameters:
+      - name: request-id
+        in: path
+        description: Join request ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: approveJoinRequest
+      summary: Approve a join request (admin of unit only)
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Join request approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/join-requests/{request-id}/reject:
+    parameters:
+      - name: request-id
+        in: path
+        description: Join request ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: rejectJoinRequest
+      summary: Reject a join request (admin of unit only)
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Join request rejected
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hub/units/my-join-requests:
+    get:
+      operationId: getMyJoinRequests
+      summary: Get pending join requests for the current user
+      tags:
+        - units-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: List of pending join requests for the current user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnitJoinRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/units/join-requests:
+    get:
+      operationId: getAllJoinRequests
+      summary: Get all pending join requests (admin global only)
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: List of all pending join requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnitJoinRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/units/join-requests/{request-id}/approve:
+    parameters:
+      - name: request-id
+        in: path
+        description: Join request ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: approveJoinRequestAdmin
+      summary: Approve a join request (admin global can approve any request)
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Join request approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/units/join-requests/{request-id}/reject:
+    parameters:
+      - name: request-id
+        in: path
+        description: Join request ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: rejectJoinRequestAdmin
+      summary: Reject a join request (admin global can reject any request)
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "204":
+          description: Join request rejected
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1199,6 +1484,47 @@ paths:
           description: Primary unit set successfully
         "400":
           $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/units/{unit-id}/members/{user-id}/residence-role:
+    parameters:
+      - name: unit-id
+        in: path
+        description: Unit ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user-id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateMemberResidenceRole
+      summary: Update member residence role
+      tags:
+        - units-admin-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberResidenceRoleRequest"
+      responses:
+        "200":
+          description: Member residence role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnitMember"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -4656,7 +4982,6 @@ components:
         - isEmailVerified
         - disabled
         - type
-        - properties
         - streetAddress
         - city
         - postalCode
@@ -4672,6 +4997,8 @@ components:
         username:
           type: string
         avatarUrl:
+          type: string
+        phoneNumber:
           type: string
         firstName:
           type: string
@@ -4712,10 +5039,6 @@ components:
           type: string
           format: uuid
           description: "ID of the user's primary unit (for reservations)"
-        properties:
-          type: array
-          items:
-            $ref: "#/components/schemas/Property"
 
     UserType:
       type: string
@@ -4732,27 +5055,24 @@ components:
         - PROPERTY_MANAGEMENT
       example: "OWNER"
 
-    Property:
-      type: object
-      required:
-        - type
-        - name
-      properties:
-        type:
-          $ref: "#/components/schemas/PropertyType"
-        name:
-          type: string
-          example: "Apartment 3A"
-
-    PropertyType:
+    UnitType:
       type: string
       enum:
-        - APARTMENT
+        - FLAT
         - GARAGE
         - PARKING
         - COMMERCIAL
         - OTHER
-      example: "APARTMENT"
+      example: "FLAT"
+
+    UnitMemberResidenceRole:
+      type: string
+      enum:
+        - PROPRIETAIRE
+        - BAILLEUR
+        - MANAGER
+        - TENANT
+      example: "PROPRIETAIRE"
 
     Unit:
       type: object
@@ -4768,6 +5088,8 @@ components:
           format: uuid
         name:
           type: string
+        type:
+          $ref: "#/components/schemas/UnitType"
         createdAt:
           type: string
           format: date-time
@@ -4785,6 +5107,7 @@ components:
         - userId
         - user
         - role
+        - residenceRole
         - joinedAt
       properties:
         userId:
@@ -4797,6 +5120,8 @@ components:
           enum:
             - ADMIN
             - MEMBER
+        residenceRole:
+          $ref: "#/components/schemas/UnitMemberResidenceRole"
         joinedAt:
           type: string
           format: date-time
@@ -4840,6 +5165,59 @@ components:
           format: date-time
           nullable: true
 
+    UnitJoinRequestStatus:
+      type: string
+      enum:
+        - PENDING
+        - APPROVED
+        - REJECTED
+      example: "PENDING"
+
+    UnitJoinRequest:
+      type: object
+      required:
+        - id
+        - unitId
+        - requestedById
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        unit:
+          $ref: "#/components/schemas/Unit"
+        requestedById:
+          type: string
+          format: uuid
+        requestedBy:
+          $ref: "#/components/schemas/User"
+        status:
+          $ref: "#/components/schemas/UnitJoinRequestStatus"
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        respondedAt:
+          type: string
+          format: date-time
+        respondedById:
+          type: string
+          format: uuid
+        respondedBy:
+          $ref: "#/components/schemas/User"
+
+    CreateJoinRequestRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Optional message to include with the join request
+
     UnitRequest:
       type: object
       required:
@@ -4847,6 +5225,8 @@ components:
       properties:
         name:
           type: string
+        type:
+          $ref: "#/components/schemas/UnitType"
         initialAdminId:
           type: string
           format: uuid
@@ -4859,6 +5239,14 @@ components:
           format: uuid
         email:
           type: string
+
+    UpdateMemberResidenceRoleRequest:
+      type: object
+      required:
+        - residenceRole
+      properties:
+        residenceRole:
+          $ref: "#/components/schemas/UnitMemberResidenceRole"
 
     PaginatedUnits:
       type: object
@@ -5220,6 +5608,9 @@ components:
           enum:
             - ADMIN_NEW_USER
             - NEW_ANNOUNCEMENT
+            - RESERVATION
+            - UNIT_INVITATION
+            - UNIT_JOIN_REQUEST
         alreadyRead:
           type: boolean
           example: false
