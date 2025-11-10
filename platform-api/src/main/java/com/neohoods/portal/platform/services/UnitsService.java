@@ -1,6 +1,7 @@
 package com.neohoods.portal.platform.services;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -449,6 +450,19 @@ public class UnitsService {
             // No filters - get all
             filteredUnits = unitRepository.findAll();
         }
+
+        // Sort by unit type: FLAT first, then COMMERCIAL, then GARAGE, then others
+        Map<UnitTypeForEntity, Integer> typeOrder = Map.of(
+                UnitTypeForEntity.FLAT, 1,
+                UnitTypeForEntity.COMMERCIAL, 2,
+                UnitTypeForEntity.GARAGE, 3,
+                UnitTypeForEntity.PARKING, 4,
+                UnitTypeForEntity.OTHER, 5
+        );
+        filteredUnits.sort(Comparator.comparing(
+                unit -> typeOrder.getOrDefault(unit.getType(), 99),
+                Comparator.nullsLast(Comparator.naturalOrder())
+        ));
 
         // Manual pagination
         int start = page * size;

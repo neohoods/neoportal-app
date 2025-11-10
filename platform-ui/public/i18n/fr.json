@@ -1628,7 +1628,7 @@
       "information": "Informations",
       "name": "Nom",
       "joinedAt": "Rejoint le",
-      "noMembers": "Aucun membre",
+      "noMembers": "Aucun membre référencé à ce jour",
       "joinRequests": {
         "title": "Demandes de rejoindre",
         "empty": "Aucune demande en attente",
@@ -2091,7 +2091,7 @@
     "promote": "Promouvoir admin",
     "demote": "Rétrograder",
     "joinedAt": "Rejoint le",
-    "noMembers": "Aucun membre",
+    "noMembers": "Aucun membre référencé à ce jour",
     "columns": {
       "name": "Nom",
       "membersCount": "Membres",
@@ -2169,7 +2169,7 @@
       "type.all": "Tous les types"
     },
     "members": "Membres",
-    "noMembers": "Aucun membre",
+    "noMembers": "Aucun membre référencé à ce jour",
     "noUnits": "Aucun logement trouvé"
   }
 }
