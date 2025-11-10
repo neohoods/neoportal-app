@@ -1,0 +1,40 @@
+# Node modules
+**/node_modules/
+platform-ui/node_modules/
+
+# Build artifacts
+**/target/
+**/dist/
+**/.angular/
+
+# IDE files
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Maven wrapper (not needed in container)
+.mvn/wrapper/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.envrc
+
+# Test coverage
+coverage/
+*.lcov
+

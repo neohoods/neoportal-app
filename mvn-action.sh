@@ -98,9 +98,14 @@ echo "JAVA_HOME = $JAVA_HOME"
 java -version
 
 # Execute Maven command
-# Ensure JAVA_HOME is exported and in PATH for Maven to use
-export JAVA_HOME
-export PATH="$JAVA_HOME/bin:$PATH"
+# Only export JAVA_HOME and update PATH if JAVA_HOME is set
+if [ -n "$JAVA_HOME" ]; then
+    export JAVA_HOME
+    export PATH="$JAVA_HOME/bin:$PATH"
+else
+    # If JAVA_HOME is not set, ensure it's not exported
+    unset JAVA_HOME
+fi
 mvn -ntp $*
 
 # Capture exit code
