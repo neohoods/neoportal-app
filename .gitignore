@@ -56,3 +56,6 @@ platform-api/.idea
 # Environment files
 .env
 .envrc
+
+# Maven JVM config (contains local paths, should not be committed)
+.mvn/jvm.config
