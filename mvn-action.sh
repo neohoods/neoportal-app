@@ -1,7 +1,21 @@
 #!/bin/bash
 set -e
 
-pwd
+# Don't set JAVA_HOME - let Maven use the default Java (Java 25 in qcastel/maven-release:0.0.44)
+# The maven-compiler-plugin with <release>21</release> will compile for Java 21
+# even if Maven itself runs on Java 25. This avoids the "Error loading java.security file"
+# issue that occurs when JAVA_HOME is set to Java 21 in this Docker image.
+# 
+# If JAVA_HOME is already set and valid, keep it. Otherwise, don't set it at all.
+if [ -n "$JAVA_HOME" ] && [ -d "$JAVA_HOME" ] && [ -f "$JAVA_HOME/bin/java" ]; then
+    # JAVA_HOME is already set and valid, use it
+    export PATH="$JAVA_HOME/bin:$PATH"
+    echo "Using existing JAVA_HOME: $JAVA_HOME"
+else
+    # Don't set JAVA_HOME - let Maven use system default (Java 25)
+    # This prevents the java.security file error
+    echo "Using system default Java for Maven (maven-compiler-plugin will handle Java 21 compilation)"
+fi
 
 # Start PostgreSQL if it's available and enabled
 if command -v pg_ctl &> /dev/null && [ "${USE_LOCAL_POSTGRES:-false}" = "true" ]; then
@@ -62,10 +76,12 @@ else
 fi
 
 echo "JAVA_HOME = $JAVA_HOME"
-export JAVA_HOME="/usr/lib/jvm/java-21-openjdk"
-
+java -version
 
 # Execute Maven command
+# Ensure JAVA_HOME is exported and in PATH for Maven to use
+export JAVA_HOME
+export PATH="$JAVA_HOME/bin:$PATH"
 mvn -ntp $*
 
 # Capture exit code
