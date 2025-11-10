@@ -5,15 +5,25 @@ set -e
 # The maven-compiler-plugin with <release>21</release> will compile for Java 21
 # even if Maven itself runs on Java 25. This avoids the "Error loading java.security file"
 # issue that occurs when JAVA_HOME is set to Java 21 in this Docker image.
-# 
-# If JAVA_HOME is already set and valid, keep it. Otherwise, don't set it at all.
-if [ -n "$JAVA_HOME" ] && [ -d "$JAVA_HOME" ] && [ -f "$JAVA_HOME/bin/java" ]; then
-    # JAVA_HOME is already set and valid, use it
-    export PATH="$JAVA_HOME/bin:$PATH"
-    echo "Using existing JAVA_HOME: $JAVA_HOME"
-else
-    # Don't set JAVA_HOME - let Maven use system default (Java 25)
-    # This prevents the java.security file error
+#
+# CRITICAL: Unset JAVA_HOME if it points to an invalid path (e.g., macOS path in Linux container)
+# This prevents errors like "NoSuchFileException: /Users/.../Library/Java/..."
+if [ -n "$JAVA_HOME" ]; then
+    # Check if JAVA_HOME points to a valid Java installation
+    if [ ! -d "$JAVA_HOME" ] || [ ! -f "$JAVA_HOME/bin/java" ]; then
+        # JAVA_HOME is set but invalid (e.g., macOS path in Linux container)
+        echo "WARNING: JAVA_HOME is set to invalid path: $JAVA_HOME"
+        echo "Unsetting JAVA_HOME to use system default Java"
+        unset JAVA_HOME
+    elif [ -d "$JAVA_HOME" ] && [ -f "$JAVA_HOME/bin/java" ]; then
+        # JAVA_HOME is valid, use it
+        export PATH="$JAVA_HOME/bin:$PATH"
+        echo "Using existing JAVA_HOME: $JAVA_HOME"
+    fi
+fi
+
+# If JAVA_HOME is not set or was unset, let Maven use system default
+if [ -z "$JAVA_HOME" ]; then
     echo "Using system default Java for Maven (maven-compiler-plugin will handle Java 21 compilation)"
 fi
 

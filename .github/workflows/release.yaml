@@ -46,12 +46,11 @@ jobs:
           USE_LOCAL_POSTGRES: true
         with:
           maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
-          
+
       - name: Release
         uses: qcastel/github-actions-maven-release@master
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-          JAVA_HOME: /usr/lib/jvm/java-21-openjdk/
         with:
           release-branch-name: "main"
           maven-project-folder: "platform-api/"
