@@ -2170,6 +2170,11 @@
     },
     "members": "Membres",
     "noMembers": "Aucun membre référencé à ce jour",
-    "noUnits": "Aucun logement trouvé"
+    "noUnits": "Aucun logement trouvé",
+    "role": "Rôle",
+    "email": "Email",
+    "phone": "Téléphone",
+    "showContact": "Afficher les coordonnées",
+    "hideContact": "Masquer les coordonnées"
   }
 }

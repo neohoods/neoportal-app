@@ -95,91 +95,66 @@
       gap: 0.5rem;
     }
 
-    .member-item {
+    .member-card {
+      margin-bottom: 0.5rem;
+      background-color: var(--tos-background-neutral-1);
+
+      // Remove grey bottom border from collapsed card
+      &::after {
+        display: none !important;
+      }
+
+      // Remove any bottom border from tuiCardRow
+      [tuiCardRow] {
+        border-bottom: none !important;
+
+        &::after {
+          display: none !important;
+        }
+      }
+
+      // Remove grey background/border from tui-expand
+      tui-expand {
+        border-bottom: none !important;
+        background: transparent !important;
+
+        &::after {
+          display: none !important;
+        }
+      }
+
+      // Remove bottom border from the section itself
+      section[tuiCardLarge] {
+        border-bottom: none !important;
+
+        &::after {
+          display: none !important;
+        }
+      }
+    }
+
+    .contact-info {
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px;
-      background: var(--tui-base-01);
-      border: 1px solid var(--tui-base-03);
-      border-radius: 6px;
-      transition: all 0.2s ease;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: none !important;
 
-      &:hover {
-        background: var(--tui-base-02);
-        border-color: var(--tui-base-04);
-        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-      }
-
-      .member-avatar {
-        flex-shrink: 0;
-      }
-
-      .member-content {
-        flex: 1;
-        min-width: 0;
+      [tuiTitle] {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-      }
+        gap: 0.5rem;
 
-      .member-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
+        [tuiSubtitle] {
+          font-size: 0.875rem;
+          color: var(--tui-text-02);
+        }
 
-      .member-name-section {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .member-name {
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: var(--tui-text-01);
-        line-height: 1.4;
-      }
-
-      .member-meta-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        align-items: center;
-      }
-
-      .member-type-badge {
-        font-size: 0.7rem;
-        color: var(--tui-text-02);
-        padding: 3px 8px;
-        border-radius: 6px;
-        background-color: var(--tui-base-02);
-        border: 1px solid var(--tui-base-03);
-        font-weight: 500;
-        white-space: nowrap;
-      }
-
-      .member-residence-role-badge {
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        padding: 4px 10px;
-        border-radius: 10px;
-        background-color: var(--tui-info-fill);
-        color: var(--tui-info-text);
-        border: 1px solid var(--tui-info-border);
-        white-space: nowrap;
-      }
-
-      .primary-unit-chip {
-        flex-shrink: 0;
-        margin-left: auto;
+        a {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
       }
     }
 

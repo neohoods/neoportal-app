@@ -92,50 +92,43 @@
 
         <div class="unit-members">
           <div *ngIf="unit.members && unit.members.length > 0" class="members-list">
-            <div *ngFor="let member of unit.members" class="member-item">
-              <div class="member-avatar">
-                <tui-avatar
-                  *ngIf="member.user?.avatarUrl"
-                  [src]="member.user.avatarUrl"
-                  size="m"
-                ></tui-avatar>
-                <tui-avatar
-                  *ngIf="!member.user?.avatarUrl"
-                  [src]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiInitials"
-                  [style.background]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiAutoColor"
-                  size="m"
-                ></tui-avatar>
-              </div>
-              <div class="member-content">
-                <div class="member-header">
-                  <div class="member-name-section">
-                    <span class="member-name">
-                      {{ member.user?.firstName }} {{ member.user?.lastName }}
-                    </span>
-                    @if (member.user?.phoneNumber) {
-                      <span class="member-phone">
-                        <tui-icon icon="@tui.phone" size="xs"></tui-icon>
-                        {{ member.user.phoneNumber }}
-                      </span>
-                    }
-                    <div class="member-meta-badges">
-                      <tui-chip
-                        *ngIf="member.residenceRole"
-                        appearance="custom"
-                        [style.background-color]="getResidenceRoleLabel(member.residenceRole) | tuiAutoColor"
-                        size="s"
-                      >
+            <section
+              *ngFor="let member of unit.members"
+              tuiCardLarge="compact"
+              [tuiCardCollapsed]="getCollapsedSignal(member.user?.id || '')()"
+              class="member-card"
+            >
+              <header tuiHeader="body-m">
+                <hgroup tuiTitle>
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <tui-avatar
+                      *ngIf="member.user?.avatarUrl"
+                      [src]="member.user.avatarUrl"
+                      size="m"
+                    ></tui-avatar>
+                    <tui-avatar
+                      *ngIf="!member.user?.avatarUrl"
+                      [src]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiInitials"
+                      [style.background]="(member.user?.firstName || '') + ' ' + (member.user?.lastName || '') | tuiAutoColor"
+                      size="m"
+                    ></tui-avatar>
+                    <div>
+                      <h2 style="margin: 0;">
+                        {{ member.user?.firstName }} {{ member.user?.lastName }}
+                      </h2>
+                      <p tuiSubtitle *ngIf="member.residenceRole" style="margin: 0;">
                         {{ getResidenceRoleLabel(member.residenceRole) }}
-                      </tui-chip>
+                      </p>
                     </div>
                   </div>
+                </hgroup>
+                <aside tuiAccessories>
                   <tui-chip
                     *ngIf="isPrimaryUnit(unit, member)"
                     appearance="custom"
                     [style.background-color]="'var(--tui-background-accent-2)'"
                     [style.color]="'var(--tos-text-primary-on-accent-1)'"
                     size="s"
-                    class="primary-unit-chip"
                   >
                     <tui-icon
                       icon="@tui.user-star"
@@ -144,9 +137,58 @@
                     ></tui-icon>
                     {{ 'units.isPrimaryUnit' | translate }}
                   </tui-chip>
+                </aside>
+              </header>
+              <div tuiCardRow>
+                <div tuiTitle *ngIf="member.residenceRole">
+                  <div tuiSubtitle>{{ 'directory.role' | translate }}</div>
+                  <div>
+                    <tui-chip
+                      appearance="custom"
+                      [style.background-color]="getResidenceRoleLabel(member.residenceRole) | tuiAutoColor"
+                      size="s"
+                    >
+                      {{ getResidenceRoleLabel(member.residenceRole) }}
+                    </tui-chip>
+                  </div>
                 </div>
+                <button
+                  *ngIf="canShowContactInfo(member)"
+                  appearance="secondary"
+                  size="s"
+                  tuiIconButton
+                  type="button"
+                  [tuiChevron]="!getCollapsedSignal(member.user?.id || '')()"
+                  (click)="toggleCollapsed(member.user?.id || '')"
+                >
+                  {{ (getCollapsedSignal(member.user?.id || '')() ? 'directory.showContact' : 'directory.hideContact') | translate }}
+                </button>
               </div>
-            </div>
+              <tui-expand *ngIf="canShowContactInfo(member)" [expanded]="!getCollapsedSignal(member.user?.id || '')()">
+                <div class="contact-info">
+                  <div tuiTitle *ngIf="member.user?.email">
+                    <div tuiSubtitle>{{ 'directory.email' | translate }}</div>
+                    <a
+                      [href]="'mailto:' + member.user.email"
+                      tuiLink
+                    >
+                      <tui-icon icon="@tui.mail" size="s"></tui-icon>
+                      {{ member.user.email }}
+                    </a>
+                  </div>
+                  <div tuiTitle *ngIf="member.user?.phone">
+                    <div tuiSubtitle>{{ 'directory.phone' | translate }}</div>
+                    <a
+                      [href]="'tel:' + member.user.phone"
+                      tuiLink
+                    >
+                      <tui-icon icon="@tui.phone" size="s"></tui-icon>
+                      {{ member.user.phone }}
+                    </a>
+                  </div>
+                </div>
+              </tui-expand>
+            </section>
           </div>
           <div *ngIf="!unit.members || unit.members.length === 0" class="no-members">
             {{ 'directory.noMembers' | translate }}

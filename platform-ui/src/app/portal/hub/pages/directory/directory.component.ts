@@ -10,6 +10,7 @@ import {
   TuiLabel,
   TuiLoader,
   TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -18,8 +19,12 @@ import {
   TuiDataListWrapper,
   TuiFilterByInputPipe,
   TuiPagination,
+  TuiChevron,
 } from '@taiga-ui/kit';
 import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
+import { TuiCard, TuiHeader } from '@taiga-ui/layout';
+import { TuiButton, TuiLink } from '@taiga-ui/core';
+import { TuiExpand } from '@taiga-ui/experimental';
 import { UNITS_SERVICE_TOKEN } from '../../hub.provider';
 import { UnitsService } from '../../services/units.service';
 // Types will be generated from OpenAPI - using temporary types for now
@@ -58,6 +63,13 @@ type UnitType = 'FLAT' | 'GARAGE' | 'PARKING' | null;
     TuiAvatar,
     TuiAutoColorPipe,
     TuiInitialsPipe,
+    TuiCard,
+    TuiHeader,
+    TuiTitle,
+    TuiButton,
+    TuiLink,
+    TuiChevron,
+    TuiExpand,
   ],
   templateUrl: './directory.component.html',
   styleUrl: './directory.component.scss',
@@ -160,6 +172,16 @@ export class DirectoryComponent implements OnInit {
           this.totalPages.set(paginated.totalPages || 0);
           this.currentPage.set(paginated.number || 0);
           this.totalElements.set(paginated.totalElements || 0);
+          
+          // Initialize collapsed signals for all members
+          (paginated.content || []).forEach((unit: Unit) => {
+            (unit.members || []).forEach((member: any) => {
+              if (member.user?.id && !this.collapsedStates.has(member.user.id)) {
+                this.collapsedStates.set(member.user.id, signal(true));
+              }
+            });
+          });
+          
           this.loading.set(false);
         },
         error: (error) => {
@@ -235,6 +257,25 @@ export class DirectoryComponent implements OnInit {
       return false;
     }
     return member.user.primaryUnitId === unit.id;
+  }
+
+  // Track collapsed state for each member using signals
+  collapsedStates = new Map<string, ReturnType<typeof signal<boolean>>>();
+
+  getCollapsedSignal(memberId: string): ReturnType<typeof signal<boolean>> {
+    if (!this.collapsedStates.has(memberId)) {
+      this.collapsedStates.set(memberId, signal(true));
+    }
+    return this.collapsedStates.get(memberId)!;
+  }
+
+  toggleCollapsed(memberId: string): void {
+    const collapsedSignal = this.getCollapsedSignal(memberId);
+    collapsedSignal.set(!collapsedSignal());
+  }
+
+  canShowContactInfo(member: any): boolean {
+    return member?.user?.profileSharingConsent === true;
   }
 }
 

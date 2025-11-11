@@ -53,9 +53,18 @@ public class UnitMemberEntity {
     private OffsetDateTime joinedAt = OffsetDateTime.now();
 
     public UnitMember toUnitMember() {
+        // Build user object
+        com.neohoods.portal.platform.model.User userModel = user.toUser().build();
+        
+        // Hide email and phoneNumber if profileSharingConsent is false
+        if (!user.isProfileSharingConsent()) {
+            userModel.setEmail(null);
+            userModel.setPhoneNumber(null);
+        }
+        
         UnitMember member = new UnitMember()
                 .userId(user.getId())
-                .user(user.toUser().build())
+                .user(userModel)
                 .joinedAt(joinedAt);
         if (role != null) {
             member.setRole(UnitMember.RoleEnum.fromValue(role.name()));
