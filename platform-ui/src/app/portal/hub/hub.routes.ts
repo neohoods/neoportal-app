@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { ProfileCompletionGuard } from '../../guards/profile-completion.guard';
 import { getGlobalProviders } from '../../global.provider';
 import HubLayoutComponent from './hub-layout/hub-layout.component';
 import { hubProviders } from './hub.provider';
@@ -14,11 +15,12 @@ export const COMMUNITY_ROUTES: Routes = [
     providers: [...hubProviders, ...getGlobalProviders()],
     children: [
       { path: '', redirectTo: 'wall', pathMatch: 'full' },
-      { path: 'help-center', component: HelpCenterComponent },
-      { path: 'page/:ref', component: CustomPageComponent },
+      { path: 'help-center', component: HelpCenterComponent, canActivate: [ProfileCompletionGuard] },
+      { path: 'page/:ref', component: CustomPageComponent, canActivate: [ProfileCompletionGuard] },
       {
         path: 'wall',
         component: WallComponent,
+        canActivate: [ProfileCompletionGuard],
       },
       {
         path: 'settings',
@@ -33,6 +35,7 @@ export const COMMUNITY_ROUTES: Routes = [
           import('./pages/directory/directory.component').then(
             (m) => m.DirectoryComponent,
           ),
+        canActivate: [ProfileCompletionGuard],
       },
     ],
   },

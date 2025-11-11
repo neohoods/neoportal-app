@@ -1,5 +1,11 @@
 <div class="profile-container">
 
+  @if (profileIncomplete) {
+    <tui-notification appearance="warning" class="profile-warning">
+      {{ 'profile.completionRequired' | translate }}
+    </tui-notification>
+  }
+
   <form [formGroup]="profileForm" (ngSubmit)="onSave()">
     <h1>{{ 'profile.editTitle' | translate }}</h1>
 
@@ -40,15 +46,23 @@
       </div>
     </div>
     
-    <tui-textfield tuiChevron [stringify]="stringifyUserType">
-      <input tuiSelect formControlName="type" name="type" />
+    @if (!user.type) {
+      <tui-textfield tuiChevron [stringify]="stringifyUserType" class="form-field">
+        <label tuiLabel>{{ 'profile.type' | translate }}</label>
+        <input tuiSelect formControlName="type" name="type" />
 
-      <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="userTypes" [itemContent]="userTypeContent" />
-    </tui-textfield>
+        <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="userTypes" [itemContent]="userTypeContent" />
+      </tui-textfield>
 
-    <ng-template #userTypeContent let-item>
-      {{ 'user.type.' + item | translate }}
-    </ng-template>
+      <ng-template #userTypeContent let-item>
+        {{ 'user.type.' + item | translate }}
+      </ng-template>
+    } @else {
+      <tui-textfield class="form-field">
+        <label tuiLabel>{{ 'profile.type' | translate }}</label>
+        <input [value]="'user.type.' + user.type | translate" tuiTextfield readonly />
+      </tui-textfield>
+    }
 
 
     <tui-textfield class="form-field">
@@ -59,7 +73,7 @@
 
     <tui-textfield class="form-field">
       <label tuiLabel for="phone">{{ 'profile.phone' | translate }}</label>
-      <input id="phone" formControlName="phone" tuiInputPhone />
+      <input id="phone" formControlName="phone" tuiInputPhone [mask]="'+33 # ## ## ## ##'" />
     </tui-textfield>
 
     @if (!isSSOUser) {

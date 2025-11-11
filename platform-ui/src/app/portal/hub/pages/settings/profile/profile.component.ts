@@ -7,7 +7,7 @@ import {
   Validators
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiTextfield } from '@taiga-ui/core';
+import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiNotification, TuiTextfield } from '@taiga-ui/core';
 import { TuiChevron, TuiDataListWrapper, TuiDataListWrapperComponent, TuiInputPhone, TuiPassword, TuiSelect, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
 import { AUTH_SERVICE_TOKEN } from '../../../../../global.provider';
 import { UIUser, UIUserType } from '../../../../../models/UIUser';
@@ -32,6 +32,7 @@ interface Character {
     TuiSwitch,
     TuiTooltip,
     TuiHint,
+    TuiNotification,
     TuiDataListWrapperComponent,
     TranslateModule,
     FormsModule,
@@ -89,6 +90,9 @@ export class ProfileComponent implements OnInit {
   }
 
 
+  profileIncomplete = false;
+  missingFields: string[] = [];
+
   async ngOnInit(): Promise<void> {
     // Load configuration first
     await this.configService.loadConfig();
@@ -96,6 +100,53 @@ export class ProfileComponent implements OnInit {
 
     // Load profile after config is loaded
     this.loadProfile();
+    
+    // Check if profile is complete
+    this.checkProfileCompletion();
+  }
+
+  private checkProfileCompletion(): void {
+    const user = this.authService.getCurrentUserInfo()?.user;
+    if (!user) {
+      return;
+    }
+
+    this.missingFields = this.getMissingFields(user);
+    this.profileIncomplete = this.missingFields.length > 0;
+  }
+
+  private getMissingFields(user: UIUser): string[] {
+    const missing: string[] = [];
+
+    // Check required fields
+    if (!user.firstName?.trim()) {
+      missing.push('firstName');
+    }
+    if (!user.lastName?.trim()) {
+      missing.push('lastName');
+    }
+    if (!user.email?.trim()) {
+      missing.push('email');
+    }
+    if (!user.type) {
+      missing.push('type');
+    }
+
+    // Check address fields
+    if (!user.streetAddress?.trim()) {
+      missing.push('streetAddress');
+    }
+    if (!user.city?.trim()) {
+      missing.push('city');
+    }
+    if (!user.postalCode?.trim()) {
+      missing.push('postalCode');
+    }
+    if (!user.country?.trim()) {
+      missing.push('country');
+    }
+
+    return missing;
   }
 
   // Load initial profile data
@@ -142,7 +193,10 @@ export class ProfileComponent implements OnInit {
       this.user.lastName = formValue.lastName;
       this.user.email = formValue.email;
       this.user.phone = formValue.phone;
-      this.user.type = formValue.type;
+      // Only update type if it's not already set (first time setting it)
+      if (!this.user.type) {
+        this.user.type = formValue.type || null;
+      }
       this.user.flatNumber = formValue.flatNumber;
       this.user.streetAddress = formValue.streetAddress;
       this.user.city = formValue.city;
@@ -162,6 +216,9 @@ export class ProfileComponent implements OnInit {
             appearance: 'positive',
           })
           .subscribe();
+        // Reload profile and check completion
+        this.loadProfile();
+        this.checkProfileCompletion();
       });
     }
   }

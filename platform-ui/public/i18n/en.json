@@ -1078,6 +1078,7 @@
       "ADMIN": "Administrator",
       "OWNER": "Owner",
       "LANDLORD": "Landlord",
+      "MODERATOR": "Moderator",
       "TENANT": "Tenant",
       "SYNDIC": "Property Manager",
       "EXTERNAL": "External User",

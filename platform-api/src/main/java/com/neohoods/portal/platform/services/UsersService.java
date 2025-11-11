@@ -76,8 +76,8 @@ public class UsersService {
                 userEntity.setAvatarUrl(user.getAvatarUrl());
                 userEntity.setProfileSharingConsent(user.getProfileSharingConsent());
 
-                // Handle user type
-                if (user.getType() != null) {
+                // Handle user type - only set if not already defined (immutable once set)
+                if (user.getType() != null && userEntity.getType() == null) {
                         userEntity.setType(UserType.fromOpenApiUserType(user.getType()));
                 }
 

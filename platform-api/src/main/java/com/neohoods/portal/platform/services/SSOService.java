@@ -2,8 +2,13 @@ package com.neohoods.portal.platform.services;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +17,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.neohoods.portal.platform.entities.NotificationSettingsEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
@@ -48,35 +55,50 @@ public class SSOService {
 
     @Value("${neohoods.portal.frontend-url}")
     private String frontendUrl;
-    
+
     @Value("${neohoods.portal.sso.enabled:false}")
     private boolean ssoEnabled;
-    
+
     @Value("${neohoods.portal.sso.client-id:}")
     private String ssoClientId;
-    
+
     @Value("${neohoods.portal.sso.client-secret:}")
     private String ssoClientSecret;
-    
+
     @Value("${neohoods.portal.sso.token-endpoint:}")
     private String ssoTokenEndpoint;
-    
+
     @Value("${neohoods.portal.sso.authorization-endpoint:}")
     private String ssoAuthorizationEndpoint;
-    
+
     @Value("${neohoods.portal.sso.scope:openid profile email}")
     private String ssoScope;
-    
+
+    @Value("${neohoods.portal.email.template.app-name}")
+    private String appName;
+
     private final ServerSecurityContextRepository serverSecurityContextRepository;
     private final UsersRepository usersRepository;
     private final Auth0Service auth0Service;
-    
+    private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
+    private final NotificationsService notificationsService;
+    private final EmailTemplateService emailTemplateService;
+
     public SSOService(ServerSecurityContextRepository serverSecurityContextRepository,
-                      UsersRepository usersRepository,
-                      Auth0Service auth0Service) {
+            UsersRepository usersRepository,
+            Auth0Service auth0Service,
+            PasswordEncoder passwordEncoder,
+            MailService mailService,
+            NotificationsService notificationsService,
+            EmailTemplateService emailTemplateService) {
         this.serverSecurityContextRepository = serverSecurityContextRepository;
         this.usersRepository = usersRepository;
         this.auth0Service = auth0Service;
+        this.passwordEncoder = passwordEncoder;
+        this.mailService = mailService;
+        this.notificationsService = notificationsService;
+        this.emailTemplateService = emailTemplateService;
     }
 
     public URI generateSSOLoginUrl() {
@@ -150,9 +172,74 @@ public class SSOService {
                 UserEntity user = usersRepository.findByEmail(email);
 
                 if (user == null) {
-                    // User not found, create a new user or handle appropriately
-                    log.error("User not found for email: {}", email);
-                    throw new CodedErrorException(CodedError.USER_NOT_FOUND_SSO, Map.of("email", email));
+                    // User not found, create a new user automatically
+                    log.info("User not found for email: {}, creating new user", email);
+
+                    // Extract user information from JWT token
+                    String firstName = idToken.getJWTClaimsSet().getStringClaim("given_name");
+                    String lastName = idToken.getJWTClaimsSet().getStringClaim("family_name");
+                    String avatarUrl = idToken.getJWTClaimsSet().getStringClaim("picture");
+                    Boolean emailVerified = (Boolean) idToken.getJWTClaimsSet().getClaim("email_verified");
+
+                    // Generate username from email (part before @)
+                    String username = email != null && email.contains("@")
+                            ? email.substring(0, email.indexOf("@"))
+                            : email != null ? email : "user_" + UUID.randomUUID().toString().substring(0, 8);
+
+                    // Generate a random password for SSO users (they won't use it, but DB requires
+                    // it)
+                    // Use a random UUID as the password source to ensure uniqueness
+                    String randomPassword = UUID.randomUUID().toString() + UUID.randomUUID().toString();
+                    String encodedPassword = passwordEncoder.encode(randomPassword);
+
+                    // Create new user entity
+                    user = UserEntity.builder()
+                            .id(UUID.randomUUID())
+                            .email(email)
+                            .username(username)
+                            .password(encodedPassword) // Required field - SSO users won't use this
+                            .firstName(firstName)
+                            .lastName(lastName)
+                            .avatarUrl(avatarUrl)
+                            .isEmailVerified(Boolean.TRUE.equals(emailVerified))
+                            .type(null) // Do not set user.type - leave it null
+                            .disabled(false)
+                            .profileSharingConsent(true)
+                            .roles(Set.of("hub-user"))
+                            .notificationSettings(
+                                    NotificationSettingsEntity.builder()
+                                            .id(UUID.randomUUID())
+                                            .user(user)
+                                            .enableNotifications(true)
+                                            .newsletterEnabled(true)
+                                            .build())
+                            .build();
+
+                    // Save the new user
+                    user = usersRepository.save(user);
+                    log.info(
+                            "Created new user with email: {}, username: {}, firstName: {}, lastName: {}, avatarUrl: {}",
+                            email, username, firstName, lastName, avatarUrl);
+
+                    // Send welcome email and notify admins
+                    try {
+                        sendWelcomeEmail(user);
+                        log.info("Successfully sent welcome email to: {}", email);
+                    } catch (Exception e) {
+                        log.error("Failed to send welcome email to: {}", email, e);
+                        // Don't fail user creation for email failures
+                    }
+
+                    // Notify admins about new user registration
+                    try {
+                        notificationsService.notifyAdminsNewUser(user).subscribe(
+                                null,
+                                error -> log.error("Failed to notify admins about new user: {}", email, error));
+                        log.info("Successfully notified admins about new user: {}", email);
+                    } catch (Exception e) {
+                        log.error("Failed to notify admins about new user: {}", email, e);
+                        // Don't fail user creation for notification failures
+                    }
                 }
 
                 log.info("Found user: {} with roles: {}", user.getUsername(), user.getRoles());
@@ -219,5 +306,125 @@ public class SSOService {
                     .doOnError(e -> log.error("Failed to save security context", e))
                     .then(Mono.just(true));
         });
+    }
+
+    /**
+     * Sends welcome email to the user using the active WELCOME template (without
+     * verification token)
+     */
+    private void sendWelcomeEmail(UserEntity user) throws Exception {
+        // Try to get the active WELCOME template
+        try {
+            var welcomeTemplate = emailTemplateService.getActiveTemplateByType("WELCOME").block();
+            if (welcomeTemplate != null) {
+                log.info("Using custom WELCOME template for user: {}", user.getUsername());
+
+                // Create template variables
+                var usernameVar = MailService.TemplateVariable.builder()
+                        .type(MailService.TemplateVariableType.RAW)
+                        .ref("username")
+                        .value(user.getUsername())
+                        .build();
+
+                var firstNameVar = MailService.TemplateVariable.builder()
+                        .type(MailService.TemplateVariableType.RAW)
+                        .ref("firstName")
+                        .value(user.getFirstName())
+                        .build();
+
+                var lastNameVar = MailService.TemplateVariable.builder()
+                        .type(MailService.TemplateVariableType.RAW)
+                        .ref("lastName")
+                        .value(user.getLastName())
+                        .build();
+
+                // Add appName variable for template processing
+                var appNameVar = MailService.TemplateVariable.builder()
+                        .type(MailService.TemplateVariableType.RAW)
+                        .ref("appName")
+                        .value(appName)
+                        .build();
+
+                // Process template content with variables (no verif_url for welcome email)
+                List<MailService.TemplateVariable> processingVariables = Arrays.asList(
+                        usernameVar, firstNameVar, lastNameVar, appNameVar);
+
+                String processedSubject = processTemplateVariables(welcomeTemplate.getSubject(),
+                        processingVariables);
+                String processedContent = processTemplateVariables(welcomeTemplate.getContent(),
+                        processingVariables);
+
+                // Create final template variables for the email (exclude appName as it's added
+                // by MailService)
+                List<MailService.TemplateVariable> templateVariables = new ArrayList<>();
+                templateVariables.add(usernameVar);
+                templateVariables.add(firstNameVar);
+                templateVariables.add(lastNameVar);
+                templateVariables.add(MailService.TemplateVariable.builder()
+                        .type(MailService.TemplateVariableType.RAW)
+                        .ref("content")
+                        .value(processedContent)
+                        .build());
+
+                mailService.sendTemplatedEmail(
+                        user,
+                        processedSubject,
+                        "email/custom-template",
+                        templateVariables,
+                        user.getLocale());
+                return;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to get WELCOME template, falling back to default template: {}",
+                    e.getMessage());
+        }
+
+        // Fallback to default welcome template if WELCOME template is not available
+        log.info("Using default welcome template for user: {}", user.getUsername());
+        var usernameVar = MailService.TemplateVariable.builder()
+                .type(MailService.TemplateVariableType.RAW)
+                .ref("username")
+                .value(user.getUsername())
+                .build();
+
+        var firstNameVar = MailService.TemplateVariable.builder()
+                .type(MailService.TemplateVariableType.RAW)
+                .ref("firstName")
+                .value(user.getFirstName())
+                .build();
+
+        var lastNameVar = MailService.TemplateVariable.builder()
+                .type(MailService.TemplateVariableType.RAW)
+                .ref("lastName")
+                .value(user.getLastName())
+                .build();
+
+        mailService.sendTemplatedEmail(
+                user,
+                "Welcome to portal NeoHoods",
+                "email/welcome",
+                new ArrayList<>(Arrays.asList(usernameVar, firstNameVar, lastNameVar)),
+                user.getLocale());
+    }
+
+    /**
+     * Process template variables in a string template
+     */
+    private String processTemplateVariables(String template, List<MailService.TemplateVariable> variables) {
+        String result = template;
+
+        // Create a map of variable references to values
+        Map<String, String> variableMap = variables.stream()
+                .collect(Collectors.toMap(
+                        MailService.TemplateVariable::getRef,
+                        v -> v.getValue() != null ? v.getValue().toString() : ""));
+
+        // Replace {{variableName}} patterns
+        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+            String placeholder = "{{" + entry.getKey() + "}}";
+            result = result.replace(placeholder, entry.getValue());
+        }
+
+        return result;
     }
 }

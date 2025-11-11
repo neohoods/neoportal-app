@@ -1,4 +1,4 @@
-<ng-template #dialogTemplate>
+<ng-template #dialogTemplate let-context>
     <div class="profile-completion-dialog">
         <div class="dialog-header">
             <p class="message">
@@ -6,27 +6,220 @@
             </p>
         </div>
 
-        <div class="missing-fields-card">
-            <h4 class="missing-fields-title">
-                {{ 'profileCompletion.missingFields' | translate }}
-            </h4>
-            <div class="missing-fields-list">
-                <div
-                    *ngFor="let field of missingFields"
-                    class="missing-field"
-                >
-                    • {{ ('profileCompletion.fields.' + field) | translate }}
+        <form [formGroup]="profileForm" class="profile-form">
+            <!-- Basic Information -->
+            <h3>{{ 'profile.basicInfo' | translate }}</h3>
+
+            <div class="row form-field">
+                <div class="column">
+                    <tui-textfield>
+                        <label tuiLabel for="firstName">{{ 'profile.firstName' | translate }}</label>
+                        <input id="firstName" formControlName="firstName" type="text" 
+                            placeholder="{{ 'profile.firstNamePlaceholder' | translate }}" tuiTextfield />
+                    </tui-textfield>
+                </div>
+                <div class="column">
+                    <tui-textfield>
+                        <label tuiLabel for="lastName">{{ 'profile.lastName' | translate }}</label>
+                        <input id="lastName" formControlName="lastName" type="text" 
+                            placeholder="{{ 'profile.lastNamePlaceholder' | translate }}" tuiTextfield />
+                    </tui-textfield>
                 </div>
             </div>
-        </div>
 
-        <div class="dialog-footer">
-            <small class="hint">
-                {{ hasProperties ? 
-            ('profileCompletion.propertiesHint' | translate) : 
-            ('profileCompletion.profileHint' | translate) 
-        }}
-            </small>
+            <tui-textfield class="form-field">
+                <label tuiLabel for="email">{{ 'profile.email' | translate }}</label>
+                <input id="email" formControlName="email" type="email" 
+                    placeholder="{{ 'profile.emailPlaceholder' | translate }}" tuiTextfield />
+            </tui-textfield>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel for="phone">{{ 'profile.phone' | translate }}</label>
+                <input id="phone" formControlName="phone" tuiInputPhone [mask]="'+33# ## ## ## ##'" />
+            </tui-textfield>
+
+            @if (!user.type) {
+                <div class="form-field">
+                    <label tuiLabel for="type">{{ 'profile.type' | translate }}</label>
+                    <select
+                        id="type"
+                        formControlName="type"
+                        name="type"
+                        class="native-select"
+                    >
+                        <option [value]="null">{{ 'profile.userTypePlaceholder' | translate }}</option>
+                        @for (userType of userTypes; track userType) {
+                            <option [value]="userType">{{ 'user.type.' + userType | translate }}</option>
+                        }
+                    </select>
+                </div>
+            } @else {
+                <div class="form-field">
+                    <label tuiLabel for="type">{{ 'profile.type' | translate }}</label>
+                    <input
+                        id="type"
+                        [value]="'user.type.' + user.type | translate"
+                        class="native-select"
+                        readonly
+                        disabled
+                    />
+                </div>
+            }
+
+            <!-- Address Fields -->
+            <h3>{{ 'profile.addressInfo' | translate }}</h3>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel for="flatNumber">{{ 'profile.flatNumber' | translate }}</label>
+                <input id="flatNumber" formControlName="flatNumber" type="text" 
+                    placeholder="{{ 'profile.flatNumberPlaceholder' | translate }}" tuiTextfield />
+            </tui-textfield>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel for="streetAddress">{{ 'profile.streetAddress' | translate }}</label>
+                <input id="streetAddress" formControlName="streetAddress" type="text"
+                    placeholder="{{ 'profile.streetAddressPlaceholder' | translate }}" tuiTextfield />
+            </tui-textfield>
+
+            <div class="row form-field">
+                <div class="column">
+                    <tui-textfield>
+                        <label tuiLabel for="city">{{ 'profile.city' | translate }}</label>
+                        <input id="city" formControlName="city" type="text" 
+                            placeholder="{{ 'profile.cityPlaceholder' | translate }}" tuiTextfield />
+                    </tui-textfield>
+                </div>
+                <div class="column">
+                    <tui-textfield>
+                        <label tuiLabel for="postalCode">{{ 'profile.postalCode' | translate }}</label>
+                        <input id="postalCode" formControlName="postalCode" type="text"
+                            placeholder="{{ 'profile.postalCodePlaceholder' | translate }}" tuiTextfield />
+                    </tui-textfield>
+                </div>
+            </div>
+
+            <tui-textfield class="form-field">
+                <label tuiLabel for="country">{{ 'profile.country' | translate }}</label>
+                <input id="country" formControlName="country" type="text" 
+                    placeholder="{{ 'profile.countryPlaceholder' | translate }}" tuiTextfield />
+            </tui-textfield>
+
+            <!-- Privacy Settings -->
+            <h3>{{ 'profile.privacySettings' | translate }}</h3>
+
+            <div class="form-field">
+                <div class="privacy-toggle">
+                    <input tuiSwitch type="checkbox" formControlName="profileSharingConsent">
+                    <label>{{ 'profile.profileSharingConsent' | translate }}</label>
+                </div>
+            </div>
+
+            <!-- Units Section -->
+            <h3>{{ 'profileCompletion.logements' | translate }}</h3>
+
+            <!-- Unit Filters -->
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label tuiLabel>
+                        {{ 'directory.filters.type' | translate }}
+                        <tui-select
+                            [ngModel]="getSelectedUnitTypeOption()"
+                            (ngModelChange)="onUnitTypeChange($event)"
+                            [ngModelOptions]="{standalone: true}"
+                            [stringify]="stringifyUnitType"
+                            name="unitTypeFilter"
+                        >
+                            <input
+                                tuiTextfieldLegacy
+                                [placeholder]="'directory.filters.type' | translate"
+                            />
+                            <tui-data-list-wrapper
+                                *tuiDataList
+                                [items]="unitTypeOptions"
+                                [itemContent]="unitTypeContentTemplate"
+                            ></tui-data-list-wrapper>
+                        </tui-select>
+                    </label>
+                    <ng-template #unitTypeContentTemplate let-item>
+                        {{ item.label | translate }}
+                    </ng-template>
+                </div>
+
+                <div class="filter-group">
+                    <label tuiLabel>
+                        {{ 'directory.filters.name' | translate }}
+                        <tui-textfield>
+                            <input
+                                tuiTextfield
+                                [(ngModel)]="unitSearchTerm"
+                                (ngModelChange)="onUnitSearchChange()"
+                                [ngModelOptions]="{standalone: true}"
+                                [placeholder]="'directory.filters.namePlaceholder' | translate"
+                                name="unitSearchFilter"
+                            />
+                        </tui-textfield>
+                    </label>
+                </div>
+            </div>
+
+            @if (loadingUnits) {
+                <div class="loading-units">
+                    {{ 'profileCompletion.loadingUnits' | translate }}
+                </div>
+            } @else if (availableUnits.length === 0) {
+                <div class="no-units">
+                    {{ 'profileCompletion.noUnits' | translate }}
+                </div>
+            } @else {
+                <div class="units-list">
+                    @for (unit of availableUnits; track unit.id) {
+                        <div class="unit-item">
+                            <div class="unit-info">
+                                <strong>{{ unit.name }}</strong>
+                                @if (unit.type) {
+                                    <tui-chip size="s" appearance="secondary">
+                                        {{ 'units.types.' + unit.type | translate }}
+                                    </tui-chip>
+                                }
+                                @if (unit.members) {
+                                    <span>
+                                        <tui-icon icon="@tui.user" size="s"></tui-icon>
+                                        {{ unit.members.length }} {{ 'settings.units.members' | translate }}
+                                    </span>
+                                }
+                            </div>
+                            <button 
+                                appearance="primary" 
+                                size="s" 
+                                tuiButton 
+                                type="button"
+                                (click)="joinUnit(unit.id)">
+                                {{ 'profileCompletion.joinUnit' | translate }}
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </form>
+        
+        <div class="dialog-actions">
+            <button 
+                appearance="primary" 
+                tuiButton 
+                type="button"
+                (click)="saveProfile(context)"
+                [disabled]="!profileForm.valid">
+                {{ 'profileCompletion.save' | translate }}
+            </button>
+            @if (user.type != null) {
+                <button 
+                    appearance="secondary" 
+                    tuiButton 
+                    type="button"
+                    (click)="dismissDialog(context)">
+                    {{ 'profileCompletion.later' | translate }}
+                </button>
+            }
         </div>
     </div>
 </ng-template>
