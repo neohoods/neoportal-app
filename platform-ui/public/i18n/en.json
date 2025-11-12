@@ -217,6 +217,7 @@
       "pricing": "Pricing",
       "perDay": "/day",
       "perDayLabel": "Per day",
+      "perNight": "/night",
       "checkin": "Check-in",
       "checkout": "Check-out",
       "rules": "Usage rules",
@@ -230,6 +231,11 @@
         "cvc": "CVC: any 3-digit code (e.g., 123)",
         "zip": "ZIP code: any ZIP code (e.g., 12345)"
       }
+    },
+    "card": {
+      "perNight": "euros/ night",
+      "price": "Price",
+      "free": "Free"
     },
     "types": {
       "GUEST_ROOM": "Guest room",

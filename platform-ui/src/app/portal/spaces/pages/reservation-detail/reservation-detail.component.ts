@@ -262,11 +262,30 @@ export class ReservationDetailComponent implements OnInit, OnDestroy {
     calculatePlatformFeeTotal(): number {
         const reservation = this.reservation();
         if (reservation) {
-            const percentageFee = reservation.platformFeeAmount || 0;
-            const fixedFee = reservation.platformFixedFeeAmount || 0;
-            return percentageFee + fixedFee;
+            // Round up to 1 decimal place (same logic as backend: RoundingMode.CEILING)
+            // This matches: .divide(BigDecimal.valueOf(100), 1, RoundingMode.CEILING)
+            // and: .setScale(1, RoundingMode.CEILING)
+            const roundUpToOneDecimal = (value: number): number => {
+                if (value === 0 || !value) return 0;
+                // Round up to 1 decimal: multiply by 10, ceil, divide by 10
+                return Math.ceil(value * 10) / 10;
+            };
+
+            const percentageFee = roundUpToOneDecimal(reservation.platformFeeAmount || 0);
+            const fixedFee = roundUpToOneDecimal(reservation.platformFixedFeeAmount || 0);
+            const total = percentageFee + fixedFee;
+            
+            // Final rounding to ensure we display with max 1 decimal place
+            // Use round to avoid floating point precision issues
+            return Math.round(total * 10) / 10;
         }
         return 0;
+    }
+
+    formatPlatformFeeTotal(): string {
+        const total = this.calculatePlatformFeeTotal();
+        // Format to 1 decimal place to avoid floating point precision issues
+        return total.toFixed(1);
     }
 
     getStartDate(): string {

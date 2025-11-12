@@ -43,16 +43,41 @@
                 <tui-icon icon="@tui.euro"></tui-icon>
                 <span class="detail-label">{{ 'spaces.card.price' | translate }}:</span>
                 <span class="detail-value">
-                    {{ getPriceText() }}
-                    <span
-                        class="price-unit"
-                        *ngIf="space.pricing.tenantPrice > 0"
-                    >
-                        {{ 'spaces.detail.perDay' | translate }}
-                    </span>
+                    <ng-container *ngIf="space.type === 'GUEST_ROOM'">
+                        {{ getPriceText() }}
+                        <span
+                            class="price-unit"
+                            *ngIf="!isPriceFree()"
+                        >
+                            {{ 'spaces.card.perNight' | translate }}
+                        </span>
+                        <span
+                            class="cleaning-fee"
+                            *ngIf="shouldShowCleaningFee()"
+                        >
+                            + {{ 'spaces.admin.cleaningFee' | translate }}
+                        </span>
+                    </ng-container>
+                    <ng-container *ngIf="space.type !== 'GUEST_ROOM'">
+                        {{ getPriceText() }}
+                        <span
+                            class="price-unit"
+                            *ngIf="!isPriceFree()"
+                        >
+                            {{ 'spaces.detail.perDay' | translate }}
+                        </span>
+                        <span
+                            class="cleaning-fee"
+                            *ngIf="shouldShowCleaningFee()"
+                        >
+                            {{ getCleaningFeeText() }}
+                            <span class="cleaning-label">
+                                {{ 'spaces.admin.cleaningFee' | translate }}
+                            </span>
+                        </span>
+                    </ng-container>
                 </span>
             </div>
-
 
             <!-- Max Duration (Parking) -->
             <div

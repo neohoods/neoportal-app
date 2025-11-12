@@ -86,19 +86,25 @@ export class SpaceCardComponent {
     }
 
     getCleaningFeeText(): string {
-        if (!this.space.pricing.cleaningFee || this.space.pricing.cleaningFee === 0) {
-            return this.translate.instant('spaces.card.cleaningIncluded');
+        // For guest rooms, just return the label without amount
+        if (this.space.type === 'GUEST_ROOM') {
+            return '';
         }
-        return `+${this.space.pricing.cleaningFee}€ ${this.translate.instant('spaces.card.cleaning')}`;
+        // For other space types (if needed in future), show amount
+        if (!this.space.pricing.cleaningFee || this.space.pricing.cleaningFee === 0) {
+            return '';
+        }
+        return `+${this.space.pricing.cleaningFee}€`;
     }
 
     getPriceText(): string {
         if (!this.currentUser) {
             // Fallback to tenant price if no user info
-            if (this.space.pricing.tenantPrice === 0) {
+            const price = this.space.pricing.tenantPrice;
+            if (price === 0) {
                 return this.translate.instant('spaces.card.free');
             }
-            return `${this.space.pricing.tenantPrice}€`;
+            return `${price}€`;
         }
 
         // Show owner price for owners, tenant price for tenants
@@ -109,6 +115,22 @@ export class SpaceCardComponent {
             return this.translate.instant('spaces.card.free');
         }
         return `${price}€`;
+    }
+
+    shouldShowCleaningFee(): boolean {
+        // Only show cleaning fee for guest rooms
+        return this.space.type === 'GUEST_ROOM' &&
+            !!this.space.pricing.cleaningFee &&
+            this.space.pricing.cleaningFee > 0;
+    }
+
+    isPriceFree(): boolean {
+        if (!this.currentUser) {
+            return this.space.pricing.tenantPrice === 0;
+        }
+        const isOwner = this.currentUser.type === 'OWNER';
+        const price = isOwner ? this.space.pricing.ownerPrice : this.space.pricing.tenantPrice;
+        return price === 0;
     }
 
     getAllowedDaysText(): string {
@@ -160,8 +182,8 @@ export class SpaceCardComponent {
     }
 
     getCapacityText(): string {
-        if (!this.space.quota) return '';
-        return `${this.space.quota.max} ${this.translate.instant('spaces.admin.people')}`;
+        if (!this.space.capacity) return '';
+        return `${this.space.capacity} ${this.translate.instant('spaces.admin.people')}`;
     }
 
     getHoursText(): string {
@@ -179,7 +201,7 @@ export class SpaceCardComponent {
     }
 
     shouldShowCapacity(): boolean {
-        return this.space.type === 'COMMON_ROOM';
+        return ['COMMON_ROOM', 'GUEST_ROOM'].includes(this.space.type);
     }
 
     shouldShowHours(): boolean {
@@ -187,9 +209,15 @@ export class SpaceCardComponent {
     }
 
     shouldShowAllowedDays(): boolean {
-        return ['COWORKING', 'COMMON_ROOM'].includes(this.space.type) &&
-            this.space.rules.allowedDays &&
-            this.space.rules.allowedDays.length > 0;
+        if (!['COWORKING', 'COMMON_ROOM'].includes(this.space.type)) {
+            return false;
+        }
+        if (!this.space.rules.allowedDays || this.space.rules.allowedDays.length === 0) {
+            return false;
+        }
+        // Don't show if all 7 days are allowed (Monday to Sunday)
+        const allDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+        return this.space.rules.allowedDays.length < allDays.length;
     }
 
     getQuotaText(): string {
@@ -204,7 +232,8 @@ export class SpaceCardComponent {
 
         // TODO: Calculate remaining quota from existing reservations
         // For now, show total quota
-        return `${quota.max} ${this.translate.instant('spaces.quota.per')} ${period}`;
+        const daysText = this.translate.instant('spaces.admin.days');
+        return `${quota.max} ${daysText} ${this.translate.instant('spaces.quota.per')} ${period}`;
     }
 
     hasQuota(): boolean {

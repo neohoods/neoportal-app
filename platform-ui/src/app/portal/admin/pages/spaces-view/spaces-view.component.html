@@ -73,11 +73,27 @@
         <div class="pricing-grid">
           <div class="pricing-item">
             <span class="label">{{ 'spaces.admin.tenantPrice' | translate }}</span>
-            <span class="value">{{ space()?.pricing?.tenantPrice }} €</span>
+            <span class="value">
+              {{ space()?.pricing?.tenantPrice }} €
+              <ng-container *ngIf="space()?.type === 'GUEST_ROOM'">
+                {{ 'spaces.detail.perNight' | translate }}
+              </ng-container>
+              <ng-container *ngIf="space()?.type !== 'GUEST_ROOM'">
+                {{ 'spaces.detail.perDay' | translate }}
+              </ng-container>
+            </span>
           </div>
           <div class="pricing-item">
             <span class="label">{{ 'spaces.admin.ownerPrice' | translate }}</span>
-            <span class="value">{{ space()?.pricing?.ownerPrice }} €</span>
+            <span class="value">
+              {{ space()?.pricing?.ownerPrice }} €
+              <ng-container *ngIf="space()?.type === 'GUEST_ROOM'">
+                {{ 'spaces.detail.perNight' | translate }}
+              </ng-container>
+              <ng-container *ngIf="space()?.type !== 'GUEST_ROOM'">
+                {{ 'spaces.detail.perDay' | translate }}
+              </ng-container>
+            </span>
           </div>
           <div class="pricing-item">
             <span class="label">{{ 'spaces.admin.cleaningFee' | translate }}</span>

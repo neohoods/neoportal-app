@@ -333,6 +333,16 @@ export class SpaceDetailComponent implements OnInit {
         return space.rules.allowedDays.map(day => dayMap[day] || day);
     }
 
+    shouldShowAllowedDays(): boolean {
+        const space = this.space();
+        if (!space?.rules?.allowedDays || space.rules.allowedDays.length === 0) {
+            return false;
+        }
+        // Don't show if all 7 days are allowed (Monday to Sunday)
+        const allDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+        return space.rules.allowedDays.length < allDays.length;
+    }
+
     getCleaningDaysLabels(): string[] {
         const space = this.space();
         if (!space?.rules?.cleaningDays) return [];

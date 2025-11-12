@@ -195,7 +195,7 @@
 
                         <div
                             class="days-info"
-                            *ngIf="getAllowedDaysLabels().length > 0"
+                            *ngIf="shouldShowAllowedDays()"
                         >
                             <span class="label">
                                 {{ 'spaces.admin.allowedDays' | translate }}
@@ -367,7 +367,13 @@
                                 {{ 'spaces.admin.tenantPrice' | translate }}
                             </span>
                             <span class="value">
-                                {{ space()!.pricing.tenantPrice }} €{{ 'spaces.detail.perDay' | translate }}
+                                {{ space()!.pricing.tenantPrice }} €
+                                <ng-container *ngIf="space()!.type === 'GUEST_ROOM'">
+                                    {{ 'spaces.detail.perNight' | translate }}
+                                </ng-container>
+                                <ng-container *ngIf="space()!.type !== 'GUEST_ROOM'">
+                                    {{ 'spaces.detail.perDay' | translate }}
+                                </ng-container>
                             </span>
                         </div>
                         <div class="pricing-item">
@@ -375,7 +381,13 @@
                                 {{ 'spaces.admin.ownerPrice' | translate }}
                             </span>
                             <span class="value">
-                                {{ space()!.pricing.ownerPrice }} €{{ 'spaces.detail.perDay' | translate }}
+                                {{ space()!.pricing.ownerPrice }} €
+                                <ng-container *ngIf="space()!.type === 'GUEST_ROOM'">
+                                    {{ 'spaces.detail.perNight' | translate }}
+                                </ng-container>
+                                <ng-container *ngIf="space()!.type !== 'GUEST_ROOM'">
+                                    {{ 'spaces.detail.perDay' | translate }}
+                                </ng-container>
                             </span>
                         </div>
                         <div class="pricing-item">
