@@ -24,6 +24,8 @@ INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440103', 'Appartement 456', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440104', 'Appartement 789', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440105', 'Appartement 909', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+-- Empty unit for testing "only occupied" filter
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440110', 'Appartement 999', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 -- Garages for testing
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440106', 'Garage A1', 'GARAGE', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440107', 'Garage B2', 'GARAGE', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');

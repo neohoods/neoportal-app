@@ -1695,5 +1695,25 @@
     "maxValue": "Value must not exceed {{max}}",
     "warning": "Warning",
     "info": "Information"
+  },
+  "directory": {
+    "title": "Units Directory",
+    "filters": {
+      "type": "Type",
+      "name": "Unit name",
+      "namePlaceholder": "Search by name...",
+      "user": "User",
+      "user.all": "All users",
+      "type.all": "All types",
+      "onlyOccupied": "Only occupied"
+    },
+    "members": "Members",
+    "noMembers": "No members referenced to date",
+    "noUnits": "No units found",
+    "role": "Role",
+    "email": "Email",
+    "phone": "Phone",
+    "showContact": "Show contact details",
+    "hideContact": "Hide contact details"
   }
 }

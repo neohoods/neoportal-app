@@ -2200,7 +2200,8 @@
       "namePlaceholder": "Rechercher par nom...",
       "user": "Utilisateur",
       "user.all": "Tous les utilisateurs",
-      "type.all": "Tous les types"
+      "type.all": "Tous les types",
+      "onlyOccupied": "Uniquement occupés"
     },
     "members": "Membres",
     "noMembers": "Aucun membre référencé à ce jour",

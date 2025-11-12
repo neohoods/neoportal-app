@@ -5,26 +5,28 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { type TuiStringMatcher } from '@taiga-ui/cdk';
 import {
   TuiAutoColorPipe,
+  TuiButton,
   TuiIcon,
   TuiInitialsPipe,
   TuiLabel,
+  TuiLink,
   TuiLoader,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
+import { TuiExpand } from '@taiga-ui/experimental';
 import {
   TuiAvatar,
+  TuiChevron,
   TuiChip,
   TuiComboBox,
   TuiDataListWrapper,
   TuiFilterByInputPipe,
   TuiPagination,
-  TuiChevron,
+  TuiSwitch,
 } from '@taiga-ui/kit';
-import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
 import { TuiCard, TuiHeader } from '@taiga-ui/layout';
-import { TuiButton, TuiLink } from '@taiga-ui/core';
-import { TuiExpand } from '@taiga-ui/experimental';
+import { TuiInputModule, TuiSelectModule } from '@taiga-ui/legacy';
 import { UNITS_SERVICE_TOKEN } from '../../hub.provider';
 import { UnitsService } from '../../services/units.service';
 // Types will be generated from OpenAPI - using temporary types for now
@@ -70,6 +72,7 @@ type UnitType = 'FLAT' | 'GARAGE' | 'PARKING' | null;
     TuiLink,
     TuiChevron,
     TuiExpand,
+    TuiSwitch,
   ],
   templateUrl: './directory.component.html',
   styleUrl: './directory.component.scss',
@@ -86,6 +89,7 @@ export class DirectoryComponent implements OnInit {
   selectedType = signal<UnitType | null>(null);
   searchTerm = signal<string>('');
   selectedUserId = signal<string | null>(null);
+  onlyOccupied = signal<boolean>(false);
 
   // Options
   typeOptions = [
@@ -168,20 +172,33 @@ export class DirectoryComponent implements OnInit {
       )
       .subscribe({
         next: (paginated: PaginatedUnits) => {
-          this.units.set(paginated.content || []);
+          let units = paginated.content || [];
+
+          // Apply "only occupied" filter if enabled (client-side filtering)
+          // Note: This filters only the current page. For accurate pagination across all pages,
+          // the filter should be implemented at the API level.
+          if (this.onlyOccupied()) {
+            units = units.filter((unit: Unit) =>
+              unit.members && unit.members.length > 0
+            );
+          }
+
+          this.units.set(units);
+          // Keep original pagination info (based on unfiltered data)
+          // This means pagination may show empty pages when filter is active
           this.totalPages.set(paginated.totalPages || 0);
           this.currentPage.set(paginated.number || 0);
           this.totalElements.set(paginated.totalElements || 0);
-          
+
           // Initialize collapsed signals for all members
-          (paginated.content || []).forEach((unit: Unit) => {
+          units.forEach((unit: Unit) => {
             (unit.members || []).forEach((member: any) => {
               if (member.user?.id && !this.collapsedStates.has(member.user.id)) {
                 this.collapsedStates.set(member.user.id, signal(true));
               }
             });
           });
-          
+
           this.loading.set(false);
         },
         error: (error) => {
@@ -216,6 +233,12 @@ export class DirectoryComponent implements OnInit {
   onUserChange(user: UIUser | null): void {
     this.selectedUser.set(user);
     this.selectedUserId.set(user?.id || null);
+    this.currentPage.set(0);
+    this.loadUnits();
+  }
+
+  onOnlyOccupiedChange(checked: boolean): void {
+    this.onlyOccupied.set(checked);
     this.currentPage.set(0);
     this.loadUnits();
   }

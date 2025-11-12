@@ -21,6 +21,18 @@
   .filter-group {
     flex: 1;
     min-width: 200px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .switch-label-wrapper {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .switch-container {
+    display: flex;
+    align-items: center;
   }
 }
 

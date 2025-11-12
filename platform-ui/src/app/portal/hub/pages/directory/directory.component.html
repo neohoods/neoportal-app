@@ -69,6 +69,21 @@
         {{ item.firstName }} {{ item.lastName }} ({{ item.email }})
       </ng-template>
     </div>
+
+    <div class="filter-group">
+      <label tuiLabel class="switch-label-wrapper">
+        {{ 'directory.filters.onlyOccupied' | translate }}
+      </label>
+      <div class="switch-container">
+        <input
+          tuiSwitch
+          type="checkbox"
+          [ngModel]="onlyOccupied()"
+          (ngModelChange)="onOnlyOccupiedChange($event)"
+          name="onlyOccupiedFilter"
+        />
+      </div>
+    </div>
   </div>
 
   <!-- Loading -->
