@@ -13,6 +13,7 @@ export interface AppConfig {
   API_BASE_PATH: string;
   useMockApi: boolean;
   demoMode: boolean;
+  stripeDemoMode: boolean;
   defaultLocale: string;
   // Branding configuration
   brandName: string;

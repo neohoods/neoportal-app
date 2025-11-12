@@ -3,6 +3,7 @@ export const environment = {
   API_BASE_PATH: 'https://local.portal.neohoods.com:4200/api',
   useMockApi: false,
   demoMode: true,
+  stripeDemoMode: true,
   defaultLocale: 'fr',
   // Branding configuration
   brandName: 'Terres de Laya',

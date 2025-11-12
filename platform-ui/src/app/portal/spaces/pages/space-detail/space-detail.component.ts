@@ -18,6 +18,7 @@ import { SpaceCalendarComponent } from '../../components/space-calendar/space-ca
 import { CreateReservationRequest } from '../../services/reservations.service';
 import { Space } from '../../services/spaces.service';
 import { RESERVATIONS_SERVICE_TOKEN, SPACES_SERVICE_TOKEN, SPACE_STATISTICS_SERVICE_TOKEN } from '../../spaces.provider';
+import { ConfigService } from '../../../../services/config.service';
 
 @Component({
     selector: 'app-space-detail',
@@ -77,6 +78,9 @@ export class SpaceDetailComponent implements OnInit {
     // User can reserve flag
     canReserve = signal<boolean | null>(null);
     loadingCanReserve = signal(false);
+
+    // Stripe demo mode
+    stripeDemoMode = ConfigService.configuration.stripeDemoMode;
 
     ngOnInit(): void {
         // Scroll to top when component initializes

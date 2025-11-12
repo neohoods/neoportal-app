@@ -2,6 +2,7 @@
   "API_BASE_PATH": "${API_BASE_PATH}",
   "useMockApi": ${USE_MOCK_API},
   "demoMode": ${DEMO_MODE},
+  "stripeDemoMode": ${STRIPE_DEMO_MODE},
   "defaultLocale": "${DEFAULT_LOCALE}",
   "brandName": "${BRAND_NAME}",
   "brandDisplayName": "${BRAND_DISPLAY_NAME}",

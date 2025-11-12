@@ -340,6 +340,37 @@
                                     {{ 'spaces.detail.reserveSpace' | translate }}
                                 </button>
                             </div>
+
+                            <!-- Stripe Demo Mode Warning -->
+                            <tui-notification
+                                *ngIf="stripeDemoMode"
+                                appearance="warning"
+                                size="m"
+                                class="stripe-demo-warning"
+                            >
+                                <div>
+                                    <strong>
+                                        {{ 'spaces.detail.stripeDemoMode.title' | translate }}
+                                    </strong>
+                                    <p>
+                                        {{ 'spaces.detail.stripeDemoMode.message' | translate }}
+                                    </p>
+                                    <ul>
+                                        <li>
+                                            {{ 'spaces.detail.stripeDemoMode.cardNumber' | translate }}
+                                        </li>
+                                        <li>
+                                            {{ 'spaces.detail.stripeDemoMode.expiry' | translate }}
+                                        </li>
+                                        <li>
+                                            {{ 'spaces.detail.stripeDemoMode.cvc' | translate }}
+                                        </li>
+                                        <li>
+                                            {{ 'spaces.detail.stripeDemoMode.zip' | translate }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </tui-notification>
                         </form>
                     </div>
 

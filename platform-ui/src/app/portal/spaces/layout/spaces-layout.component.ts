@@ -27,9 +27,7 @@ import { AUTH_SERVICE_TOKEN } from '../../../global.provider';
 import { AuthService, UserInfo } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
 import { ApplicationsComponent } from '../../hub/components/applications/applications.component';
-import { APPLICATIONS_SERVICE_TOKEN } from '../../hub/hub.provider';
-import { MockApplicationsService } from '../../hub/services/mock/applications.service';
-import { APIApplicationsService } from '../../hub/services/real-api/applications.service';
+import { hubProviders } from '../../hub/hub.provider';
 
 interface NavigationItem {
     label: string;
@@ -83,12 +81,7 @@ interface NavigationItem {
         }),
         TuiDropdownService,
         tuiAsPortal(TuiDropdownService),
-        {
-            provide: APPLICATIONS_SERVICE_TOKEN,
-            useExisting: ConfigService.configuration.useMockApi
-                ? MockApplicationsService
-                : APIApplicationsService,
-        },
+        ...hubProviders,
     ],
 })
 export class SpacesLayoutComponent extends TuiPortals implements OnInit, OnDestroy {

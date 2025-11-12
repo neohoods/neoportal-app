@@ -211,7 +211,15 @@
       "checkout": "Check-out",
       "rules": "Usage rules",
       "capacity": "Capacity",
-      "status": "Status"
+      "status": "Status",
+      "stripeDemoMode": {
+        "title": "Stripe Demo Mode Enabled",
+        "message": "You are in demo mode. Use the following information to test payment:",
+        "cardNumber": "Card number: 4242 4242 4242 4242",
+        "expiry": "Expiry date: any future date (e.g., 12/34)",
+        "cvc": "CVC: any 3-digit code (e.g., 123)",
+        "zip": "ZIP code: any ZIP code (e.g., 12345)"
+      }
     },
     "types": {
       "GUEST_ROOM": "Guest room",

@@ -3,6 +3,7 @@ export const environment = {
     API_BASE_PATH: 'https://portal.terresdelaya.fr/api',
     useMockApi: false,
     demoMode: false,
+    stripeDemoMode: false,
     defaultLocale: 'fr',
     // Branding configuration for Terres de Laya
     brandName: 'Terres de Laya',

@@ -346,7 +346,15 @@
       "sharedWith": "Cet espace est partagé avec",
       "sharedReservation": "Réservation d'un espace partagé",
       "sharedReservationExplanation": "Les réservations de ces espaces rendent cet espace indisponible.",
-      "reservationRestriction": "Seuls les propriétaires ou locataires associés à un logement peuvent réserver des espaces."
+      "reservationRestriction": "Seuls les propriétaires ou locataires associés à un logement peuvent réserver des espaces.",
+      "stripeDemoMode": {
+        "title": "Mode Démo Activé",
+        "message": "Vous êtes en mode démo. Utilisez les informations suivantes pour tester le paiement :",
+        "cardNumber": "Numéro de carte : 4242 4242 4242 4242",
+        "expiry": "Date d'expiration : n'importe quelle date future (ex: 12/34)",
+        "cvc": "CVC : n'importe quel code à 3 chiffres (ex: 123)",
+        "zip": "Code postal : n'importe quel code postal (ex: 12345)"
+      }
     },
     "card": {
       "annualReservations": "Réservations annuelles",
