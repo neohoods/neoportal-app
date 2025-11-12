@@ -103,8 +103,8 @@ jobs:
           context: ./platform-ui
           push: true
           platforms: linux/amd64
-          cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-from: type=gha,scope=frontend-amd64
+          cache-to: type=gha,mode=min,scope=frontend-amd64
           tags: ghcr.io/neohoods/portal-platform-ui:${{ needs.prepare.outputs.app-version }}
 
   deploy:
