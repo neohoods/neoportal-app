@@ -25,8 +25,7 @@
                         <div class="user-info">
                             <div class="user-name" th:text="${newUserUsername}">Username</div>
                             <div class="user-email" th:text="${newUserEmail}">user@example.com</div>
-                            <div class="user-type" th:text="${newUserType}">User Type</div>
-                            <div class="user-name-full" th:if="${newUserFirstName} and ${newUserLastName}" 
+                            <div class="user-name-full" th:if="${newUserFirstName} and ${newUserLastName}"
                                  th:text="${newUserFirstName} + ' ' + ${newUserLastName}">Full Name</div>
                         </div>
                     </div>

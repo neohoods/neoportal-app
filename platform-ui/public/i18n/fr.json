@@ -155,7 +155,16 @@
     "saveButton": "Enregistrer",
     "saveSuccess": "Profil enregistré avec succès",
     "saveError": "Profil non enregistré",
-    "completionRequired": "Votre profil doit être complété avant d'utiliser le service. Veuillez remplir tous les champs requis.",
+    "completionRequired": "Votre profil doit être complété avant d'utiliser le service. Veuillez remplir tous les champs requis et compléter la section logements.",
+    "phoneInfo": "Nous vous encourageons à renseigner votre numéro de téléphone. En cas de dégâts des eaux ou d'urgence, cela nous permettra de vous contacter rapidement.",
+    "validation": {
+      "title": "Erreurs de validation",
+      "formInvalid": "Le formulaire contient des erreurs",
+      "errors": "Erreurs",
+      "fieldRequired": "Ce champ est requis",
+      "invalidEmail": "Adresse email invalide",
+      "fieldMinLength": "Minimum {min} caractères requis"
+    },
     "privacySettings": "Paramètres de confidentialité",
     "profileSharingConsent": "Autoriser le partage de profil dans l'annuaire communautaire",
     "profileSharingConsentDescription": "Lorsque activé, vos informations de profil de base (nom, numéro d'appartement, coordonnées) seront visibles par les autres membres de la communauté dans l'annuaire des résidents. Cela aide les voisins à se connecter et communiquer plus facilement."

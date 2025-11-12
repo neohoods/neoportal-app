@@ -6,6 +6,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiHint, TuiIcon, TuiNotification, TuiTextfield } from '@taiga-ui/core';
 import { TuiChevron, TuiDataListWrapper, TuiDataListWrapperComponent, TuiInputPhone, TuiPassword, TuiSelect, TuiSwitch, TuiTooltip } from '@taiga-ui/kit';
@@ -25,6 +26,7 @@ interface Character {
   selector: 'app-profile',
   imports: [
     ReactiveFormsModule,
+    RouterModule,
     TuiButton,
     TuiPassword,
     TuiTextfield,
@@ -68,6 +70,7 @@ export class ProfileComponent implements OnInit {
     private alerts: TuiAlertService,
     private translate: TranslateService,
     private configService: ConfigService,
+    private router: Router,
     @Inject(AUTH_SERVICE_TOKEN) private authService: AuthService,
     @Inject(PROFILE_SERVICE_TOKEN) private profileService: ProfileService,
   ) {
@@ -78,7 +81,7 @@ export class ProfileComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
       password: ['', [Validators.minLength(6)]],
-      type: [UIUserType.TENANT, Validators.required],
+      type: [null, Validators.required],
       flatNumber: [''],
       streetAddress: ['', Validators.required],
       city: ['', Validators.required],
@@ -92,6 +95,7 @@ export class ProfileComponent implements OnInit {
 
   profileIncomplete = false;
   missingFields: string[] = [];
+  hasNoUnit = false;
 
   async ngOnInit(): Promise<void> {
     // Load configuration first
@@ -100,7 +104,7 @@ export class ProfileComponent implements OnInit {
 
     // Load profile after config is loaded
     this.loadProfile();
-    
+
     // Check if profile is complete
     this.checkProfileCompletion();
   }
@@ -113,6 +117,7 @@ export class ProfileComponent implements OnInit {
 
     this.missingFields = this.getMissingFields(user);
     this.profileIncomplete = this.missingFields.length > 0;
+    this.hasNoUnit = !user.primaryUnitId;
   }
 
   private getMissingFields(user: UIUser): string[] {
@@ -172,6 +177,11 @@ export class ProfileComponent implements OnInit {
       preferredLanguage: this.user.preferredLanguage,
       profileSharingConsent: this.user.profileSharingConsent || false
     });
+
+    // Mark type field as touched if it's empty to show error state (red border)
+    if (!this.user.type) {
+      this.profileForm.get('type')?.markAsTouched();
+    }
   }
 
   // Detect if SSO is enabled in configuration
@@ -181,9 +191,69 @@ export class ProfileComponent implements OnInit {
     return this.config?.ssoEnabled || false;
   }
 
+  // Get validation errors for the form
+  getFormValidationErrors(): string[] {
+    const errors: string[] = [];
+    const fieldLabels: { [key: string]: string } = {
+      username: this.translate.instant('profile.username'),
+      firstName: this.translate.instant('profile.firstName'),
+      lastName: this.translate.instant('profile.lastName'),
+      email: this.translate.instant('profile.email'),
+      type: this.translate.instant('profile.type'),
+      streetAddress: this.translate.instant('profile.streetAddress'),
+      city: this.translate.instant('profile.city'),
+      postalCode: this.translate.instant('profile.postalCode'),
+      country: this.translate.instant('profile.country'),
+      password: this.translate.instant('profile.password'),
+    };
+
+    Object.keys(this.profileForm.controls).forEach(key => {
+      const control = this.profileForm.get(key);
+      if (control && control.invalid) {
+        const fieldLabel = fieldLabels[key] || key;
+        if (control.errors?.['required']) {
+          errors.push(`${fieldLabel}: ${this.translate.instant('profile.validation.fieldRequired')}`);
+        } else if (control.errors?.['email']) {
+          errors.push(`${fieldLabel}: ${this.translate.instant('profile.validation.invalidEmail')}`);
+        } else if (control.errors?.['minlength']) {
+          errors.push(`${fieldLabel}: ${this.translate.instant('profile.validation.fieldMinLength', { min: control.errors['minlength'].requiredLength })}`);
+        }
+      }
+    });
+
+    return errors;
+  }
+
+  // Get tooltip text for save button when form is invalid
+  getSaveButtonTooltip(): string {
+    const errors = this.getFormValidationErrors();
+    if (errors.length === 0) {
+      return '';
+    }
+    return this.translate.instant('profile.validation.errors') + ':\n' + errors.join('\n');
+  }
+
   onSave(): void {
-    // Store current scroll position before validation
-    const currentScrollY = window.scrollY;
+    // Mark all fields as touched to show validation errors
+    Object.keys(this.profileForm.controls).forEach(key => {
+      this.profileForm.get(key)?.markAsTouched();
+    });
+
+    if (!this.profileForm.valid) {
+      const errors = this.getFormValidationErrors();
+      if (errors.length > 0) {
+        this.alerts
+          .open(
+            this.translate.instant('profile.validation.formInvalid') + ':\n\n' + errors.join('\n'),
+            {
+              appearance: 'error',
+              label: this.translate.instant('profile.validation.title'),
+            }
+          )
+          .subscribe();
+      }
+      return;
+    }
 
     if (this.profileForm.valid) {
       const formValue = this.profileForm.value;
@@ -219,6 +289,15 @@ export class ProfileComponent implements OnInit {
         // Reload profile and check completion
         this.loadProfile();
         this.checkProfileCompletion();
+
+        // If user has no unit, redirect to units page after profile reload
+        // Check again after reload to get the latest user data
+        const hasNoUnit = !this.user.primaryUnitId;
+        if (hasNoUnit) {
+          setTimeout(() => {
+            this.router.navigate(['/hub/settings/units']);
+          }, 500); // Small delay to let the success message show
+        }
       });
     }
   }

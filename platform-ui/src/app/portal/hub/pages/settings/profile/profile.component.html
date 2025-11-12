@@ -8,6 +8,19 @@
 
   <form [formGroup]="profileForm" (ngSubmit)="onSave()">
     <h1>{{ 'profile.editTitle' | translate }}</h1>
+    <button 
+      appearance="accent" 
+      tuiButton 
+      size="l" 
+      type="submit" 
+      class="save-button-top"
+      [disabled]="!profileForm.valid"
+      [tuiHint]="getSaveButtonTooltip()"
+      [tuiHintDirection]="'bottom'"
+      [tuiHintAppearance]="'onDark'"
+    >
+      {{ 'profile.saveButton' | translate }}
+    </button>
 
     <!-- Privacy Settings -->
     <h3>{{ 'profile.privacySettings' | translate }}</h3>
@@ -24,7 +37,7 @@
     <h3>{{ 'profile.basicInfo' | translate }}</h3>
 
     <tui-textfield class="form-field">
-      <label tuiLabel for="username">{{ 'profile.username' | translate }}</label>
+      <label tuiLabel for="username">{{ 'profile.username' | translate }} <span class="required">*</span></label>
       <input id="username" formControlName="username" type="text" placeholder="{{ 'profile.usernamePlaceholder' | translate }}"
         tuiTextfield />
     </tui-textfield>
@@ -32,14 +45,14 @@
     <div class="row form-field">
       <div class="column">
         <tui-textfield>
-          <label tuiLabel for="firstName">{{ 'profile.firstName' | translate }}</label>
+          <label tuiLabel for="firstName">{{ 'profile.firstName' | translate }} <span class="required">*</span></label>
           <input id="firstName" formControlName="firstName" type="text" placeholder="{{ 'profile.firstNamePlaceholder' | translate }}"
             tuiTextfield />
         </tui-textfield>
       </div>
       <div class="column">
         <tui-textfield>
-          <label tuiLabel for="lastName">{{ 'profile.lastName' | translate }}</label>
+          <label tuiLabel for="lastName">{{ 'profile.lastName' | translate }} <span class="required">*</span></label>
           <input id="lastName" formControlName="lastName" type="text" placeholder="{{ 'profile.lastNamePlaceholder' | translate }}"
             tuiTextfield />
         </tui-textfield>
@@ -48,7 +61,7 @@
     
     @if (!user.type) {
       <tui-textfield tuiChevron [stringify]="stringifyUserType" class="form-field">
-        <label tuiLabel>{{ 'profile.type' | translate }}</label>
+        <label tuiLabel>{{ 'profile.type' | translate }} <span class="required">*</span></label>
         <input tuiSelect formControlName="type" name="type" />
 
         <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="userTypes" [itemContent]="userTypeContent" />
@@ -66,10 +79,14 @@
 
 
     <tui-textfield class="form-field">
-      <label tuiLabel for="email">{{ 'profile.email' | translate }}</label>
+      <label tuiLabel for="email">{{ 'profile.email' | translate }} <span class="required">*</span></label>
       <input id="email" formControlName="email" type="email" placeholder="{{ 'profile.emailPlaceholder' | translate }}"
         tuiTextfield />
     </tui-textfield>
+
+    <tui-notification appearance="info" size="m" class="phone-info-notification">
+      <div>{{ 'profile.phoneInfo' | translate }}</div>
+    </tui-notification>
 
     <tui-textfield class="form-field">
       <label tuiLabel for="phone">{{ 'profile.phone' | translate }}</label>
@@ -97,7 +114,7 @@
     <div class="row form-field">
       <div class="column">
         <tui-textfield>
-          <label tuiLabel for="streetAddress">{{ 'profile.streetAddress' | translate }}</label>
+          <label tuiLabel for="streetAddress">{{ 'profile.streetAddress' | translate }} <span class="required">*</span></label>
           <input id="streetAddress" formControlName="streetAddress" type="text"
             placeholder="{{ 'profile.streetAddressPlaceholder' | translate }}" 
             tuiTextfield />
@@ -105,7 +122,7 @@
       </div>
       <div class="column">
         <tui-textfield>
-          <label tuiLabel for="city">{{ 'profile.city' | translate }}</label>
+          <label tuiLabel for="city">{{ 'profile.city' | translate }} <span class="required">*</span></label>
           <input id="city" formControlName="city" type="text" placeholder="{{ 'profile.cityPlaceholder' | translate }}"
             tuiTextfield />
         </tui-textfield>
@@ -115,7 +132,7 @@
     <div class="row form-field">
       <div class="column">
         <tui-textfield>
-          <label tuiLabel for="postalCode">{{ 'profile.postalCode' | translate }}</label>
+          <label tuiLabel for="postalCode">{{ 'profile.postalCode' | translate }} <span class="required">*</span></label>
           <input id="postalCode" formControlName="postalCode" type="text"
             placeholder="{{ 'profile.postalCodePlaceholder' | translate }}" 
             tuiTextfield />
@@ -123,13 +140,22 @@
       </div>
       <div class="column">
         <tui-textfield>
-          <label tuiLabel for="country">{{ 'profile.country' | translate }}</label>
+          <label tuiLabel for="country">{{ 'profile.country' | translate }} <span class="required">*</span></label>
           <input id="country" formControlName="country" type="text" placeholder="{{ 'profile.countryPlaceholder' | translate }}"
             tuiTextfield />
         </tui-textfield>
       </div>
     </div>
-    <button appearance="accent" tuiButton size="l" type="submit">
+    <button 
+      appearance="accent" 
+      tuiButton 
+      size="l" 
+      type="submit"
+      [disabled]="!profileForm.valid"
+      [tuiHint]="getSaveButtonTooltip()"
+      [tuiHintDirection]="'top'"
+      [tuiHintAppearance]="'onDark'"
+    >
       {{ 'profile.saveButton' | translate }}
     </button>
   </form>

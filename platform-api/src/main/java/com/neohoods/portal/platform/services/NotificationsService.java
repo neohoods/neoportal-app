@@ -314,7 +314,6 @@ public class NotificationsService {
                     "newUserId", newUser.getId().toString(),
                     "newUserUsername", newUser.getUsername(),
                     "newUserEmail", newUser.getEmail(),
-                    "newUserType", newUser.getType().toString(),
                     "newUserFirstName", newUser.getFirstName() != null ? newUser.getFirstName() : "",
                     "newUserLastName", newUser.getLastName() != null ? newUser.getLastName() : "");
 
@@ -442,15 +441,6 @@ public class NotificationsService {
                                 .type(TemplateVariableType.RAW)
                                 .ref("newUserEmail")
                                 .value(payload.get("newUserEmail").toString())
-                                .build());
-                    }
-
-                    // New user type
-                    if (payload.containsKey("newUserType")) {
-                        variables.add(TemplateVariable.builder()
-                                .type(TemplateVariableType.RAW)
-                                .ref("newUserType")
-                                .value(payload.get("newUserType").toString())
                                 .build());
                     }
 

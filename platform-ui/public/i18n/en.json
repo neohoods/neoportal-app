@@ -152,6 +152,16 @@
     "saveButton": "Save",
     "saveSuccess": "Profile saved successfully",
     "saveError": "Profile save failed",
+    "completionRequired": "Your profile must be completed before using the service. Please fill in all required fields and complete the units section.",
+    "phoneInfo": "We encourage you to provide your phone number. In case of water damage or emergency, this will allow us to contact you quickly.",
+    "validation": {
+      "title": "Validation errors",
+      "formInvalid": "The form contains errors",
+      "errors": "Errors",
+      "fieldRequired": "This field is required",
+      "invalidEmail": "Invalid email address",
+      "fieldMinLength": "Minimum {min} characters required"
+    },
     "privacySettings": "Privacy Settings",
     "profileSharingConsent": "Allow profile sharing in community directory",
     "profileSharingConsentDescription": "When enabled, your basic profile information (name, apartment number, contact details) will be visible to other community members in the residents directory. This helps neighbors connect and communicate more easily."

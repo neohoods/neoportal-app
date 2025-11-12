@@ -13,7 +13,7 @@ $background-base-alt: #f6f6f6;
 
 // Calculate the lightened color using Sass
 $lightened-action-color: color.adjust(#002e23, $lightness: 20%);
-$lightened-accent-color: color.adjust(#cf5b40, $lightness: 20%);
+$lightened-accent-color: color.adjust(#cf5b40, $lightness: -20%);
 
 :root {
   // Backgrounds

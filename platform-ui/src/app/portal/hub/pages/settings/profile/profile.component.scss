@@ -57,3 +57,17 @@ form {
 .profile-warning {
     margin-top: 20px;
 }
+
+.required {
+    color: var(--tos-error, #e53935);
+    margin-left: 4px;
+}
+
+.save-button-top {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.phone-info-notification {
+    margin-bottom: 16px;
+}
