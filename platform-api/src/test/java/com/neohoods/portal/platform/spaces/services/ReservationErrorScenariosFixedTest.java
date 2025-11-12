@@ -76,7 +76,7 @@ public class ReservationErrorScenariosFixedTest extends BaseIntegrationTest {
             guestRoomSpace.setCurrency("EUR");
             guestRoomSpace.setMinDurationDays(1);
             guestRoomSpace.setMaxDurationDays(30);
-            guestRoomSpace.setRequiresApartmentAccess(true);
+            guestRoomSpace.setCapacity(2);
             guestRoomSpace.setMaxAnnualReservations(10);
             guestRoomSpace.setUsedAnnualReservations(0);
             guestRoomSpace.setAccessCodeEnabled(true);
@@ -100,7 +100,7 @@ public class ReservationErrorScenariosFixedTest extends BaseIntegrationTest {
         inactiveSpace.setCurrency("EUR");
         inactiveSpace.setMinDurationDays(1);
         inactiveSpace.setMaxDurationDays(7);
-        inactiveSpace.setRequiresApartmentAccess(false);
+        inactiveSpace.setCapacity(null);
         inactiveSpace.setMaxAnnualReservations(0);
         inactiveSpace.setUsedAnnualReservations(0);
         inactiveSpace.setAccessCodeEnabled(false);
