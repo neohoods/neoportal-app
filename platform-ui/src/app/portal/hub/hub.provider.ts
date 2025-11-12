@@ -23,7 +23,7 @@ import { MockUnitsService } from './services/mock/units.service';
 import { APIUnitsService } from './services/real-api/units.service';
 import { UsersService } from '../admin/services/users.service';
 import { MockUsersService } from '../admin/services/mock/users.service';
-import { ApiUsersService } from '../admin/services/real-api/users.service';
+import { APIHubUsersService } from './services/real-api/users.service';
 
 
 export const ANNOUNCEMENTS_SERVICE_TOKEN = new InjectionToken<AnnouncementsService>(
@@ -94,6 +94,6 @@ export const hubProviders: Provider[] = [
     provide: USERS_SERVICE_TOKEN,
     useExisting: ConfigService.configuration.useMockApi
       ? MockUsersService
-      : ApiUsersService,
+      : APIHubUsersService,
   },
 ];

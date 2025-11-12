@@ -239,6 +239,28 @@ paths:
         "404":
           description: User not found
 
+  /hub/users:
+    get:
+      operationId: getHubUsers
+      summary: Retrieve all users (for hub users)
+      tags:
+        - users-hub-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: A list of users (basic information only)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserBasic"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /hub/announcements:
     post:
       operationId: createAnnouncement
@@ -5039,6 +5061,25 @@ components:
           type: string
           format: uuid
           description: "ID of the user's primary unit (for reservations)"
+
+    UserBasic:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+      description: "Basic user information for hub directory (privacy-friendly)"
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
 
     UserType:
       type: string

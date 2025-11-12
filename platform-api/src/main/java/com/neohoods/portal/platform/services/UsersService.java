@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +12,7 @@ import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.User;
+import com.neohoods.portal.platform.model.UserBasic;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -38,6 +38,26 @@ public class UsersService {
                 return Flux.fromIterable(usersRepository.findAll())
                                 .map(UserEntity::toUser)
                                 .map(User.UserBuilder::build);
+        }
+
+        public Flux<UserBasic> getUsersBasic() {
+                return Flux.fromIterable(usersRepository.findAll())
+                                .map(userEntity -> {
+                                        UserBasic.UserBasicBuilder builder = UserBasic.builder();
+                                        if (userEntity.getId() != null) {
+                                                builder.id(userEntity.getId());
+                                        }
+                                        if (userEntity.getFirstName() != null) {
+                                                builder.firstName(userEntity.getFirstName());
+                                        }
+                                        if (userEntity.getLastName() != null) {
+                                                builder.lastName(userEntity.getLastName());
+                                        }
+                                        if (userEntity.getEmail() != null) {
+                                                builder.email(userEntity.getEmail());
+                                        }
+                                        return builder.build();
+                                });
         }
 
         public Flux<User> getUsersByIds(List<UUID> userIds) {
