@@ -26,7 +26,15 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
     private cookieService: CookieService,
   ) {
     this.applicationsService.getApplications().subscribe(applications => {
-      this.applications = applications;
+      // Add base portal application at the beginning
+      const portalApp: UIApplication = {
+        id: 'portal',
+        name: 'applications.portal.name',
+        url: '/hub',
+        icon: '/assets/applications/home.png',
+        helpText: 'applications.portal.helpText'
+      };
+      this.applications = [portalApp, ...applications];
     });
 
     // Check if mobile on initialization

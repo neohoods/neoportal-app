@@ -11,11 +11,15 @@
         tuiHintDirection="bottom"
         [tuiHint]="tooltip"
     >
-        <img
-            [src]="application.icon"
-            [alt]="application.name"
-        >
-        <div class="application-name">{{ application.name }}</div>
+        @if (isTuiIcon(application.icon)) {
+            <tui-icon [icon]="application.icon" size="l"></tui-icon>
+        } @else {
+            <img
+                [src]="application.icon"
+                [alt]="application.name"
+            >
+        }
+        <div class="application-name">{{ application.name | translate }}</div>
     </button>
     <ng-template #tooltip>
         <div
@@ -26,6 +30,6 @@
                 {{ 'applications.notAvailable' | translate }}
             </strong>
         </div>
-        <div>{{ application.helpText }}</div>
+        <div>{{ application.helpText | translate }}</div>
     </ng-template>
 </div>

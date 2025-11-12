@@ -1370,7 +1370,11 @@
   },
   "applications": {
     "info": "This section contains all the applications available in your community. You can access services, book equipment and use community tools to enhance your neighborhood living experience.",
-    "notAvailable": "This application is not yet available"
+    "notAvailable": "This application is not yet available",
+    "portal": {
+      "name": "home",
+      "helpText": "Back to community portal"
+    }
   },
   "newsletters": {
     "title": "Newsletters",

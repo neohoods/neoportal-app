@@ -2,18 +2,22 @@ import { CommonModule, NgIf } from '@angular/common';
 import { Component, inject, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { TuiHint } from '@taiga-ui/core';
+import { TuiHint, TuiIcon } from '@taiga-ui/core';
 import { UIApplication } from '../../../../models/UIApplication';
 
 @Component({
   selector: 'application',
-  imports: [TuiHint, CommonModule, NgIf, TranslateModule],
+  imports: [TuiHint, TuiIcon, CommonModule, NgIf, TranslateModule],
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss'
 })
 export class ApplicationComponent {
   @Input({ required: true }) application!: UIApplication;
   private router = inject(Router);
+
+  isTuiIcon(icon: string): boolean {
+    return icon.startsWith('@tui.');
+  }
 
   openLink(url: string): void {
     // Check if URL is external (starts with http:// or https://)
