@@ -121,13 +121,13 @@
                         <div class="rules-grid">
                             <div
                                 class="rule-item"
-                                *ngIf="space()!.quota"
+                                *ngIf="space()!.capacity"
                             >
                                 <span class="label">
-                                    {{ 'spaces.detail.capacity' | translate }}
+                                    {{ 'spaces.admin.capacity' | translate }}
                                 </span>
                                 <span class="value">
-                                    {{ space()!.quota?.max }} {{ 'spaces.admin.people' | translate }}
+                                    {{ space()!.capacity }} {{ 'spaces.admin.people' | translate }}
                                 </span>
                             </div>
                             <div class="rule-item">
@@ -144,14 +144,6 @@
                                 </span>
                                 <span class="value">
                                     {{ space()!.rules.maxDurationDays }} {{ 'spaces.admin.days' | translate }}
-                                </span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="label">
-                                    {{ 'spaces.admin.maxReservationsPerYear' | translate }}
-                                </span>
-                                <span class="value">
-                                    {{ space()!.rules.maxReservationsPerYear }} {{ 'spaces.admin.reservations' | translate }}
                                 </span>
                             </div>
                         </div>
@@ -246,17 +238,6 @@
                             </p>
                         </div>
 
-                        <div
-                            class="access-info"
-                            *ngIf="space()!.rules.requiresApartmentAccess !== undefined"
-                        >
-                            <span class="label">
-                                {{ 'spaces.admin.requiresApartmentAccess' | translate }}
-                            </span>
-                            <span class="value">
-                                {{ space()!.rules.requiresApartmentAccess ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
-                            </span>
-                        </div>
                     </section>
                 </div>
             </div>

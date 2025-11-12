@@ -119,6 +119,9 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
             entity.setName(request.getName());
             entity.setType(convertApiTypeToEntityType(request.getType()));
             entity.setDescription(request.getDescription());
+            if (request.getCapacity() != null) {
+                entity.setCapacity(request.getCapacity());
+            }
 
             // Update pricing information
             if (request.getPricing() != null) {
@@ -148,9 +151,6 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
                 }
                 if (rules.getMaxDurationDays() != null) {
                     entity.setMaxDurationDays(rules.getMaxDurationDays());
-                }
-                if (rules.getRequiresApartmentAccess() != null) {
-                    entity.setRequiresApartmentAccess(rules.getRequiresApartmentAccess());
                 }
 
                 // Convert AllowedDaysEnum to DayOfWeek
@@ -286,7 +286,6 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
         SpaceRules rules = SpaceRules.builder()
                 .minDurationDays(entity.getMinDurationDays())
                 .maxDurationDays(entity.getMaxDurationDays())
-                .requiresApartmentAccess(entity.getRequiresApartmentAccess())
                 .allowedDays(allowedDaysList)
                 .allowedHours(entity.getAllowedHoursStart() != null && entity.getAllowedHoursEnd() != null
                         ? TimeRange.builder()
@@ -384,6 +383,7 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
                 .rules(rules)
                 .images(images)
                 .quota(quota)
+                .capacity(entity.getCapacity())
                 .digitalLockId(entity.getDigitalLockId())
                 .accessCodeEnabled(entity.getAccessCodeEnabled())
                 .cleaningSettings(cleaningSettings)
@@ -398,6 +398,9 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
         entity.setName(request.getName());
         entity.setType(convertApiTypeToEntityType(request.getType()));
         entity.setDescription(request.getDescription());
+        if (request.getCapacity() != null) {
+            entity.setCapacity(request.getCapacity());
+        }
 
         // Set pricing information
         if (request.getPricing() != null) {
@@ -427,9 +430,6 @@ public class SpacesAdminApiApiDelegateImpl implements SpacesAdminApiApiDelegate 
             }
             if (rules.getMaxDurationDays() != null) {
                 entity.setMaxDurationDays(rules.getMaxDurationDays());
-            }
-            if (rules.getRequiresApartmentAccess() != null) {
-                entity.setRequiresApartmentAccess(rules.getRequiresApartmentAccess());
             }
 
             // Convert AllowedDaysEnum to DayOfWeek

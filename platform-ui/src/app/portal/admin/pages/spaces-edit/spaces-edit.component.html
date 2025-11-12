@@ -261,16 +261,14 @@
                 <div class="form-row">
                     <div class="form-field">
                         <tui-textfield>
-                            <label tuiLabel>
-                                {{'spaces.admin.maxCapacity' | translate }}
-                            </label>
+                            <label tuiLabel>{{'spaces.admin.maxDays' | translate }}</label>
                             <input
                                 tuiInputNumber
                                 formControlName="max"
                                 placeholder="0"
                             >
                         </tui-textfield>
-                        <small class="help-text">{{ 'spaces.admin.people' | translate }}</small>
+                        <small class="help-text">{{ 'spaces.admin.days' | translate }}</small>
                         <div
                             *ngIf="getNestedFieldError('quota', 'max')"
                             class="field-error"
@@ -327,18 +325,23 @@
                     <div class="form-field">
                         <tui-textfield>
                             <label tuiLabel>
-                                {{'spaces.admin.maxReservationsPerYear' | translate }}
+                                {{'spaces.admin.capacity' | translate }}
                             </label>
                             <input
                                 tuiInputNumber
-                                formControlName="maxReservationsPerYear"
-                                placeholder="1"
+                                formControlName="capacity"
+                                placeholder="2"
                             >
                         </tui-textfield>
-                        <small class="help-text">
-                            {{ 'spaces.admin.reservations' | translate }}
-                        </small>
+                        <small class="help-text">{{ 'spaces.admin.people' | translate }}</small>
+                        <div
+                            *ngIf="getNestedFieldError('rules', 'capacity')"
+                            class="field-error"
+                        >
+                            {{ getNestedFieldError('rules', 'capacity') }}
+                        </div>
                     </div>
+
                 </div>
 
                 <div class="form-row">
@@ -449,23 +452,6 @@
                     </div>
                 </div>
 
-                <div class="form-field">
-                    <label
-                        tuiLabel
-                        class="switch-label"
-                    >
-                        <input
-                            tuiSwitch
-                            type="checkbox"
-                            formControlName="requiresApartmentAccess"
-                            name="requiresApartmentAccess"
-                        >
-                        {{ 'spaces.admin.requiresApartmentAccess' | translate }}
-                    </label>
-                    <small class="help-text">
-                        {{ (spaceForm.get('rules.requiresApartmentAccess')?.value ? 'spaces.admin.yes' : 'spaces.admin.no') | translate }}
-                    </small>
-                </div>
             </div>
         </div>
 

@@ -83,8 +83,9 @@ public class SpaceEntity {
     @Column(nullable = false)
     private Integer maxDurationDays = 365;
 
-    @Column(nullable = false)
-    private Boolean requiresApartmentAccess = false;
+    @Positive
+    @Column
+    private Integer capacity;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "space_shared_with", joinColumns = @JoinColumn(name = "space_id"))
@@ -274,12 +275,12 @@ public class SpaceEntity {
         this.maxDurationDays = maxDurationDays;
     }
 
-    public Boolean getRequiresApartmentAccess() {
-        return requiresApartmentAccess;
+    public Integer getCapacity() {
+        return capacity;
     }
 
-    public void setRequiresApartmentAccess(Boolean requiresApartmentAccess) {
-        this.requiresApartmentAccess = requiresApartmentAccess;
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
     }
 
     public List<UUID> getShareSpaceWith() {

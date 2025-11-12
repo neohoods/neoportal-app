@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { SpacesApiService } from '../../../../api-client/api/spacesApi.service';
 import { UISpace } from '../../../../models/UISpace';
@@ -27,6 +27,7 @@ export class APISpacesService implements SpacesService {
             rules: apiSpace.rules || { maxOccupancy: 1, allowedActivities: [], restrictions: [] },
             images: apiSpace.images || [],
             quota: apiSpace.quota || { max: 1, period: 'MONTH' },
+            capacity: apiSpace.capacity,
             digitalLockId: apiSpace.digitalLockId,
             accessCodeEnabled: apiSpace.accessCodeEnabled || false,
             createdAt: apiSpace.createdAt || '',

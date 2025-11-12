@@ -64,6 +64,7 @@
           <p>{{ space()?.instructions }}</p>
         </div>
         }
+
       </section>
 
       <!-- Pricing -->
@@ -93,11 +94,17 @@
       <section class="detail-section quota-section">
         <h2>{{ 'spaces.admin.quota-title' | translate }}</h2>
         <div class="quota-info">
-          <tui-icon icon="@tui.users" class="quota-icon" />
+          <tui-icon icon="@tui.calendar" class="quota-icon" />
           <div class="quota-details">
-            <span class="label">{{ 'spaces.admin.maxCapacity' | translate }}</span>
-            <span class="value">{{ space()?.quota?.max }} {{ 'spaces.admin.people' | translate }}</span>
+            <span class="label">{{ 'spaces.admin.maxDays' | translate }}</span>
+            <span class="value">{{ space()?.quota?.max }} {{ 'spaces.admin.days' | translate }} {{ 'spaces.quota.per' | translate }} {{ getQuotaPeriod() }}</span>
           </div>
+          @if (getQuotaResetDate()) {
+            <div class="quota-reset">
+              <span class="label">{{ 'spaces.admin.quotaResetDate' | translate }}</span>
+              <span class="value">{{ getQuotaResetDate() }}</span>
+            </div>
+          }
         </div>
       </section>
 
@@ -105,6 +112,10 @@
       <section class="detail-section rules-section">
         <h2>{{ 'spaces.admin.reservationRules' | translate }}</h2>
         <div class="rules-grid">
+          <div class="rule-item" *ngIf="space()?.capacity">
+            <span class="label">{{ 'spaces.admin.capacity' | translate }}</span>
+            <span class="value">{{ space()?.capacity }} {{ 'spaces.admin.people' | translate }}</span>
+          </div>
           <div class="rule-item">
             <span class="label">{{ 'spaces.admin.minDurationDays' | translate }}</span>
             <span class="value">{{ space()?.rules?.minDurationDays }} {{ 'spaces.admin.days' | translate }}</span>
@@ -112,10 +123,6 @@
           <div class="rule-item">
             <span class="label">{{ 'spaces.admin.maxDurationDays' | translate }}</span>
             <span class="value">{{ space()?.rules?.maxDurationDays }} {{ 'spaces.admin.days' | translate }}</span>
-          </div>
-          <div class="rule-item">
-            <span class="label">{{ 'spaces.admin.maxReservationsPerYear' | translate }}</span>
-            <span class="value">{{ space()?.rules?.maxReservationsPerYear }} {{ 'spaces.admin.reservations' | translate }}</span>
           </div>
         </div>
 
@@ -174,18 +181,6 @@
         </div>
         }
 
-        @if (space()?.rules?.requiresApartmentAccess !== undefined) {
-        <div class="access-info">
-          <span class="label">
-            <tui-icon icon="@tui.key"></tui-icon>
-            {{ 'spaces.admin.requiresApartmentAccess' | translate }}
-          </span>
-          <tui-chip [appearance]="space()?.rules?.requiresApartmentAccess ? 'positive' : 'outline'">
-            <tui-icon [icon]="space()?.rules?.requiresApartmentAccess ? '@tui.check' : '@tui.x'"></tui-icon>
-            {{ space()?.rules?.requiresApartmentAccess ? ('spaces.admin.yes' | translate) : ('spaces.admin.no' | translate) }}
-          </tui-chip>
-        </div>
-        }
       </section>
 
       <!-- Cleaning Settings -->

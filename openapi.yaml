@@ -4039,6 +4039,11 @@ components:
             $ref: "#/components/schemas/SpaceImage"
         quota:
           $ref: "#/components/schemas/QuotaInfo"
+        capacity:
+          type: integer
+          minimum: 1
+          description: "Number of people allowed in the space at the same time"
+          example: 2
         digitalLockId:
           type: string
           format: uuid
@@ -4112,7 +4117,6 @@ components:
       required:
         - minDurationDays
         - maxDurationDays
-        - maxReservationsPerYear
         - allowedDays
         - allowedHours
       properties:
@@ -4124,10 +4128,6 @@ components:
           type: integer
           minimum: 1
           example: 7
-        maxReservationsPerYear:
-          type: integer
-          minimum: 1
-          example: 4
         allowedDays:
           type: array
           items:
@@ -4160,9 +4160,6 @@ components:
                 "SUNDAY",
               ]
           example: ["MONDAY", "FRIDAY"]
-        requiresApartmentAccess:
-          type: boolean
-          example: true
         shareSpaceWith:
           type: array
           items:
@@ -4566,6 +4563,11 @@ components:
           type: string
           format: uuid
           description: "ID of associated digital lock"
+        capacity:
+          type: integer
+          minimum: 1
+          description: "Number of people allowed in the space at the same time"
+          example: 2
         status:
           $ref: "#/components/schemas/SpaceStatus"
           description: "Space status (optional for updates)"
@@ -4595,7 +4597,6 @@ components:
       required:
         - minDurationDays
         - maxDurationDays
-        - maxReservationsPerYear
         - cleaningDays
         - cleaningFee
         - ownerPrice
@@ -4605,9 +4606,6 @@ components:
           type: integer
           minimum: 1
         maxDurationDays:
-          type: integer
-          minimum: 1
-        maxReservationsPerYear:
           type: integer
           minimum: 1
         cleaningDays:
@@ -4930,7 +4928,8 @@ components:
           items:
             $ref: "#/components/schemas/Space"
         totalElements:
-          type: long
+          type: integer
+          format: int64
           description: Total number of elements across all pages
         totalPages:
           type: integer

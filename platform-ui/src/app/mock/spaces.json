@@ -16,14 +16,12 @@
     "rules": {
       "minDurationDays": 3,
       "maxDurationDays": 7,
-      "maxReservationsPerYear": 4,
       "allowedDays": ["WEDNESDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "14:00",
         "end": "11:00"
       },
       "cleaningDays": ["MONDAY", "FRIDAY"],
-      "requiresApartmentAccess": true,
       "conflictWithTypes": []
     },
     "images": [
@@ -68,14 +66,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 1,
-      "maxReservationsPerYear": 12,
       "allowedDays": ["WEDNESDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "08:00",
         "end": "20:00"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": ["COWORKING"]
     },
     "images": [
@@ -120,14 +116,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 5,
-      "maxReservationsPerYear": 20,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
       "allowedHours": {
         "start": "08:00",
         "end": "18:00"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": ["COMMON_ROOM"]
     },
     "images": [
@@ -164,14 +158,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -208,14 +200,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -252,14 +242,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -296,14 +284,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -340,14 +326,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -384,14 +368,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -428,14 +410,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -472,14 +452,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -516,14 +494,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -560,14 +536,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -604,14 +578,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -648,14 +620,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -692,14 +662,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -736,14 +704,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -780,14 +746,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [
@@ -824,14 +788,12 @@
     "rules": {
       "minDurationDays": 1,
       "maxDurationDays": 15,
-      "maxReservationsPerYear": 50,
       "allowedDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
       "allowedHours": {
         "start": "00:00",
         "end": "23:59"
       },
       "cleaningDays": [],
-      "requiresApartmentAccess": false,
       "conflictWithTypes": []
     },
     "images": [

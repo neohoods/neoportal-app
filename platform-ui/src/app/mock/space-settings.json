@@ -2,7 +2,6 @@
   "guestRoomSettings": {
     "minDurationDays": 3,
     "maxDurationDays": 7,
-    "maxReservationsPerYear": 4,
     "cleaningDays": ["MONDAY", "FRIDAY"],
     "cleaningFee": 25.0,
     "ownerPrice": 15.0,

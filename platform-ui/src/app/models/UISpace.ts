@@ -11,6 +11,7 @@ export interface UISpace {
     rules: SpaceRules;
     images: SpaceImage[];
     quota?: QuotaInfo;
+    capacity?: number;
     digitalLockId?: string | null;
     accessCodeEnabled?: boolean;
     cleaningSettings?: CleaningSettings;
@@ -31,15 +32,14 @@ export function fromApiSpace(apiSpace: Space): UISpace {
         rules: apiSpace.rules || {
             minDurationDays: 1,
             maxDurationDays: 30,
-            maxReservationsPerYear: 12,
             allowedDays: [],
             allowedHours: { start: '08:00', end: '20:00' },
             cleaningDays: [],
-            requiresApartmentAccess: false,
             conflictWithTypes: []
         },
         images: apiSpace.images || [],
         quota: apiSpace.quota,
+        capacity: apiSpace.capacity,
         digitalLockId: apiSpace.digitalLockId,
         accessCodeEnabled: apiSpace.accessCodeEnabled,
         cleaningSettings: apiSpace.cleaningSettings,
@@ -61,6 +61,7 @@ export function toApiSpace(uiSpace: Partial<UISpace>): Partial<Space> {
         rules: uiSpace.rules,
         images: uiSpace.images,
         quota: uiSpace.quota,
+        capacity: uiSpace.capacity,
         digitalLockId: uiSpace.digitalLockId || undefined,
         accessCodeEnabled: uiSpace.accessCodeEnabled,
         cleaningSettings: uiSpace.cleaningSettings,

@@ -93,11 +93,9 @@ export class MockAdminSpacesService implements AdminSpacesService {
             rules: space.rules || {
                 minDurationDays: 1,
                 maxDurationDays: 30,
-                maxReservationsPerYear: 12,
                 allowedDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'],
                 allowedHours: { start: '08:00', end: '22:00' },
                 cleaningDays: [],
-                requiresApartmentAccess: false,
                 conflictWithTypes: []
             },
             accessCodeEnabled: space.accessCodeEnabled || false,

@@ -71,6 +71,7 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
             rules: apiSpace.rules!,
             images: apiSpace.images || [],
             quota: apiSpace.quota,
+            capacity: apiSpace.capacity,
             digitalLockId: apiSpace.digitalLockId,
             accessCodeEnabled: apiSpace.accessCodeEnabled,
             cleaningSettings: apiSpace.cleaningSettings
@@ -92,6 +93,7 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
             rules: apiSpace.rules!,
             images: apiSpace.images || [],
             quota: apiSpace.quota,
+            capacity: apiSpace.capacity,
             digitalLockId: apiSpace.digitalLockId,
             accessCodeEnabled: apiSpace.accessCodeEnabled,
             cleaningSettings: apiSpace.cleaningSettings
@@ -159,6 +161,7 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
                         rules: space.rules,
                         images: space.images || [],
                         quota: space.quota,
+                        capacity: space.capacity,
                         digitalLockId: undefined,
                         accessCodeEnabled: space.accessCodeEnabled,
                         cleaningSettings: space.cleaningSettings
@@ -182,6 +185,7 @@ export class RealApiAdminSpacesService implements AdminSpacesService {
                     rules: space.rules,
                     images: space.images || [],
                     quota: space.quota,
+                    capacity: space.capacity,
                     digitalLockId: digitalLockId,
                     accessCodeEnabled: space.accessCodeEnabled,
                     cleaningSettings: space.cleaningSettings

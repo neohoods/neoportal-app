@@ -241,7 +241,6 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
         SpaceRules rules = new SpaceRules();
         rules.setMinDurationDays(entity.getMinDurationDays());
         rules.setMaxDurationDays(entity.getMaxDurationDays());
-        rules.setMaxReservationsPerYear(entity.getMaxAnnualReservations());
 
         // Convert DayOfWeek to AllowedDaysEnum - handle lazy initialization
         try {
@@ -271,6 +270,9 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
         }
 
         space.setRules(rules);
+
+        // Set capacity
+        space.setCapacity(entity.getCapacity());
 
         // Map quota with correct API model properties
         if (entity.getMaxAnnualReservations() != null && entity.getMaxAnnualReservations() > 0) {

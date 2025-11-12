@@ -146,14 +146,13 @@ export class SpacesEditComponent implements OnInit {
             rules: this.fb.group({
                 minDurationDays: [1, [Validators.min(1)]],
                 maxDurationDays: [1, [Validators.min(1)]],
-                maxReservationsPerYear: [12, [Validators.min(1)]],
+                capacity: [null, [Validators.min(1)]],
                 allowedDays: [[]],
                 allowedHours: this.fb.group({
                     start: ['08:00'],
                     end: ['20:00']
                 }),
                 cleaningDays: [[]],
-                requiresApartmentAccess: [false],
                 shareSpaceWith: [[]]
             }),
             userRegulations: this.fb.group({
@@ -320,14 +319,13 @@ export class SpacesEditComponent implements OnInit {
             rules: {
                 minDurationDays: space.rules?.minDurationDays || 1,
                 maxDurationDays: space.rules?.maxDurationDays || 1,
-                maxReservationsPerYear: space.rules?.maxReservationsPerYear || 12,
+                capacity: space.capacity || null,
                 allowedDays: space.rules?.allowedDays || [],
                 allowedHours: {
                     start: space.rules?.allowedHours?.start || '08:00',
                     end: space.rules?.allowedHours?.end || '20:00'
                 },
                 cleaningDays: space.rules?.cleaningDays || [],
-                requiresApartmentAccess: space.rules?.requiresApartmentAccess || false,
                 shareSpaceWith: [] // VALEMENT: handled by map only
             },
             cleaningSettings: {
@@ -358,6 +356,13 @@ export class SpacesEditComponent implements OnInit {
             formData.rules.shareSpaceWith = Object.keys(this.selectedShareSpaceWithMap).filter(
                 id => this.selectedShareSpaceWithMap[id]
             );
+            // Extract capacity from rules to root level (API expects it at root)
+            formData.capacity = formData.rules?.capacity;
+            // Remove capacity from rules (it's not part of SpaceRules in API)
+            if (formData.rules) {
+                const { capacity, ...rulesWithoutCapacity } = formData.rules;
+                formData.rules = rulesWithoutCapacity;
+            }
             if (formData.type && typeof formData.type === 'object') {
                 formData.type = formData.type.value;
             }

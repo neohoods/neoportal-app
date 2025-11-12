@@ -485,8 +485,11 @@
           "week": "semaine"
         }
       },
+      "capacity": "Capacité",
       "maxCapacity": "Capacité maximale",
+      "maxDays": "Jours maximum",
       "people": "personnes",
+      "quotaResetDate": "Date de réinitialisation",
       "images": "Images",
       "uploadImages": "Glisser-déposer des images ou cliquer pour sélectionner",
       "uploadImagesHint": "Formats supportés: JPG, PNG, WebP. Taille max: 10MB par image",
@@ -507,7 +510,6 @@
       "sharedSpaces": "Espaces partagés",
       "selectSharedSpaces": "Sélectionner les espaces partagés",
       "noSharedSpaces": "Aucun espace partagé",
-      "requiresApartmentAccess": "Accès appartement requis",
       "reservations": "réservations",
       "yes": "Oui",
       "no": "Non",

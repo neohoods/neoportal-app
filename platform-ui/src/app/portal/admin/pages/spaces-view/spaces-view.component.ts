@@ -569,5 +569,31 @@ export class SpacesViewComponent implements OnInit {
             ).subscribe();
         });
     }
+
+    getQuotaPeriod(): string {
+        const space = this.space();
+        if (!space?.quota?.period) return this.translate.instant('spaces.quota.period.year');
+        const periodKey = String(space.quota.period).toLowerCase();
+        return this.translate.instant(`spaces.quota.period.${periodKey}`);
+    }
+
+    getQuotaResetDate(): string | null {
+        const space = this.space();
+        if (!space?.quota) return null;
+        
+        // If resetDate is null, it means January 1st
+        if (space.quota.resetDate === null || space.quota.resetDate === undefined) {
+            const currentYear = new Date().getFullYear();
+            return `1er janvier ${currentYear}`;
+        }
+        
+        // Format the reset date
+        const date = new Date(space.quota.resetDate);
+        return date.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
 }
 

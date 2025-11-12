@@ -252,7 +252,7 @@ CREATE TABLE spaces (
     currency VARCHAR(3) NOT NULL DEFAULT 'EUR',
     min_duration_days INTEGER NOT NULL DEFAULT 1,
     max_duration_days INTEGER NOT NULL DEFAULT 365,
-    requires_apartment_access BOOLEAN NOT NULL DEFAULT FALSE,
+    capacity INTEGER,
     max_annual_reservations INTEGER NOT NULL DEFAULT 0,
     used_annual_reservations INTEGER NOT NULL DEFAULT 0,
     allowed_hours_start VARCHAR(5) DEFAULT '08:00',
