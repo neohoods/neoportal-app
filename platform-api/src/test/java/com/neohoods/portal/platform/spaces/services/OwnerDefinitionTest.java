@@ -116,10 +116,21 @@ public class OwnerDefinitionTest {
             BigDecimal subtotal = totalDaysPrice.add(CLEANING_FEE);
             
             // Calculate platform fees (10% of basePrice + cleaningFee + 5.00 fixed)
+            // Platform fees are calculated on basePrice + cleaningFee, rounded up to 1 decimal (CEILING)
             BigDecimal basePriceWithCleaning = totalDaysPrice.add(CLEANING_FEE);
-            BigDecimal platformFeeAmount = basePriceWithCleaning.multiply(PLATFORM_FEE_PERCENTAGE)
-                    .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
-            BigDecimal platformFixedFeeAmount = PLATFORM_FIXED_FEE;
+            BigDecimal platformFeeAmount = BigDecimal.ZERO;
+            BigDecimal platformFixedFeeAmount = BigDecimal.ZERO;
+            
+            if (basePriceWithCleaning.compareTo(BigDecimal.ZERO) > 0) {
+                // Platform fee amount = percentage of (base price + cleaning fee)
+                // Round up to 1 decimal place (no cents) - always round up
+                platformFeeAmount = basePriceWithCleaning.multiply(PLATFORM_FEE_PERCENTAGE)
+                        .divide(BigDecimal.valueOf(100), 1, java.math.RoundingMode.CEILING);
+                
+                // Platform fixed fee is constant per transaction (only for paid reservations)
+                // Round up to 1 decimal place (no cents) - always round up
+                platformFixedFeeAmount = PLATFORM_FIXED_FEE.setScale(1, java.math.RoundingMode.CEILING);
+            }
             
             // Calculate total: totalDaysPrice + cleaningFee + deposit + platformFees
             BigDecimal totalPrice = totalDaysPrice
@@ -169,8 +180,11 @@ public class OwnerDefinitionTest {
         UserEntity adminUser = createUser(UserType.ADMIN);
         
         // Expected price for owner: 50.00 * 3 nights = 150.00 base
-        // + 20.00 cleaning + 50.00 deposit + 15.00 platform (10%) + 5.00 fixed = 240.00
-        BigDecimal expectedTotalPrice = new BigDecimal("240.00");
+        // + 20.00 cleaning = 170.00
+        // Platform fee = 170 * 10% = 17.0 (CEILING, 1 decimal)
+        // Platform fixed = 5.0 (CEILING, 1 decimal)
+        // Total = 150 + 20 + 50 + 17.0 + 5.0 = 242.0
+        BigDecimal expectedTotalPrice = new BigDecimal("242.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -196,8 +210,11 @@ public class OwnerDefinitionTest {
         UserEntity ownerUser = createUser(UserType.OWNER);
         
         // Expected price for owner: 50.00 * 3 nights = 150.00 base
-        // + 20.00 cleaning + 50.00 deposit + 15.00 platform (10%) + 5.00 fixed = 240.00
-        BigDecimal expectedTotalPrice = new BigDecimal("240.00");
+        // + 20.00 cleaning = 170.00
+        // Platform fee = 170 * 10% = 17.0 (CEILING, 1 decimal)
+        // Platform fixed = 5.0 (CEILING, 1 decimal)
+        // Total = 150 + 20 + 50 + 17.0 + 5.0 = 242.0
+        BigDecimal expectedTotalPrice = new BigDecimal("242.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -223,8 +240,11 @@ public class OwnerDefinitionTest {
         UserEntity landlordUser = createUser(UserType.LANDLORD);
         
         // Expected price for owner: 50.00 * 3 nights = 150.00 base
-        // + 20.00 cleaning + 50.00 deposit + 15.00 platform (10%) + 5.00 fixed = 240.00
-        BigDecimal expectedTotalPrice = new BigDecimal("240.00");
+        // + 20.00 cleaning = 170.00
+        // Platform fee = 170 * 10% = 17.0 (CEILING, 1 decimal)
+        // Platform fixed = 5.0 (CEILING, 1 decimal)
+        // Total = 150 + 20 + 50 + 17.0 + 5.0 = 242.0
+        BigDecimal expectedTotalPrice = new BigDecimal("242.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -250,8 +270,11 @@ public class OwnerDefinitionTest {
         UserEntity tenantUser = createUser(UserType.TENANT);
         
         // Expected price for tenant: 100.00 * 3 nights = 300.00 base
-        // + 20.00 cleaning + 50.00 deposit + 30.00 platform (10%) + 5.00 fixed = 405.00
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        // + 20.00 cleaning = 320.00
+        // Platform fee = 320 * 10% = 32.0 (CEILING, 1 decimal)
+        // Platform fixed = 5.0 (CEILING, 1 decimal)
+        // Total = 300 + 20 + 50 + 32.0 + 5.0 = 407.0
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -277,8 +300,11 @@ public class OwnerDefinitionTest {
         UserEntity syndicUser = createUser(UserType.SYNDIC);
         
         // Expected price for tenant: 100.00 * 3 nights = 300.00 base
-        // + 20.00 cleaning + 50.00 deposit + 30.00 platform (10%) + 5.00 fixed = 405.00
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        // + 20.00 cleaning = 320.00
+        // Platform fee = 320 * 10% = 32.0 (CEILING, 1 decimal)
+        // Platform fixed = 5.0 (CEILING, 1 decimal)
+        // Total = 300 + 20 + 50 + 32.0 + 5.0 = 407.0
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -301,7 +327,7 @@ public class OwnerDefinitionTest {
     void testExternalUser_UsesTenantPrice() {
         // Arrange
         UserEntity externalUser = createUser(UserType.EXTERNAL);
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -324,7 +350,7 @@ public class OwnerDefinitionTest {
     void testContractorUser_UsesTenantPrice() {
         // Arrange
         UserEntity contractorUser = createUser(UserType.CONTRACTOR);
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -347,7 +373,7 @@ public class OwnerDefinitionTest {
     void testCommercialPropertyOwnerUser_UsesTenantPrice() {
         // Arrange
         UserEntity commercialPropertyOwnerUser = createUser(UserType.COMMERCIAL_PROPERTY_OWNER);
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -370,7 +396,7 @@ public class OwnerDefinitionTest {
     void testGuestUser_UsesTenantPrice() {
         // Arrange
         UserEntity guestUser = createUser(UserType.GUEST);
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -393,7 +419,7 @@ public class OwnerDefinitionTest {
     void testPropertyManagementUser_UsesTenantPrice() {
         // Arrange
         UserEntity propertyManagementUser = createUser(UserType.PROPERTY_MANAGEMENT);
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -416,7 +442,7 @@ public class OwnerDefinitionTest {
     void testNullUserType_UsesTenantPrice() {
         // Arrange
         UserEntity userWithNullType = createUser(null);
-        BigDecimal expectedTotalPrice = new BigDecimal("405.00");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
