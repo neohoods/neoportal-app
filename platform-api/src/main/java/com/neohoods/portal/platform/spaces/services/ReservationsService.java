@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
@@ -24,7 +25,6 @@ import com.neohoods.portal.platform.exceptions.ResourceNotFoundException;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.services.UnitsService;
-import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.spaces.entities.AccessCodeEntity;
 import com.neohoods.portal.platform.spaces.entities.PaymentStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationAuditLogEntity;
@@ -223,7 +223,19 @@ public class ReservationsService {
 
         // Determine if user is an owner (you may need to adjust this logic based on
         // your user types)
-        boolean isOwner = user.getType() != null && "OWNER".equals(user.getType().toString());
+        boolean isOwner = false;
+        if (user.getType() != null) {
+            switch (user.getType()) {
+                case ADMIN:
+                case OWNER:
+                case LANDLORD:
+                    isOwner = true;
+                    break;
+                default:
+                    isOwner = false;
+                    break;
+            }
+        }
 
         // Calculate detailed price breakdown with platform fees
         PriceCalculationResult priceBreakdown = spacesService.calculatePriceBreakdown(space.getId(), startDate, endDate,
@@ -235,7 +247,7 @@ public class ReservationsService {
         UnitEntity unit = null;
         boolean requiresUnit = space.getType() == SpaceTypeForEntity.COMMON_ROOM ||
                 space.getType() == SpaceTypeForEntity.COWORKING;
-        
+
         if (requiresUnit) {
             try {
                 unit = unitsService.getPrimaryUnitForUser(user.getId()).block();
@@ -614,6 +626,7 @@ public class ReservationsService {
 
     /**
      * Check if a user has reached their annual reservation quota for a space
+     * 
      * @deprecated Use hasUnitReachedAnnualQuota instead
      */
     @Deprecated
@@ -824,13 +837,13 @@ public class ReservationsService {
             logger.info("Space ID: {}", spaceId);
             logger.info("Date range: {} to {}", startDate, endDate);
 
-            // Utiliser la méthode existante du repository
+            // Use existing repository method
             List<ReservationEntity> reservations = reservationRepository
                     .findReservationsForSpaceInDateRange(spaceId, startDate, endDate);
 
             logger.info("Found {} reservations in date range", reservations.size());
 
-            // Afficher les détails de chaque réservation
+            // Display details of each reservation
             for (ReservationEntity reservation : reservations) {
                 logger.info("Reservation ID: {}, Status: {}, Start: {}, End: {}, User: {}, Price: {}",
                         reservation.getId(),
@@ -841,7 +854,7 @@ public class ReservationsService {
                         reservation.getTotalPrice());
             }
 
-            // Alternative: récupérer toutes les réservations et filtrer avec stream
+            // Alternative: retrieve all reservations and filter with stream
             List<ReservationEntity> allReservations = reservationRepository.findBySpace(
                     spacesService.getSpaceById(spaceId));
 
@@ -852,12 +865,12 @@ public class ReservationsService {
                         LocalDate resStart = reservation.getStartDate();
                         LocalDate resEnd = reservation.getEndDate();
 
-                        // Vérifier si la réservation chevauche avec la période demandée
+                        // Check if reservation overlaps with requested period
                         return (resStart.isBefore(endDate.plusDays(1)) &&
                                 resEnd.isAfter(startDate.minusDays(1)));
                     })
                     .filter(reservation -> {
-                        // Filtrer seulement les réservations actives
+                        // Filter only active reservations
                         return reservation.getStatus() == ReservationStatusForEntity.PENDING_PAYMENT ||
                                 reservation.getStatus() == ReservationStatusForEntity.CONFIRMED ||
                                 reservation.getStatus() == ReservationStatusForEntity.ACTIVE;
