@@ -114,8 +114,6 @@ public class DigitalLockService {
 
     // Generate access code for a digital lock
     public String generateAccessCode(UUID digitalLockId, int durationHours, String reason) {
-        DigitalLockEntity digitalLock = getDigitalLockById(digitalLockId);
-
         // Generate a random 6-digit code
         String code = String.format("%06d", (int) (Math.random() * 1000000));
 

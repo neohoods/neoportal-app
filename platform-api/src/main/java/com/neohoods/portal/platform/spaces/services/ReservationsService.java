@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.exceptions.ResourceNotFoundException;
+import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.services.UnitsService;
@@ -69,6 +70,9 @@ public class ReservationsService {
 
     @Autowired
     private UnitsService unitsService;
+
+    @Autowired
+    private UsersRepository usersRepository;
 
     /**
      * Get all reservations for a user
@@ -242,11 +246,12 @@ public class ReservationsService {
                 isOwner);
 
         // Get primary unit for user (if user is TENANT or OWNER)
-        // For spaces that require unit (COMMON_ROOM, COWORKING), unit will be set
-        // For other spaces, unit may be null
+        // COMMON_ROOM, COWORKING, and GUEST_ROOM require unit membership
+        // PARKING is the only space type that doesn't require unit membership
         UnitEntity unit = null;
         boolean requiresUnit = space.getType() == SpaceTypeForEntity.COMMON_ROOM ||
-                space.getType() == SpaceTypeForEntity.COWORKING;
+                space.getType() == SpaceTypeForEntity.COWORKING ||
+                space.getType() == SpaceTypeForEntity.GUEST_ROOM;
 
         if (requiresUnit) {
             try {
@@ -257,7 +262,8 @@ public class ReservationsService {
                 logger.warn("Could not get primary unit for user {}: {}", user.getId(), e.getMessage());
             }
         } else {
-            // For spaces that don't require unit, try to get it anyway if user has one
+            // For PARKING (only space that doesn't require unit), try to get it anyway if
+            // user has one
             try {
                 unit = unitsService.getPrimaryUnitForUser(user.getId()).block();
             } catch (Exception e) {
@@ -384,13 +390,17 @@ public class ReservationsService {
 
     /**
      * Find an admin user for notifications
+     * Returns the first admin user found, or null if no admin users exist
      */
     private UserEntity findAdminUser() {
-        // For now, return null - in a real implementation, you would query for admin
-        // users
-        // This could be enhanced to find the appropriate admin based on space or other
-        // criteria
-        return null;
+        List<UserEntity> adminUsers = usersRepository.findByType(UserType.ADMIN);
+        if (adminUsers.isEmpty()) {
+            logger.warn("No admin users found for reservation notifications");
+            return null;
+        }
+        UserEntity adminUser = adminUsers.getFirst();
+        logger.debug("Found admin user {} for reservation notifications", adminUser.getId());
+        return adminUser;
     }
 
     /**
@@ -824,66 +834,4 @@ public class ReservationsService {
         return reservation.get();
     }
 
-    /**
-     * Debug method to find reservations for a space between specific dates
-     * Usage: debugReservationsForSpace(spaceId, "2024-10-25", "2024-10-30")
-     */
-    public List<ReservationEntity> debugReservationsForSpace(UUID spaceId, String startDateStr, String endDateStr) {
-        try {
-            LocalDate startDate = LocalDate.parse(startDateStr);
-            LocalDate endDate = LocalDate.parse(endDateStr);
-
-            logger.info("=== DEBUG RESERVATIONS ===");
-            logger.info("Space ID: {}", spaceId);
-            logger.info("Date range: {} to {}", startDate, endDate);
-
-            // Use existing repository method
-            List<ReservationEntity> reservations = reservationRepository
-                    .findReservationsForSpaceInDateRange(spaceId, startDate, endDate);
-
-            logger.info("Found {} reservations in date range", reservations.size());
-
-            // Display details of each reservation
-            for (ReservationEntity reservation : reservations) {
-                logger.info("Reservation ID: {}, Status: {}, Start: {}, End: {}, User: {}, Price: {}",
-                        reservation.getId(),
-                        reservation.getStatus(),
-                        reservation.getStartDate(),
-                        reservation.getEndDate(),
-                        reservation.getUser().getUsername(),
-                        reservation.getTotalPrice());
-            }
-
-            // Alternative: retrieve all reservations and filter with stream
-            List<ReservationEntity> allReservations = reservationRepository.findBySpace(
-                    spacesService.getSpaceById(spaceId));
-
-            logger.info("Total reservations for this space: {}", allReservations.size());
-
-            List<ReservationEntity> streamFiltered = allReservations.stream()
-                    .filter(reservation -> {
-                        LocalDate resStart = reservation.getStartDate();
-                        LocalDate resEnd = reservation.getEndDate();
-
-                        // Check if reservation overlaps with requested period
-                        return (resStart.isBefore(endDate.plusDays(1)) &&
-                                resEnd.isAfter(startDate.minusDays(1)));
-                    })
-                    .filter(reservation -> {
-                        // Filter only active reservations
-                        return reservation.getStatus() == ReservationStatusForEntity.PENDING_PAYMENT ||
-                                reservation.getStatus() == ReservationStatusForEntity.CONFIRMED ||
-                                reservation.getStatus() == ReservationStatusForEntity.ACTIVE;
-                    })
-                    .collect(Collectors.toList());
-
-            logger.info("Stream filtered reservations: {}", streamFiltered.size());
-
-            return reservations;
-
-        } catch (Exception e) {
-            logger.error("Error in debugReservationsForSpace: {}", e.getMessage(), e);
-            throw new CodedErrorException(CodedError.SPACE_NOT_FOUND, "spaceId", spaceId);
-        }
-    }
 }

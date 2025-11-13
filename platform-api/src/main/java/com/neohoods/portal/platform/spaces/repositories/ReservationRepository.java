@@ -153,11 +153,13 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
 
         /**
          * Count reservations by unit and year
+         * Includes PENDING_PAYMENT, CONFIRMED, ACTIVE, and COMPLETED reservations
+         * (excludes CANCELLED reservations)
          */
         @Query("SELECT COUNT(r) FROM ReservationEntity r WHERE " +
                         "r.unit.id = :unitId " +
                         "AND YEAR(r.startDate) = :year " +
-                        "AND r.status IN ('CONFIRMED', 'ACTIVE', 'COMPLETED')")
+                        "AND r.status IN ('PENDING_PAYMENT', 'CONFIRMED', 'ACTIVE', 'COMPLETED')")
         Long countReservationsByUnitAndYear(@Param("unitId") UUID unitId, @Param("year") int year);
 
         /**

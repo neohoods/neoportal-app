@@ -16,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -107,7 +106,6 @@ public class Auth0Service {
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully registered user in Auth0: {}", email);
-                return;
             } else {
                 log.error("Failed to register user in Auth0. Status: {}, Response: {}",
                         response.getStatusCode(), response.getBody());
@@ -251,7 +249,7 @@ public class Auth0Service {
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     return Arrays.asList(response.getBody());
                 }
-                return Arrays.asList();
+                return List.of();
             } catch (Exception e) {
                 log.error("Error getting users by email from Auth0: {}", email, e);
                 throw new CodedErrorException(CodedError.INTERNAL_ERROR,
@@ -332,10 +330,12 @@ public class Auth0Service {
                         boolean hasUsername1 = username1 != null && !username1.trim().isEmpty();
                         boolean hasUsername2 = username2 != null && !username2.trim().isEmpty();
 
-                        if (hasUsername1 && !hasUsername2)
+                        if (hasUsername1 && !hasUsername2) {
                             return -1;
-                        if (!hasUsername1 && hasUsername2)
+                        }
+                        if (!hasUsername1 && hasUsername2) {
                             return 1;
+                        }
 
                         // If both have or both don't have username, sort by creation date (oldest
                         // first)

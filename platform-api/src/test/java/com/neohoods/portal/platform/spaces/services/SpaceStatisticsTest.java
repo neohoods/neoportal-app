@@ -48,6 +48,9 @@ public class SpaceStatisticsTest extends BaseIntegrationTest {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private com.neohoods.portal.platform.services.UnitsService unitsService;
+
     private SpaceEntity guestRoomSpace;
     private UserEntity ownerUser;
 
@@ -63,6 +66,21 @@ public class SpaceStatisticsTest extends BaseIntegrationTest {
             if (user.getType() == UserType.OWNER) {
                 ownerUser = user;
                 break;
+            }
+        }
+
+        // Create unit for owner user (required for GUEST_ROOM reservations)
+        if (ownerUser != null) {
+            if (unitsService.getUserUnits(ownerUser.getId()).count().block() == 0) {
+                unitsService.createUnit("Test Unit " + ownerUser.getId(), null, ownerUser.getId()).block();
+            }
+            ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+            if (ownerUser.getPrimaryUnit() == null) {
+                var units = unitsService.getUserUnits(ownerUser.getId()).collectList().block();
+                if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                    unitsService.setPrimaryUnitForUser(ownerUser.getId(), units.get(0).getId(), null).block();
+                    ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+                }
             }
         }
     }
@@ -203,6 +221,19 @@ public class SpaceStatisticsTest extends BaseIntegrationTest {
             tenantUser = usersRepository.save(tenantUser);
         }
 
+        // Create unit for tenant user (required for GUEST_ROOM reservations)
+        if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), null, tenantUser.getId()).block();
+        }
+        tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        if (tenantUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(tenantUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(tenantUser.getId(), units.get(0).getId(), null).block();
+                tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+            }
+        }
+
         // Create a reservation in PENDING_PAYMENT status
         ReservationEntity pendingReservation = reservationsService.createReservation(
                 guestRoomSpace, tenantUser, testStartDate, testEndDate);
@@ -290,6 +321,31 @@ public class SpaceStatisticsTest extends BaseIntegrationTest {
             otherUser.setType(UserType.TENANT);
             otherUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
             otherUser = usersRepository.save(otherUser);
+        }
+
+        // Create units for users (required for GUEST_ROOM reservations)
+        if (unitsService.getUserUnits(currentUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + currentUser.getId(), null, currentUser.getId()).block();
+        }
+        currentUser = usersRepository.findById(currentUser.getId()).orElse(currentUser);
+        if (currentUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(currentUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(currentUser.getId(), units.get(0).getId(), null).block();
+                currentUser = usersRepository.findById(currentUser.getId()).orElse(currentUser);
+            }
+        }
+
+        if (unitsService.getUserUnits(otherUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + otherUser.getId(), null, otherUser.getId()).block();
+        }
+        otherUser = usersRepository.findById(otherUser.getId()).orElse(otherUser);
+        if (otherUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(otherUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(otherUser.getId(), units.get(0).getId(), null).block();
+                otherUser = usersRepository.findById(otherUser.getId()).orElse(otherUser);
+            }
         }
 
         // Create reservation for current user

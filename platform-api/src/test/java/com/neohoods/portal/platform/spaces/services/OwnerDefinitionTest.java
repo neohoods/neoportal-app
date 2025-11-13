@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
+import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
@@ -65,6 +66,9 @@ public class OwnerDefinitionTest {
 
     @Mock
     private UnitsService unitsService;
+
+    @Mock
+    private UsersRepository usersRepository;
 
     @InjectMocks
     private ReservationsService reservationsService;
@@ -162,9 +166,17 @@ public class OwnerDefinitionTest {
             return reservation;
         });
 
-        // Mock unitsService.getPrimaryUnitForUser to return empty Mono (not required for GUEST_ROOM)
+        // Mock unitsService.getPrimaryUnitForUser to return a unit (required for GUEST_ROOM)
+        com.neohoods.portal.platform.entities.UnitEntity mockUnit = new com.neohoods.portal.platform.entities.UnitEntity();
+        mockUnit.setId(UUID.randomUUID());
         when(unitsService.getPrimaryUnitForUser(any(UUID.class))).thenReturn(
-                reactor.core.publisher.Mono.empty());
+                reactor.core.publisher.Mono.just(mockUnit));
+
+        // Mock usersRepository.findByType for findAdminUser() method (lenient because not all tests call confirmReservation)
+        UserEntity mockAdmin = new UserEntity();
+        mockAdmin.setId(UUID.randomUUID());
+        mockAdmin.setType(UserType.ADMIN);
+        org.mockito.Mockito.lenient().when(usersRepository.findByType(UserType.ADMIN)).thenReturn(java.util.List.of(mockAdmin));
 
         // Mock auditService.logEvent (void method)
         org.mockito.Mockito.doNothing().when(auditService).logEvent(

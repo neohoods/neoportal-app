@@ -15,7 +15,6 @@ import com.neohoods.portal.platform.model.EmailTemplate;
 import com.neohoods.portal.platform.model.EmailTemplateRequest;
 import com.neohoods.portal.platform.repositories.EmailTemplateRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -132,7 +131,7 @@ public class EmailTemplateService {
 
     @Transactional
     public Mono<Void> testEmailTemplate(UUID templateId, UUID userId, MailService mailService,
-            UsersRepository usersRepository) {
+                                        UsersRepository usersRepository) {
         log.info("Sending test email for template: {} to user: {}", templateId, userId);
 
         return emailTemplateRepository.findById(templateId)

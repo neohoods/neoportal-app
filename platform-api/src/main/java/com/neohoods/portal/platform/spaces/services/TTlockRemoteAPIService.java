@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,10 +18,11 @@ import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.spaces.entities.AccessCodeEntity;
 
-@Service
-public class TTlockRemoteAPIService {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final Logger logger = LoggerFactory.getLogger(TTlockRemoteAPIService.class);
+@Service
+@Slf4j
+public class TTlockRemoteAPIService {
 
     @Value("${ttlock.api-url:https://api.ttlock.com}")
     private String ttlockApiUrl;
@@ -49,7 +48,7 @@ public class TTlockRemoteAPIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("code", accessCode.getCode());
         requestBody.put("expires_at", accessCode.getExpiresAt().toString());
-        requestBody.put("description", "Réservation - " + accessCode.getReservation().getSpace().getName());
+        requestBody.put("description", "Reservation - " + accessCode.getReservation().getSpace().getName());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -64,11 +63,11 @@ public class TTlockRemoteAPIService {
                 TTlockCodeResponse.class);
 
         if (response.getStatusCode() == HttpStatus.CREATED) {
-            logger.info("Successfully created TTlock code for reservation {}",
+            log.info("Successfully created TTlock code for reservation {}",
                     accessCode.getReservation().getId());
             return response.getBody();
         } else {
-            logger.error("Failed to create TTlock code: HTTP {} - {}",
+            log.error("Failed to create TTlock code: HTTP {} - {}",
                     response.getStatusCode(), response.getBody());
             throw new CodedErrorException(CodedError.TTLOCK_API_ERROR,
                     Map.of("statusCode", response.getStatusCode(), "responseBody", response.getBody()));
@@ -84,7 +83,7 @@ public class TTlockRemoteAPIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("code", accessCode.getCode());
         requestBody.put("expires_at", accessCode.getExpiresAt().toString());
-        requestBody.put("description", "Réservation - " + accessCode.getReservation().getSpace().getName());
+        requestBody.put("description", "Reservation - " + accessCode.getReservation().getSpace().getName());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -99,11 +98,11 @@ public class TTlockRemoteAPIService {
                 TTlockCodeResponse.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            logger.info("Successfully updated TTlock code {} for reservation {}",
+            log.info("Successfully updated TTlock code {} for reservation {}",
                     ttlockCodeId, accessCode.getReservation().getId());
             return response.getBody();
         } else {
-            logger.error("Failed to update TTlock code {}: HTTP {} - {}",
+            log.error("Failed to update TTlock code {}: HTTP {} - {}",
                     ttlockCodeId, response.getStatusCode(), response.getBody());
             throw new CodedErrorException(CodedError.TTLOCK_API_ERROR,
                     Map.of("operation", "update", "codeId", ttlockCodeId, "statusCode", response.getStatusCode(),
@@ -149,10 +148,10 @@ public class TTlockRemoteAPIService {
                 TTlockDeviceStatus.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            logger.info("Successfully retrieved TTlock device status");
+            log.info("Successfully retrieved TTlock device status");
             return response.getBody();
         } else {
-            logger.error("Failed to get TTlock device status: HTTP {} - {}",
+            log.error("Failed to get TTlock device status: HTTP {} - {}",
                     response.getStatusCode(), response.getBody());
             throw new CodedErrorException(CodedError.TTLOCK_API_ERROR,
                     Map.of("operation", "getDeviceStatus", "statusCode", response.getStatusCode(), "responseBody",
@@ -178,10 +177,10 @@ public class TTlockRemoteAPIService {
                 TTlockCodesList.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            logger.info("Successfully retrieved TTlock device codes");
+            log.info("Successfully retrieved TTlock device codes");
             return response.getBody();
         } else {
-            logger.error("Failed to get TTlock device codes: HTTP {} - {}",
+            log.error("Failed to get TTlock device codes: HTTP {} - {}",
                     response.getStatusCode(), response.getBody());
             throw new CodedErrorException(CodedError.TTLOCK_API_ERROR,
                     Map.of("operation", "getDeviceCodes", "statusCode", response.getStatusCode(), "responseBody",
@@ -190,6 +189,7 @@ public class TTlockRemoteAPIService {
     }
 
     // Response DTOs
+    @lombok.Data
     public static class TTlockCodeResponse {
         private String id;
         private String code;
@@ -198,134 +198,21 @@ public class TTlockRemoteAPIService {
         private String status;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-
-        // Getters and setters
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public void setCode(String code) {
-            this.code = code;
-        }
-
-        public String getExpiresAt() {
-            return expiresAt;
-        }
-
-        public void setExpiresAt(String expiresAt) {
-            this.expiresAt = expiresAt;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public LocalDateTime getCreatedAt() {
-            return createdAt;
-        }
-
-        public void setCreatedAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-        }
-
-        public LocalDateTime getUpdatedAt() {
-            return updatedAt;
-        }
-
-        public void setUpdatedAt(LocalDateTime updatedAt) {
-            this.updatedAt = updatedAt;
-        }
     }
 
+    @lombok.Data
     public static class TTlockDeviceStatus {
         private String id;
         private String name;
         private String status;
         private boolean online;
         private LocalDateTime lastSeen;
-
-        // Getters and setters
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public boolean isOnline() {
-            return online;
-        }
-
-        public void setOnline(boolean online) {
-            this.online = online;
-        }
-
-        public LocalDateTime getLastSeen() {
-            return lastSeen;
-        }
-
-        public void setLastSeen(LocalDateTime lastSeen) {
-            this.lastSeen = lastSeen;
-        }
     }
 
+    @lombok.Data
     public static class TTlockCodesList {
         private java.util.List<TTlockCodeResponse> codes;
         private int total;
-
-        // Getters and setters
-        public java.util.List<TTlockCodeResponse> getCodes() {
-            return codes;
-        }
-
-        public void setCodes(java.util.List<TTlockCodeResponse> codes) {
-            this.codes = codes;
-        }
-
-        public int getTotal() {
-            return total;
-        }
-
-        public void setTotal(int total) {
-            this.total = total;
-        }
     }
 
 }

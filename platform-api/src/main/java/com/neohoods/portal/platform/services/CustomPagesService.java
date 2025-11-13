@@ -11,7 +11,6 @@ import com.neohoods.portal.platform.exceptions.CodedException;
 import com.neohoods.portal.platform.model.CustomPage;
 import com.neohoods.portal.platform.model.GetCustomPageRefs200ResponseInner;
 import com.neohoods.portal.platform.repositories.CustomPageRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -47,7 +46,7 @@ public class CustomPagesService {
                         .position(
                                 entity.getPosition() != null
                                         ? GetCustomPageRefs200ResponseInner.PositionEnum
-                                                .fromValue(entity.getPosition().getValue())
+                                        .fromValue(entity.getPosition().getValue())
                                         : null)
                         .title(entity.getTitle())
                         .build())

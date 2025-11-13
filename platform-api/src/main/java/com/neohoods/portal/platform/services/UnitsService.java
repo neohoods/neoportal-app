@@ -14,9 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neohoods.portal.platform.entities.ResidenceRole;
 import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.entities.UnitMemberEntity;
-import com.neohoods.portal.platform.entities.ResidenceRole;
 import com.neohoods.portal.platform.entities.UnitMemberRole;
 import com.neohoods.portal.platform.entities.UnitTypeForEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
@@ -29,7 +29,6 @@ import com.neohoods.portal.platform.model.UnitMember;
 import com.neohoods.portal.platform.repositories.UnitMemberRepository;
 import com.neohoods.portal.platform.repositories.UnitRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -56,26 +55,35 @@ public class UnitsService {
                 .build();
 
         UnitEntity savedUnit = unitRepository.save(unit);
+        log.debug("Saved unit entity {} with ID: {}", name, savedUnit.getId());
 
         // Add initial admin
         UUID finalAdminId;
         if (initialAdminId == null) {
+            log.debug("No initial admin specified, determining default admin");
             // Determine default admin from users
             List<UserEntity> allUsers = new java.util.ArrayList<>();
             usersRepository.findAll().forEach(allUsers::add);
             UserEntity defaultAdmin = determineDefaultAdmin(allUsers);
             if (defaultAdmin == null) {
+                log.error("No users available to assign as admin for unit {}", savedUnit.getId());
                 throw new CodedErrorException(CodedError.USER_NOT_FOUND,
                         Map.of("message", "No users available to assign as admin"));
             }
             finalAdminId = defaultAdmin.getId();
+            log.debug("Determined default admin: {} ({})", defaultAdmin.getEmail(), finalAdminId);
         } else {
             finalAdminId = initialAdminId;
+            log.debug("Using specified initial admin: {}", finalAdminId);
         }
 
         final UUID adminId = finalAdminId;
         UserEntity admin = usersRepository.findById(adminId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", adminId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Admin user {} not found when creating unit", adminId);
+                    return new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", adminId.toString());
+                });
+        log.debug("Found admin user: {} ({})", admin.getEmail(), adminId);
 
         UnitMemberEntity adminMember = UnitMemberEntity.builder()
                 .unit(savedUnit)
@@ -86,7 +94,8 @@ public class UnitsService {
                 .build();
 
         unitMemberRepository.save(adminMember);
-        
+        log.debug("Added user {} as ADMIN to unit {}", adminId, savedUnit.getId());
+
         // If this is the user's first unit, set it as primary
         long unitCount = unitMemberRepository.countByUserId(adminId);
         if (unitCount == 1 && admin.getPrimaryUnit() == null) {
@@ -95,7 +104,7 @@ public class UnitsService {
             log.info("Set unit {} as primary unit for user {} (first unit)", savedUnit.getId(), adminId);
         }
 
-        log.info("Created unit: {} with ID: {}", name, savedUnit.getId());
+        log.info("Created unit: {} with ID: {} and admin: {}", name, savedUnit.getId(), adminId);
         return Mono.just(getUnitById(savedUnit.getId()).block());
     }
 
@@ -118,12 +127,18 @@ public class UnitsService {
     public Mono<Unit> updateUnit(UUID unitId, String name) {
         log.info("Updating unit: {} with name: {}", unitId, name);
         UnitEntity unit = unitRepository.findById(unitId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Unit {} not found when updating", unitId);
+                    return new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString());
+                });
+        log.debug("Found unit: {} (current name: {})", unitId, unit.getName());
 
+        String oldName = unit.getName();
         unit.setName(name);
         unit.setUpdatedAt(OffsetDateTime.now());
 
         UnitEntity saved = unitRepository.save(unit);
+        log.info("Updated unit {}: name changed from '{}' to '{}'", unitId, oldName, name);
         return Mono.just(getUnitById(saved.getId()).block());
     }
 
@@ -131,23 +146,34 @@ public class UnitsService {
     public Mono<Void> deleteUnit(UUID unitId) {
         log.info("Deleting unit: {}", unitId);
         UnitEntity unit = unitRepository.findById(unitId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Unit {} not found when deleting", unitId);
+                    return new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString());
+                });
+        log.debug("Found unit to delete: {} ({})", unit.getName(), unitId);
 
         // Get all members before deletion
         List<UnitMemberEntity> members = unitMemberRepository.findByUnitId(unitId);
+        log.debug("Unit {} has {} member(s) that will be affected", unitId, members.size());
 
         // Delete unit (cascade will delete members)
         unitRepository.delete(unit);
+        log.info("Deleted unit {} ({})", unit.getName(), unitId);
 
         // Disable users who have no other units
+        int disabledCount = 0;
         for (UnitMemberEntity member : members) {
             long unitCount = unitMemberRepository.countByUserId(member.getUser().getId());
             if (unitCount == 0) {
                 UserEntity user = member.getUser();
                 user.setDisabled(true);
                 usersRepository.save(user);
-                log.info("Disabled user {} as they have no units", user.getId());
+                disabledCount++;
+                log.info("Disabled user {} as they have no units after deletion of unit {}", user.getId(), unitId);
             }
+        }
+        if (disabledCount > 0) {
+            log.info("Disabled {} user(s) after deletion of unit {}", disabledCount, unitId);
         }
 
         return Mono.empty();
@@ -161,20 +187,36 @@ public class UnitsService {
         if (addedBy != null && !isUserAdminOfUnit(addedBy, unitId)) {
             // Check if user is global admin (ADMIN type)
             UserEntity addedByUser = usersRepository.findById(addedBy)
-                    .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", addedBy.toString()));
-            if (addedByUser.getType() != com.neohoods.portal.platform.entities.UserType.ADMIN) {
+                    .orElseThrow(() -> {
+                        log.error("User {} not found when adding member", addedBy);
+                        return new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", addedBy.toString());
+                    });
+            if (addedByUser.getType() != UserType.ADMIN) {
+                log.warn("User {} attempted to add member {} to unit {} but is not admin", addedBy, userId, unitId);
                 throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", addedBy.toString());
             }
+            log.debug("User {} is global ADMIN, allowed to add member to unit {}", addedBy, unitId);
+        } else if (addedBy != null) {
+            log.debug("Verified that user {} is admin of unit {}", addedBy, unitId);
         }
 
         UnitEntity unit = unitRepository.findById(unitId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Unit {} not found when adding member", unitId);
+                    return new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString());
+                });
+        log.debug("Found unit: {} ({})", unit.getName(), unitId);
 
         UserEntity user = usersRepository.findById(userId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
+                .orElseThrow(() -> {
+                    log.error("User {} not found when adding to unit", userId);
+                    return new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString());
+                });
+        log.debug("Found user to add: {} ({})", user.getEmail(), userId);
 
         // Check if already a member
         if (unitMemberRepository.existsByUnitIdAndUserId(unitId, userId)) {
+            log.warn("User {} is already a member of unit {}", userId, unitId);
             throw new CodedErrorException(CodedError.USER_ALREADY_MEMBER, "userId", userId.toString());
         }
 
@@ -187,7 +229,8 @@ public class UnitsService {
                 .build();
 
         UnitMemberEntity saved = unitMemberRepository.save(member);
-        
+        log.info("Added user {} as MEMBER to unit {} with residence role TENANT", userId, unitId);
+
         // If this is the user's first unit, set it as primary
         long unitCount = unitMemberRepository.countByUserId(userId);
         if (unitCount == 1 && user.getPrimaryUnit() == null) {
@@ -195,7 +238,7 @@ public class UnitsService {
             usersRepository.save(user);
             log.info("Set unit {} as primary unit for user {} (first unit)", unitId, userId);
         }
-        
+
         return Mono.just(saved.toUnitMember());
     }
 
@@ -205,27 +248,40 @@ public class UnitsService {
 
         // Verify removedBy is admin (skip if null for admin operations)
         if (removedBy != null && !isUserAdminOfUnit(removedBy, unitId)) {
+            log.warn("User {} attempted to remove member {} from unit {} but is not admin", removedBy, userId, unitId);
             throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", removedBy.toString());
+        }
+        if (removedBy != null) {
+            log.debug("Verified that user {} is admin of unit {}", removedBy, unitId);
         }
 
         UnitMemberEntity member = unitMemberRepository.findByUnitIdAndUserId(unitId, userId)
-                .orElseThrow(
-                        () -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", userId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Member {} not found in unit {}", userId, unitId);
+                    return new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", userId.toString());
+                });
+        log.debug("Found member {} with role {} in unit {}", userId, member.getRole(), unitId);
 
         // Don't allow removing the last admin
         if (member.getRole() == UnitMemberRole.ADMIN) {
             List<UnitMemberEntity> admins = unitMemberRepository.findByUnitIdAndRole(unitId, UnitMemberRole.ADMIN);
             if (admins.size() <= 1) {
+                log.warn("Attempted to remove last admin {} from unit {}", userId, unitId);
                 throw new CodedErrorException(CodedError.CANNOT_DEMOTE_LAST_ADMIN);
             }
+            log.debug("Unit {} has {} admin(s), removing admin {} is allowed", unitId, admins.size(), userId);
         }
 
         unitMemberRepository.delete(member);
+        log.info("Removed member {} from unit {}", userId, unitId);
 
         // Update primary unit if needed
         UserEntity user = usersRepository.findById(userId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString()));
-        
+                .orElseThrow(() -> {
+                    log.error("User {} not found after removing from unit", userId);
+                    return new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", userId.toString());
+                });
+
         // If the removed unit was the primary unit, clear it or set a new one
         if (user.getPrimaryUnit() != null && user.getPrimaryUnit().getId().equals(unitId)) {
             long remainingUnitCount = unitMemberRepository.countByUserId(userId);
@@ -259,15 +315,23 @@ public class UnitsService {
 
         // Verify promotedBy is admin (skip if null for admin operations)
         if (promotedBy != null && !isUserAdminOfUnit(promotedBy, unitId)) {
+            log.warn("User {} attempted to promote member {} in unit {} but is not admin", promotedBy, userId, unitId);
             throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", promotedBy.toString());
+        }
+        if (promotedBy != null) {
+            log.debug("Verified that user {} is admin of unit {}", promotedBy, unitId);
         }
 
         UnitMemberEntity member = unitMemberRepository.findByUnitIdAndUserId(unitId, userId)
-                .orElseThrow(
-                        () -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", userId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Member {} not found in unit {} when promoting", userId, unitId);
+                    return new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", userId.toString());
+                });
+        log.debug("Found member {} with current role {} in unit {}", userId, member.getRole(), unitId);
 
         member.setRole(UnitMemberRole.ADMIN);
         UnitMemberEntity saved = unitMemberRepository.save(member);
+        log.info("Promoted member {} to ADMIN in unit {}", userId, unitId);
         return Mono.just(saved.toUnitMember());
     }
 
@@ -277,33 +341,49 @@ public class UnitsService {
 
         // Verify demotedBy is admin (skip if null for admin operations)
         if (demotedBy != null && !isUserAdminOfUnit(demotedBy, unitId)) {
+            log.warn("User {} attempted to demote admin {} in unit {} but is not admin", demotedBy, userId, unitId);
             throw new CodedErrorException(CodedError.USER_NOT_ADMIN_OF_UNIT, "userId", demotedBy.toString());
+        }
+        if (demotedBy != null) {
+            log.debug("Verified that user {} is admin of unit {}", demotedBy, unitId);
         }
 
         UnitMemberEntity member = unitMemberRepository.findByUnitIdAndUserId(unitId, userId)
-                .orElseThrow(
-                        () -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", userId.toString()));
+                .orElseThrow(() -> {
+                    log.error("Member {} not found in unit {} when demoting", userId, unitId);
+                    return new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", userId.toString());
+                });
+        log.debug("Found member {} with current role {} in unit {}", userId, member.getRole(), unitId);
 
         // Don't allow demoting the last admin
         List<UnitMemberEntity> admins = unitMemberRepository.findByUnitIdAndRole(unitId, UnitMemberRole.ADMIN);
         if (admins.size() <= 1) {
+            log.warn("Attempted to demote last admin {} from unit {}", userId, unitId);
             throw new CodedErrorException(CodedError.CANNOT_DEMOTE_LAST_ADMIN);
         }
+        log.debug("Unit {} has {} admin(s), demoting admin {} is allowed", unitId, admins.size(), userId);
 
         member.setRole(UnitMemberRole.MEMBER);
         UnitMemberEntity saved = unitMemberRepository.save(member);
+        log.info("Demoted admin {} to MEMBER in unit {}", userId, unitId);
         return Mono.just(saved.toUnitMember());
     }
 
     @Transactional(readOnly = true)
     public boolean isUserAdminOfUnit(UUID userId, UUID unitId) {
+        log.debug("Checking if user {} is admin of unit {}", userId, unitId);
         Optional<UnitMemberEntity> member = unitMemberRepository.findByUnitIdAndUserId(unitId, userId);
-        return member.isPresent() && member.get().getRole() == UnitMemberRole.ADMIN;
+        boolean isAdmin = member.isPresent() && member.get().getRole() == UnitMemberRole.ADMIN;
+        log.debug("User {} {} admin of unit {}", userId, isAdmin ? "is" : "is not", unitId);
+        return isAdmin;
     }
 
     @Transactional(readOnly = true)
     public boolean isUserMemberOfUnit(UUID userId, UUID unitId) {
-        return unitMemberRepository.existsByUnitIdAndUserId(unitId, userId);
+        log.debug("Checking if user {} is member of unit {}", userId, unitId);
+        boolean isMember = unitMemberRepository.existsByUnitIdAndUserId(unitId, userId);
+        log.debug("User {} {} member of unit {}", userId, isMember ? "is" : "is not", unitId);
+        return isMember;
     }
 
     @Transactional(readOnly = true)
@@ -323,7 +403,7 @@ public class UnitsService {
         }
 
         // If no match, return first user
-        return users.get(0);
+        return users.getFirst();
     }
 
     @Transactional(readOnly = true)
@@ -357,9 +437,10 @@ public class UnitsService {
 
     /**
      * Set the primary unit for a user
+     *
      * @param userId The user ID
      * @param unitId The unit ID to set as primary
-     * @param setBy The user ID who is setting this (must be admin of the unit or global admin, null for admin operations)
+     * @param setBy  The user ID who is setting this (must be admin of the unit or global admin, null for admin operations)
      */
     @Transactional
     public Mono<Void> setPrimaryUnitForUser(UUID userId, UUID unitId, UUID setBy) {
@@ -417,7 +498,7 @@ public class UnitsService {
                 .size(pageResult.getSize())
                 .first(pageResult.isFirst())
                 .last(pageResult.isLast())
-                .numberOfElements((int) pageResult.getNumberOfElements())
+                .numberOfElements(pageResult.getNumberOfElements())
                 .build();
 
         return Mono.just(paginatedUnits);
@@ -482,7 +563,7 @@ public class UnitsService {
                 .size(pageResult.getSize())
                 .first(pageResult.isFirst())
                 .last(pageResult.isLast())
-                .numberOfElements((int) pageResult.getNumberOfElements())
+                .numberOfElements(pageResult.getNumberOfElements())
                 .build();
 
         return Mono.just(paginatedUnits);
@@ -521,8 +602,7 @@ public class UnitsService {
         }
 
         // Check unit exists first
-        UnitEntity unit = unitRepository.findById(unitId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+        unitRepository.findById(unitId).orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
 
         // Verify updatedBy is admin (only if provided)
         if (updatedBy != null && !isUserAdminOfUnit(updatedBy, unitId)) {
@@ -533,11 +613,11 @@ public class UnitsService {
                 .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", memberUserId.toString()));
 
         member.setResidenceRole(residenceRole);
-        UnitMemberEntity saved = unitMemberRepository.save(member);
-        
+        unitMemberRepository.save(member);
+
         // Refresh to ensure we have the latest data
         unitMemberRepository.flush();
-        saved = unitMemberRepository.findByUnitIdAndUserId(unitId, memberUserId)
+        UnitMemberEntity saved = unitMemberRepository.findByUnitIdAndUserId(unitId, memberUserId)
                 .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", memberUserId.toString()));
 
         log.info("Updated residence role for member {} in unit {} to {}", memberUserId, unitId, residenceRole);

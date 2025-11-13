@@ -37,6 +37,9 @@ public class ReservationCancellationTest extends BaseIntegrationTest {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private com.neohoods.portal.platform.services.UnitsService unitsService;
+
     private SpaceEntity guestRoomSpace;
     private UserEntity ownerUser;
 
@@ -63,6 +66,21 @@ public class ReservationCancellationTest extends BaseIntegrationTest {
             ownerUser.setType(UserType.OWNER);
             ownerUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
             ownerUser = usersRepository.save(ownerUser);
+        }
+
+        // Create unit for owner user (required for GUEST_ROOM reservations)
+        if (unitsService.getUserUnits(ownerUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + ownerUser.getId(), null, ownerUser.getId()).block();
+        }
+
+        // Ensure owner user has a primary unit set
+        ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+        if (ownerUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(ownerUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(ownerUser.getId(), units.get(0).getId(), null).block();
+                ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+            }
         }
     }
 

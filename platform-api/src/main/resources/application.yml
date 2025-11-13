@@ -71,6 +71,10 @@ neohoods:
       token-endpoint: ${NEOHOODS_PORTAL_SSO_TOKEN_ENDPOINT:}
       authorization-endpoint: ${NEOHOODS_PORTAL_SSO_AUTHORIZATION_ENDPOINT:}
       scope: ${NEOHOODS_PORTAL_SSO_SCOPE:openid profile email}
+    spaces:
+      settings:
+        default-platform-fee-percentage: ${NEOHOODS_PORTAL_SPACES_DEFAULT_PLATFORM_FEE_PERCENTAGE:2.00}
+        default-platform-fixed-fee: ${NEOHOODS_PORTAL_SPACES_DEFAULT_PLATFORM_FIXED_FEE:0.25}
 mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:

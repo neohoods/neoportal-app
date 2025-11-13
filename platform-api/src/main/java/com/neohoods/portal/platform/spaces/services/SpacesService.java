@@ -27,8 +27,11 @@ import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
 import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
 @Transactional
+@Slf4j
 public class SpacesService {
 
     @Autowired
@@ -45,20 +48,39 @@ public class SpacesService {
 
     @Transactional(readOnly = true)
     public boolean isSpaceAvailable(UUID spaceId, LocalDate startDate, LocalDate endDate) {
-        // Pour l'instant, logique simple sans partage d'espaces
-        return spaceRepository.isSpaceAvailable(spaceId, startDate, endDate);
+        log.debug("Checking availability for space {} from {} to {}", spaceId, startDate, endDate);
+        boolean available = spaceRepository.isSpaceAvailable(spaceId, startDate, endDate);
+        log.debug("Space {} is {} from {} to {}", spaceId, available ? "available" : "not available", startDate,
+                endDate);
+        return available;
     }
 
     @Transactional(readOnly = true)
     public List<ReservationEntity> getSharedSpaceReservations(UUID spaceId, LocalDate startDate, LocalDate endDate) {
-        // Pour l'instant, retourner liste vide
-        return List.of();
+        log.debug("Getting shared space reservations for space {} from {} to {}", spaceId, startDate, endDate);
+
+        SpaceEntity space = spaceRepository.findById(spaceId)
+                .orElseThrow(() -> {
+                    log.error("Space {} not found when getting shared space reservations", spaceId);
+                    return new CodedErrorException(CodedError.SPACE_NOT_FOUND, "spaceId", spaceId.toString());
+                });
+
+        List<UUID> sharedSpaceIds = space.getShareSpaceWith();
+        if (sharedSpaceIds == null || sharedSpaceIds.isEmpty()) {
+            log.debug("Space {} has no shared spaces, returning empty list", spaceId);
+            return List.of();
+        }
+
+        log.debug("Space {} shares with {} space(s), fetching reservations", spaceId, sharedSpaceIds.size());
+        List<ReservationEntity> reservations = reservationRepository.findSharedSpaceReservations(
+                sharedSpaceIds, startDate, endDate);
+        log.debug("Found {} shared space reservation(s) for space {} in date range", reservations.size(), spaceId);
+        return reservations;
     }
 
     @Transactional(readOnly = true)
     public SpaceEntity getSpaceById(UUID spaceId) {
-        return spaceRepository.findById(spaceId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.SPACE_NOT_FOUND));
+        return spaceRepository.findById(spaceId).orElseThrow(() -> new CodedErrorException(CodedError.SPACE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -148,17 +170,38 @@ public class SpacesService {
     @Transactional(readOnly = true)
     public List<SpaceEntity> getActiveSpacesWithImagesAndFilters(SpaceTypeForEntity entityType, String search,
             Pageable pageable) {
-        // Use fetch join to load images to avoid LazyInitializationException
-        List<SpaceEntity> spaces = spaceRepository.findActiveSpacesWithImagesAndFilters(entityType);
-        // Initialize allowedDays collection to avoid LazyInitializationException
+        log.debug("Getting active spaces with images and filters - type: {}, search: {}, page: {}, size: {}",
+                entityType, search, pageable.getPageNumber(), pageable.getPageSize());
+
+        // First, get paginated results with filters (but without images to avoid
+        // MultipleBagFetchException)
+        Page<SpaceEntity> pageResult = spaceRepository.findActiveSpacesWithFilters(entityType, search, pageable);
+        List<SpaceEntity> spaces = pageResult.getContent();
+
+        log.debug("Found {} space(s) matching filters", spaces.size());
+
+        // Initialize images collection for each space to avoid
+        // LazyInitializationException
         // Note: Cannot use fetch join for both images and allowedDays in same query
         // (MultipleBagFetchException)
-        // So we initialize allowedDays separately after fetching
+        // So we initialize collections separately after fetching
         spaces.forEach(space -> {
+            try {
+                Hibernate.initialize(space.getImages());
+                if (space.getImages() != null) {
+                    space.getImages().forEach(img -> img.getId()); // Force load
+                }
+            } catch (Exception e) {
+                log.warn("Failed to initialize images for space {}: {}", space.getId(), e.getMessage());
+            }
+
+            // Initialize allowedDays collection
             if (space.getAllowedDays() != null) {
                 Hibernate.initialize(space.getAllowedDays());
             }
         });
+
+        log.debug("Initialized images and allowedDays for {} space(s)", spaces.size());
         return spaces;
     }
 
@@ -287,7 +330,6 @@ public class SpacesService {
         }
 
         // Check maximum duration
-        System.out.println("DEBUG: requestedDays=" + requestedDays + ", maxDurationDays=" + space.getMaxDurationDays());
         if (space.getMaxDurationDays() > 0 && requestedDays > space.getMaxDurationDays()) {
             Map<String, Object> variables = new HashMap<>();
             variables.put("spaceId", spaceId);
@@ -305,11 +347,14 @@ public class SpacesService {
             throw new CodedErrorException(CodedError.SPACE_NOT_AVAILABLE, variables);
         }
 
-        // Check unit membership for common spaces (COMMON_ROOM, COWORKING)
-        // Note: GUEST_ROOM and PARKING don't require unit membership even if they have
-        // quota
+        // Check unit membership requirement based on space type
+        // COMMON_ROOM, COWORKING, and GUEST_ROOM require unit membership because they
+        // are spaces reserved for residents of a specific unit
+        // PARKING is the only space type that doesn't require unit membership
+        // (can be reserved by anyone, including external users)
         boolean requiresUnit = space.getType() == SpaceTypeForEntity.COMMON_ROOM ||
-                space.getType() == SpaceTypeForEntity.COWORKING;
+                space.getType() == SpaceTypeForEntity.COWORKING ||
+                space.getType() == SpaceTypeForEntity.GUEST_ROOM;
 
         UnitEntity primaryUnit = null;
         if (requiresUnit) {
@@ -325,14 +370,6 @@ public class SpacesService {
                     throw new CodedErrorException(CodedError.USER_NO_PRIMARY_UNIT, variables);
                 }
                 throw e;
-            }
-        } else {
-            // For spaces that don't require unit, try to get primary unit anyway for quota
-            // check
-            try {
-                primaryUnit = unitsService.getPrimaryUnitForUser(userId).block();
-            } catch (Exception e) {
-                // User doesn't have a primary unit, that's ok for non-required spaces
             }
         }
 
@@ -366,10 +403,8 @@ public class SpacesService {
         long numberOfDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
         BigDecimal totalDaysPrice = pricePerDay.multiply(BigDecimal.valueOf(numberOfDays));
 
-        // Si le prix est zéro, retourner BigDecimal.ZERO pour éviter les problèmes de
-        // format
-        BigDecimal finalTotalDaysPrice = totalDaysPrice.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO
-                : totalDaysPrice;
+        // If price is zero, return BigDecimal.ZERO to avoid formatting issues
+        BigDecimal finalTotalDaysPrice = totalDaysPrice.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : totalDaysPrice;
 
         // Calculate unit price (price per day/night)
         BigDecimal unitPrice = BigDecimal.ZERO;
@@ -382,8 +417,7 @@ public class SpacesService {
         BigDecimal platformFeePercentage = settings.getPlatformFeePercentage();
         BigDecimal platformFixedFee = settings.getPlatformFixedFee();
 
-        // Calculate base price with cleaning fee (platform fees are calculated on this
-        // total)
+        // Calculate base price with cleaning fee (platform fees are calculated on thistotal)
         BigDecimal basePriceWithCleaning = finalTotalDaysPrice.add(space.getCleaningFee());
 
         // Calculate subtotal: totalDaysPrice + cleaningFee

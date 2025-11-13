@@ -46,6 +46,9 @@ public class StripeIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private com.neohoods.portal.platform.services.UnitsService unitsService;
+
     private SpaceEntity guestRoomSpace;
     private UserEntity tenantUser;
 
@@ -71,6 +74,21 @@ public class StripeIntegrationTest extends BaseIntegrationTest {
             tenantUser.setType(UserType.TENANT);
             tenantUser.setStatus(com.neohoods.portal.platform.entities.UserStatus.ACTIVE);
             tenantUser = usersRepository.save(tenantUser);
+        }
+
+        // Create unit for tenant user (required for GUEST_ROOM reservations)
+        if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), null, tenantUser.getId()).block();
+        }
+
+        // Ensure tenant user has a primary unit set
+        tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        if (tenantUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(tenantUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(tenantUser.getId(), units.get(0).getId(), null).block();
+                tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+            }
         }
     }
 

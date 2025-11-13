@@ -362,17 +362,4 @@ public class ReservationsApiApiDelegateImpl implements ReservationsApiApiDelegat
                 .map(principal -> UUID.fromString(principal.getName()))
                 .map(userId -> usersRepository.findById(userId).orElseThrow());
     }
-
-    /**
-     * Debug method to test reservation queries
-     * Usage: Call this method directly from your service or controller
-     */
-    public List<Reservation> debugReservationsForSpace(UUID spaceId, String startDateStr, String endDateStr) {
-        List<ReservationEntity> reservations = reservationsService.debugReservationsForSpace(
-                spaceId, startDateStr, endDateStr);
-
-        return reservations.stream()
-                .map(this::convertToApiModel)
-                .collect(java.util.stream.Collectors.toList());
-    }
 }

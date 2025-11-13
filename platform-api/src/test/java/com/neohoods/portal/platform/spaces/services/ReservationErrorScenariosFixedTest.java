@@ -133,6 +133,33 @@ public class ReservationErrorScenariosFixedTest extends BaseIntegrationTest {
         } else {
             ownerUser = owners.get(0);
         }
+
+        // Create units for tenant and owner users (required for GUEST_ROOM reservations)
+        if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + tenantUser.getId(), null, tenantUser.getId()).block();
+        }
+        if (unitsService.getUserUnits(ownerUser.getId()).count().block() == 0) {
+            unitsService.createUnit("Test Unit " + ownerUser.getId(), null, ownerUser.getId()).block();
+        }
+
+        // Ensure users have primary units set
+        tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        if (tenantUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(tenantUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(tenantUser.getId(), units.get(0).getId(), null).block();
+                tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+            }
+        }
+
+        ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+        if (ownerUser.getPrimaryUnit() == null) {
+            var units = unitsService.getUserUnits(ownerUser.getId()).collectList().block();
+            if (units != null && !units.isEmpty() && units.get(0).getId() != null) {
+                unitsService.setPrimaryUnitForUser(ownerUser.getId(), units.get(0).getId(), null).block();
+                ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+            }
+        }
     }
 
     @Test

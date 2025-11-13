@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,12 @@ public class SpaceSettingsService {
     @Autowired
     private SpaceSettingsRepository spaceSettingsRepository;
 
+    @Value("${neohoods.portal.spaces.settings.default-platform-fee-percentage:2.00}")
+    private BigDecimal defaultPlatformFeePercentage;
+
+    @Value("${neohoods.portal.spaces.settings.default-platform-fixed-fee:0.25}")
+    private BigDecimal defaultPlatformFixedFee;
+
     /**
      * Get the current space settings, creating default settings if none exist
      * 
@@ -27,11 +34,10 @@ public class SpaceSettingsService {
         Optional<SpaceSettingsEntity> settings = spaceSettingsRepository.findFirstByOrderByCreatedAtDesc();
 
         if (settings.isEmpty()) {
-            // Create default settings if none exist
+            // Create default settings if none exist, using values from application.yml
             SpaceSettingsEntity defaultSettings = new SpaceSettingsEntity(
-                    BigDecimal.valueOf(2.00), // 2% platform fee
-                    BigDecimal.valueOf(0.25) // 0.25€ fixed fee
-            );
+                    defaultPlatformFeePercentage,
+                    defaultPlatformFixedFee);
             return spaceSettingsRepository.save(defaultSettings);
         }
 

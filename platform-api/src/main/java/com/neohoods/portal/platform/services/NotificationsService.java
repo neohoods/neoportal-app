@@ -25,7 +25,6 @@ import com.neohoods.portal.platform.repositories.NotificationSettingsRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.MailService.TemplateVariable;
 import com.neohoods.portal.platform.services.MailService.TemplateVariableType;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -124,7 +123,7 @@ public class NotificationsService {
     }
 
     public void createNotification(UUID userId, NotificationType type, String title, String message,
-            Map<String, Object> payload) {
+                                   Map<String, Object> payload) {
         NotificationEntity notification = new NotificationEntity();
         notification.setId(UUID.randomUUID());
         notification.setUserId(userId);
@@ -187,7 +186,7 @@ public class NotificationsService {
             return Mono.empty();
         } catch (Exception e) {
             log.error("Failed to send notification to user: {}. " +
-                    "Notification will be skipped, but user operations will continue.",
+                            "Notification will be skipped, but user operations will continue.",
                     user.getUsername(), e);
             return Mono.empty(); // Don't fail for notification errors
         }
@@ -331,7 +330,7 @@ public class NotificationsService {
                     .flatMap(admin -> sendNotifications(admin, notification)
                             .onErrorResume(error -> {
                                 log.error("Failed to send notification to admin: {} for new user: {}. " +
-                                        "User signup will continue, but admin notification failed.",
+                                                "User signup will continue, but admin notification failed.",
                                         admin.getUsername(), newUser.getUsername(), error);
                                 return Mono.empty(); // Continue with other admins
                             }))
@@ -345,7 +344,7 @@ public class NotificationsService {
     }
 
     private List<TemplateVariable> getTemplateVariables(NotificationType type, NotificationEntity notification,
-            Locale locale) {
+                                                        Locale locale) {
         List<TemplateVariable> variables = new ArrayList<>();
 
         switch (type) {
@@ -555,7 +554,7 @@ public class NotificationsService {
      * Send notification for reservation events
      */
     public void sendReservationNotification(UUID reservationId, String eventType, String spaceName,
-            UserEntity user, UserEntity adminUser) {
+                                            UserEntity user, UserEntity adminUser) {
 
         // Send notification to user
         createNotification(
@@ -594,7 +593,7 @@ public class NotificationsService {
      * Send notification for reservation confirmation
      */
     public void notifyReservationConfirmed(UUID reservationId, String spaceName, UserEntity user,
-            UserEntity adminUser) {
+                                           UserEntity adminUser) {
         sendReservationNotification(reservationId, "CONFIRMED", spaceName, user, adminUser);
     }
 
@@ -602,7 +601,7 @@ public class NotificationsService {
      * Send notification for reservation cancellation
      */
     public void notifyReservationCancelled(UUID reservationId, String spaceName, UserEntity user,
-            UserEntity adminUser) {
+                                           UserEntity adminUser) {
         sendReservationNotification(reservationId, "CANCELLED", spaceName, user, adminUser);
     }
 

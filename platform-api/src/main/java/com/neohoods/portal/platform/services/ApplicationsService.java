@@ -10,7 +10,6 @@ import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedException;
 import com.neohoods.portal.platform.model.Application;
 import com.neohoods.portal.platform.repositories.ApplicationRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
