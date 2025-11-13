@@ -53,10 +53,10 @@
 
     <tui-textfield class="form-field">
       <label tuiLabel>{{ 'editUser.phone' | translate }}</label>
-      <input formControlName="phoneNumber" tuiInputPhone />
+      <input formControlName="phoneNumber" tuiInputPhone [mask]="'+33 # ## ## ## ##'" />
     </tui-textfield>
 
-    @if (!userId) {
+    @if (!userId && !isSSOEnabled) {
       <tui-textfield class="form-field">
         <label tuiLabel>{{ 'editUser.password' | translate }}</label>
         <input formControlName="password" type="password" tuiTextfield />
@@ -93,6 +93,16 @@
       <label tuiLabel>{{ 'editUser.country' | translate }}</label>
       <input formControlName="country" type="text" tuiTextfield />
     </tui-textfield>
+
+    <!-- Privacy Settings -->
+    <h3>{{ 'profile.privacySettings' | translate }}</h3>
+
+    <div class="form-field">
+      <div class="privacy-toggle">
+        <input tuiSwitch type="checkbox" formControlName="profileSharingConsent">
+        <label>{{ 'profile.profileSharingConsent' | translate }}</label>
+      </div>
+    </div>
 
     <button
       type="submit"

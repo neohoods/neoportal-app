@@ -15,11 +15,12 @@ import {
   TuiIcon,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiInputPhone, TuiPassword } from '@taiga-ui/kit';
+import { TuiInputPhone, TuiPassword, TuiSwitch } from '@taiga-ui/kit';
 import { TuiSelectModule } from '@taiga-ui/legacy';
 import { UIUser, UIUserType } from '../../../../models/UIUser';
 import { USERS_SERVICE_TOKEN } from '../../admin.providers';
 import { UsersService } from '../../services/users.service';
+import { ConfigService, UISettings } from '../../../../services/config.service';
 @Component({
   standalone: true,
   selector: 'app-edit-user',
@@ -34,6 +35,7 @@ import { UsersService } from '../../services/users.service';
     TuiIcon,
     TuiPassword,
     TuiInputPhone,
+    TuiSwitch,
     TuiSelectModule,
     TranslateModule
   ],
@@ -44,6 +46,8 @@ export class EditUserComponent implements OnInit {
   user: UIUser = {} as UIUser;
   editUserForm: FormGroup;
   userId: string | null = null;
+  isSSOEnabled = false;
+  config: UISettings | null = null;
 
   userTypes = Object.values(UIUserType);
 
@@ -52,6 +56,19 @@ export class EditUserComponent implements OnInit {
     return this.translate.instant(`user.type.${userType}`);
   };
 
+  // Generate a random password for SSO users (required by DB but won't be used for auth)
+  private generateRandomPassword(): string {
+    const length = 32;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    for (let i = 0; i < length; i++) {
+      password += charset[array[i] % charset.length];
+    }
+    return password;
+  }
+
   constructor(
     private route: ActivatedRoute,
     @Inject(USERS_SERVICE_TOKEN) private usersService: UsersService,
@@ -59,6 +76,7 @@ export class EditUserComponent implements OnInit {
     private alerts: TuiAlertService,
     private router: Router,
     private translate: TranslateService,
+    private configService: ConfigService,
   ) {
     this.editUserForm = this.fb.group({
       username: ['', Validators.required],
@@ -66,21 +84,27 @@ export class EditUserComponent implements OnInit {
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       flatNumber: [''],
-      streetAddress: ['', Validators.required],
-      city: ['', Validators.required],
-      postalCode: ['', Validators.required],
-      country: ['', Validators.required],
+      streetAddress: [''],
+      city: [''],
+      postalCode: [''],
+      country: [''],
       type: [UIUserType.TENANT, Validators.required],
       roles: [['hub']],
       disabled: [false],
       isEmailVerified: [false],
       preferredLanguage: ['en'],
       avatarUrl: [''],
-      phoneNumber: ['']
+      phoneNumber: [''],
+      profileSharingConsent: [false]
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Load configuration first
+    await this.configService.loadConfig();
+    this.config = await this.configService.getSettingsAsync();
+    this.isSSOEnabled = this.config?.ssoEnabled || false;
+
     this.userId = this.route.snapshot.paramMap.get('id');
     if (this.userId) {
       this.usersService.getUser(this.userId).subscribe((user) => {
@@ -101,12 +125,15 @@ export class EditUserComponent implements OnInit {
           isEmailVerified: user.isEmailVerified,
           preferredLanguage: user.preferredLanguage,
           avatarUrl: user.avatarUrl,
-          phoneNumber: user.phone || ''
+          phoneNumber: user.phone || '',
+          profileSharingConsent: user.profileSharingConsent || false
         });
       });
     } else {
-      // Add password field for new users
-      this.editUserForm.addControl('password', this.fb.control('', Validators.required));
+      // Add password field for new users only if SSO is not enabled
+      if (!this.isSSOEnabled) {
+        this.editUserForm.addControl('password', this.fb.control('', Validators.required));
+      }
     }
   }
 
@@ -131,8 +158,28 @@ export class EditUserComponent implements OnInit {
         avatarUrl: formValue.avatarUrl,
         preferredLanguage: formValue.preferredLanguage,
         phone: formValue.phoneNumber,
+        profileSharingConsent: formValue.profileSharingConsent || false,
         createdAt: this.user.createdAt || new Date().toISOString()
       };
+
+      // Handle password: 
+      // - For new users: always generate a random password if not provided (required by DB)
+      // - For existing users: only update if password is provided and SSO is not enabled
+      if (!this.userId) {
+        // Creating new user - always ensure a password is set
+        if (formValue.password && formValue.password.trim()) {
+          (updatedUser as any).password = formValue.password;
+        } else {
+          // Generate a random password (required by DB, won't be used if SSO is enabled)
+          const randomPassword = this.generateRandomPassword();
+          (updatedUser as any).password = randomPassword;
+        }
+      } else {
+        // Updating existing user - only update password if provided and SSO is not enabled
+        if (!this.isSSOEnabled && formValue.password && formValue.password.trim()) {
+          (updatedUser as any).password = formValue.password;
+        }
+      }
 
       this.usersService.saveUser(updatedUser).subscribe(() => {
         this.alerts

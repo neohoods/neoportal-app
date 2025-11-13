@@ -2157,6 +2157,7 @@
     "cannotDemoteYourself": "Vous ne pouvez pas vous rétrograder vous-même",
     "setAsPrimaryUnit": "Définir comme logement principal",
     "isPrimaryUnit": "Logement principal",
+    "isPrimaryUnitShort": "Principal",
     "primaryUnitSet": "Logement principal défini avec succès",
     "primaryUnitError": "Erreur lors de la définition du logement principal",
     "role": {

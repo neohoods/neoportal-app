@@ -94,18 +94,17 @@
   <!-- Units List -->
   <div *ngIf="!loading()" class="units-list">
     <div *ngFor="let unit of units()" class="unit-card">
-      <div class="unit-content">
-        <div class="unit-header">
-          <h2>{{ unit.name }}</h2>
-          <tui-chip
-            appearance="secondary"
-            size="s"
-          >
-            {{ getTypeLabel(unit.type) }}
-          </tui-chip>
-        </div>
+      <div class="unit-header">
+        <h2>{{ unit.name }}</h2>
+        <tui-chip
+          appearance="secondary"
+          size="s"
+        >
+          {{ getTypeLabel(unit.type) }}
+        </tui-chip>
+      </div>
 
-        <div class="unit-members">
+      <div class="unit-members">
           <div *ngIf="unit.members && unit.members.length > 0" class="members-list">
             <section
               *ngFor="let member of unit.members"
@@ -131,9 +130,6 @@
                       <h2 style="margin: 0;">
                         {{ member.user?.firstName }} {{ member.user?.lastName }}
                       </h2>
-                      <p tuiSubtitle *ngIf="member.residenceRole" style="margin: 0;">
-                        {{ getResidenceRoleLabel(member.residenceRole) }}
-                      </p>
                     </div>
                   </div>
                 </hgroup>
@@ -144,40 +140,39 @@
                     [style.background-color]="'var(--tui-background-accent-2)'"
                     [style.color]="'var(--tos-text-primary-on-accent-1)'"
                     size="s"
+                    class="primary-unit-chip"
                   >
                     <tui-icon
-                      icon="@tui.user-star"
+                      icon="@tui.home"
                       [style.color]="'var(--tos-text-primary-on-accent-1)'"
                       size="xs"
                     ></tui-icon>
-                    {{ 'units.isPrimaryUnit' | translate }}
+                    <span class="chip-text-full">{{ 'units.isPrimaryUnit' | translate }}</span>
+                    <span class="chip-text-mobile">{{ 'units.isPrimaryUnitShort' | translate }}</span>
                   </tui-chip>
+                  <button
+                    *ngIf="canShowContactInfo(member)"
+                    appearance="secondary"
+                    size="s"
+                    tuiIconButton
+                    type="button"
+                    class="expand-button"
+                    [tuiChevron]="!getCollapsedSignal(member.user?.id || '')()"
+                    (click)="toggleCollapsed(member.user?.id || '')"
+                  >
+                  </button>
                 </aside>
               </header>
               <div tuiCardRow>
                 <div tuiTitle *ngIf="member.residenceRole">
-                  <div tuiSubtitle>{{ 'directory.role' | translate }}</div>
-                  <div>
-                    <tui-chip
-                      appearance="custom"
-                      [style.background-color]="getResidenceRoleLabel(member.residenceRole) | tuiAutoColor"
-                      size="s"
-                    >
-                      {{ getResidenceRoleLabel(member.residenceRole) }}
-                    </tui-chip>
-                  </div>
+                  <tui-chip
+                    appearance="custom"
+                    [style.background-color]="getResidenceRoleLabel(member.residenceRole) | tuiAutoColor"
+                    size="s"
+                  >
+                    {{ getResidenceRoleLabel(member.residenceRole) }}
+                  </tui-chip>
                 </div>
-                <button
-                  *ngIf="canShowContactInfo(member)"
-                  appearance="secondary"
-                  size="s"
-                  tuiIconButton
-                  type="button"
-                  [tuiChevron]="!getCollapsedSignal(member.user?.id || '')()"
-                  (click)="toggleCollapsed(member.user?.id || '')"
-                >
-                  {{ (getCollapsedSignal(member.user?.id || '')() ? 'directory.showContact' : 'directory.hideContact') | translate }}
-                </button>
               </div>
               <tui-expand *ngIf="canShowContactInfo(member)" [expanded]="!getCollapsedSignal(member.user?.id || '')()">
                 <div class="contact-info">
@@ -209,7 +204,6 @@
             {{ 'directory.noMembers' | translate }}
           </div>
         </div>
-      </div>
     </div>
 
     <div *ngIf="units().length === 0" class="empty-state">

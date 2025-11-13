@@ -150,6 +150,9 @@ public class UsersService {
                 entity.setEmailVerified(user.getIsEmailVerified());
                 entity.setRoles(new HashSet<>(user.getRoles()));
 
+                if (user.getId() == null) {
+                        entity.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                }
                 // Handle user type
                 if (user.getType() != null) {
                         entity.setType(UserType.fromOpenApiUserType(user.getType()));

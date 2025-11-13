@@ -163,6 +163,42 @@ public class SpacesService {
     }
 
     @Transactional(readOnly = true)
+    public Page<SpaceEntity> getActiveSpacesWithFiltersPaginated(SpaceTypeForEntity entityType, String search,
+            Pageable pageable) {
+        // Use paginated repository method to get correct total count
+        Page<SpaceEntity> pageResult = spaceRepository.findActiveSpacesWithFilters(entityType, search, pageable);
+        
+        // Initialize images and allowedDays collections for the paginated results
+        // to avoid LazyInitializationException
+        pageResult.getContent().forEach(space -> {
+            // Initialize images collection
+            try {
+                Hibernate.initialize(space.getImages());
+                if (space.getImages() != null) {
+                    for (var img : space.getImages()) {
+                        img.getId(); // Force load
+                    }
+                }
+            } catch (Exception e) {
+                // Collection may be empty - that's OK
+            }
+            // Initialize allowedDays collection
+            try {
+                if (space.getAllowedDays() != null) {
+                    Hibernate.initialize(space.getAllowedDays());
+                    for (var day : space.getAllowedDays()) {
+                        day.name(); // Force load
+                    }
+                }
+            } catch (Exception e) {
+                // Collection may be empty - that's OK
+            }
+        });
+        
+        return pageResult;
+    }
+
+    @Transactional(readOnly = true)
     public SpaceEntity getSpaceByIdWithImages(UUID spaceId) {
         SpaceEntity space = spaceRepository.findByIdWithImages(spaceId)
                 .orElseThrow(() -> new CodedErrorException(CodedError.SPACE_NOT_FOUND));

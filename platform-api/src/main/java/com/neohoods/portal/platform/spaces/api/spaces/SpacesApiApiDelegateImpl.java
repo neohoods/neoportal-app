@@ -67,9 +67,8 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
             // Search for available spaces in the date range
             pageResult = spacesService.getAvailableSpacesWithFilters(entityType, startDate, endDate, pageable);
         } else {
-            // Regular search without date filtering
-            List<SpaceEntity> spaces = spacesService.getActiveSpacesWithImagesAndFilters(entityType, search, pageable);
-            pageResult = new org.springframework.data.domain.PageImpl<>(spaces, pageable, spaces.size());
+            // Regular search without date filtering - use paginated method for correct total count
+            pageResult = spacesService.getActiveSpacesWithFiltersPaginated(entityType, search, pageable);
         }
 
         // Convert to API models
