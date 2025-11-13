@@ -2774,6 +2774,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/AvailabilityResponse"
 
+  /spaces/spaces/{space-id}/price-breakdown:
+    parameters:
+      - name: space-id
+        in: path
+        description: Space ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getPriceBreakdown
+      summary: Get price breakdown for a space
+      description: Calculate and return the complete price breakdown for a space for given dates. The breakdown includes unit price, number of days, subtotal, fees, and total price.
+      tags:
+        - spaces-api
+      security:
+        - BearerAuthOAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Start date for the reservation
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: End date for the reservation (inclusive)
+      responses:
+        "200":
+          description: Price breakdown calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceBreakdown"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /spaces/spaces/{space-id}/occupancy-calendar:
     parameters:
       - name: space-id
@@ -4301,6 +4345,57 @@ components:
         updatedAt:
           type: string
           format: date-time
+        priceBreakdown:
+          $ref: "#/components/schemas/PriceBreakdown"
+          description: "Complete price breakdown with all pricing details"
+
+    PriceBreakdown:
+      type: object
+      properties:
+        unitPrice:
+          type: number
+          format: float
+          example: 50.0
+          description: "Price per unit (day/night)"
+        numberOfDays:
+          type: integer
+          example: 2
+          description: "Number of days/nights (generic term, translation is done in UI)"
+        totalDaysPrice:
+          type: number
+          format: float
+          example: 100.0
+          description: "Total price for days/nights (unitPrice × numberOfDays)"
+        cleaningFee:
+          type: number
+          format: float
+          example: 25.0
+          description: "Cleaning fee"
+        subtotal:
+          type: number
+          format: float
+          example: 125.0
+          description: "Subtotal including totalDaysPrice and cleaning fees (totalDaysPrice + cleaningFee)"
+        deposit:
+          type: number
+          format: float
+          example: 50.0
+          description: "Deposit amount"
+        platformFeeAmount:
+          type: number
+          format: float
+          example: 1.2
+          description: "Platform fee amount (percentage-based)"
+        platformFixedFeeAmount:
+          type: number
+          format: float
+          example: 0.25
+          description: "Fixed platform fee amount per transaction"
+        totalPrice:
+          type: number
+          format: float
+          example: 176.45
+          description: "Total price including all fees"
 
     ReservationAuditLog:
       type: object

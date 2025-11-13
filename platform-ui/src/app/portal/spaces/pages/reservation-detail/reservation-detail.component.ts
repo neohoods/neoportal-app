@@ -236,22 +236,21 @@ export class ReservationDetailComponent implements OnInit, OnDestroy {
 
     calculateDays(): number {
         const reservation = this.reservation();
+        if (reservation?.priceBreakdown) {
+            return reservation.priceBreakdown.numberOfDays || 1;
+        }
+        // Fallback if priceBreakdown is not available
         if (reservation) {
             const start = new Date(reservation.startDate);
             const end = new Date(reservation.endDate);
-            return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1; // +1 car endDate est inclus
+            return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         }
         return 1;
     }
 
-    calculateSubtotal(): number {
-        const reservation = this.reservation();
+    isGuestRoom(): boolean {
         const space = this.space();
-        if (reservation && space) {
-            const days = this.calculateDays();
-            return space.pricing.tenantPrice * days;
-        }
-        return 0;
+        return space?.type === 'GUEST_ROOM';
     }
 
     calculateTotalPrice(): number {
@@ -259,33 +258,27 @@ export class ReservationDetailComponent implements OnInit, OnDestroy {
         return reservation ? reservation.totalPrice : 0;
     }
 
-    calculatePlatformFeeTotal(): number {
+    formatPlatformFeeTotal(): string {
         const reservation = this.reservation();
-        if (reservation) {
-            // Round up to 1 decimal place (same logic as backend: RoundingMode.CEILING)
-            // This matches: .divide(BigDecimal.valueOf(100), 1, RoundingMode.CEILING)
-            // and: .setScale(1, RoundingMode.CEILING)
-            const roundUpToOneDecimal = (value: number): number => {
-                if (value === 0 || !value) return 0;
-                // Round up to 1 decimal: multiply by 10, ceil, divide by 10
-                return Math.ceil(value * 10) / 10;
-            };
-
-            const percentageFee = roundUpToOneDecimal(reservation.platformFeeAmount || 0);
-            const fixedFee = roundUpToOneDecimal(reservation.platformFixedFeeAmount || 0);
+        if (reservation?.priceBreakdown) {
+            const percentageFee = reservation.priceBreakdown.platformFeeAmount || 0;
+            const fixedFee = reservation.priceBreakdown.platformFixedFeeAmount || 0;
             const total = percentageFee + fixedFee;
-            
-            // Final rounding to ensure we display with max 1 decimal place
-            // Use round to avoid floating point precision issues
-            return Math.round(total * 10) / 10;
+            return total.toFixed(1);
         }
-        return 0;
+        // Fallback if priceBreakdown is not available
+        const percentageFee = reservation?.platformFeeAmount || 0;
+        const fixedFee = reservation?.platformFixedFeeAmount || 0;
+        const total = percentageFee + fixedFee;
+        return total.toFixed(1);
     }
 
-    formatPlatformFeeTotal(): string {
-        const total = this.calculatePlatformFeeTotal();
-        // Format to 1 decimal place to avoid floating point precision issues
-        return total.toFixed(1);
+    shouldShowPlatformFee(): boolean {
+        const reservation = this.reservation();
+        if (!reservation) return false;
+        // Show platform fee if either amount exists, even if total is 0
+        return (reservation.platformFeeAmount !== undefined && reservation.platformFeeAmount !== null) ||
+               (reservation.platformFixedFeeAmount !== undefined && reservation.platformFixedFeeAmount !== null);
     }
 
     getStartDate(): string {

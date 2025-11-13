@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { AvailabilityResponse } from '../../../api-client/model/models';
+import { AvailabilityResponse, PriceBreakdown } from '../../../api-client/model/models';
 import { UISpace } from '../../../models/UISpace';
 
 // Re-export types for backward compatibility
@@ -24,6 +24,7 @@ export interface SpacesService {
     getSpaceById(id: string): Observable<UISpace | undefined>;
     getSpaceAvailability(spaceId: string, startDate: string, endDate: string): Observable<AvailabilityResponse>;
     getSharedSpaceReservations(spaceId: string, startDate: string, endDate: string): Observable<any[]>; // New method for shared space reservations
+    getPriceBreakdown(spaceId: string, startDate: string, endDate: string): Observable<PriceBreakdown>;
     
     // Cache methods
     loadSpacesByIds(spaceIds: string[]): Observable<Map<string, UISpace>>;

@@ -185,7 +185,7 @@ public class PricingCalculationTest extends BaseIntegrationTest {
                 "Platform fee amount should have at most 1 decimal place");
 
         // Verify total includes platform fees
-        BigDecimal expectedTotal = priceBreakdown.getBasePrice()
+        BigDecimal expectedTotal = priceBreakdown.getTotalDaysPrice()
                 .add(priceBreakdown.getCleaningFee())
                 .add(priceBreakdown.getDeposit())
                 .add(priceBreakdown.getPlatformFeeAmount())

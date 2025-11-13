@@ -19,6 +19,7 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import com.neohoods.portal.platform.api.ReservationsAdminApiApiDelegate;
 import com.neohoods.portal.platform.model.AccessCode;
 import com.neohoods.portal.platform.model.PaginatedReservations;
+import com.neohoods.portal.platform.model.PriceBreakdown;
 import com.neohoods.portal.platform.model.Reservation;
 import com.neohoods.portal.platform.model.ReservationAuditLog;
 import com.neohoods.portal.platform.model.ReservationStatus;
@@ -32,6 +33,7 @@ import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
+import com.neohoods.portal.platform.spaces.services.ReservationMapper;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
 import com.neohoods.portal.platform.spaces.services.ReservationAuditService;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
@@ -150,6 +152,21 @@ public class ReservationsAdminApiApiDelegateImpl implements ReservationsAdminApi
 
     // Helper methods for conversion
     private Reservation convertToApiModel(ReservationEntity entity) {
+        // Calculate pricing details using utility method
+        ReservationMapper.PricingDetails pricingDetails = ReservationMapper.calculatePricingDetails(entity);
+
+        // Create PriceBreakdown object
+        PriceBreakdown priceBreakdown = new PriceBreakdown();
+        priceBreakdown.setUnitPrice(pricingDetails.unitPrice.floatValue());
+        priceBreakdown.setNumberOfDays((int) pricingDetails.numberOfDays);
+        priceBreakdown.setTotalDaysPrice(pricingDetails.totalDaysPrice.floatValue());
+        priceBreakdown.setCleaningFee(pricingDetails.cleaningFee.floatValue());
+        priceBreakdown.setSubtotal(pricingDetails.subtotal.floatValue());
+        priceBreakdown.setDeposit(pricingDetails.deposit.floatValue());
+        priceBreakdown.setPlatformFeeAmount(pricingDetails.platformFeeAmount.floatValue());
+        priceBreakdown.setPlatformFixedFeeAmount(pricingDetails.platformFixedFeeAmount.floatValue());
+        priceBreakdown.setTotalPrice(pricingDetails.totalPrice.floatValue());
+
         return Reservation.builder()
                 .id(entity.getId())
                 .spaceId(entity.getSpace().getId())
@@ -161,15 +178,11 @@ public class ReservationsAdminApiApiDelegateImpl implements ReservationsAdminApi
                 .status(convertEntityStatusToApiStatus(entity.getStatus()))
                 .totalPrice(entity.getTotalPrice().floatValue())
                 .currency(entity.getSpace().getCurrency())
-                .cleaningFee(
-                        entity.getSpace().getCleaningFee() != null ? entity.getSpace().getCleaningFee().floatValue()
-                                : null)
-                .deposit(entity.getSpace().getDeposit() != null ? entity.getSpace().getDeposit().floatValue() : null)
-                .platformFeeAmount(
-                        entity.getPlatformFeeAmount() != null ? entity.getPlatformFeeAmount().floatValue() : null)
-                .platformFixedFeeAmount(
-                        entity.getPlatformFixedFeeAmount() != null ? entity.getPlatformFixedFeeAmount().floatValue()
-                                : null)
+                .cleaningFee(pricingDetails.cleaningFee.floatValue())
+                .deposit(pricingDetails.deposit.floatValue())
+                .platformFeeAmount(pricingDetails.platformFeeAmount.floatValue())
+                .platformFixedFeeAmount(pricingDetails.platformFixedFeeAmount.floatValue())
+                .priceBreakdown(priceBreakdown)
                 .stripePaymentIntentId(entity.getStripePaymentIntentId())
                 .stripeSessionId(entity.getStripeSessionId())
                 .paymentExpiresAt(entity.getPaymentExpiresAt() != null

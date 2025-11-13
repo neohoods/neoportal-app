@@ -1,4 +1,4 @@
-import { AccessCode, Reservation, ReservationFeedback, ReservationStatus, Space } from '../api-client';
+import { AccessCode, PriceBreakdown, Reservation, ReservationFeedback, ReservationStatus, Space } from '../api-client';
 
 export interface UIReservation {
     id: string;
@@ -14,6 +14,7 @@ export interface UIReservation {
     deposit: number;
     platformFeeAmount?: number;
     platformFixedFeeAmount?: number;
+    priceBreakdown?: PriceBreakdown;
     stripeSessionId?: string;
     stripePaymentIntentId?: string;
     accessCode?: AccessCode;
@@ -39,6 +40,7 @@ export function fromApiReservation(apiReservation: Reservation): UIReservation {
         deposit: apiReservation.deposit || 0,
         platformFeeAmount: apiReservation.platformFeeAmount,
         platformFixedFeeAmount: apiReservation.platformFixedFeeAmount,
+        priceBreakdown: apiReservation.priceBreakdown,
         stripeSessionId: apiReservation.stripeSessionId,
         stripePaymentIntentId: apiReservation.stripePaymentIntentId,
         accessCode: apiReservation.accessCode,

@@ -191,19 +191,18 @@
                                 <span>
                                     {{ 'reservations.payment.basePrice' | translate }}
                                 </span>
-                                <span>{{ space()!.pricing.tenantPrice }}€</span>
+                                <span>{{ reservation()?.priceBreakdown?.unitPrice || 0 }}€</span>
                             </div>
                             <div class="price-item">
                                 <span>
-                                    {{ 'reservations.payment.numberOfDays' | translate }}
+                                    <ng-container *ngIf="isGuestRoom()">
+                                        {{ 'reservations.payment.numberOfNights' | translate }}
+                                    </ng-container>
+                                    <ng-container *ngIf="!isGuestRoom()">
+                                        {{ 'reservations.payment.numberOfDays' | translate }}
+                                    </ng-container>
                                 </span>
-                                <span>{{ calculateDays() }}</span>
-                            </div>
-                            <div class="price-item subtotal">
-                                <span>
-                                    {{ 'reservations.payment.subtotal' | translate }}
-                                </span>
-                                <span>{{ calculateSubtotal() }}€</span>
+                                <span>{{ reservation()?.priceBreakdown?.numberOfDays || calculateDays() }}</span>
                             </div>
                             <div
                                 class="price-item"
@@ -214,9 +213,15 @@
                                 </span>
                                 <span>{{ reservation()!.cleaningFee }}€</span>
                             </div>
+                            <div class="price-item subtotal">
+                                <span>
+                                    {{ 'reservations.payment.subtotal' | translate }}
+                                </span>
+                                <span>{{ reservation()?.priceBreakdown?.subtotal || 0 }}€</span>
+                            </div>
                             <div
                                 class="price-item"
-                                *ngIf="calculatePlatformFeeTotal() > 0"
+                                *ngIf="shouldShowPlatformFee()"
                             >
                                 <span>
                                     {{ 'reservations.payment.platformFee' | translate }}
@@ -346,19 +351,18 @@
                             <span class="label">
                                 {{ 'reservations.payment.basePrice' | translate }}
                             </span>
-                            <span class="value">{{ space()!.pricing.tenantPrice }}€</span>
+                            <span class="value">{{ reservation()?.priceBreakdown?.unitPrice || 0 }}€</span>
                         </div>
                         <div class="price-row">
                             <span class="label">
-                                {{ 'reservations.payment.numberOfDays' | translate }}
+                                <ng-container *ngIf="isGuestRoom()">
+                                    {{ 'reservations.payment.numberOfNights' | translate }}
+                                </ng-container>
+                                <ng-container *ngIf="!isGuestRoom()">
+                                    {{ 'reservations.payment.numberOfDays' | translate }}
+                                </ng-container>
                             </span>
-                            <span class="value">{{ calculateDays() }}</span>
-                        </div>
-                        <div class="price-row subtotal">
-                            <span class="label">
-                                {{ 'reservations.payment.subtotal' | translate }}
-                            </span>
-                            <span class="value">{{ calculateSubtotal() }}€</span>
+                            <span class="value">{{ reservation()?.priceBreakdown?.numberOfDays || calculateDays() }}</span>
                         </div>
                         <div
                             class="price-row"
@@ -369,14 +373,20 @@
                             </span>
                             <span class="value">{{ reservation()!.cleaningFee }}€</span>
                         </div>
+                        <div class="price-row subtotal">
+                            <span class="label">
+                                {{ 'reservations.payment.subtotal' | translate }}
+                            </span>
+                            <span class="value">{{ reservation()?.priceBreakdown?.subtotal || 0 }}€</span>
+                        </div>
                         <div
                             class="price-row"
-                            *ngIf="calculatePlatformFeeTotal() > 0"
+                            *ngIf="shouldShowPlatformFee()"
                         >
                             <span class="label">
                                 {{ 'reservations.payment.platformFee' | translate }}
                             </span>
-                            <span class="value">{{ calculatePlatformFeeTotal() }}€</span>
+                            <span class="value">{{ formatPlatformFeeTotal() }}€</span>
                         </div>
                         <div
                             class="price-row"

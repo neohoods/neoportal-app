@@ -105,6 +105,44 @@ export class MockSpacesService implements SpacesService {
         return of([]).pipe(delay(300));
     }
 
+    getPriceBreakdown(spaceId: string, startDate: string, endDate: string): Observable<any> {
+        return this.getSpaceById(spaceId).pipe(
+            map((space: Space | undefined) => {
+                if (!space) {
+                    throw new Error('Space not found');
+                }
+
+                // Calculate number of days
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const numberOfDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+                // Mock price calculation
+                const unitPrice = space.pricing.tenantPrice || 0;
+                const totalDaysPrice = unitPrice * numberOfDays;
+                const cleaningFee = space.pricing.cleaningFee || 0;
+                const subtotal = totalDaysPrice + cleaningFee;
+                const deposit = space.pricing.deposit || 0;
+                const platformFeeAmount = subtotal * 0.1; // 10% mock
+                const platformFixedFeeAmount = 0.25; // Mock fixed fee
+                const totalPrice = subtotal + deposit + platformFeeAmount + platformFixedFeeAmount;
+
+                return {
+                    unitPrice,
+                    numberOfDays,
+                    totalDaysPrice,
+                    cleaningFee,
+                    subtotal,
+                    deposit,
+                    platformFeeAmount,
+                    platformFixedFeeAmount,
+                    totalPrice
+                };
+            }),
+            delay(300)
+        );
+    }
+
     // Cache methods
     loadSpacesByIds(spaceIds: string[]): Observable<Map<string, Space>> {
         if (spaceIds.length === 0) {

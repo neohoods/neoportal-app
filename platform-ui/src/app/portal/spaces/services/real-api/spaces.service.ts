@@ -72,6 +72,10 @@ export class APISpacesService implements SpacesService {
         return this.spacesApi.getSharedSpaceReservations(spaceId, startDate, endDate);
     }
 
+    getPriceBreakdown(spaceId: string, startDate: string, endDate: string): Observable<any> {
+        return this.spacesApi.getPriceBreakdown(spaceId, startDate, endDate);
+    }
+
     // Cache methods
     loadSpacesByIds(spaceIds: string[]): Observable<Map<string, UISpace>> {
         if (spaceIds.length === 0) {

@@ -14,11 +14,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.neohoods.portal.platform.api.SpacesApiApiDelegate;
+import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.model.AvailabilityResponse;
 import com.neohoods.portal.platform.model.CleaningSettings;
 import com.neohoods.portal.platform.model.OccupancyCalendarDay;
 import com.neohoods.portal.platform.model.OccupancyCalendarDayPublic;
 import com.neohoods.portal.platform.model.PaginatedSpaces;
+import com.neohoods.portal.platform.model.PriceBreakdown;
 import com.neohoods.portal.platform.model.QuotaInfo;
 import com.neohoods.portal.platform.model.Reservation;
 import com.neohoods.portal.platform.model.Space;
@@ -28,6 +31,8 @@ import com.neohoods.portal.platform.model.SpacePricing;
 import com.neohoods.portal.platform.model.SpaceRules;
 import com.neohoods.portal.platform.model.SpaceType;
 import com.neohoods.portal.platform.model.TimeRange;
+import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.spaces.services.PriceCalculationResult;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceImageEntity;
@@ -50,6 +55,9 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
 
     @Autowired
     private SpaceStatisticsService spaceStatisticsService;
+
+    @Autowired
+    private UsersRepository usersRepository;
 
     @Override
     public Mono<ResponseEntity<PaginatedSpaces>> getSpaces(
@@ -188,6 +196,55 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
         } catch (Exception e) {
             return Mono.just(ResponseEntity.notFound().build());
         }
+    }
+
+    @Override
+    public Mono<ResponseEntity<PriceBreakdown>> getPriceBreakdown(
+            UUID spaceId, LocalDate startDate, LocalDate endDate, ServerWebExchange exchange) {
+        // Validate dates
+        if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
+            return Mono.just(ResponseEntity.badRequest().build());
+        }
+
+        // Check if space exists
+        SpaceEntity space = spacesService.getSpaceById(spaceId);
+        if (space == null) {
+            return Mono.just(ResponseEntity.notFound().build());
+        }
+
+        // Get current user and determine if owner
+        return exchange.getPrincipal()
+                .map(principal -> UUID.fromString(principal.getName()))
+                .flatMap(userId -> {
+                    UserEntity user = usersRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
+
+                    // Determine if user is owner (ADMIN, OWNER, LANDLORD)
+                    boolean isOwner = false;
+                    if (user.getType() != null) {
+                        switch (user.getType()) {
+                            case ADMIN:
+                            case OWNER:
+                            case LANDLORD:
+                                isOwner = true;
+                                break;
+                            default:
+                                isOwner = false;
+                                break;
+                        }
+                    }
+
+                    // Calculate price breakdown
+                    PriceCalculationResult priceBreakdown = spacesService.calculatePriceBreakdown(
+                            spaceId, startDate, endDate, isOwner);
+
+                    // Convert to API model
+                    PriceBreakdown apiBreakdown = convertPriceCalculationResultToApiModel(priceBreakdown);
+
+                    return Mono.just(ResponseEntity.ok(apiBreakdown));
+                })
+                .switchIfEmpty(
+                        Mono.just(ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build()));
     }
 
     // Helper methods
@@ -352,5 +409,21 @@ public class SpacesApiApiDelegateImpl implements SpacesApiApiDelegate {
             case SATURDAY -> SpaceRules.AllowedDaysEnum.SATURDAY;
             case SUNDAY -> SpaceRules.AllowedDaysEnum.SUNDAY;
         };
+    }
+
+    private PriceBreakdown convertPriceCalculationResultToApiModel(PriceCalculationResult result) {
+        PriceBreakdown breakdown = new PriceBreakdown();
+        breakdown.setUnitPrice(result.getUnitPrice().floatValue());
+        breakdown.setNumberOfDays((int) result.getNumberOfDays());
+        breakdown.setTotalDaysPrice(result.getTotalDaysPrice().floatValue());
+        breakdown.setCleaningFee(result.getCleaningFee() != null ? result.getCleaningFee().floatValue() : 0.0f);
+        breakdown.setSubtotal(result.getSubtotal().floatValue());
+        breakdown.setDeposit(result.getDeposit() != null ? result.getDeposit().floatValue() : 0.0f);
+        breakdown.setPlatformFeeAmount(
+                result.getPlatformFeeAmount() != null ? result.getPlatformFeeAmount().floatValue() : 0.0f);
+        breakdown.setPlatformFixedFeeAmount(
+                result.getPlatformFixedFeeAmount() != null ? result.getPlatformFixedFeeAmount().floatValue() : 0.0f);
+        breakdown.setTotalPrice(result.getTotalPrice().floatValue());
+        return breakdown;
     }
 }

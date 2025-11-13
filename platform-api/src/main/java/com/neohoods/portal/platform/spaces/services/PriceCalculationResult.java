@@ -6,17 +6,24 @@ import java.math.BigDecimal;
  * Result object for price calculation breakdown
  */
 public class PriceCalculationResult {
-    private BigDecimal basePrice;
+    private BigDecimal totalDaysPrice; // Renamed from basePrice - total price for days/nights (unitPrice × numberOfDays)
+    private BigDecimal unitPrice; // Price per unit (day/night)
+    private long numberOfDays; // Number of days/nights (generic term)
+    private BigDecimal subtotal; // totalDaysPrice + cleaningFee
     private BigDecimal cleaningFee;
     private BigDecimal platformFeeAmount;
     private BigDecimal platformFixedFeeAmount;
     private BigDecimal deposit;
     private BigDecimal totalPrice;
 
-    public PriceCalculationResult(BigDecimal basePrice, BigDecimal cleaningFee,
+    public PriceCalculationResult(BigDecimal totalDaysPrice, BigDecimal unitPrice, long numberOfDays,
+            BigDecimal subtotal, BigDecimal cleaningFee,
             BigDecimal platformFeeAmount, BigDecimal platformFixedFeeAmount,
             BigDecimal deposit, BigDecimal totalPrice) {
-        this.basePrice = basePrice;
+        this.totalDaysPrice = totalDaysPrice;
+        this.unitPrice = unitPrice;
+        this.numberOfDays = numberOfDays;
+        this.subtotal = subtotal;
         this.cleaningFee = cleaningFee;
         this.platformFeeAmount = platformFeeAmount;
         this.platformFixedFeeAmount = platformFixedFeeAmount;
@@ -25,8 +32,20 @@ public class PriceCalculationResult {
     }
 
     // Getters
-    public BigDecimal getBasePrice() {
-        return basePrice;
+    public BigDecimal getTotalDaysPrice() {
+        return totalDaysPrice;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public long getNumberOfDays() {
+        return numberOfDays;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
     }
 
     public BigDecimal getCleaningFee() {
@@ -50,8 +69,20 @@ public class PriceCalculationResult {
     }
 
     // Setters
-    public void setBasePrice(BigDecimal basePrice) {
-        this.basePrice = basePrice;
+    public void setTotalDaysPrice(BigDecimal totalDaysPrice) {
+        this.totalDaysPrice = totalDaysPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public void setNumberOfDays(long numberOfDays) {
+        this.numberOfDays = numberOfDays;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
     }
 
     public void setCleaningFee(BigDecimal cleaningFee) {

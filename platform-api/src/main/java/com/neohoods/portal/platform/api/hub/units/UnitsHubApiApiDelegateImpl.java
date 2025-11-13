@@ -30,6 +30,7 @@ import com.neohoods.portal.platform.services.UnitInvitationService;
 import com.neohoods.portal.platform.services.UnitJoinRequestService;
 import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
+import com.neohoods.portal.platform.spaces.services.ReservationMapper;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.UnitCalendarService;
 
@@ -344,6 +345,21 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
     }
 
     private Reservation convertToApiModel(ReservationEntity entity) {
+        // Calculate pricing details using utility method
+        ReservationMapper.PricingDetails pricingDetails = ReservationMapper.calculatePricingDetails(entity);
+
+        // Create PriceBreakdown object
+        com.neohoods.portal.platform.model.PriceBreakdown priceBreakdown = new com.neohoods.portal.platform.model.PriceBreakdown();
+        priceBreakdown.setUnitPrice(pricingDetails.unitPrice.floatValue());
+        priceBreakdown.setNumberOfDays((int) pricingDetails.numberOfDays);
+        priceBreakdown.setTotalDaysPrice(pricingDetails.totalDaysPrice.floatValue());
+        priceBreakdown.setCleaningFee(pricingDetails.cleaningFee.floatValue());
+        priceBreakdown.setSubtotal(pricingDetails.subtotal.floatValue());
+        priceBreakdown.setDeposit(pricingDetails.deposit.floatValue());
+        priceBreakdown.setPlatformFeeAmount(pricingDetails.platformFeeAmount.floatValue());
+        priceBreakdown.setPlatformFixedFeeAmount(pricingDetails.platformFixedFeeAmount.floatValue());
+        priceBreakdown.setTotalPrice(pricingDetails.totalPrice.floatValue());
+
         Reservation.ReservationBuilder builder = Reservation.builder()
                 .id(entity.getId())
                 .spaceId(entity.getSpace().getId())
@@ -353,18 +369,11 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
                 .status(convertEntityStatusToApiStatus(entity.getStatus()))
                 .totalPrice(entity.getTotalPrice().floatValue())
                 .currency(entity.getSpace().getCurrency())
-                .cleaningFee(entity.getSpace().getCleaningFee() != null
-                        ? entity.getSpace().getCleaningFee().floatValue()
-                        : null)
-                .deposit(entity.getSpace().getDeposit() != null
-                        ? entity.getSpace().getDeposit().floatValue()
-                        : null)
-                .platformFeeAmount(entity.getPlatformFeeAmount() != null
-                        ? entity.getPlatformFeeAmount().floatValue()
-                        : null)
-                .platformFixedFeeAmount(entity.getPlatformFixedFeeAmount() != null
-                        ? entity.getPlatformFixedFeeAmount().floatValue()
-                        : null)
+                .cleaningFee(pricingDetails.cleaningFee.floatValue())
+                .deposit(pricingDetails.deposit.floatValue())
+                .platformFeeAmount(pricingDetails.platformFeeAmount.floatValue())
+                .platformFixedFeeAmount(pricingDetails.platformFixedFeeAmount.floatValue())
+                .priceBreakdown(priceBreakdown)
                 .stripePaymentIntentId(entity.getStripePaymentIntentId())
                 .stripeSessionId(entity.getStripeSessionId())
                 .paymentExpiresAt(entity.getPaymentExpiresAt() != null

@@ -55,6 +55,8 @@ export class SpaceDetailComponent implements OnInit {
     error = signal<string | null>(null);
     currentUser!: UserInfo;
     selectedDate = signal<TuiDayRange | null | undefined>(null);
+    priceBreakdown = signal<any | null>(null);
+    loadingPriceBreakdown = signal(false);
 
     // Occupancy data for calendar
     occupancyMap = signal<Map<string, boolean>>(new Map());
@@ -276,6 +278,42 @@ export class SpaceDetailComponent implements OnInit {
 
     onDateSelected(dateRange: TuiDayRange | null | undefined): void {
         this.selectedDate.set(dateRange || null);
+        // Load price breakdown when dates change
+        if (dateRange && dateRange.from && dateRange.to) {
+            this.loadPriceBreakdown(dateRange.from, dateRange.to);
+        } else {
+            this.priceBreakdown.set(null);
+        }
+    }
+
+    private loadPriceBreakdown(from: TuiDayRange['from'], to: TuiDayRange['to']): void {
+        const space = this.space();
+        if (!space || !from || !to) {
+            this.priceBreakdown.set(null);
+            return;
+        }
+
+        // Convert TuiDay to date string (YYYY-MM-DD)
+        const startDate = `${from.year}-${String(from.month + 1).padStart(2, '0')}-${String(from.day).padStart(2, '0')}`;
+        const endDate = `${to.year}-${String(to.month + 1).padStart(2, '0')}-${String(to.day).padStart(2, '0')}`;
+
+        this.loadingPriceBreakdown.set(true);
+        this.spacesService.getPriceBreakdown(space.id, startDate, endDate).subscribe({
+            next: (breakdown) => {
+                this.priceBreakdown.set(breakdown);
+                this.loadingPriceBreakdown.set(false);
+            },
+            error: (error) => {
+                console.error('Error loading price breakdown:', error);
+                this.priceBreakdown.set(null);
+                this.loadingPriceBreakdown.set(false);
+            }
+        });
+    }
+
+    isGuestRoom(): boolean {
+        const space = this.space();
+        return space?.type === 'GUEST_ROOM';
     }
 
     onBackClick(): void {

@@ -22,15 +22,18 @@ import com.neohoods.portal.platform.model.CreateReservationRequest;
 import com.neohoods.portal.platform.model.CreateReservationResponse;
 import com.neohoods.portal.platform.model.PaginatedReservations;
 import com.neohoods.portal.platform.model.PaymentSessionResponse;
+import com.neohoods.portal.platform.model.PriceBreakdown;
 import com.neohoods.portal.platform.model.Reservation;
 import com.neohoods.portal.platform.model.ReservationFeedbackRequest;
 import com.neohoods.portal.platform.model.ReservationStatus;
 import com.neohoods.portal.platform.model.SpaceType;
+import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.UsersService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
+import com.neohoods.portal.platform.spaces.services.ReservationMapper;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
 import com.neohoods.portal.platform.spaces.services.StripeService;
@@ -45,6 +48,8 @@ public class ReservationsApiApiDelegateImpl implements ReservationsApiApiDelegat
 
     @Autowired
     private UsersService usersService;
+    @Autowired
+    private UsersRepository usersRepository;
 
     @Autowired
     private SpacesService spacesService;
@@ -268,6 +273,21 @@ public class ReservationsApiApiDelegateImpl implements ReservationsApiApiDelegat
 
     // Helper methods
     private Reservation convertToApiModel(ReservationEntity entity) {
+        // Calculate pricing details using utility method
+        ReservationMapper.PricingDetails pricingDetails = ReservationMapper.calculatePricingDetails(entity);
+
+        // Create PriceBreakdown object
+        PriceBreakdown priceBreakdown = new PriceBreakdown();
+        priceBreakdown.setUnitPrice(pricingDetails.unitPrice.floatValue());
+        priceBreakdown.setNumberOfDays((int) pricingDetails.numberOfDays);
+        priceBreakdown.setTotalDaysPrice(pricingDetails.totalDaysPrice.floatValue());
+        priceBreakdown.setCleaningFee(pricingDetails.cleaningFee.floatValue());
+        priceBreakdown.setSubtotal(pricingDetails.subtotal.floatValue());
+        priceBreakdown.setDeposit(pricingDetails.deposit.floatValue());
+        priceBreakdown.setPlatformFeeAmount(pricingDetails.platformFeeAmount.floatValue());
+        priceBreakdown.setPlatformFixedFeeAmount(pricingDetails.platformFixedFeeAmount.floatValue());
+        priceBreakdown.setTotalPrice(pricingDetails.totalPrice.floatValue());
+
         return Reservation.builder()
                 .id(entity.getId())
                 .spaceId(entity.getSpace().getId())
@@ -277,15 +297,11 @@ public class ReservationsApiApiDelegateImpl implements ReservationsApiApiDelegat
                 .status(convertEntityStatusToApiStatus(entity.getStatus()))
                 .totalPrice(entity.getTotalPrice().floatValue())
                 .currency(entity.getSpace().getCurrency())
-                .cleaningFee(
-                        entity.getSpace().getCleaningFee() != null ? entity.getSpace().getCleaningFee().floatValue()
-                                : null)
-                .deposit(entity.getSpace().getDeposit() != null ? entity.getSpace().getDeposit().floatValue() : null)
-                .platformFeeAmount(
-                        entity.getPlatformFeeAmount() != null ? entity.getPlatformFeeAmount().floatValue() : null)
-                .platformFixedFeeAmount(
-                        entity.getPlatformFixedFeeAmount() != null ? entity.getPlatformFixedFeeAmount().floatValue()
-                                : null)
+                .cleaningFee(pricingDetails.cleaningFee.floatValue())
+                .deposit(pricingDetails.deposit.floatValue())
+                .platformFeeAmount(pricingDetails.platformFeeAmount.floatValue())
+                .platformFixedFeeAmount(pricingDetails.platformFixedFeeAmount.floatValue())
+                .priceBreakdown(priceBreakdown)
                 .stripePaymentIntentId(entity.getStripePaymentIntentId())
                 .stripeSessionId(entity.getStripeSessionId())
                 .paymentExpiresAt(
@@ -344,15 +360,7 @@ public class ReservationsApiApiDelegateImpl implements ReservationsApiApiDelegat
     private Mono<UserEntity> getCurrentUser(ServerWebExchange exchange) {
         return exchange.getPrincipal()
                 .map(principal -> UUID.fromString(principal.getName()))
-                .flatMap(userId -> usersService.getUserById(userId))
-                .map(user -> {
-                    UserEntity userEntity = new UserEntity();
-                    userEntity.setId(user.getId());
-                    userEntity.setEmail(user.getEmail());
-                    userEntity.setFirstName(user.getFirstName());
-                    userEntity.setLastName(user.getLastName());
-                    return userEntity;
-                });
+                .map(userId -> usersRepository.findById(userId).orElseThrow());
     }
 
     /**

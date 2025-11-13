@@ -24,8 +24,8 @@ import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceSettingsEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
-import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
+import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 
 @Service
 @Transactional
@@ -167,7 +167,7 @@ public class SpacesService {
             Pageable pageable) {
         // Use paginated repository method to get correct total count
         Page<SpaceEntity> pageResult = spaceRepository.findActiveSpacesWithFilters(entityType, search, pageable);
-        
+
         // Initialize images and allowedDays collections for the paginated results
         // to avoid LazyInitializationException
         pageResult.getContent().forEach(space -> {
@@ -194,7 +194,7 @@ public class SpacesService {
                 // Collection may be empty - that's OK
             }
         });
-        
+
         return pageResult;
     }
 
@@ -306,17 +306,19 @@ public class SpacesService {
         }
 
         // Check unit membership for common spaces (COMMON_ROOM, COWORKING)
-        // Note: GUEST_ROOM and PARKING don't require unit membership even if they have quota
+        // Note: GUEST_ROOM and PARKING don't require unit membership even if they have
+        // quota
         boolean requiresUnit = space.getType() == SpaceTypeForEntity.COMMON_ROOM ||
                 space.getType() == SpaceTypeForEntity.COWORKING;
-        
+
         UnitEntity primaryUnit = null;
         if (requiresUnit) {
             // Check that user has a primary unit set
             try {
                 primaryUnit = unitsService.getPrimaryUnitForUser(userId).block();
             } catch (CodedErrorException e) {
-                if (e.getError() == CodedError.USER_NO_PRIMARY_UNIT || e.getError() == CodedError.USER_NOT_TENANT_OR_OWNER) {
+                if (e.getError() == CodedError.USER_NO_PRIMARY_UNIT
+                        || e.getError() == CodedError.USER_NOT_TENANT_OR_OWNER) {
                     Map<String, Object> variables = new HashMap<>();
                     variables.put("spaceId", spaceId);
                     variables.put("userId", userId);
@@ -325,7 +327,8 @@ public class SpacesService {
                 throw e;
             }
         } else {
-            // For spaces that don't require unit, try to get primary unit anyway for quota check
+            // For spaces that don't require unit, try to get primary unit anyway for quota
+            // check
             try {
                 primaryUnit = unitsService.getPrimaryUnitForUser(userId).block();
             } catch (Exception e) {
@@ -336,7 +339,8 @@ public class SpacesService {
         // Check annual quota per unit (if unit exists)
         if (space.getMaxAnnualReservations() > 0 && primaryUnit != null) {
             int currentYear = LocalDate.now().getYear();
-            Long unitReservationsCount = reservationRepository.countReservationsByUnitAndYear(primaryUnit.getId(), currentYear);
+            Long unitReservationsCount = reservationRepository.countReservationsByUnitAndYear(primaryUnit.getId(),
+                    currentYear);
             if (unitReservationsCount >= space.getMaxAnnualReservations()) {
                 Map<String, Object> variables = new HashMap<>();
                 variables.put("spaceId", spaceId);
@@ -359,29 +363,42 @@ public class SpacesService {
             boolean isOwner) {
         SpaceEntity space = getSpaceById(spaceId);
         BigDecimal pricePerDay = isOwner ? space.getOwnerPrice() : space.getTenantPrice();
-        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
-        BigDecimal basePrice = pricePerDay.multiply(BigDecimal.valueOf(days));
+        long numberOfDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        BigDecimal totalDaysPrice = pricePerDay.multiply(BigDecimal.valueOf(numberOfDays));
 
         // Si le prix est zéro, retourner BigDecimal.ZERO pour éviter les problèmes de
         // format
-        BigDecimal finalBasePrice = basePrice.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : basePrice;
+        BigDecimal finalTotalDaysPrice = totalDaysPrice.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO
+                : totalDaysPrice;
+
+        // Calculate unit price (price per day/night)
+        BigDecimal unitPrice = BigDecimal.ZERO;
+        if (numberOfDays > 0) {
+            unitPrice = finalTotalDaysPrice.divide(BigDecimal.valueOf(numberOfDays), 2, java.math.RoundingMode.HALF_UP);
+        }
 
         // Get platform fee settings
         SpaceSettingsEntity settings = spaceSettingsService.getSpaceSettings();
         BigDecimal platformFeePercentage = settings.getPlatformFeePercentage();
         BigDecimal platformFixedFee = settings.getPlatformFixedFee();
 
+        // Calculate base price with cleaning fee (platform fees are calculated on this
+        // total)
+        BigDecimal basePriceWithCleaning = finalTotalDaysPrice.add(space.getCleaningFee());
+
+        // Calculate subtotal: totalDaysPrice + cleaningFee
+        BigDecimal subtotal = finalTotalDaysPrice.add(space.getCleaningFee());
+
         // Calculate platform fees
-        // Platform fees only apply if there is a charge (basePrice > 0)
+        // Platform fees apply on basePrice + cleaningFee (if total > 0)
         BigDecimal platformFeeAmount = BigDecimal.ZERO;
         BigDecimal platformFixedFeeAmount = BigDecimal.ZERO;
 
-        if (finalBasePrice.compareTo(BigDecimal.ZERO) > 0) {
-            // Platform fee amount = percentage of base price (before cleaning fee and
-            // deposit)
+        if (basePriceWithCleaning.compareTo(BigDecimal.ZERO) > 0) {
+            // Platform fee amount = percentage of (base price + cleaning fee)
             // Round up to 1 decimal place (no cents) - always round up
             if (platformFeePercentage != null && platformFeePercentage.compareTo(BigDecimal.ZERO) > 0) {
-                platformFeeAmount = finalBasePrice.multiply(platformFeePercentage)
+                platformFeeAmount = basePriceWithCleaning.multiply(platformFeePercentage)
                         .divide(BigDecimal.valueOf(100), 1, java.math.RoundingMode.CEILING);
             }
 
@@ -393,8 +410,7 @@ public class SpacesService {
         }
 
         // Calculate total price: basePrice + cleaningFee + deposit + platformFees
-        BigDecimal totalAmount = finalBasePrice
-                .add(space.getCleaningFee())
+        BigDecimal totalAmount = basePriceWithCleaning
                 .add(space.getDeposit())
                 .add(platformFeeAmount)
                 .add(platformFixedFeeAmount);
@@ -403,7 +419,10 @@ public class SpacesService {
 
         // Create PriceCalculationResult with calculated fees
         PriceCalculationResult result = new PriceCalculationResult(
-                finalBasePrice, // basePrice
+                finalTotalDaysPrice, // totalDaysPrice
+                unitPrice, // unitPrice
+                numberOfDays, // numberOfDays
+                subtotal, // subtotal
                 space.getCleaningFee(), // cleaningFee
                 platformFeeAmount, // platformFeeAmount (percentage-based)
                 platformFixedFeeAmount, // platformFixedFeeAmount (fixed)

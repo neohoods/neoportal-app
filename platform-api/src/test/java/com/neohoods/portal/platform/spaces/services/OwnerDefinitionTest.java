@@ -107,22 +107,32 @@ public class OwnerDefinitionTest {
                 any(LocalDate.class), anyBoolean())).thenAnswer(invocation -> {
             boolean isOwner = invocation.getArgument(3);
             BigDecimal pricePerNight = isOwner ? OWNER_PRICE_PER_NIGHT : TENANT_PRICE_PER_NIGHT;
-            BigDecimal basePrice = pricePerNight.multiply(BigDecimal.valueOf(RESERVATION_DURATION_DAYS));
+            BigDecimal totalDaysPrice = pricePerNight.multiply(BigDecimal.valueOf(RESERVATION_DURATION_DAYS));
             
-            // Calculate platform fees (10% of base price + 5.00 fixed)
-            BigDecimal platformFeeAmount = basePrice.multiply(PLATFORM_FEE_PERCENTAGE)
+            // Calculate unit price
+            BigDecimal unitPrice = totalDaysPrice.divide(BigDecimal.valueOf(RESERVATION_DURATION_DAYS), 2, java.math.RoundingMode.HALF_UP);
+            
+            // Calculate subtotal: totalDaysPrice + cleaningFee
+            BigDecimal subtotal = totalDaysPrice.add(CLEANING_FEE);
+            
+            // Calculate platform fees (10% of basePrice + cleaningFee + 5.00 fixed)
+            BigDecimal basePriceWithCleaning = totalDaysPrice.add(CLEANING_FEE);
+            BigDecimal platformFeeAmount = basePriceWithCleaning.multiply(PLATFORM_FEE_PERCENTAGE)
                     .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
             BigDecimal platformFixedFeeAmount = PLATFORM_FIXED_FEE;
             
-            // Calculate total: basePrice + cleaningFee + deposit + platformFees
-            BigDecimal totalPrice = basePrice
+            // Calculate total: totalDaysPrice + cleaningFee + deposit + platformFees
+            BigDecimal totalPrice = totalDaysPrice
                     .add(CLEANING_FEE)
                     .add(DEPOSIT)
                     .add(platformFeeAmount)
                     .add(platformFixedFeeAmount);
             
             return new PriceCalculationResult(
-                    basePrice,
+                    totalDaysPrice,
+                    unitPrice,
+                    RESERVATION_DURATION_DAYS,
+                    subtotal,
                     CLEANING_FEE,
                     platformFeeAmount,
                     platformFixedFeeAmount,

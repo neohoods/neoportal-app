@@ -283,7 +283,7 @@
 
                             <tui-notification
                                 size="s"
-                                [style.visibility]="selectedDate() ? 'hidden' : 'visible'"
+                                [style.display]="selectedDate() ? 'none' : 'block'"
                             >
                                 {{ 'spaces.chooseDateRange' | translate }}
                             </tui-notification>
@@ -298,6 +298,99 @@
                                     {{ 'spaces.detail.loadingAvailability' | translate }}
                                 </span>
                             </div>
+
+                            <!-- Price Breakdown Preview -->
+                            <div
+                                *ngIf="selectedDate() && priceBreakdown() && !loadingPriceBreakdown()"
+                                class="detail-card"
+                            >
+                                <h3>
+                                    <tui-icon icon="@tui.credit-card"></tui-icon>
+                                    {{ 'reservations.payment.pricing' | translate }}
+                                </h3>
+                                <div class="detail-content">
+                                    <div class="price-breakdown">
+                                        <div class="price-item">
+                                            <span>
+                                                {{ 'reservations.payment.basePrice' | translate }}
+                                            </span>
+                                            <span>{{ priceBreakdown()?.unitPrice || 0 }}€</span>
+                                        </div>
+                                        <div class="price-item">
+                                            <span>
+                                                <ng-container *ngIf="isGuestRoom()">
+                                                    {{ 'reservations.payment.numberOfNights' | translate }}
+                                                </ng-container>
+                                                <ng-container *ngIf="!isGuestRoom()">
+                                                    {{ 'reservations.payment.numberOfDays' | translate }}
+                                                </ng-container>
+                                            </span>
+                                            <span>
+                                                {{ priceBreakdown()?.numberOfDays || 0 }}
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="price-item"
+                                            *ngIf="priceBreakdown()?.cleaningFee && priceBreakdown()!.cleaningFee > 0"
+                                        >
+                                            <span>
+                                                {{ 'reservations.payment.cleaningFee' | translate }}
+                                            </span>
+                                            <span>{{ priceBreakdown()!.cleaningFee }}€</span>
+                                        </div>
+                                        <div class="price-item subtotal">
+                                            <span>
+                                                {{ 'reservations.payment.subtotal' | translate }}
+                                            </span>
+                                            <span>{{ priceBreakdown()?.subtotal || 0 }}€</span>
+                                        </div>
+                                        <div
+                                            class="price-item"
+                                            *ngIf="(priceBreakdown()?.platformFeeAmount && priceBreakdown()!.platformFeeAmount > 0) || (priceBreakdown()?.platformFixedFeeAmount && priceBreakdown()!.platformFixedFeeAmount > 0)"
+                                        >
+                                            <span>
+                                                {{ 'reservations.payment.platformFee' | translate }}
+                                            </span>
+                                            <span>
+                                                {{ ((priceBreakdown()?.platformFeeAmount || 0) + (priceBreakdown()?.platformFixedFeeAmount || 0)).toFixed(1) }}€
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="price-item"
+                                            *ngIf="priceBreakdown()?.deposit && priceBreakdown()!.deposit > 0"
+                                        >
+                                            <span>
+                                                {{ 'reservations.payment.deposit' | translate }}
+                                            </span>
+                                            <span>{{ priceBreakdown()!.deposit }}€</span>
+                                        </div>
+                                        <div class="price-item total">
+                                            <span>
+                                                <strong>
+                                                    {{ 'reservations.payment.total' | translate }}
+                                                </strong>
+                                            </span>
+                                            <span>
+                                                <strong>
+                                                    {{ priceBreakdown()?.totalPrice || 0 }}€
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Loading price breakdown -->
+                            <div
+                                *ngIf="loadingPriceBreakdown()"
+                                class="price-breakdown-loading"
+                            >
+                                <tui-loader size="s"></tui-loader>
+                                <span>
+                                    {{ 'spaces.detail.loadingPrice' | translate }}
+                                </span>
+                            </div>
+
                             <!-- Warning message if user cannot reserve -->
                             <tui-notification
                                 *ngIf="canReserve() === false && !loadingCanReserve()"
