@@ -2,6 +2,7 @@ package com.neohoods.portal.platform.spaces.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -184,7 +185,7 @@ public class OwnerDefinitionTest {
         // Platform fee = 170 * 10% = 17.0 (CEILING, 1 decimal)
         // Platform fixed = 5.0 (CEILING, 1 decimal)
         // Total = 150 + 20 + 50 + 17.0 + 5.0 = 242.0
-        BigDecimal expectedTotalPrice = new BigDecimal("242.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("242.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -192,8 +193,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "ADMIN user should get owner price (50 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "ADMIN user should get owner price (50 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         // Verify that calculatePriceBreakdown was called with isOwner = true
         verify(spacesService).calculatePriceBreakdown(
@@ -214,7 +215,7 @@ public class OwnerDefinitionTest {
         // Platform fee = 170 * 10% = 17.0 (CEILING, 1 decimal)
         // Platform fixed = 5.0 (CEILING, 1 decimal)
         // Total = 150 + 20 + 50 + 17.0 + 5.0 = 242.0
-        BigDecimal expectedTotalPrice = new BigDecimal("242.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("242.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -222,8 +223,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "OWNER user should get owner price (50 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "OWNER user should get owner price (50 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         // Verify that calculatePriceBreakdown was called with isOwner = true
         verify(spacesService).calculatePriceBreakdown(
@@ -244,7 +245,7 @@ public class OwnerDefinitionTest {
         // Platform fee = 170 * 10% = 17.0 (CEILING, 1 decimal)
         // Platform fixed = 5.0 (CEILING, 1 decimal)
         // Total = 150 + 20 + 50 + 17.0 + 5.0 = 242.0
-        BigDecimal expectedTotalPrice = new BigDecimal("242.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("242.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -252,8 +253,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "LANDLORD user should get owner price (50 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "LANDLORD user should get owner price (50 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         // Verify that calculatePriceBreakdown was called with isOwner = true
         verify(spacesService).calculatePriceBreakdown(
@@ -274,7 +275,7 @@ public class OwnerDefinitionTest {
         // Platform fee = 320 * 10% = 32.0 (CEILING, 1 decimal)
         // Platform fixed = 5.0 (CEILING, 1 decimal)
         // Total = 300 + 20 + 50 + 32.0 + 5.0 = 407.0
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -282,8 +283,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "TENANT user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "TENANT user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         // Verify that calculatePriceBreakdown was called with isOwner = false
         verify(spacesService).calculatePriceBreakdown(
@@ -304,7 +305,7 @@ public class OwnerDefinitionTest {
         // Platform fee = 320 * 10% = 32.0 (CEILING, 1 decimal)
         // Platform fixed = 5.0 (CEILING, 1 decimal)
         // Total = 300 + 20 + 50 + 32.0 + 5.0 = 407.0
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -312,8 +313,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "SYNDIC user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "SYNDIC user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
@@ -327,7 +328,7 @@ public class OwnerDefinitionTest {
     void testExternalUser_UsesTenantPrice() {
         // Arrange
         UserEntity externalUser = createUser(UserType.EXTERNAL);
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -335,8 +336,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "EXTERNAL user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "EXTERNAL user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
@@ -350,7 +351,7 @@ public class OwnerDefinitionTest {
     void testContractorUser_UsesTenantPrice() {
         // Arrange
         UserEntity contractorUser = createUser(UserType.CONTRACTOR);
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -358,8 +359,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "CONTRACTOR user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "CONTRACTOR user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
@@ -373,7 +374,7 @@ public class OwnerDefinitionTest {
     void testCommercialPropertyOwnerUser_UsesTenantPrice() {
         // Arrange
         UserEntity commercialPropertyOwnerUser = createUser(UserType.COMMERCIAL_PROPERTY_OWNER);
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -381,8 +382,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "COMMERCIAL_PROPERTY_OWNER user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "COMMERCIAL_PROPERTY_OWNER user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
@@ -396,7 +397,7 @@ public class OwnerDefinitionTest {
     void testGuestUser_UsesTenantPrice() {
         // Arrange
         UserEntity guestUser = createUser(UserType.GUEST);
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -404,8 +405,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "GUEST user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "GUEST user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
@@ -419,7 +420,7 @@ public class OwnerDefinitionTest {
     void testPropertyManagementUser_UsesTenantPrice() {
         // Arrange
         UserEntity propertyManagementUser = createUser(UserType.PROPERTY_MANAGEMENT);
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -427,8 +428,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "PROPERTY_MANAGEMENT user should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "PROPERTY_MANAGEMENT user should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
@@ -442,7 +443,7 @@ public class OwnerDefinitionTest {
     void testNullUserType_UsesTenantPrice() {
         // Arrange
         UserEntity userWithNullType = createUser(null);
-        BigDecimal expectedTotalPrice = new BigDecimal("407.0");
+        BigDecimal expectedTotalPrice = new BigDecimal("407.00");
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(
@@ -450,8 +451,8 @@ public class OwnerDefinitionTest {
 
         // Assert
         assertNotNull(reservation);
-        assertEquals(expectedTotalPrice, reservation.getTotalPrice(), 
-                "User with null type should get tenant price (100 EUR/night)");
+        assertTrue(expectedTotalPrice.compareTo(reservation.getTotalPrice()) == 0, 
+                "User with null type should get tenant price (100 EUR/night). Expected: " + expectedTotalPrice + ", but was: " + reservation.getTotalPrice());
         
         verify(spacesService).calculatePriceBreakdown(
                 eq(guestRoomSpace.getId()),
