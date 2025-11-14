@@ -20,6 +20,7 @@ import {
   getGlobalProviders,
   NOTIFICATIONS_SERVICE_TOKEN,
 } from '../../global.provider';
+import { CATEGORY_COLORS, CATEGORY_ICONS, UIAnnouncementCategory } from '../../models/UIAnnoncements';
 import { UINotification, UINotificationType } from '../../models/UINotification';
 import { hubProviders } from '../../portal/hub/hub.provider';
 import {
@@ -244,17 +245,57 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
     }
   }
 
-  getNotificationImage(notification: UINotification): string {
+  /**
+   * Converts API category string (e.g., "COMMUNITY_EVENT") to UIAnnouncementCategory enum
+   */
+  private convertCategoryToEnum(categoryString: string): UIAnnouncementCategory {
+    // Convert from UPPER_SNAKE_CASE to PascalCase
+    const parts = categoryString.toLowerCase().split('_');
+    const pascalCase = parts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+    return pascalCase as UIAnnouncementCategory;
+  }
+
+  getNotificationIcon(notification: UINotification): string {
     switch (notification.type) {
       case UINotificationType.ADMIN_NEW_USER:
-        return '/assets/notifications/user-icon.svg';
-      // Add more cases as needed for other notification types
-      // case UINotificationType.ANNOUNCEMENT:
-      //   return '/assets/notifications/announcement-icon.svg';
-      // case UINotificationType.EMAIL:
-      //   return '/assets/notifications/email-icon.svg';
+        return '@tui.user';
+      case UINotificationType.NEW_ANNOUNCEMENT:
+        // Get icon based on announcement category
+        if (notification.payload?.announcementCategory) {
+          try {
+            const category = this.convertCategoryToEnum(notification.payload.announcementCategory);
+            return CATEGORY_ICONS[category] || CATEGORY_ICONS[UIAnnouncementCategory.Other];
+          } catch {
+            return CATEGORY_ICONS[UIAnnouncementCategory.Other];
+          }
+        }
+        return CATEGORY_ICONS[UIAnnouncementCategory.Other];
+      case UINotificationType.RESERVATION:
+        return '@tui.calendar';
+      case UINotificationType.UNIT_INVITATION:
+        return '@tui.user-plus';
+      case UINotificationType.UNIT_JOIN_REQUEST:
+        return '@tui.user-check';
       default:
-        return '/assets/notifications/default-icon.svg';
+        return '@tui.bell';
+    }
+  }
+
+  getNotificationIconColor(notification: UINotification): string | null {
+    switch (notification.type) {
+      case UINotificationType.NEW_ANNOUNCEMENT:
+        // Get color based on announcement category
+        if (notification.payload?.announcementCategory) {
+          try {
+            const category = this.convertCategoryToEnum(notification.payload.announcementCategory);
+            return CATEGORY_COLORS[category] || CATEGORY_COLORS[UIAnnouncementCategory.Other];
+          } catch {
+            return CATEGORY_COLORS[UIAnnouncementCategory.Other];
+          }
+        }
+        return CATEGORY_COLORS[UIAnnouncementCategory.Other];
+      default:
+        return null; // Use default color
     }
   }
 
@@ -317,10 +358,4 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
     this.markAsRead(notification);
   }
 
-  onImageError(event: Event) {
-    const img = event.target as HTMLImageElement;
-    if (img) {
-      img.src = '/assets/notifications/default-icon.svg';
-    }
-  }
 }

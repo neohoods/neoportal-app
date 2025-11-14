@@ -71,12 +71,17 @@
   }
 }
 
-.notification-item img {
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
+  min-width: 40px;
   border-radius: 4px;
+  background-color: var(--tos-background-neutral-1);
   border: 1px solid var(--tos-border-normal);
-
+  flex-shrink: 0;
 }
 
 .notification-item.unread {
