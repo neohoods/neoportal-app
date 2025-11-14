@@ -97,7 +97,7 @@ button.dropdown tui-icon {
 /* Horizontal Menu */
 .horizontal-menu {
     position: sticky;
-    top: 47px;
+    top: 0px !important;
     left: 0;
     z-index: 1;
     /* Ensure it appears above other elements */
