@@ -123,6 +123,7 @@
     <div
         class="announcement"
         *ngFor="let announcement of announcements"
+        [id]="'announcement-' + announcement.id"
     >
         <announcement
             [announcement]="announcement"

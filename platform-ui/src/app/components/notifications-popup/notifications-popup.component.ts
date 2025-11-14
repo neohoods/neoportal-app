@@ -173,8 +173,22 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
           return 'notifications.adminNewUserWithName';
         }
         return 'notifications.adminNewUser';
+      case UINotificationType.NEW_ANNOUNCEMENT:
+        if (notification.payload?.announcementTitle) {
+          return 'notifications.newAnnouncementWithTitle';
+        }
+        return 'notifications.newAnnouncement';
+      case UINotificationType.RESERVATION:
+        return 'notifications.reservation';
+      case UINotificationType.UNIT_INVITATION:
+        if (notification.payload?.invitedBy) {
+          return 'notifications.unitInvitationWithInviter';
+        }
+        return 'notifications.unitInvitation';
+      case UINotificationType.UNIT_JOIN_REQUEST:
+        return 'notifications.unitJoinRequest';
       default:
-        return 'notifications.unknown';
+        return notification.translationKey || 'notifications.unknown';
     }
   }
 
@@ -186,6 +200,20 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
             firstName: notification.payload.newUserFirstName,
             lastName: notification.payload.newUserLastName,
             email: notification.payload.newUserEmail
+          };
+        }
+        return {};
+      case UINotificationType.NEW_ANNOUNCEMENT:
+        if (notification.payload) {
+          return {
+            title: notification.payload.announcementTitle || notification.payload.title
+          };
+        }
+        return {};
+      case UINotificationType.UNIT_INVITATION:
+        if (notification.payload) {
+          return {
+            invitedBy: notification.payload.invitedBy
           };
         }
         return {};
@@ -202,6 +230,13 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
           return `/admin/users/${notification.payload.newUserId}/edit`;
         }
         return '/admin/users';
+
+      case UINotificationType.NEW_ANNOUNCEMENT:
+        // Navigate to hub/wall with announcementId query parameter
+        if (notification.payload?.announcementId) {
+          return `/hub/wall?announcementId=${notification.payload.announcementId}`;
+        }
+        return '/hub/wall';
 
       // Add other cases if needed for different notification types
       default:
@@ -227,9 +262,36 @@ export class NotificationsPopupComponent implements OnInit, OnDestroy {
     // Handle notification click depending on its type or other properties
     const link = this.getNotificationLink(notification);
     if (link) {
-      this.router.navigate([link]).then(() => {
-        this.closePopup();
-      });
+      // Check if we're already on the target route
+      const currentUrl = this.router.url;
+      const targetUrl = link.split('?')[0];
+
+      if (currentUrl.startsWith(targetUrl)) {
+        // Already on the target route, just update query params
+        const urlParts = link.split('?');
+        if (urlParts.length > 1) {
+          const queryParams = new URLSearchParams(urlParts[1]);
+          const params: any = {};
+          queryParams.forEach((value, key) => {
+            params[key] = value;
+          });
+
+          this.router.navigate([targetUrl], { queryParams: params, replaceUrl: false }).then(() => {
+            this.closePopup();
+          }).catch((error) => {
+            console.error('Navigation error:', error);
+          });
+        } else {
+          this.closePopup();
+        }
+      } else {
+        // Navigate to new route
+        this.router.navigateByUrl(link).then(() => {
+          this.closePopup();
+        }).catch((error) => {
+          console.error('Navigation error:', error);
+        });
+      }
     }
   }
 

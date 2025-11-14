@@ -41,6 +41,10 @@ export class APINotificationsService implements NotificationsService {
   private getNotificationTranslationKey(type: UINotificationType): string {
     const typeMap: Record<UINotificationType, string> = {
       [UINotificationType.ADMIN_NEW_USER]: 'notifications.adminNewUser',
+      [UINotificationType.NEW_ANNOUNCEMENT]: 'notifications.newAnnouncement',
+      [UINotificationType.RESERVATION]: 'notifications.reservation',
+      [UINotificationType.UNIT_INVITATION]: 'notifications.unitInvitation',
+      [UINotificationType.UNIT_JOIN_REQUEST]: 'notifications.unitJoinRequest',
     };
     return typeMap[type] || 'notifications.unknown';
   }
