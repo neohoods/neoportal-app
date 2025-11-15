@@ -82,7 +82,7 @@ export class DirectoryComponent implements OnInit {
   loading = signal(true);
   totalPages = signal(0);
   currentPage = signal(0);
-  pageSize = signal(20);
+  pageSize = signal(10);
   totalElements = signal(0);
 
   // Filters
@@ -168,24 +168,14 @@ export class DirectoryComponent implements OnInit {
         this.pageSize(),
         this.selectedType() || undefined,
         this.searchTerm() || undefined,
-        this.selectedUserId() || undefined
+        this.selectedUserId() || undefined,
+        this.onlyOccupied() ? true : undefined
       )
       .subscribe({
         next: (paginated: PaginatedUnits) => {
-          let units = paginated.content || [];
-
-          // Apply "only occupied" filter if enabled (client-side filtering)
-          // Note: This filters only the current page. For accurate pagination across all pages,
-          // the filter should be implemented at the API level.
-          if (this.onlyOccupied()) {
-            units = units.filter((unit: Unit) =>
-              unit.members && unit.members.length > 0
-            );
-          }
+          const units = paginated.content || [];
 
           this.units.set(units);
-          // Keep original pagination info (based on unfiltered data)
-          // This means pagination may show empty pages when filter is active
           this.totalPages.set(paginated.totalPages || 0);
           this.currentPage.set(paginated.number || 0);
           this.totalElements.set(paginated.totalElements || 0);

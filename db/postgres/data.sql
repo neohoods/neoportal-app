@@ -18,6 +18,7 @@ INSERT INTO users (id, username, email, password, first_name, last_name, flat_nu
 -- User Properties removed - concept has been replaced by Units
 
 -- Units
+-- Original test units (kept for compatibility with existing unit_members and spaces references)
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440100', 'Appartement 808', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440101', 'Famille Castel', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440102', 'Appartement 123', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
@@ -26,6 +27,82 @@ INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440105', 'Appartement 909', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 -- Empty unit for testing "only occupied" filter
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440110', 'Appartement 999', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+
+-- Building A: A001 to A703 (3 apartments per floor: 0, 1, 2, 3, 4, 5, 6, 7)
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A001', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A002', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A003', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A101', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A102', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A103', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A201', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A202', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A203', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A301', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A302', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A303', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A401', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A402', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A403', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A501', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A502', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A503', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A601', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A602', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A603', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A701', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A702', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement A703', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+-- Building B: B001 to B701 (3 apartments per floor)
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B001', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B002', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B003', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B101', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B102', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B103', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B201', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B202', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B203', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B301', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B302', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B303', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B401', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B402', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B403', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B501', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B502', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B503', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B601', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B602', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B603', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B701', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B702', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement B703', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+-- Building C: C001 to C701 (3 apartments per floor)
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C001', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C002', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C003', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C101', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C102', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C103', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C201', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C202', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C203', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C301', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C302', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C303', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C401', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C402', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C403', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C501', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C502', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C503', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C601', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C602', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C603', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C701', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C702', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
+INSERT INTO units (id, name, type, created_at, updated_at) VALUES (gen_random_uuid(), 'Appartement C703', 'FLAT', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 -- Garages for testing
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440106', 'Garage A1', 'GARAGE', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');
 INSERT INTO units (id, name, type, created_at, updated_at) VALUES ('550e8400-e29b-41d4-a716-446655440107', 'Garage B2', 'GARAGE', '2024-01-10 10:00:00+00', '2024-01-10 10:00:00+00');

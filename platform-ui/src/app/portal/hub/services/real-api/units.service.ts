@@ -1,7 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { UnitsHubApiService } from '../../../../api-client/api/unitsHubApi.service';
+import { Configuration } from '../../../../api-client/configuration';
+import { BASE_PATH } from '../../../../api-client/variables';
 // Types will be generated from OpenAPI - using temporary types for now
 // import { Unit } from '../../../../api-client/model/unit';
 // import { PaginatedUnits } from '../../../../api-client/model/paginatedUnits';
@@ -22,18 +25,54 @@ type UnitMemberResidenceRole = 'PROPRIETAIRE' | 'BAILLEUR' | 'MANAGER' | 'TENANT
   providedIn: 'root',
 })
 export class APIUnitsService implements UnitsService {
-  constructor(private unitsHubApiService: UnitsHubApiService) {}
+  constructor(
+    private unitsHubApiService: UnitsHubApiService,
+    private http: HttpClient,
+    private configuration: Configuration,
+    @Inject(BASE_PATH) private basePath: string
+  ) {}
 
   getUnitsDirectory(
     page?: number,
     size?: number,
     type?: UnitType,
     search?: string,
-    userId?: string
+    userId?: string,
+    onlyOccupied?: boolean
   ): Observable<PaginatedUnits> {
-    // Convert our temporary type to the API type (will be fixed after OpenAPI regeneration)
-    const apiType = type as any;
-    return this.unitsHubApiService.getUnitsDirectory(page, size, apiType, search, userId);
+    // Build query parameters manually to include onlyOccupied
+    let params = new HttpParams();
+    if (page !== undefined && page !== null) {
+      params = params.set('page', page.toString());
+    }
+    if (size !== undefined && size !== null) {
+      params = params.set('size', size.toString());
+    }
+    if (type !== undefined && type !== null) {
+      params = params.set('type', type);
+    }
+    if (search !== undefined && search !== null) {
+      params = params.set('search', search);
+    }
+    if (userId !== undefined && userId !== null) {
+      params = params.set('userId', userId);
+    }
+    if (onlyOccupied !== undefined && onlyOccupied !== null) {
+      params = params.set('onlyOccupied', onlyOccupied.toString());
+    }
+
+    // Get auth token from configuration
+    const headers: { [key: string]: string } = {};
+    const credential = this.configuration.lookupCredential('BearerAuthOAuth');
+    if (credential) {
+      headers['Authorization'] = 'Bearer ' + credential;
+    }
+
+    // Make the HTTP request directly
+    return this.http.get<PaginatedUnits>(`${this.basePath}/hub/units/directory`, {
+      params,
+      headers
+    });
   }
 
   getRelatedParkingGarages(userId: string): Observable<Unit[]> {

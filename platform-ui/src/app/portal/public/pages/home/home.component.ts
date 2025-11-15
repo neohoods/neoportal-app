@@ -19,7 +19,7 @@ import { PublicSettingsService } from '../../../../services/settings.service';
     providers: [...getGlobalProviders()],
 })
 export class HomeComponent implements OnInit {
-    config: UISettings = { isRegistrationEnabled: true, ssoEnabled: false };
+    config: UISettings = { isRegistrationEnabled: false, ssoEnabled: true };
     appConfig = ConfigService.configuration;
 
     constructor(

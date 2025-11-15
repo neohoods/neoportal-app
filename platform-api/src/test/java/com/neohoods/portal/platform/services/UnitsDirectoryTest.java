@@ -148,7 +148,7 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get all units directory without filters")
     public void testGetUnitsDirectory_NoFilters_ReturnsAllUnits() {
         // Act
-        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, null, null, null).block();
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, null, null, null, null).block();
 
         // Assert
         assertNotNull(result);
@@ -160,7 +160,7 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get units directory filtered by type FLAT")
     public void testGetUnitsDirectory_FilterByTypeFlat_ReturnsOnlyFlats() {
         // Act
-        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, UnitTypeForEntity.FLAT, null, null).block();
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, UnitTypeForEntity.FLAT, null, null, null).block();
 
         // Assert
         assertNotNull(result);
@@ -172,7 +172,7 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get units directory filtered by type GARAGE")
     public void testGetUnitsDirectory_FilterByTypeGarage_ReturnsOnlyGarages() {
         // Act
-        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, UnitTypeForEntity.GARAGE, null, null).block();
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, UnitTypeForEntity.GARAGE, null, null, null).block();
 
         // Assert
         assertNotNull(result);
@@ -184,7 +184,7 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get units directory filtered by search term")
     public void testGetUnitsDirectory_FilterBySearch_ReturnsMatchingUnits() {
         // Act
-        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, null, "Appartement", null).block();
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, null, "Appartement", null, null).block();
 
         // Assert
         assertNotNull(result);
@@ -196,7 +196,7 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get units directory filtered by user membership")
     public void testGetUnitsDirectory_FilterByUserId_ReturnsUserUnits() {
         // Act
-        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, null, null, testUser.getId()).block();
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, null, null, testUser.getId(), null).block();
 
         // Assert
         assertNotNull(result);
@@ -210,7 +210,7 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get units directory filtered by type and search")
     public void testGetUnitsDirectory_FilterByTypeAndSearch_ReturnsMatchingUnits() {
         // Act
-        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, UnitTypeForEntity.FLAT, "101", null).block();
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 20, UnitTypeForEntity.FLAT, "101", null, null).block();
 
         // Assert
         assertNotNull(result);
@@ -223,10 +223,10 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
     @DisplayName("Get units directory with pagination")
     public void testGetUnitsDirectory_WithPagination_ReturnsCorrectPage() {
         // Act - first page
-        PaginatedUnits page1 = unitsService.getUnitsDirectoryPaginated(0, 2, null, null, null).block();
+        PaginatedUnits page1 = unitsService.getUnitsDirectoryPaginated(0, 2, null, null, null, null).block();
         
         // Act - second page
-        PaginatedUnits page2 = unitsService.getUnitsDirectoryPaginated(1, 2, null, null, null).block();
+        PaginatedUnits page2 = unitsService.getUnitsDirectoryPaginated(1, 2, null, null, null, null).block();
 
         // Assert
         assertNotNull(page1);
@@ -235,6 +235,48 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
         assertTrue(page2.getContent().size() >= 0);
         assertTrue(page1.getNumber() == 0);
         assertTrue(page2.getNumber() == 1);
+    }
+
+    @Test
+    @DisplayName("Get units directory with onlyOccupied filter returns only units with members")
+    public void testGetUnitsDirectory_OnlyOccupiedFilter_ReturnsOnlyOccupiedUnits() {
+        // Arrange - Create an empty unit (no members)
+        UnitEntity emptyUnit = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement Vide")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        final UnitEntity savedEmptyUnit = unitRepository.save(emptyUnit);
+        final UUID emptyUnitId = savedEmptyUnit.getId();
+        final UUID flatUnit1Id = flatUnit1.getId();
+
+        // flatUnit1 already has members (from setUp), so it should be included
+        // emptyUnit has no members, so it should be excluded when onlyOccupied=true
+
+        // Act - Get all units without filter
+        PaginatedUnits allUnits = unitsService.getUnitsDirectoryPaginated(0, 100, null, null, null, null).block();
+        
+        // Act - Get units with onlyOccupied=true
+        PaginatedUnits occupiedUnits = unitsService.getUnitsDirectoryPaginated(0, 100, null, null, null, true).block();
+
+        // Assert
+        assertNotNull(allUnits);
+        assertNotNull(occupiedUnits);
+        
+        // All units should include both occupied and empty units
+        assertTrue(allUnits.getContent().stream()
+                .anyMatch(u -> u.getId().equals(flatUnit1Id)));
+        assertTrue(allUnits.getContent().stream()
+                .anyMatch(u -> u.getId().equals(emptyUnitId)));
+        
+        // Only occupied units should exclude empty unit
+        assertTrue(occupiedUnits.getContent().stream()
+                .anyMatch(u -> u.getId().equals(flatUnit1Id)));
+        assertTrue(occupiedUnits.getContent().stream()
+                .noneMatch(u -> u.getId().equals(emptyUnitId)));
+        
+        // Total count should be less when filtering
+        assertTrue(occupiedUnits.getTotalElements() < allUnits.getTotalElements());
     }
 
     @Test
@@ -306,6 +348,178 @@ public class UnitsDirectoryTest extends BaseIntegrationTest {
         assertTrue(related.stream().anyMatch(u -> u.getId().equals(parkingUnit.getId())));
         assertTrue(related.stream().allMatch(u -> 
             u.getType().getValue().equals("GARAGE") || u.getType().getValue().equals("PARKING")));
+    }
+
+    @Test
+    @DisplayName("Units are sorted correctly: FLAT > COMMERCIAL > GARAGE > PARKING > OTHER, then by name")
+    public void testGetUnitsDirectory_SortingOrder_IsCorrect() {
+        // Arrange - Create units with specific names to test sorting
+        UnitEntity flatA001 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement A001")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatA001 = unitRepository.save(flatA001);
+
+        UnitEntity flatA002 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement A002")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatA002 = unitRepository.save(flatA002);
+
+        UnitEntity flatA101 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement A101")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatA101 = unitRepository.save(flatA101);
+
+        UnitEntity flatA102 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement A102")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatA102 = unitRepository.save(flatA102);
+
+        UnitEntity flatB001 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement B001")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatB001 = unitRepository.save(flatB001);
+
+        UnitEntity flatB002 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement B002")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatB002 = unitRepository.save(flatB002);
+
+        UnitEntity flatB101 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement B101")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatB101 = unitRepository.save(flatB101);
+
+        UnitEntity flatB102 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement B102")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatB102 = unitRepository.save(flatB102);
+
+        UnitEntity flatC001 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement C001")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatC001 = unitRepository.save(flatC001);
+
+        UnitEntity flatC002 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement C002")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatC002 = unitRepository.save(flatC002);
+
+        UnitEntity flatC101 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement C101")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatC101 = unitRepository.save(flatC101);
+
+        UnitEntity flatC102 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Appartement C102")
+                .type(UnitTypeForEntity.FLAT)
+                .build();
+        flatC102 = unitRepository.save(flatC102);
+
+        UnitEntity garage001 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Garage 001")
+                .type(UnitTypeForEntity.GARAGE)
+                .build();
+        garage001 = unitRepository.save(garage001);
+
+        UnitEntity garage009 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Garage 009")
+                .type(UnitTypeForEntity.GARAGE)
+                .build();
+        garage009 = unitRepository.save(garage009);
+
+        UnitEntity garage101 = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Garage 101")
+                .type(UnitTypeForEntity.GARAGE)
+                .build();
+        garage101 = unitRepository.save(garage101);
+
+        UnitEntity commercialUnit = UnitEntity.builder()
+                .id(UUID.randomUUID())
+                .name("Local Commercial 1")
+                .type(UnitTypeForEntity.COMMERCIAL)
+                .build();
+        commercialUnit = unitRepository.save(commercialUnit);
+
+        // Act - Get all units
+        PaginatedUnits result = unitsService.getUnitsDirectoryPaginated(0, 100, null, null, null, null).block();
+
+        // Assert
+        assertNotNull(result);
+        List<Unit> units = result.getContent();
+        
+        // Find indices of our test units
+        int flatA001Idx = findUnitIndex(units, flatA001.getId());
+        int flatA002Idx = findUnitIndex(units, flatA002.getId());
+        int flatA101Idx = findUnitIndex(units, flatA101.getId());
+        int flatA102Idx = findUnitIndex(units, flatA102.getId());
+        int flatB001Idx = findUnitIndex(units, flatB001.getId());
+        int flatB002Idx = findUnitIndex(units, flatB002.getId());
+        int flatB101Idx = findUnitIndex(units, flatB101.getId());
+        int flatB102Idx = findUnitIndex(units, flatB102.getId());
+        int flatC001Idx = findUnitIndex(units, flatC001.getId());
+        int flatC002Idx = findUnitIndex(units, flatC002.getId());
+        int flatC101Idx = findUnitIndex(units, flatC101.getId());
+        int flatC102Idx = findUnitIndex(units, flatC102.getId());
+        int commercialIdx = findUnitIndex(units, commercialUnit.getId());
+        int garage001Idx = findUnitIndex(units, garage001.getId());
+        int garage009Idx = findUnitIndex(units, garage009.getId());
+        int garage101Idx = findUnitIndex(units, garage101.getId());
+
+        // Verify type order: FLAT units come before COMMERCIAL, which come before GARAGE
+        assertTrue(flatA001Idx < commercialIdx, "FLAT should come before COMMERCIAL");
+        assertTrue(commercialIdx < garage001Idx, "COMMERCIAL should come before GARAGE");
+        
+        // Verify FLAT units are sorted by name: A001 < A002 < A101 < A102 < B001 < B002 < B101 < B102 < C001 < C002 < C101 < C102
+        assertTrue(flatA001Idx < flatA002Idx, "A001 should come before A002");
+        assertTrue(flatA002Idx < flatA101Idx, "A002 should come before A101");
+        assertTrue(flatA101Idx < flatA102Idx, "A101 should come before A102");
+        assertTrue(flatA102Idx < flatB001Idx, "A102 should come before B001");
+        assertTrue(flatB001Idx < flatB002Idx, "B001 should come before B002");
+        assertTrue(flatB002Idx < flatB101Idx, "B002 should come before B101");
+        assertTrue(flatB101Idx < flatB102Idx, "B101 should come before B102");
+        assertTrue(flatB102Idx < flatC001Idx, "B102 should come before C001");
+        assertTrue(flatC001Idx < flatC002Idx, "C001 should come before C002");
+        assertTrue(flatC002Idx < flatC101Idx, "C002 should come before C101");
+        assertTrue(flatC101Idx < flatC102Idx, "C101 should come before C102");
+        
+        // Verify GARAGE units are sorted by name: 001 < 009 < 101
+        assertTrue(garage001Idx < garage009Idx, "Garage 001 should come before Garage 009");
+        assertTrue(garage009Idx < garage101Idx, "Garage 009 should come before Garage 101");
+    }
+
+    private int findUnitIndex(List<Unit> units, UUID unitId) {
+        for (int i = 0; i < units.size(); i++) {
+            if (units.get(i).getId().equals(unitId)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
 

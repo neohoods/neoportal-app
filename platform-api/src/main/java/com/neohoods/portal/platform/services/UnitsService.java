@@ -1,7 +1,6 @@
 package com.neohoods.portal.platform.services;
 
 import java.time.OffsetDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +28,7 @@ import com.neohoods.portal.platform.model.UnitMember;
 import com.neohoods.portal.platform.repositories.UnitMemberRepository;
 import com.neohoods.portal.platform.repositories.UnitRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -283,7 +283,8 @@ public class UnitsService {
                 List<UnitEntity> remainingUnits = unitRepository.findByMembersUserId(userId);
                 if (!remainingUnits.isEmpty()) {
                     user.setPrimaryUnit(remainingUnits.get(0));
-                    log.info("Set unit {} as new primary unit for user {} after removal", remainingUnits.get(0).getId(), userId);
+                    log.info("Set unit {} as new primary unit for user {} after removal", remainingUnits.get(0).getId(),
+                            userId);
                 }
             }
             usersRepository.save(user);
@@ -428,7 +429,8 @@ public class UnitsService {
      *
      * @param userId The user ID
      * @param unitId The unit ID to set as primary
-     * @param setBy  The user ID who is setting this (must be admin of the unit or global admin, null for admin operations)
+     * @param setBy  The user ID who is setting this (must be admin of the unit or
+     *               global admin, null for admin operations)
      */
     @Transactional
     public Mono<Void> setPrimaryUnitForUser(UUID userId, UUID unitId, UUID setBy) {
@@ -493,53 +495,30 @@ public class UnitsService {
     }
 
     @Transactional(readOnly = true)
-    public Mono<PaginatedUnits> getUnitsDirectoryPaginated(int page, int size, UnitTypeForEntity type, String search, UUID userId) {
+    public Mono<PaginatedUnits> getUnitsDirectoryPaginated(int page, int size, UnitTypeForEntity type, String search,
+            UUID userId, Boolean onlyOccupied) {
         Pageable pageable = PageRequest.of(page, size);
-        List<UnitEntity> filteredUnits;
 
-        // Apply filters
-        if (userId != null) {
-            // Filter by user membership
-            if (type != null) {
-                filteredUnits = unitRepository.findByMembersUserIdAndType(userId, type);
-            } else {
-                filteredUnits = unitRepository.findByMembersUserId(userId);
-            }
-        } else if (type != null) {
-            // Filter by type only
-            if (search != null && !search.trim().isEmpty()) {
-                filteredUnits = unitRepository.findByTypeAndNameContainingIgnoreCase(type, search);
-            } else {
-                filteredUnits = unitRepository.findByType(type);
-            }
-        } else if (search != null && !search.trim().isEmpty()) {
-            // Filter by search only
-            filteredUnits = unitRepository.findByNameContainingIgnoreCase(search);
-        } else {
-            // No filters - get all
-            filteredUnits = unitRepository.findAll();
-        }
+        // Normalize search string - null if empty
+        String normalizedSearch = (search != null && !search.trim().isEmpty()) ? search : null;
 
-        // Sort by unit type: FLAT first, then COMMERCIAL, then GARAGE, then others
-        Map<UnitTypeForEntity, Integer> typeOrder = Map.of(
-                UnitTypeForEntity.FLAT, 1,
-                UnitTypeForEntity.COMMERCIAL, 2,
-                UnitTypeForEntity.GARAGE, 3,
-                UnitTypeForEntity.PARKING, 4,
-                UnitTypeForEntity.OTHER, 5
-        );
-        filteredUnits.sort(Comparator.comparing(
-                unit -> typeOrder.getOrDefault(unit.getType(), 99),
-                Comparator.nullsLast(Comparator.naturalOrder())
-        ));
+        // Convert enum to string for native query
+        String typeStr = (type != null) ? type.name() : null;
 
-        // Manual pagination
-        int start = page * size;
-        int end = Math.min(start + size, filteredUnits.size());
-        List<UnitEntity> pagedUnits = start < filteredUnits.size() ? filteredUnits.subList(start, end) : List.of();
-        Page<UnitEntity> pageResult = new org.springframework.data.domain.PageImpl<>(pagedUnits, pageable, filteredUnits.size());
+        // Use repository method that handles filtering and sorting in DB
+        Page<UnitEntity> pageResult = unitRepository.findUnitsDirectoryPaginated(
+                userId,
+                typeStr,
+                normalizedSearch,
+                onlyOccupied,
+                pageable);
 
-        List<Unit> units = pageResult.getContent().stream()
+        // Load members for each unit (native query doesn't support JOIN FETCH)
+        List<UnitEntity> unitsWithMembers = pageResult.getContent().stream()
+                .map(unit -> unitRepository.findByIdWithMembers(unit.getId()).orElse(unit))
+                .collect(Collectors.toList());
+
+        List<Unit> units = unitsWithMembers.stream()
                 .map(UnitEntity::toUnit)
                 .collect(Collectors.toList());
 
@@ -573,7 +552,8 @@ public class UnitsService {
 
         List<Unit> relatedUnits = proprietaireMembers.stream()
                 .map(UnitMemberEntity::getUnit)
-                .filter(unit -> unit.getType() == UnitTypeForEntity.GARAGE || unit.getType() == UnitTypeForEntity.PARKING)
+                .filter(unit -> unit.getType() == UnitTypeForEntity.GARAGE
+                        || unit.getType() == UnitTypeForEntity.PARKING)
                 .map(UnitEntity::toUnit)
                 .collect(Collectors.toList());
 
@@ -581,7 +561,8 @@ public class UnitsService {
     }
 
     @Transactional
-    public Mono<UnitMember> updateMemberResidenceRole(UUID unitId, UUID memberUserId, ResidenceRole residenceRole, UUID updatedBy) {
+    public Mono<UnitMember> updateMemberResidenceRole(UUID unitId, UUID memberUserId, ResidenceRole residenceRole,
+            UUID updatedBy) {
         log.info("Updating residence role for member {} in unit {} by {}", memberUserId, unitId, updatedBy);
 
         // Residence role is now required
@@ -590,7 +571,8 @@ public class UnitsService {
         }
 
         // Check unit exists first
-        unitRepository.findById(unitId).orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
+        unitRepository.findById(unitId)
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_NOT_FOUND, "unitId", unitId.toString()));
 
         // Verify updatedBy is admin (only if provided)
         if (updatedBy != null && !isUserAdminOfUnit(updatedBy, unitId)) {
@@ -598,7 +580,8 @@ public class UnitsService {
         }
 
         UnitMemberEntity member = unitMemberRepository.findByUnitIdAndUserId(unitId, memberUserId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", memberUserId.toString()));
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId",
+                        memberUserId.toString()));
 
         member.setResidenceRole(residenceRole);
         unitMemberRepository.save(member);
@@ -606,7 +589,8 @@ public class UnitsService {
         // Refresh to ensure we have the latest data
         unitMemberRepository.flush();
         UnitMemberEntity saved = unitMemberRepository.findByUnitIdAndUserId(unitId, memberUserId)
-                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId", memberUserId.toString()));
+                .orElseThrow(() -> new CodedErrorException(CodedError.UNIT_MEMBER_NOT_FOUND, "userId",
+                        memberUserId.toString()));
 
         log.info("Updated residence role for member {} in unit {} to {}", memberUserId, unitId, residenceRole);
         log.debug("Saved member residenceRole: {}", saved.getResidenceRole());

@@ -7,7 +7,9 @@
   <div class="filters-container">
     <div class="filter-group">
       <label tuiLabel>
-        {{ 'directory.filters.type' | translate }}
+        <span class="label">
+          {{ 'directory.filters.type' | translate }}
+        </span>
         <tui-select
           [ngModel]="getSelectedTypeOption()"
           (ngModelChange)="onTypeChange($event)"
@@ -33,7 +35,9 @@
 
     <div class="filter-group">
       <label tuiLabel>
-        {{ 'directory.filters.name' | translate }}
+        <span class="label">
+          {{ 'directory.filters.name' | translate }}
+        </span> 
         <tui-textfield>
           <input
             tuiTextfield
@@ -48,7 +52,9 @@
 
     <div class="filter-group">
       <label tuiLabel>
-        {{ 'directory.filters.user' | translate }}
+        <span class="label">
+          {{ 'directory.filters.user' | translate }}
+        </span>
         <tui-textfield tuiChevron [stringify]="stringifyUser">
           <input
             tuiComboBox
@@ -77,6 +83,7 @@
       <div class="switch-container">
         <input
           tuiSwitch
+          size="m"
           type="checkbox"
           [ngModel]="onlyOccupied()"
           (ngModelChange)="onOnlyOccupiedChange($event)"

@@ -514,16 +514,16 @@ form {
                 }
 
                 &.subtotal {
-                    border-top: 1px solid var(--tos-border-neutral-2);
+                    border-top: 1px solid #ccc;
                     margin-top: 0.5rem;
                     padding-top: 0.75rem;
                     font-weight: 500;
                 }
 
                 &.total {
-                    border-top: 2px solid var(--tui-border-accent-1);
+                    border-top: 1px solid #ccc;
                     margin-top: 0.5rem;
-                    padding-top: 0.5rem;
+                    padding-top: 0.75rem;
                 }
 
                 span {

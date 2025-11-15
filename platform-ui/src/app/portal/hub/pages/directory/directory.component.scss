@@ -24,6 +24,12 @@
   }
 }
 
+.label {
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
 .filters-container {
   display: flex;
   gap: 1rem;
@@ -202,11 +208,11 @@
           flex: 1;
           min-width: 0; // Allow text to shrink
 
-          > div {
+          >div {
             flex-wrap: wrap;
             gap: 0.5rem;
 
-            > div {
+            >div {
               flex: 1;
               min-width: 0; // Allow text to shrink
 

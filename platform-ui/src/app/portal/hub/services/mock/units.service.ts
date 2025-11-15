@@ -27,7 +27,8 @@ export class MockUnitsService implements UnitsService {
     size?: number,
     type?: UnitType,
     search?: string,
-    userId?: string
+    userId?: string,
+    onlyOccupied?: boolean
   ): Observable<PaginatedUnits> {
     let filtered = [...this.mockUnits];
 
@@ -44,6 +45,10 @@ export class MockUnitsService implements UnitsService {
       filtered = filtered.filter((u: Unit) =>
         u.members?.some((m: any) => m.userId === userId)
       );
+    }
+
+    if (onlyOccupied) {
+      filtered = filtered.filter((u: Unit) => u.members && u.members.length > 0);
     }
 
     const currentPage = page ?? 0;

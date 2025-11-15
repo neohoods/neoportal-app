@@ -343,6 +343,7 @@
       "capacity": "Capacité",
       "status": "Statut",
       "loading": "Chargement de l'espace...",
+      "loadingPrice": "Calcul du prix en cours...",
       "notFound": "Espace non trouvé",
       "addToFavorites": "Ajouter aux favoris",
       "perDay": "/jour",

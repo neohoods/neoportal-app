@@ -12,16 +12,15 @@
     display: none;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0.75rem;
     border: 1px solid var(--tos-border-neutral-1);
     border-radius: 8px;
     background: var(--tos-background-base);
     cursor: pointer;
     transition: all 0.2s ease;
     height: 500px;
-    width: 90%;
     max-width: 90%;
     margin: 0 auto;
+    margin-bottom: 40px;
     box-sizing: border-box;
 
     @media (max-width: 768px) {

@@ -223,6 +223,9 @@
       "rules": "Usage rules",
       "capacity": "Capacity",
       "status": "Status",
+      "loading": "Loading space...",
+      "loadingPrice": "Calculating price...",
+      "notFound": "Space not found",
       "stripeDemoMode": {
         "title": "Stripe Demo Mode Enabled",
         "message": "You are in demo mode. Use the following information to test payment:",

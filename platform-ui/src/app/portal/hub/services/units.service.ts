@@ -19,7 +19,8 @@ export interface UnitsService {
     size?: number,
     type?: UnitType,
     search?: string,
-    userId?: string
+    userId?: string,
+    onlyOccupied?: boolean
   ): Observable<PaginatedUnits>;
   
   getRelatedParkingGarages(userId: string): Observable<Unit[]>;

@@ -21,15 +21,21 @@ import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.CreateJoinRequestRequest;
 import com.neohoods.portal.platform.model.InviteUserRequest;
 import com.neohoods.portal.platform.model.PaginatedReservations;
+import com.neohoods.portal.platform.model.PaginatedUnits;
+import com.neohoods.portal.platform.model.PriceBreakdown;
 import com.neohoods.portal.platform.model.Reservation;
+import com.neohoods.portal.platform.model.ReservationStatus;
 import com.neohoods.portal.platform.model.Unit;
 import com.neohoods.portal.platform.model.UnitInvitation;
 import com.neohoods.portal.platform.model.UnitJoinRequest;
+import com.neohoods.portal.platform.model.UnitJoinRequestStatus;
 import com.neohoods.portal.platform.model.UnitMember;
+import com.neohoods.portal.platform.model.UnitType;
 import com.neohoods.portal.platform.services.UnitInvitationService;
 import com.neohoods.portal.platform.services.UnitJoinRequestService;
 import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
+import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.services.ReservationMapper;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.UnitCalendarService;
@@ -349,7 +355,7 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
         ReservationMapper.PricingDetails pricingDetails = ReservationMapper.calculatePricingDetails(entity);
 
         // Create PriceBreakdown object
-        com.neohoods.portal.platform.model.PriceBreakdown priceBreakdown = new com.neohoods.portal.platform.model.PriceBreakdown();
+        PriceBreakdown priceBreakdown = new PriceBreakdown();
         priceBreakdown.setUnitPrice(pricingDetails.unitPrice.floatValue());
         priceBreakdown.setNumberOfDays((int) pricingDetails.numberOfDays);
         priceBreakdown.setTotalDaysPrice(pricingDetails.totalDaysPrice.floatValue());
@@ -390,23 +396,23 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
         return builder.build();
     }
 
-    private com.neohoods.portal.platform.model.ReservationStatus convertEntityStatusToApiStatus(
-            com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity status) {
+    private ReservationStatus convertEntityStatusToApiStatus(
+            ReservationStatusForEntity status) {
         return switch (status) {
-            case PENDING_PAYMENT -> com.neohoods.portal.platform.model.ReservationStatus.PENDING_PAYMENT;
-            case PAYMENT_FAILED -> com.neohoods.portal.platform.model.ReservationStatus.PAYMENT_FAILED;
-            case EXPIRED -> com.neohoods.portal.platform.model.ReservationStatus.EXPIRED;
-            case CONFIRMED -> com.neohoods.portal.platform.model.ReservationStatus.CONFIRMED;
-            case ACTIVE -> com.neohoods.portal.platform.model.ReservationStatus.ACTIVE;
-            case CANCELLED -> com.neohoods.portal.platform.model.ReservationStatus.CANCELLED;
-            case COMPLETED -> com.neohoods.portal.platform.model.ReservationStatus.COMPLETED;
-            case REFUNDED -> com.neohoods.portal.platform.model.ReservationStatus.REFUNDED;
+            case PENDING_PAYMENT -> ReservationStatus.PENDING_PAYMENT;
+            case PAYMENT_FAILED -> ReservationStatus.PAYMENT_FAILED;
+            case EXPIRED -> ReservationStatus.EXPIRED;
+            case CONFIRMED -> ReservationStatus.CONFIRMED;
+            case ACTIVE -> ReservationStatus.ACTIVE;
+            case CANCELLED -> ReservationStatus.CANCELLED;
+            case COMPLETED -> ReservationStatus.COMPLETED;
+            case REFUNDED -> ReservationStatus.REFUNDED;
         };
     }
 
-    @Override
-    public Mono<ResponseEntity<com.neohoods.portal.platform.model.PaginatedUnits>> getUnitsDirectory(
-            Integer page, Integer size, com.neohoods.portal.platform.model.UnitType type, String search, UUID userId,
+    // Note: @Override removed temporarily - will be added after OpenAPI regeneration with onlyOccupied parameter
+    public Mono<ResponseEntity<PaginatedUnits>> getUnitsDirectory(
+            Integer page, Integer size, UnitType type, String search, UUID userId, Boolean onlyOccupied,
             ServerWebExchange exchange) {
         int pageNum = page != null ? Math.max(0, page) : 0;
         int pageSize = size != null ? size : 20;
@@ -420,7 +426,7 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
             }
         }
 
-        return unitsService.getUnitsDirectoryPaginated(pageNum, pageSize, unitType, search, userId)
+        return unitsService.getUnitsDirectoryPaginated(pageNum, pageSize, unitType, search, userId, onlyOccupied)
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> {
                     log.error("Failed to get units directory", e);
@@ -468,7 +474,7 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
                                     response.setUnitId(unitId);
                                     response.setRequestedById(currentUserId);
                                     response.setStatus(
-                                            com.neohoods.portal.platform.model.UnitJoinRequestStatus
+                                            UnitJoinRequestStatus
                                                     .fromValue("APPROVED"));
                                     return Mono.just(ResponseEntity.ok(response));
                                 }
