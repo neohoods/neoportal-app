@@ -7,7 +7,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiResponsiveDialogService } from '@taiga-ui/addon-mobile';
 import { TuiTable } from '@taiga-ui/addon-table';
@@ -29,17 +29,16 @@ import {
   TuiConfirmData
 } from '@taiga-ui/kit';
 import { TuiInputModule } from '@taiga-ui/legacy';
-import { map, forkJoin } from 'rxjs';
-import { RouterLink } from '@angular/router';
+import { forkJoin, map } from 'rxjs';
+import { Unit } from '../../../../api-client/model/unit';
 import { UIUser, UIUserType } from '../../../../models/UIUser';
 import { UNITS_SERVICE_TOKEN, USERS_SERVICE_TOKEN } from '../../admin.providers';
 import {
   Column,
   TosTableComponent,
 } from '../../components/tos-table/tos-table.component';
-import { UsersService } from '../../services/users.service';
 import { UnitsService } from '../../services/units.service';
-import { Unit } from '../../../../api-client/model/unit';
+import { UsersService } from '../../services/users.service';
 
 
 
@@ -120,7 +119,7 @@ export class UsersComponent {
       {
         key: 'phone',
         label: this.translate.instant('users.columns.phone'),
-        visible: true,
+        visible: false,
         sortable: true,
         size: 'm',
       },
@@ -163,7 +162,7 @@ export class UsersComponent {
         size: 'l',
       }
     ];
-    
+
     // Load users and units
     this.loadUsersAndUnits();
 
@@ -251,7 +250,7 @@ export class UsersComponent {
     }).subscribe({
       next: ({ users, units }) => {
         this.users = users;
-        
+
         // Build user -> units mapping
         this.userUnitsMap.clear();
         units.content?.forEach(unit => {

@@ -124,7 +124,7 @@ tbody tr:hover {
 
 .table-top-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 10fr;
+  grid-template-columns: 1fr 1fr 3fr;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -132,13 +132,7 @@ tbody tr:hover {
 
     .add-action button,
     .column-selector button,
-    .filter-actions input {
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-      width: 100%;
-      text-align: center !important;
-      margin-bottom: 10px !important;
-    }
+
 
     .add-action {
       margin-right: 0 !important;

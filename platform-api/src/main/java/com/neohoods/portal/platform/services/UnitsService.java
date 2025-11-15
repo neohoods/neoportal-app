@@ -42,9 +42,13 @@ public class UnitsService {
     private final UnitMemberRepository unitMemberRepository;
     private final UsersRepository usersRepository;
 
+    public Mono<Unit> createUnit(String name, UnitTypeForEntity type) {
+        return this.createUnit(name, type, null);
+    }
+
     @Transactional
-    public Mono<Unit> createUnit(String name, UnitTypeForEntity type, UUID initialAdminId) {
-        log.info("Creating unit: {} of type {} with initial admin: {}", name, type, initialAdminId);
+    public Mono<Unit> createUnit(String name, UnitTypeForEntity type, UUID adminId) {
+        log.info("Creating unit: {} of type {} with initial admin: {}", name, type, adminId);
 
         UnitEntity unit = UnitEntity.builder()
                 .id(UUID.randomUUID())
@@ -57,55 +61,39 @@ public class UnitsService {
         UnitEntity savedUnit = unitRepository.save(unit);
         log.debug("Saved unit entity {} with ID: {}", name, savedUnit.getId());
 
-        // Add initial admin
-        UUID finalAdminId;
-        if (initialAdminId == null) {
-            log.debug("No initial admin specified, determining default admin");
-            // Determine default admin from users
-            List<UserEntity> allUsers = new java.util.ArrayList<>();
-            usersRepository.findAll().forEach(allUsers::add);
-            UserEntity defaultAdmin = determineDefaultAdmin(allUsers);
-            if (defaultAdmin == null) {
-                log.error("No users available to assign as admin for unit {}", savedUnit.getId());
-                throw new CodedErrorException(CodedError.USER_NOT_FOUND,
-                        Map.of("message", "No users available to assign as admin"));
+        if (adminId != null) {
+            UserEntity admin = usersRepository.findById(adminId)
+                    .orElseThrow(() -> {
+                        log.error("Admin user {} not found when creating unit", adminId);
+                        return new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", adminId.toString());
+                    });
+            log.debug("Found admin user: {} ({})", admin.getEmail(), adminId);
+
+            UnitMemberEntity adminMember = UnitMemberEntity.builder()
+                    .unit(savedUnit)
+                    .user(admin)
+                    .role(UnitMemberRole.ADMIN)
+                    .residenceRole(ResidenceRole.PROPRIETAIRE) // Default to PROPRIETAIRE for admin
+                    .joinedAt(OffsetDateTime.now())
+                    .build();
+
+            unitMemberRepository.save(adminMember);
+
+            log.debug("Added user {} as ADMIN to unit {}", adminId, savedUnit.getId());
+
+            // If this is the user's first unit, set it as primary
+            long unitCount = unitMemberRepository.countByUserId(adminId);
+            if (unitCount == 1 && admin.getPrimaryUnit() == null) {
+                admin.setPrimaryUnit(savedUnit);
+                usersRepository.save(admin);
+                log.info("Set unit {} as primary unit for user {} (first unit)", savedUnit.getId(), adminId);
             }
-            finalAdminId = defaultAdmin.getId();
-            log.debug("Determined default admin: {} ({})", defaultAdmin.getEmail(), finalAdminId);
+
+            log.info("Created unit: {} with ID: {} and admin: {}", name, savedUnit.getId(), adminId);
         } else {
-            finalAdminId = initialAdminId;
-            log.debug("Using specified initial admin: {}", finalAdminId);
+            log.info("Created unit: {} with ID: {} and without admin", name, savedUnit.getId());
         }
-
-        final UUID adminId = finalAdminId;
-        UserEntity admin = usersRepository.findById(adminId)
-                .orElseThrow(() -> {
-                    log.error("Admin user {} not found when creating unit", adminId);
-                    return new CodedErrorException(CodedError.USER_NOT_FOUND, "userId", adminId.toString());
-                });
-        log.debug("Found admin user: {} ({})", admin.getEmail(), adminId);
-
-        UnitMemberEntity adminMember = UnitMemberEntity.builder()
-                .unit(savedUnit)
-                .user(admin)
-                .role(UnitMemberRole.ADMIN)
-                .residenceRole(ResidenceRole.PROPRIETAIRE) // Default to PROPRIETAIRE for admin
-                .joinedAt(OffsetDateTime.now())
-                .build();
-
-        unitMemberRepository.save(adminMember);
-        log.debug("Added user {} as ADMIN to unit {}", adminId, savedUnit.getId());
-
-        // If this is the user's first unit, set it as primary
-        long unitCount = unitMemberRepository.countByUserId(adminId);
-        if (unitCount == 1 && admin.getPrimaryUnit() == null) {
-            admin.setPrimaryUnit(savedUnit);
-            usersRepository.save(admin);
-            log.info("Set unit {} as primary unit for user {} (first unit)", savedUnit.getId(), adminId);
-        }
-
-        log.info("Created unit: {} with ID: {} and admin: {}", name, savedUnit.getId(), adminId);
-        return Mono.just(getUnitById(savedUnit.getId()).block());
+        return Mono.just(savedUnit.toUnit());
     }
 
     @Transactional(readOnly = true)
@@ -139,7 +127,7 @@ public class UnitsService {
 
         UnitEntity saved = unitRepository.save(unit);
         log.info("Updated unit {}: name changed from '{}' to '{}'", unitId, oldName, name);
-        return Mono.just(getUnitById(saved.getId()).block());
+        return Mono.just(saved.toUnit());
     }
 
     @Transactional

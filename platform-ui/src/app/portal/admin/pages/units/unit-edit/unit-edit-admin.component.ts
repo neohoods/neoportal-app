@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TuiAlertService, TuiButton, TuiIcon, TuiLabel, TuiLoader, TuiTextfield } from '@taiga-ui/core';
+import { TuiChevron, TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
+import { UnitType } from '../../../../../api-client/model/unitType';
 import { UNITS_SERVICE_TOKEN } from '../../../admin.providers';
 import { UnitsService } from '../../../services/units.service';
 
@@ -19,7 +21,10 @@ import { UnitsService } from '../../../services/units.service';
     TuiIcon,
     TuiLabel,
     TuiLoader,
-    TuiTextfield
+    TuiTextfield,
+    TuiSelect,
+    TuiChevron,
+    TuiDataListWrapper
   ],
   templateUrl: './unit-edit-admin.component.html',
   styleUrl: './unit-edit-admin.component.scss'
@@ -31,6 +36,20 @@ export class UnitEditAdminComponent implements OnInit {
   isEditMode = signal(false);
   unitId = signal<string | null>(null);
 
+  // Unit type options
+  unitTypeOptions = [
+    { value: UnitType.Flat, label: 'property.type.APARTMENT' },
+    { value: UnitType.Garage, label: 'property.type.GARAGE' },
+    { value: UnitType.Parking, label: 'property.type.PARKING' },
+    { value: UnitType.Commercial, label: 'property.type.COMMERCIAL' },
+    { value: UnitType.Other, label: 'property.type.OTHER' }
+  ];
+
+  stringifyUnitType = (item: any): string => {
+    if (!item || !item.label) return '';
+    return this.translate.instant(item.label);
+  };
+
   constructor(
     @Inject(UNITS_SERVICE_TOKEN) private unitsService: UnitsService,
     private route: ActivatedRoute,
@@ -40,13 +59,14 @@ export class UnitEditAdminComponent implements OnInit {
     private alerts: TuiAlertService
   ) {
     this.unitForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(1)]]
+      name: ['', [Validators.required, Validators.minLength(1)]],
+      type: [UnitType.Flat, Validators.required]
     });
   }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    
+
     if (id && id !== 'add') {
       this.isEditMode.set(true);
       this.unitId.set(id);
@@ -61,8 +81,13 @@ export class UnitEditAdminComponent implements OnInit {
     this.loading.set(true);
     this.unitsService.getUnit(id).subscribe({
       next: (unit) => {
+        // Find the option object that matches the unit type
+        const unitType = unit.type || UnitType.Flat;
+        const selectedOption = this.unitTypeOptions.find(opt => opt.value === unitType) || this.unitTypeOptions[0];
+
         this.unitForm.patchValue({
-          name: unit.name || ''
+          name: unit.name || '',
+          type: selectedOption
         });
         this.loading.set(false);
       },
@@ -82,10 +107,13 @@ export class UnitEditAdminComponent implements OnInit {
 
     this.saving.set(true);
     const name = this.unitForm.value.name;
+    // Extract value from object if it's an object, otherwise use the value directly
+    const typeValue = this.unitForm.value.type;
+    const type = typeValue?.value || typeValue;
 
     if (this.isEditMode() && this.unitId()) {
       // Update existing unit
-      this.unitsService.updateUnit(this.unitId()!, name).subscribe({
+      this.unitsService.updateUnit(this.unitId()!, name, type).subscribe({
         next: () => {
           this.alerts.open(this.translate.instant('units.updated', { name })).subscribe();
           this.router.navigate(['/admin/units', this.unitId()]);
@@ -98,7 +126,7 @@ export class UnitEditAdminComponent implements OnInit {
       });
     } else {
       // Create new unit
-      this.unitsService.createUnit(name).subscribe({
+      this.unitsService.createUnit(name, type).subscribe({
         next: (unit) => {
           this.alerts.open(this.translate.instant('units.created', { name })).subscribe();
           this.router.navigate(['/admin/units', unit.id]);

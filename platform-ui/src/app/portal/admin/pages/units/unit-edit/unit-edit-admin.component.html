@@ -36,6 +36,28 @@
         />
       </tui-textfield>
 
+      <label tuiLabel>
+        {{ 'property.propertyType' | translate }}
+        <tui-textfield tuiChevron [stringify]="stringifyUnitType">
+          <input
+            tuiSelect
+            formControlName="type"
+            [placeholder]="'property.propertyTypePlaceholder' | translate"
+            [disabled]="saving()"
+          />
+          <tui-data-list-wrapper
+            *tuiTextfieldDropdown
+            new
+            [items]="unitTypeOptions"
+            [itemContent]="typeContent"
+          ></tui-data-list-wrapper>
+        </tui-textfield>
+      </label>
+
+      <ng-template #typeContent let-item>
+        {{ item.label | translate }}
+      </ng-template>
+
       <div class="form-actions">
         <button
           tuiButton

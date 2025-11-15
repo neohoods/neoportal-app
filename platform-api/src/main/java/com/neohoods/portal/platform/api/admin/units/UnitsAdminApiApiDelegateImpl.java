@@ -70,13 +70,12 @@ public class UnitsAdminApiApiDelegateImpl implements UnitsAdminApiApiDelegate {
     public Mono<ResponseEntity<Unit>> createUnit(Mono<UnitRequest> unitRequest, ServerWebExchange exchange) {
         return unitRequest
                 .flatMap(request -> {
-                    UUID initialAdminId = request.getInitialAdminId();
                     UnitTypeForEntity unitType = null;
                     if (request.getType() != null) {
                         unitType = UnitTypeForEntity
                                 .fromString(request.getType().getValue());
                     }
-                    return unitsService.createUnit(request.getName(), unitType, initialAdminId);
+                    return unitsService.createUnit(request.getName(), unitType);
                 })
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)
                 .onErrorResume(e -> {

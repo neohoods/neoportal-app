@@ -1731,6 +1731,8 @@
     }
   },
   "property": {
+    "propertyType": "Type de propriété",
+    "propertyTypePlaceholder": "Sélectionnez le type de propriété",
     "type": {
       "APARTMENT": "Appartement",
       "GARAGE": "Garage",

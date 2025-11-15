@@ -5,6 +5,7 @@ import { UnitsAdminApiService } from '../../../../api-client/api/unitsAdminApi.s
 import { Unit } from '../../../../api-client/model/unit';
 import { PaginatedUnits } from '../../../../api-client/model/paginatedUnits';
 import { UnitRequest } from '../../../../api-client/model/unitRequest';
+import { UnitType } from '../../../../api-client/model/unitType';
 import { UnitsService } from '../units.service';
 
 @Injectable({
@@ -21,13 +22,13 @@ export class ApiUnitsService implements UnitsService {
     return this.unitsAdminApiService.getAdminUnit(id);
   }
 
-  createUnit(name: string): Observable<Unit> {
-    const unitRequest: UnitRequest = { name };
+  createUnit(name: string, type?: UnitType): Observable<Unit> {
+    const unitRequest: UnitRequest = { name, type };
     return this.unitsAdminApiService.createUnit(unitRequest);
   }
 
-  updateUnit(id: string, name: string): Observable<Unit> {
-    const unitRequest: UnitRequest = { name };
+  updateUnit(id: string, name: string, type?: UnitType): Observable<Unit> {
+    const unitRequest: UnitRequest = { name, type };
     return this.unitsAdminApiService.updateUnit(id, unitRequest);
   }
 
