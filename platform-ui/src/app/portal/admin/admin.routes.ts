@@ -26,6 +26,7 @@ import { JoinRequestsAdminComponent } from './pages/units/join-requests-admin.co
 import { UnitEditAdminComponent } from './pages/units/unit-edit/unit-edit-admin.component';
 import { UnitsAdminComponent } from './pages/units/units-admin.component';
 import { UsersComponent } from './pages/users/users.component';
+import { MatrixBotComponent } from './pages/matrix-bot/matrix-bot.component';
 
 export const ADMIN_ROUTES: Routes = [
   {
@@ -70,6 +71,7 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'digital-locks', loadComponent: () => import('./pages/digital-lock/digital-lock-admin.component').then((m) => m.DigitalLockAdminComponent) },
       { path: 'digital-locks/add', loadComponent: () => import('./pages/digital-lock/digital-lock-edit.component').then((m) => m.DigitalLockEditComponent) },
       { path: 'digital-locks/:id/edit', loadComponent: () => import('./pages/digital-lock/digital-lock-edit.component').then((m) => m.DigitalLockEditComponent) },
+      { path: 'matrix-bot', component: MatrixBotComponent },
     ],
   },
 ];

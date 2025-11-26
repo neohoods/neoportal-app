@@ -398,7 +398,7 @@ public class ReservationsService {
             logger.warn("No admin users found for reservation notifications");
             return null;
         }
-        UserEntity adminUser = adminUsers.getFirst();
+        UserEntity adminUser = adminUsers.isEmpty() ? null : adminUsers.get(0);
         logger.debug("Found admin user {} for reservation notifications", adminUser.getId());
         return adminUser;
     }

@@ -20,11 +20,18 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class UsersService {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
+    private final java.util.Optional<MatrixBotService> matrixBotService;
+
+    public UsersService(UsersRepository usersRepository, PasswordEncoder passwordEncoder, 
+                        java.util.Optional<MatrixBotService> matrixBotService) {
+        this.usersRepository = usersRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.matrixBotService = matrixBotService;
+    }
 
     public Mono<User> getUserById(UUID id) {
         return Mono.justOrEmpty(usersRepository.findById(id)
@@ -156,6 +163,17 @@ public class UsersService {
         }
 
         UserEntity savedEntity = usersRepository.save(entity);
+        
+        // Handle new user in Matrix bot if enabled
+        if (user.getId() == null && matrixBotService.isPresent()) {
+            try {
+                matrixBotService.get().handleNewUser(savedEntity);
+            } catch (Exception e) {
+                log.error("Failed to handle new user in Matrix bot", e);
+                // Don't fail user creation if Matrix fails
+            }
+        }
+        
         return getUserById(savedEntity.getId());
     }
 

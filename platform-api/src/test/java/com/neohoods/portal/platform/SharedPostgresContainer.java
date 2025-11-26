@@ -37,16 +37,26 @@ public class SharedPostgresContainer {
             this.container = null; // Pas de container Testcontainers
         } else {
             // En local, utiliser Testcontainers avec un container partagé
-            PostgreSQLContainer container = new PostgreSQLContainer("postgres:16-alpine")
-                    .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
-                    .withUsername("test")
-                    .withPassword("test")
-                    .withStartupTimeoutSeconds(120)
-                    .withReuse(true); // Réutiliser le container entre les tests
+            // Vérifier d'abord si Docker est disponible avant de créer le container
+            try {
+                PostgreSQLContainer container = new PostgreSQLContainer("postgres:16-alpine")
+                        .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
+                        .withUsername("test")
+                        .withPassword("test")
+                        .withStartupTimeoutSeconds(120)
+                        .withReuse(true); // Réutiliser le container entre les tests
 
-            // Démarrer le container (Testcontainers le réutilisera s'il existe déjà)
-            container.start();
-            this.container = container; // Assigner après le start pour éviter le warning de resource leak
+                // Démarrer le container (Testcontainers le réutilisera s'il existe déjà)
+                container.start();
+                this.container = container; // Assigner après le start pour éviter le warning de resource leak
+            } catch (Exception e) {
+                // Si Docker n'est pas disponible, fallback sur PostgreSQL local
+                // (utile pour les environnements où Docker n'est pas accessible)
+                System.err.println("WARNING: Could not start Testcontainers PostgreSQL container. " +
+                        "Falling back to local PostgreSQL. Error: " + e.getMessage());
+                useLocalPostgres = true;
+                this.container = null;
+            }
         }
     }
 
@@ -77,18 +87,33 @@ public class SharedPostgresContainer {
 
     public String getJdbcUrl(String databaseName) {
         if (useLocalPostgres) {
-            return "jdbc:postgresql://localhost:5432/" + databaseName;
+            // Utiliser le port depuis l'environnement ou par défaut 5432
+            String port = System.getenv("POSTGRES_PORT");
+            if (port == null || port.isEmpty()) {
+                port = "5432";
+            }
+            return "jdbc:postgresql://localhost:" + port + "/" + databaseName;
         } else {
             return container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/" + databaseName);
         }
     }
 
     public String getUsername() {
-        return useLocalPostgres ? "postgres" : container.getUsername();
+        if (useLocalPostgres) {
+            String username = System.getenv("POSTGRES_USER");
+            return username != null && !username.isEmpty() ? username : "postgres";
+        } else {
+            return container.getUsername();
+        }
     }
 
     public String getPassword() {
-        return useLocalPostgres ? "" : container.getPassword();
+        if (useLocalPostgres) {
+            String password = System.getenv("POSTGRES_PASSWORD");
+            return password != null ? password : "";
+        } else {
+            return container.getPassword();
+        }
     }
 
     /**
@@ -114,9 +139,19 @@ public class SharedPostgresContainer {
 
                 if (useLocalPostgres) {
                     // Utiliser PostgreSQL local (dans le même container)
-                    jdbcUrl = "jdbc:postgresql://localhost:5432/postgres";
-                    username = "postgres";
-                    password = ""; // Pas de mot de passe par défaut pour postgres local
+                    String port = System.getenv("POSTGRES_PORT");
+                    if (port == null || port.isEmpty()) {
+                        port = "5432";
+                    }
+                    jdbcUrl = "jdbc:postgresql://localhost:" + port + "/postgres";
+                    username = System.getenv("POSTGRES_USER");
+                    if (username == null || username.isEmpty()) {
+                        username = "postgres";
+                    }
+                    password = System.getenv("POSTGRES_PASSWORD");
+                    if (password == null) {
+                        password = "";
+                    }
                 } else {
                     // Utiliser Testcontainers (environnement local)
                     jdbcUrl = container.getJdbcUrl().replace("/" + container.getDatabaseName(), "/postgres");
@@ -221,8 +256,21 @@ public class SharedPostgresContainer {
     }
 
     private void executeInitScriptViaPsql(String databaseName, String scriptName) throws Exception {
-        String username = useLocalPostgres ? "postgres" : container.getUsername();
-        String password = useLocalPostgres ? "" : container.getPassword();
+        String username;
+        String password;
+        if (useLocalPostgres) {
+            username = System.getenv("POSTGRES_USER");
+            if (username == null || username.isEmpty()) {
+                username = "postgres";
+            }
+            password = System.getenv("POSTGRES_PASSWORD");
+            if (password == null) {
+                password = "";
+            }
+        } else {
+            username = container.getUsername();
+            password = container.getPassword();
+        }
         executeInitScriptViaPsql(databaseName, scriptName, username, password);
     }
 
@@ -250,7 +298,12 @@ public class SharedPostgresContainer {
         if (useLocalPostgres) {
             // PostgreSQL local dans le même container
             host = "localhost";
-            port = 5432;
+            String portEnv = System.getenv("POSTGRES_PORT");
+            if (portEnv == null || portEnv.isEmpty()) {
+                port = 5432;
+            } else {
+                port = Integer.parseInt(portEnv);
+            }
         } else {
             // Utiliser getHost() et getFirstMappedPort() de Testcontainers
             host = container.getHost();

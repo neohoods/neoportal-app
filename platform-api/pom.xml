@@ -132,6 +132,11 @@
             <version>${nimbus.oauth2.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -225,6 +230,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
@@ -274,6 +284,8 @@
                 <version>3.14.1</version>
                 <configuration>
                     <release>21</release>
+                    <source>21</source>
+                    <target>21</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -311,6 +323,7 @@
                 <version>${org.openapitools.version}</version>
                 <executions>
                     <execution>
+                        <id>generate-server</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -333,6 +346,97 @@
                                     @lombok.NoArgsConstructor @lombok.AllArgsConstructor
                                 </additionalModelTypeAnnotations>
                             </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/matrix-api.json</inputSpec>
+                            <generatorName>java</generatorName>
+                            <output>${project.basedir}/target/generated-sources/openapi-client</output>
+                            <apiPackage>com.neohoods.portal.platform.matrix.api</apiPackage>
+                            <modelPackage>com.neohoods.portal.platform.matrix.model</modelPackage>
+                            <invokerPackage>com.neohoods.portal.platform.matrix</invokerPackage>
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <java8>true</java8>
+                                <library>native</library>
+                                <useJakartaEe>true</useJakartaEe>
+                                <openApiNullable>false</openApiNullable>
+                                <serializationLibrary>jackson</serializationLibrary>
+                                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                                <sourceFolder>src/main/java</sourceFolder>
+                                <generateApiTests>false</generateApiTests>
+                                <generateModelTests>false</generateModelTests>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-mas-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/mas-api.json</inputSpec>
+                            <generatorName>java</generatorName>
+                            <output>${project.basedir}/target/generated-sources/mas-client</output>
+                            <apiPackage>com.neohoods.portal.platform.mas.api</apiPackage>
+                            <modelPackage>com.neohoods.portal.platform.mas.model</modelPackage>
+                            <invokerPackage>com.neohoods.portal.platform.mas</invokerPackage>
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <java8>true</java8>
+                                <library>native</library>
+                                <useJakartaEe>true</useJakartaEe>
+                                <openApiNullable>false</openApiNullable>
+                                <serializationLibrary>jackson</serializationLibrary>
+                                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                                <sourceFolder>src/main/java</sourceFolder>
+                                <generateApiTests>false</generateApiTests>
+                                <generateModelTests>false</generateModelTests>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/target/generated-sources/openapi-client/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>remove-generated-tests</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <delete dir="${project.basedir}/target/generated-sources/openapi-client/src/test" failonerror="false"/>
+                                <delete dir="${project.basedir}/target/generated-sources/mas-client/src/test" failonerror="false"/>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
@@ -378,7 +482,7 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <version>8.0.2</version>
+                <version>4.9.10</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>

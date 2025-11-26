@@ -75,6 +75,35 @@ neohoods:
       settings:
         default-platform-fee-percentage: ${NEOHOODS_PORTAL_SPACES_DEFAULT_PLATFORM_FEE_PERCENTAGE:2.00}
         default-platform-fixed-fee: ${NEOHOODS_PORTAL_SPACES_DEFAULT_PLATFORM_FIXED_FEE:0.25}
+    bot:
+      jwt-secret: ${NEOHOODS_PORTAL_BOT_JWT_SECRET:change-me-in-production}
+      jwt-issuer: ${NEOHOODS_PORTAL_BOT_JWT_ISSUER:matrix-sync-bot}
+      jwt-audience: ${NEOHOODS_PORTAL_BOT_JWT_AUDIENCE:neohoods-portal}
+    matrix:
+      enabled: ${MATRIX_BOT_ENABLED:true}
+      disabled: ${MATRIX_BOT_DISABLED:false}
+      homeserver-url: ${MATRIX_HOMESERVER_URL:matrix.neohoods.com}
+      server-name: ${MATRIX_SERVER_NAME:chat.neohoods.com}
+      space-id: ${MATRIX_SPACE_ID:!YenniyNVsUoBCLHtZS:chat.neohoods.com}
+      initialization:
+        enabled: ${MATRIX_INITIALIZATION_ENABLED:true}
+      mas:
+        url: ${MATRIX_MAS_URL:https://mas.chat.neohoods.com}
+        rooms-config-file: ${MATRIX_ROOMS_CONFIG_FILE:classpath:matrix-default-rooms.yaml}
+        admin-users: ${MATRIX_INITIALIZATION_ADMIN_USERS:@quentincastel86:chat.neohoods.com,@quentin.castel.neohoods:chat.neohoods.com}
+      oauth2:
+        client-id: ${MATRIX_OAUTH2_CLIENT_ID:}
+        client-secret: ${MATRIX_OAUTH2_CLIENT_SECRET:}
+        redirect-uri: ${MATRIX_OAUTH2_REDIRECT_URI:${neohoods.portal.base-url}/api/admin/matrix-bot/oauth2/callback}
+        scope: ${MATRIX_OAUTH2_SCOPE:urn:matrix:client:api:* urn:synapse:admin:* urn:matrix:client:device:BOT-PERMANENT-TOKEN}
+        authorization-endpoint: ${MATRIX_OAUTH2_AUTHORIZATION_ENDPOINT:${neohoods.portal.matrix.homeserver-url}/_matrix/client/v3/oauth2/authorize}
+        token-endpoint: ${MATRIX_OAUTH2_TOKEN_ENDPOINT:${neohoods.portal.matrix.homeserver-url}/_matrix/client/v3/oauth2/token}
+        device-authorization-endpoint: ${MATRIX_OAUTH2_DEVICE_AUTHORIZATION_ENDPOINT:https://mas.chat.neohoods.com/oauth2/device}
+      local-bot:
+        enabled: ${MATRIX_LOCAL_BOT_ENABLED:true}
+        user-id: ${MATRIX_LOCAL_BOT_USER_ID:@bot:chat.neohoods.com}
+        permanent-token: ${MATRIX_LOCAL_BOT_PERMANENT_TOKEN:}
+        avatar-url: ${MATRIX_LOCAL_BOT_AVATAR_URL:https://neohoods.com/assets/chat/bot-avatar.jpeg}
 mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:

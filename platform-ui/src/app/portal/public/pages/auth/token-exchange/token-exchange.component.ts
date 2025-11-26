@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormsModule,
@@ -31,7 +31,7 @@ import {
   styleUrl: './token-exchange.component.scss',
   providers: [...getGlobalProviders()],
 })
-export class TokenExchangeComponent {
+export class TokenExchangeComponent implements OnInit {
   config: UISettings;
 
   constructor(
@@ -56,11 +56,24 @@ export class TokenExchangeComponent {
       this.authService.exchangeSSOToken(state, code).subscribe((result: string) => {
         console.log('Token exchange result:', result);
         if (result === 'success') {
-          // Check user role and redirect accordingly, same as sign-in flow
-          if (this.authService.hasRole('hub')) {
-            this.router.navigate(['/hub']);
+          // Try to restore the original URL from sessionStorage
+          const returnUrl = sessionStorage.getItem('sso_return_url');
+          if (returnUrl && this.isValidReturnUrl(returnUrl)) {
+            // Remove the stored URL to avoid reusing it
+            sessionStorage.removeItem('sso_return_url');
+            // Redirect to the original URL
+            this.router.navigateByUrl(returnUrl);
           } else {
-            this.router.navigate(['/']);
+            // Clear invalid or missing return URL
+            if (returnUrl) {
+              sessionStorage.removeItem('sso_return_url');
+            }
+            // Fallback to default redirect based on user role
+            if (this.authService.hasRole('hub')) {
+              this.router.navigate(['/hub']);
+            } else {
+              this.router.navigate(['/']);
+            }
           }
         } else {
           // Other errors are handled by the error interceptor
@@ -79,5 +92,29 @@ export class TokenExchangeComponent {
         { appearance: 'negative' }
       ).subscribe();
     }
+  }
+
+  /**
+   * Validate that the return URL is safe (internal URL only, no external redirects)
+   */
+  private isValidReturnUrl(url: string): boolean {
+    if (!url || url.trim() === '') {
+      return false;
+    }
+    // Only allow relative URLs (starting with /)
+    // Reject external URLs (http://, https://, //, etc.)
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
+      return false;
+    }
+    // Only allow URLs starting with /
+    if (!url.startsWith('/')) {
+      return false;
+    }
+    // Reject certain paths that shouldn't be return URLs
+    const forbiddenPaths = ['/login', '/sso/callback', '/sign-up', '/sign-in'];
+    if (forbiddenPaths.some(path => url.startsWith(path))) {
+      return false;
+    }
+    return true;
   }
 }

@@ -18,6 +18,7 @@ import { MockAdminReservationsService } from './services/mock/reservations.servi
 import { MockSecuritySettingsService } from './services/mock/security-settings.service';
 import { MockSpaceSettingsService } from './services/mock/space-settings.service';
 import { MockAdminSpaceStatisticsService } from './services/mock/space-statistics.service';
+import { MockAdminMatrixBotService } from './services/mock/matrix-bot.service';
 import { MockAdminSpacesService } from './services/mock/spaces.service';
 import { MockUsersService } from './services/mock/users.service';
 import { MockUnitsService } from './services/mock/units.service';
@@ -31,9 +32,11 @@ import { RealApiAdminReservationsService } from './services/real-api/reservation
 import { ApiSecuritySettingsService } from './services/real-api/security-settings.service';
 import { RealSpaceSettingsService } from './services/real-api/space-settings.service';
 import { RealApiAdminSpaceStatisticsService } from './services/real-api/space-statistics.service';
+import { RealApiAdminMatrixBotService } from './services/real-api/matrix-bot.service';
 import { RealApiAdminSpacesService } from './services/real-api/spaces.service';
 import { ApiUsersService } from './services/real-api/users.service';
 import { ApiUnitsService } from './services/real-api/units.service';
+import { AdminMatrixBotService } from './services/matrix-bot.service';
 import { AdminReservationsService } from './services/reservations.service';
 import { SecuritySettingsService } from './services/security-settings.service';
 import { SpaceSettingsService } from './services/space-settings.service';
@@ -80,6 +83,11 @@ export const ADMIN_RESERVATIONS_SERVICE_TOKEN = new InjectionToken<AdminReservat
 export const ADMIN_SPACE_STATISTICS_SERVICE_TOKEN = new InjectionToken<AdminSpaceStatisticsService>(
   'AdminSpaceStatisticsService',
 );
+export const ADMIN_MATRIX_BOT_SERVICE_TOKEN = new InjectionToken<AdminMatrixBotService>(
+  'AdminMatrixBotService',
+);
+
+export type { AdminMatrixBotService };
 
 export const adminProviders: Provider[] = [
   {
@@ -159,5 +167,11 @@ export const adminProviders: Provider[] = [
     useExisting: ConfigService.configuration.useMockApi
       ? MockAdminSpaceStatisticsService
       : RealApiAdminSpaceStatisticsService,
+  },
+  {
+    provide: ADMIN_MATRIX_BOT_SERVICE_TOKEN,
+    useExisting: ConfigService.configuration.useMockApi
+      ? MockAdminMatrixBotService
+      : RealApiAdminMatrixBotService,
   },
 ];

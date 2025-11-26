@@ -14,6 +14,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.neohoods.portal.platform.services.Auth0Service;
 import com.neohoods.portal.platform.services.MailService;
+import com.neohoods.portal.platform.services.MatrixBotService;
+import com.neohoods.portal.platform.services.MatrixOAuth2Service;
+import com.neohoods.portal.platform.services.MatrixBotInitializationService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.spaces.services.DigitalLockService;
 import com.neohoods.portal.platform.spaces.services.NukiRemoteAPIService;
@@ -22,7 +25,8 @@ import com.neohoods.portal.platform.spaces.services.TTlockRemoteAPIService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.jpa.show-sql=false",
-        "spring.jpa.hibernate.ddl-auto=none"
+        "spring.jpa.hibernate.ddl-auto=none",
+        "neohoods.portal.matrix.enabled=false"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
@@ -109,6 +113,15 @@ public abstract class BaseIntegrationTest {
 
     @MockBean
     protected NotificationsService notificationsService;
+
+    @MockBean
+    protected MatrixBotService matrixBotService;
+
+    @MockBean
+    protected MatrixOAuth2Service matrixOAuth2Service;
+
+    @MockBean
+    protected MatrixBotInitializationService matrixBotInitializationService;
 
     @BeforeEach
     public void baseSetUp() {

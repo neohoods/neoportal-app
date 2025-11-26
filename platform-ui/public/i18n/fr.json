@@ -191,7 +191,76 @@
     "digitalLocks": "Serrures Numériques",
     "units": "Logements",
     "unitsManagement": "Gestion des logements",
-    "joinRequests": "Demandes d'adhésion"
+    "joinRequests": "Demandes d'adhésion",
+    "matrixBot": "Matrix Bot"
+  },
+  "matrixBot": {
+    "title": "Matrix Bot",
+    "status": {
+      "title": "Statut",
+      "enabled": "Activé",
+      "matrixAccess": "Accès Matrix",
+      "hasRefreshToken": "Token de rafraîchissement",
+      "hasAccessToken": "Token d'accès",
+      "spaceId": "ID de l'espace",
+      "error": "Erreur",
+      "yes": "Oui",
+      "no": "Non",
+      "ok": "OK",
+      "ko": "KO"
+    },
+    "spaces": {
+      "title": "Espaces Matrix"
+    },
+    "actions": {
+      "connect": "Connecter",
+      "connecting": "Connexion en cours...",
+      "refresh": "Actualiser",
+      "initialize": "Relancer l'initialisation",
+      "initializing": "Initialisation en cours..."
+    },
+    "connect": {
+      "title": "Méthode de connexion",
+      "currentUser": "Connecter avec l'utilisateur actuel",
+      "bot": "Connecter avec le Bot",
+      "or": "OU"
+    },
+    "deviceCode": {
+      "title": "Connexion du Bot",
+      "step1": "Copiez le code d'autorisation ci-dessous",
+      "step2": "Ouvrez le lien de vérification dans un nouvel onglet",
+      "step3": "Entrez le code sur la page d'autorisation et autorisez l'accès",
+      "step4": "Revenez ici et cliquez sur 'Vérifier l'autorisation'",
+      "code": "Code d'autorisation",
+      "link": "Lien de vérification",
+      "copyCode": "Copier le code",
+      "copyLink": "Copier le lien",
+      "openLink": "Ouvrir le lien dans un nouvel onglet",
+      "codeCopied": "Code copié dans le presse-papiers",
+      "linkCopied": "Lien copié dans le presse-papiers",
+      "copyFailed": "Échec de la copie",
+      "verify": "Vérifier l'autorisation",
+      "verifying": "Vérification en cours...",
+      "status": {
+        "pending": "En attente d'autorisation...",
+        "success": "Connexion réussie !",
+        "error": "Erreur de connexion"
+      }
+    },
+    "success": {
+      "connected": "Bot Matrix connecté avec succès",
+      "initialized": "Initialisation du bot Matrix lancée avec succès"
+    },
+    "error": {
+      "loadStatus": "Erreur lors du chargement du statut",
+      "noRedirectUri": "Impossible d'obtenir l'URI de redirection",
+      "getRedirectUri": "Erreur lors de la récupération de l'URI de redirection",
+      "connectionFailed": "Échec de la connexion",
+      "callbackFailed": "Erreur lors du traitement du callback",
+      "getDeviceCode": "Erreur lors de la récupération du code device",
+      "pollDeviceCode": "Erreur lors du polling du code device",
+      "initialize": "Échec du lancement de l'initialisation du bot Matrix"
+    }
   },
   "ttlock": {
     "admin": {

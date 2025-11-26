@@ -3998,6 +3998,164 @@ paths:
         "404":
           description: Image not found
 
+  /admin/matrix-bot/status:
+    get:
+      operationId: getMatrixBotStatus
+      summary: Get Matrix bot status
+      tags:
+        - matrix-bot-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Matrix bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatrixBotStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/matrix-bot/oauth2/redirect-uri:
+    get:
+      operationId: getMatrixBotOAuth2RedirectUri
+      summary: Get OAuth2 redirect URI for Matrix bot
+      tags:
+        - matrix-bot-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: OAuth2 redirect URI
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - redirectUri
+                properties:
+                  redirectUri:
+                    type: string
+                    format: uri
+                    example: "https://chat.neohoods.com/_matrix/client/v3/oauth2/authorize?client_id=..."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/matrix-bot/oauth2/callback:
+    get:
+      operationId: handleMatrixBotOAuth2Callback
+      summary: Handle OAuth2 callback for Matrix bot
+      tags:
+        - matrix-bot-admin-api
+      security:
+        - BearerAuthOAuth: []
+      parameters:
+        - name: code
+          in: query
+          description: Authorization code from OAuth2 provider
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: State parameter for OAuth2 flow
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OAuth2 callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "OAuth2 tokens saved successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/matrix-bot/oauth2/device-code:
+    get:
+      operationId: getMatrixBotDeviceCode
+      summary: Get device code for Matrix bot OAuth2 flow
+      tags:
+        - matrix-bot-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Device code information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMatrixBotDeviceCode200Response"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/matrix-bot/oauth2/device-code/poll:
+    post:
+      operationId: pollMatrixBotDeviceCode
+      summary: Poll device code status for Matrix bot OAuth2 flow
+      tags:
+        - matrix-bot-admin-api
+      security:
+        - BearerAuthOAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollMatrixBotDeviceCodeRequest"
+      responses:
+        "200":
+          description: Device code polling result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollMatrixBotDeviceCode200Response"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/matrix-bot/initialize:
+    post:
+      operationId: initializeMatrixBot
+      summary: Manually trigger Matrix bot initialization
+      tags:
+        - matrix-bot-admin-api
+      security:
+        - BearerAuthOAuth: []
+      responses:
+        "200":
+          description: Initialization result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitializeMatrixBot200Response"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
 components:
   #####################################################
   # Predefined Components
@@ -6257,6 +6415,117 @@ components:
           type: boolean
         url:
           type: string
+
+    GetMatrixBotDeviceCode200Response:
+      type: object
+      required:
+        - deviceCode
+        - userCode
+        - verificationUri
+        - verificationUriComplete
+        - expiresIn
+        - interval
+      properties:
+        deviceCode:
+          type: string
+          description: Device code for polling
+        userCode:
+          type: string
+          description: User code to display
+        verificationUri:
+          type: string
+          format: uri
+          description: Verification URI to open
+        verificationUriComplete:
+          type: string
+          format: uri
+          description: Complete verification URI with user code
+        expiresIn:
+          type: integer
+          description: Expiration time in seconds
+        interval:
+          type: integer
+          description: Polling interval in seconds
+
+    PollMatrixBotDeviceCodeRequest:
+      type: object
+      required:
+        - deviceCode
+      properties:
+        deviceCode:
+          type: string
+          description: Device code to poll
+
+    PollMatrixBotDeviceCode200Response:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: ["pending", "success", "error"]
+          description: Polling status
+        message:
+          type: string
+          description: Status message
+        accessToken:
+          type: string
+          description: Access token if status is success
+
+    InitializeMatrixBot200Response:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether initialization was started successfully
+        message:
+          type: string
+          description: Status message
+
+    MatrixBotStatus:
+      type: object
+      required:
+        - enabled
+        - disabled
+        - matrixAccess
+        - hasRefreshToken
+        - hasAccessToken
+      properties:
+        enabled:
+          type: boolean
+          description: Whether Matrix bot is enabled
+        disabled:
+          type: boolean
+          description: Whether Matrix bot is disabled
+        matrixAccess:
+          type: string
+          enum: ["ok", "ko"]
+          description: Matrix access status
+        hasRefreshToken:
+          type: boolean
+          description: Whether refresh token is available
+        hasAccessToken:
+          type: boolean
+          description: Whether access token is available and valid
+        spaceId:
+          type: string
+          description: ID of the managed Matrix space
+        currentSpaces:
+          type: array
+          items:
+            type: object
+            properties:
+              spaceId:
+                type: string
+              name:
+                type: string
+          description: List of current Matrix spaces
+        error:
+          type: string
+          description: Error message if any
 
   responses:
     OK_200_GET_HELLO_WORLD:

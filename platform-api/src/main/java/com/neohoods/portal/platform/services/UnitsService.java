@@ -392,7 +392,7 @@ public class UnitsService {
         }
 
         // If no match, return first user
-        return users.getFirst();
+        return users.isEmpty() ? null : users.get(0);
     }
 
     @Transactional(readOnly = true)
@@ -597,5 +597,18 @@ public class UnitsService {
         UnitMember result = saved.toUnitMember();
         log.debug("Result member residenceRole: {}", result.getResidenceRole());
         return Mono.just(result);
+    }
+
+    @Transactional(readOnly = true)
+    public Flux<Unit> getAllUnitsWithMembers() {
+        log.info("Retrieving all units with members for bot");
+        List<UnitEntity> units = unitRepository.findAll();
+        // Charger les membres pour chaque unit
+        List<Unit> unitsWithMembers = units.stream()
+                .map(unit -> unitRepository.findByIdWithMembers(unit.getId()).orElse(unit))
+                .map(UnitEntity::toUnit)
+                .collect(Collectors.toList());
+        log.info("Retrieved {} units with members for bot", unitsWithMembers.size());
+        return Flux.fromIterable(unitsWithMembers);
     }
 }

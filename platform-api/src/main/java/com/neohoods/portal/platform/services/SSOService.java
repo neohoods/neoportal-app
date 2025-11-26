@@ -64,6 +64,7 @@ public class SSOService {
     private final MailService mailService;
     private final NotificationsService notificationsService;
     private final EmailTemplateService emailTemplateService;
+    private final java.util.Optional<MatrixBotService> matrixBotService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Value("${neohoods.portal.frontend-url}")
     private String frontendUrl;
@@ -89,7 +90,8 @@ public class SSOService {
                       PasswordEncoder passwordEncoder,
                       MailService mailService,
                       NotificationsService notificationsService,
-                      EmailTemplateService emailTemplateService) {
+                      EmailTemplateService emailTemplateService,
+                      java.util.Optional<MatrixBotService> matrixBotService) {
         this.serverSecurityContextRepository = serverSecurityContextRepository;
         this.usersRepository = usersRepository;
         this.notificationSettingsRepository = notificationSettingsRepository;
@@ -98,6 +100,7 @@ public class SSOService {
         this.mailService = mailService;
         this.notificationsService = notificationsService;
         this.emailTemplateService = emailTemplateService;
+        this.matrixBotService = matrixBotService;
     }
 
     public URI generateSSOLoginUrl() {
@@ -259,6 +262,16 @@ public class SSOService {
                             .build();
                     notificationSettingsRepository.save(notificationSettings);
                     log.info("Created notification settings for user: {}", email);
+
+                    // Handle new user in Matrix bot if enabled
+                    if (matrixBotService.isPresent()) {
+                        try {
+                            matrixBotService.get().handleNewUser(user);
+                        } catch (Exception e) {
+                            log.error("Failed to handle new user in Matrix bot", e);
+                            // Don't fail user creation if Matrix fails
+                        }
+                    }
 
                     // Send welcome email and notify admins
                     try {

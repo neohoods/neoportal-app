@@ -35,6 +35,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                             message: translate.instant('errors.unauthorized')
                         } as CodedError);
                     }
+                    // Store the current URL to restore after SSO login
+                    const currentUrl = router.url;
+                    if (currentUrl && currentUrl !== '/login' && currentUrl !== '/sso/callback') {
+                        sessionStorage.setItem('sso_return_url', currentUrl);
+                    }
                     router.navigate(['/login']);
                     return EMPTY; // Don't propagate the error when redirecting
                 }

@@ -1,0 +1,325 @@
+<div class="matrix-bot-container">
+    <div class="header-section">
+        <h2>{{ 'matrixBot.title' | translate }}</h2>
+        <div class="header-actions">
+            <button
+                tuiButton
+                size="m"
+                appearance="primary"
+                [disabled]="initializing()"
+                (click)="initializeBot()"
+            >
+                <tui-icon icon="@tui.refresh"></tui-icon>
+                <span *ngIf="initializing()">
+                    {{ 'matrixBot.actions.initializing' | translate }}
+                </span>
+                <span *ngIf="!initializing()">
+                    {{ 'matrixBot.actions.initialize' | translate }}
+                </span>
+            </button>
+            <button
+                tuiButton
+                size="m"
+                appearance="secondary"
+                (click)="loadStatus()"
+            >
+                <tui-icon icon="@tui.refresh"></tui-icon>
+                {{ 'matrixBot.actions.refresh' | translate }}
+            </button>
+        </div>
+    </div>
+
+    <div
+        *ngIf="loading()"
+        class="loading-container"
+    >
+        <tui-loader></tui-loader>
+    </div>
+
+    <div
+        *ngIf="!loading() && status()"
+        class="status-container"
+    >
+        <div class="status-section">
+            <h3>
+                {{ 'matrixBot.status.title' | translate }}
+            </h3>
+
+            <div class="status-item">
+                <label tuiLabel>
+                    {{ 'matrixBot.status.enabled' | translate }}
+                </label>
+                <span [class]="status()?.enabled ? 'status-ok' : 'status-ko'">
+                    {{ status()?.enabled ? ('matrixBot.status.yes' | translate) : ('matrixBot.status.no' | translate) }}
+                </span>
+            </div>
+
+            <div class="status-item">
+                <label tuiLabel>
+                    {{ 'matrixBot.status.matrixAccess' | translate }}
+                </label>
+                <span [class]="'status-' + status()?.matrixAccess">
+                    {{ status()?.matrixAccess === 'ok' ? ('matrixBot.status.ok' | translate) : ('matrixBot.status.ko' | translate) }}
+                </span>
+            </div>
+
+            <div class="status-item">
+                <label tuiLabel>
+                    {{ 'matrixBot.status.hasRefreshToken' | translate }}
+                </label>
+                <span [class]="status()?.hasRefreshToken ? 'status-ok' : 'status-ko'">
+                    {{ status()?.hasRefreshToken ? ('matrixBot.status.yes' | translate) : ('matrixBot.status.no' | translate) }}
+                </span>
+            </div>
+
+            <div class="status-item">
+                <label tuiLabel>
+                    {{ 'matrixBot.status.hasAccessToken' | translate }}
+                </label>
+                <span [class]="status()?.hasAccessToken ? 'status-ok' : 'status-ko'">
+                    {{ status()?.hasAccessToken ? ('matrixBot.status.yes' | translate) : ('matrixBot.status.no' | translate) }}
+                </span>
+            </div>
+
+            <div
+                *ngIf="status()?.spaceId"
+                class="status-item"
+            >
+                <label tuiLabel>
+                    {{ 'matrixBot.status.spaceId' | translate }}
+                </label>
+                <span class="status-value">{{ status()?.spaceId }}</span>
+            </div>
+
+            <div
+                *ngIf="status()?.error"
+                class="status-item error"
+            >
+                <label tuiLabel>
+                    {{ 'matrixBot.status.error' | translate }}
+                </label>
+                <span class="error-message">{{ status()?.error }}</span>
+            </div>
+        </div>
+
+        <div
+            *ngIf="status()?.currentSpaces && status()!.currentSpaces!.length > 0"
+            class="spaces-section"
+        >
+            <h3>
+                {{ 'matrixBot.spaces.title' | translate }}
+            </h3>
+            <ul class="spaces-list">
+                <li *ngFor="let space of status()!.currentSpaces">
+                    <span class="space-id">{{ space.spaceId }}</span>
+                    <span class="space-name">{{ space.name }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="actions-section">
+            <div class="connect-options">
+                <h4>
+                    {{ 'matrixBot.connect.title' | translate }}
+                </h4>
+                <div class="connect-buttons-wrapper">
+                    <button
+                        tuiButton
+                        size="l"
+                        appearance="accent"
+                        [disabled]="connecting()"
+                        (click)="connectBotWithCurrentUser()"
+                        class="connect-button"
+                    >
+                        <tui-icon icon="@tui.user"></tui-icon>
+                        <span *ngIf="connecting()">
+                            {{ 'matrixBot.actions.connecting' | translate }}
+                        </span>
+                        <span *ngIf="!connecting()">
+                            {{ 'matrixBot.connect.currentUser' | translate }}
+                        </span>
+                    </button>
+
+                    <div class="connect-separator">
+                        <span class="separator-line"></span>
+                        <span class="separator-text">
+                            {{ 'matrixBot.connect.or' | translate }}
+                        </span>
+                        <span class="separator-line"></span>
+                    </div>
+
+                    <div class="connect-bot-wrapper">
+                        <button
+                            tuiButton
+                            size="l"
+                            appearance="primary"
+                            [disabled]="connecting()"
+                            (click)="connectBotWithDeviceCode()"
+                            class="connect-button"
+                        >
+                            <tui-icon icon="@tui.settings"></tui-icon>
+                            {{ 'matrixBot.connect.bot' | translate }}
+                        </button>
+
+                        <!-- Device Code Flow UI - appears below the bot button -->
+                        <div
+                            *ngIf="deviceCodeInfo()"
+                            class="device-code-section"
+                        >
+                            <div class="device-code-header">
+                                <h4>
+                                    {{ 'matrixBot.deviceCode.title' | translate }}
+                                </h4>
+                                <ol class="device-code-instructions">
+                                    <li>
+                                        {{ 'matrixBot.deviceCode.step1' | translate }}
+                                    </li>
+                                    <li>
+                                        {{ 'matrixBot.deviceCode.step2' | translate }}
+                                    </li>
+                                    <li>
+                                        {{ 'matrixBot.deviceCode.step3' | translate }}
+                                    </li>
+                                    <li>
+                                        {{ 'matrixBot.deviceCode.step4' | translate }}
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="device-code-content">
+                                <!-- User Code -->
+                                <div class="device-code-item">
+                                    <label
+                                        tuiLabel
+                                        class="device-code-label"
+                                    >
+                                        {{ 'matrixBot.deviceCode.code' | translate }}
+                                    </label>
+                                    <div class="code-input-group">
+                                        <tui-textfield class="code-textfield">
+                                            <input
+                                                tuiTextfield
+                                                type="text"
+                                                [value]="deviceCodeInfo()!.userCode"
+                                                [readOnly]="true"
+                                                #userCodeInput
+                                            >
+                                        </tui-textfield>
+                                        <button
+                                            tuiButton
+                                            size="m"
+                                            appearance="secondary"
+                                            (click)="copyUserCode()"
+                                            [title]="'matrixBot.deviceCode.copyCode' | translate"
+                                        >
+                                            <tui-icon icon="@tui.copy"></tui-icon>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Verification Link -->
+                                <div class="device-code-item">
+                                    <label
+                                        tuiLabel
+                                        class="device-code-label"
+                                    >
+                                        {{ 'matrixBot.deviceCode.link' | translate }}
+                                    </label>
+                                    <div class="link-input-group">
+                                        <tui-textfield class="link-textfield">
+                                            <input
+                                                tuiTextfield
+                                                type="text"
+                                                [value]="deviceCodeInfo()!.verificationUriComplete"
+                                                [readOnly]="true"
+                                                #linkInput
+                                            >
+                                        </tui-textfield>
+                                        <a
+                                            [href]="deviceCodeInfo()!.verificationUriComplete"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="open-link-button"
+                                            [title]="'matrixBot.deviceCode.openLink' | translate"
+                                        >
+                                            <tui-icon icon="@tui.external"></tui-icon>
+                                        </a>
+                                        <button
+                                            tuiButton
+                                            size="m"
+                                            appearance="secondary"
+                                            (click)="copyDeviceCodeLink()"
+                                            [title]="'matrixBot.deviceCode.copyLink' | translate"
+                                        >
+                                            <tui-icon icon="@tui.copy"></tui-icon>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Verify Button -->
+                                <div class="device-code-verify">
+                                    <button
+                                        tuiButton
+                                        size="l"
+                                        appearance="primary"
+                                        [disabled]="connecting() || deviceCodeStatus() === 'success'"
+                                        (click)="verifyDeviceCode()"
+                                        class="verify-button"
+                                    >
+                                        <tui-loader
+                                            *ngIf="connecting()"
+                                            size="xs"
+                                            class="button-loader"
+                                        ></tui-loader>
+                                        <span *ngIf="!connecting()">
+                                            {{ 'matrixBot.deviceCode.verify' | translate }}
+                                        </span>
+                                        <span *ngIf="connecting()">
+                                            {{ 'matrixBot.deviceCode.verifying' | translate }}
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <!-- Status Message -->
+                                <div
+                                    *ngIf="deviceCodeStatus() !== 'idle'"
+                                    class="device-code-status"
+                                    [class.status-pending]="deviceCodeStatus() === 'pending'"
+                                    [class.status-success]="deviceCodeStatus() === 'success'"
+                                    [class.status-error]="deviceCodeStatus() === 'error'"
+                                >
+                                    <tui-icon
+                                        *ngIf="deviceCodeStatus() === 'pending'"
+                                        icon="@tui.clock"
+                                        class="status-icon"
+                                    ></tui-icon>
+                                    <tui-icon
+                                        *ngIf="deviceCodeStatus() === 'success'"
+                                        icon="@tui.checkCircle"
+                                        class="status-icon"
+                                    ></tui-icon>
+                                    <tui-icon
+                                        *ngIf="deviceCodeStatus() === 'error'"
+                                        icon="@tui.alertCircle"
+                                        class="status-icon"
+                                    ></tui-icon>
+                                    <span class="status-text">
+                                        <span *ngIf="deviceCodeStatus() === 'pending'">
+                                            {{ deviceCodeMessage() || ('matrixBot.deviceCode.status.pending' | translate) }}
+                                        </span>
+                                        <span *ngIf="deviceCodeStatus() === 'success'">
+                                            {{ deviceCodeMessage() || ('matrixBot.deviceCode.status.success' | translate) }}
+                                        </span>
+                                        <span *ngIf="deviceCodeStatus() === 'error'">
+                                            {{ deviceCodeMessage() || ('matrixBot.deviceCode.status.error' | translate) }}
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

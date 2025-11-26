@@ -1,5 +1,7 @@
 package com.neohoods.portal.platform.services;
 
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -133,5 +135,15 @@ public class AnnouncementsService {
         announcementRepository.delete(entity);
         log.info("Deleted announcement: {}", entity.getTitle());
         return Mono.empty();
+    }
+
+    public Flux<Announcement> getAnnouncementsSince(OffsetDateTime since) {
+        log.info("Retrieving announcements since: {}", since);
+        List<AnnouncementEntity> announcements = announcementRepository.findByCreatedAtAfterOrderByCreatedAtDesc(since);
+        List<Announcement> result = announcements.stream()
+                .map(AnnouncementEntity::toAnnouncement)
+                .collect(java.util.stream.Collectors.toList());
+        log.info("Retrieved {} announcements since {}", result.size(), since);
+        return Flux.fromIterable(result);
     }
 }

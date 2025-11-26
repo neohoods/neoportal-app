@@ -206,12 +206,12 @@
           </a>
           <a
             (click)="closeMore()"
-            routerLink="/admin/security/"
+            routerLink="/admin/matrix-bot"
             class="dropdown"
             tuiOption
           >
-            <tui-icon icon="@tui.shield" [style.width.px]="16" />
-            {{ 'adminLayout.security' | translate }}
+            <tui-icon icon="@tui.message-circle" [style.width.px]="16" />
+            {{ 'adminLayout.matrixBot' | translate }}
           </a>
           <a
             (click)="closeMore()"
@@ -250,10 +250,10 @@
       <tui-icon icon="@tui.app-window-mac" />
       {{ 'adminLayout.applications' | translate }}
     </a>
-    <a routerLink="/admin/security/" routerLinkActive="active" appearance="secondary-grayscale"
+    <a routerLink="/admin/matrix-bot" routerLinkActive="active" appearance="secondary-grayscale"
     type="button" i18n="@@borrowItemButton">
-    <tui-icon icon="@tui.shield" />
-    {{ 'adminLayout.security' | translate }}
+    <tui-icon icon="@tui.message-circle" />
+    {{ 'adminLayout.matrixBot' | translate }}
   </a>
 
     }

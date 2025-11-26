@@ -66,6 +66,7 @@ public class AuthApi implements AuthApiApiDelegate {
         private final ValidationService validationService;
         private final NotificationsService notificationsService;
         private final EmailTemplateService emailTemplateService;
+        private final java.util.Optional<com.neohoods.portal.platform.services.MatrixBotService> matrixBotService;
 
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;
@@ -227,6 +228,16 @@ public class AuthApi implements AuthApiApiDelegate {
                 try {
                         usersRepository.save(newUser);
                         log.info("Successfully saved user to local database: {}", newUser.getUsername());
+                        
+                        // Handle new user in Matrix bot if enabled
+                        if (matrixBotService.isPresent()) {
+                            try {
+                                matrixBotService.get().handleNewUser(newUser);
+                            } catch (Exception e) {
+                                log.error("Failed to handle new user in Matrix bot", e);
+                                // Don't fail user creation if Matrix fails
+                            }
+                        }
                 } catch (org.springframework.dao.DataIntegrityViolationException e) {
                         log.error("Failed to save user to local database due to constraint violation: {}",
                                         newUser.getUsername(), e);

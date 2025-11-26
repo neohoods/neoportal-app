@@ -1,0 +1,57 @@
+rooms:
+  - name: "Chambre-hotes"
+    description: "Cette room est dédiée à la chambre d'hôtes mise à disposition de tous."
+    image: https://neohoods.com/assets/chat/chambre-hote.png
+    auto-join: true
+  - name: "Mobilite-partagée"
+    description: "Espace pour discuter de la mobilité partagée dans l'éco-quartier (voitures, vélos, trottinettes, etc.) et partager des conseils ou informations utiles."
+    image: https://neohoods.com/assets/chat/mobilite-partage.png
+    auto-join: true
+  - name: "Potagers-partagés"
+    description: "Room dédiée aux potagers en commun dans l'éco-quartier : gestion, entretien, conseils et échanges autour des espaces de jardinage partagé."
+    image: https://neohoods.com/assets/chat/potager.png
+    auto-join: true
+  - name: "Évènements"
+    description: "Annonce et discussion des événements spéciaux à venir dans l'éco-quartier (festivals, ateliers, rencontres, etc.)."
+    image: https://neohoods.com/assets/chat/event.png
+    auto-join: true
+  - name: "Syndic-de-copropriété"
+    description: "Room pour discuter de la gestion de la copropriété, des questions administratives et des décisions collectives concernant l'immeuble."
+    image: https://neohoods.com/assets/chat/syndic.png
+    auto-join: false
+  - name: "Espace-commun"
+    description: "Room pour discuter de l'espace commun mis à disposition dans l'éco-quartier. C'est un lieu à aménager et à utiliser collectivement. Cette room sert à échanger des idées, proposer des projets, et décider ensemble de l'utilisation de cet espace."
+    image: https://neohoods.com/assets/chat/espace-commun.png
+    auto-join: true
+  - name: "Boite-a-idées"
+    description: "Un espace pour proposer, discuter et développer des idées pour améliorer l'éco-quartier. Partagez vos suggestions et participez à la construction de projets collectifs."
+    image: https://neohoods.com/assets/chat/boite-idee.png
+    auto-join: true
+  - name: "Le-bon-coin"
+    description: "Espace dédié aux échanges entre voisins : vente, don et troc d'objets. Une alternative locale et écologique pour donner une seconde vie aux objets et favoriser l'économie circulaire dans l'éco-quartier."
+    image: https://neohoods.com/assets/chat/leboncoin.png
+    auto-join: true
+  - name: "BatimentA"
+    description: "Room réservée aux habitants du bâtiment A. Cette room n'est pas rejointe automatiquement : si vous habitez le bâtiment A, merci de la rejoindre manuellement."
+    image: https://neohoods.com/assets/chat/batimentA.png
+    auto-join: false
+  - name: "BatimentB"
+    description: "Room réservée aux habitants du bâtiment B. Cette room n'est pas rejointe automatiquement : si vous habitez le bâtiment B, merci de la rejoindre manuellement."
+    image: https://neohoods.com/assets/chat/batimentB.png
+    auto-join: false
+  - name: "BatimentC"
+    description: "Room réservée aux habitants du bâtiment C. Cette room n'est pas rejointe automatiquement : si vous habitez le bâtiment C, merci de la rejoindre manuellement."
+    image: https://neohoods.com/assets/chat/batimentC.png
+    auto-join: false
+  - name: "Proprio"
+    description: "Room dédiée aux propriétaires de logements de l'éco-quartier. Cette room n'est pas rejointe automatiquement : si vous êtes propriétaire, merci de la rejoindre manuellement."
+    image: https://neohoods.com/assets/chat/proprio.png
+    auto-join: false
+  - name: "Alertes"
+    description: Signaler un probleme dans la copropriété. Des malveillance au niveau des poubelles, le verrouillage des portes etc ."
+    image: https://neohoods.com/assets/chat/alerte.png
+    auto-join: true
+  - name: "Neohoods-support"
+    description: Support pour les utilisateurs de NeoHoods. Si vous avez un probleme avec le logiciel, merci de laisser un message dans cette room."
+    image: https://neohoods.com/assets/chat/support.png
+    auto-join: true

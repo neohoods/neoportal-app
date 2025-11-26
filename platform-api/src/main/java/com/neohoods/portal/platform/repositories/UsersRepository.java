@@ -17,4 +17,7 @@ public interface UsersRepository extends CrudRepository<UserEntity, UUID> {
     UserEntity findByEmail(String email);
 
     List<UserEntity> findByType(UserType type);
+
+    @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.primaryUnit")
+    List<UserEntity> findAllWithPrimaryUnit();
 }

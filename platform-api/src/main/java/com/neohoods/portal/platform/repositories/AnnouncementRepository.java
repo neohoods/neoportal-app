@@ -1,5 +1,6 @@
 package com.neohoods.portal.platform.repositories;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,4 +20,6 @@ public interface AnnouncementRepository extends CrudRepository<AnnouncementEntit
         List<AnnouncementEntity> findByCategoryOrderByCreatedAtDesc(AnnouncementCategory category);
 
         Page<AnnouncementEntity> findAll(Pageable pageable);
+
+        List<AnnouncementEntity> findByCreatedAtAfterOrderByCreatedAtDesc(OffsetDateTime since);
 }

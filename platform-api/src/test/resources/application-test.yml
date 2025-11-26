@@ -67,3 +67,12 @@ logging:
     org.testcontainers: WARN
     org.springframework.boot: WARN
 
+neohoods:
+  matrix:
+    oauth2:
+      client-id: ${MATRIX_OAUTH2_CLIENT_ID:}
+      client-secret: ${MATRIX_OAUTH2_CLIENT_SECRET:}
+      redirect-uri: ${MATRIX_OAUTH2_REDIRECT_URI:${neohoods.portal.base-url}/api/admin/matrix-bot/oauth2/callback}
+      scope: ${MATRIX_OAUTH2_SCOPE:urn:matrix:client:api:*}
+      authorization-endpoint: ${MATRIX_OAUTH2_AUTHORIZATION_ENDPOINT:${neohoods.portal.matrix.homeserver-url}/_matrix/client/v3/oauth2/authorize}
+      token-endpoint: ${MATRIX_OAUTH2_TOKEN_ENDPOINT:https://${neohoods.portal.matrix.homeserver-url}/_matrix/client/v3/oauth2/token}
