@@ -27,7 +27,7 @@
     "@faker-js/faker": "^10.1.0",
     "@geoapify/geocoder-autocomplete": "^3.0.0",
     "@maskito/angular": "^3.11.1",
-    "@maskito/core": "^3.11.1",
+    "@maskito/core": "^4.0.1",
     "@maskito/kit": "^3.11.1",
     "@maskito/phone": "^3.11.1",
     "@ng-web-apis/common": "^4.12.2",
