@@ -22,54 +22,6 @@ def generate_event_id(server: str) -> str:
     return f"${random_part}:{server}"
 
 
-def update_json_content(content_str: str, room_mapping: Dict, user_mapping: Dict, event_mapping: Dict, old_server: str, new_server: str) -> str:
-    """Met à jour le contenu JSON d'un event pour remplacer les IDs."""
-    if not content_str or content_str == '\\N':
-        return content_str
-    
-    try:
-        content = json.loads(content_str)
-        
-        def update_value(value):
-            if isinstance(value, str):
-                # Remplacer les room IDs
-                for old_room_id, mapping in room_mapping.items():
-                    if old_room_id in value:
-                        value = value.replace(old_room_id, mapping['new_room_id'])
-                
-                # Remplacer les user IDs
-                for old_user_id, new_user_id in user_mapping.items():
-                    if old_user_id in value:
-                        value = value.replace(old_user_id, new_user_id)
-                
-                # Remplacer les event IDs
-                for old_event_id, new_event_id in event_mapping.items():
-                    if old_event_id in value:
-                        value = value.replace(old_event_id, new_event_id)
-                
-                # Remplacer le server name
-                value = value.replace(f":{old_server}", f":{new_server}")
-                
-                return value
-            elif isinstance(value, dict):
-                return {k: update_value(v) for k, v in value.items()}
-            elif isinstance(value, list):
-                return [update_value(item) for item in value]
-            else:
-                return value
-        
-        updated_content = update_value(content)
-        return json.dumps(updated_content, ensure_ascii=False)
-    except (json.JSONDecodeError, TypeError):
-        # Si ce n'est pas du JSON valide, faire un remplacement simple
-        content_str = content_str.replace(f":{old_server}", f":{new_server}")
-        for old_room_id, mapping in room_mapping.items():
-            content_str = content_str.replace(old_room_id, mapping['new_room_id'])
-        for old_user_id, new_user_id in user_mapping.items():
-            content_str = content_str.replace(old_user_id, new_user_id)
-        return content_str
-
-
 def parse_backup_sql(backup_file: str, room_mapping: Dict, user_mapping: Dict) -> Dict:
     """Parse le backup SQL et prépare les données pour la migration."""
     print("Parsing backup SQL...")
@@ -247,10 +199,12 @@ def generate_migration_sql(
             if creator:
                 creator = creator.replace(f":{old_server}", f":{new_server}")
             creator_sql = 'NULL' if not creator else f"'{creator}'"
+            is_public_sql = "'t'" if room['is_public'] == 't' else "'f'"
+            has_auth_chain_index_sql = "'t'" if room['has_auth_chain_index'] == 't' else "'f'"
             room_values.append(
-                f"('{new_room_id}', {room['is_public']}, "
+                f"('{new_room_id}', {is_public_sql}, "
                 f"{creator_sql}, "
-                f"'{room['room_version']}', {room['has_auth_chain_index']})"
+                f"'{room['room_version']}', {has_auth_chain_index_sql})"
             )
         sql_lines.append(",\n".join(room_values) + ";")
     else:
@@ -263,14 +217,6 @@ def generate_migration_sql(
     sql_lines.append("-- 3. State Events Migration")
     sql_lines.append("-- ========================================")
     sql_lines.append("")
-    
-    # Grouper par room pour gérer les prev_state
-    state_events_by_room = {}
-    for state_event in backup_data['state_events']:
-        old_room_id = state_event['old_room_id']
-        if old_room_id not in state_events_by_room:
-            state_events_by_room[old_room_id] = []
-        state_events_by_room[old_room_id].append(state_event)
     
     # Générer les INSERT pour state_events
     if backup_data['state_events']:
@@ -443,4 +389,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

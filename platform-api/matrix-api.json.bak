@@ -21810,6 +21810,187 @@
         },
         "/_matrix/client/v3/rooms/{roomId}/invite": {
             "post": {
+                "description": "*Note that there are two forms of this API, which are documented separately.\nThis version of the API does not require that the inviter know the Matrix\nidentifier of the invitee, and instead relies on third-party identifiers.\nThe homeserver uses an identity server to perform the mapping from\nthird-party identifier to a Matrix identifier. The other is documented in the*\n[joining rooms section](https://spec.matrix.org/v1.16/client-server-api/#post_matrixclientv3roomsroomidinvite).\n\nThis API invites a user to participate in a particular room.\nThey do not start participating in the room until they actually join the\nroom.\n\nOnly users currently in a particular room can invite other users to\njoin that room.\n\nIf the identity server did know the Matrix user identifier for the\nthird-party identifier, the homeserver will append a `m.room.member`\nevent to the room.\n\nIf the identity server does not know a Matrix user identifier for the\npassed third-party identifier, the homeserver will issue an invitation\nwhich can be accepted upon providing proof of ownership of the third-\nparty identifier. This is achieved by the identity server generating a\ntoken, which it gives to the inviting homeserver. The homeserver will\nadd an `m.room.third_party_invite` event into the graph for the room,\ncontaining that token.\n\nWhen the invitee binds the invited third-party identifier to a Matrix\nuser ID, the identity server will give the user a list of pending\ninvitations, each containing:\n\n- The room ID to which they were invited\n\n- The token given to the homeserver\n\n- A signature of the token, signed with the identity server's private key\n\n- The matrix user ID who invited them to the room",
+                "operationId": "inviteBy3PID",
+                "parameters": [
+                    {
+                        "description": "The room identifier (not alias) to which to invite the user.",
+                        "example": "!d41d8cd:matrix.org",
+                        "in": "path",
+                        "name": "roomId",
+                        "required": true,
+                        "schema": {
+                            "format": "mx-room-id",
+                            "pattern": "^!",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "example": {
+                                    "address": "cheeky@monkey.com",
+                                    "id_access_token": "abc123_OpaqueString",
+                                    "id_server": "matrix.org",
+                                    "medium": "email"
+                                },
+                                "properties": {
+                                    "address": {
+                                        "description": "The invitee's third-party identifier.",
+                                        "type": "string"
+                                    },
+                                    "id_access_token": {
+                                        "description": "An access token previously registered with the identity server. Servers\ncan treat this as optional to distinguish between r0.5-compatible clients\nand this specification version.",
+                                        "type": "string"
+                                    },
+                                    "id_server": {
+                                        "description": "The hostname+port of the identity server which should be used for third-party identifier lookups.",
+                                        "type": "string"
+                                    },
+                                    "medium": {
+                                        "description": "The kind of address being passed in the address field, for example `email`\n(see [the list of recognised values](https://spec.matrix.org/v1.16/appendices/#3pid-types)).",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id_server",
+                                    "id_access_token",
+                                    "medium",
+                                    "address"
+                                ],
+                                "title": "Invite3pid",
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "response": {
+                                        "value": {}
+                                    }
+                                },
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "The user has been invited to join the room."
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "errcode": "M_FORBIDDEN",
+                                            "error": "@cheeky_monkey:matrix.org is banned from the room"
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "description": "A Matrix-level Error",
+                                    "properties": {
+                                        "errcode": {
+                                            "description": "An error code.",
+                                            "example": "M_UNKNOWN",
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "description": "A human-readable error message.",
+                                            "example": "An unknown error occurred",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "errcode"
+                                    ],
+                                    "title": "Error",
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "You do not have permission to invite the user to the room. A\nmeaningful `errcode` and description error text will be returned.\nExample reasons for rejections are:\n\n- The invitee has been banned from the room.\n- The invitee is already a member of the room.\n- The inviter is not currently in the room.\n- The inviter's power level is insufficient to invite users to the room."
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "description": "A Matrix-level Error",
+                                            "properties": {
+                                                "errcode": {
+                                                    "description": "An error code.",
+                                                    "example": "M_UNKNOWN",
+                                                    "type": "string"
+                                                },
+                                                "error": {
+                                                    "description": "A human-readable error message.",
+                                                    "example": "An unknown error occurred",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "errcode"
+                                            ],
+                                            "title": "Error",
+                                            "type": "object"
+                                        },
+                                        {
+                                            "description": "The rate limit was reached for this request",
+                                            "properties": {
+                                                "errcode": {
+                                                    "description": "The M_LIMIT_EXCEEDED error code",
+                                                    "example": "M_LIMIT_EXCEEDED",
+                                                    "type": "string"
+                                                },
+                                                "error": {
+                                                    "description": "A human-readable error message.",
+                                                    "example": "Too many requests",
+                                                    "type": "string"
+                                                },
+                                                "retry_after_ms": {
+                                                    "description": "The amount of time in milliseconds the client should wait\nbefore trying the request again.",
+                                                    "example": 2000,
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "errcode"
+                                            ],
+                                            "title": "RateLimitError",
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "description": "This request was rate-limited."
+                    }
+                },
+                "security": [
+                    {
+                        "accessTokenQuery": []
+                    },
+                    {
+                        "accessTokenBearer": []
+                    }
+                ],
+                "summary": "Invite a user to participate in a particular room.",
+                "tags": [
+                    "Room membership"
+                ]
+            }
+        },
+        "/_matrix/client/v3/rooms/{roomId}/invite": {
+            "post": {
                 "description": "*Note that there are two forms of this API, which are documented separately.\nThis version of the API requires that the inviter knows the Matrix\nidentifier of the invitee. The other is documented in the\n[third-party invites](https://spec.matrix.org/v1.16/client-server-api/#third-party-invites) section.*\n\nThis API invites a user to participate in a particular room.\nThey do not start participating in the room until they actually join the\nroom.\n\nOnly users currently in a particular room can invite other users to\njoin that room.\n\nIf the user was invited to the room, the homeserver will append a\n`m.room.member` event to the room.",
                 "operationId": "inviteUser",
                 "parameters": [

@@ -332,7 +332,7 @@
                             <generatorName>spring</generatorName>
                             <apiPackage>com.neohoods.portal.platform.api</apiPackage>
                             <modelPackage>com.neohoods.portal.platform.model</modelPackage>
-                            <validateSpec>false</validateSpec>
+                            <skipValidateSpec>true</skipValidateSpec>
                             <supportingFilesToGenerate>
                                 ApiUtil.java
                             </supportingFilesToGenerate>
@@ -360,6 +360,7 @@
                             <apiPackage>com.neohoods.portal.platform.matrix.api</apiPackage>
                             <modelPackage>com.neohoods.portal.platform.matrix.model</modelPackage>
                             <invokerPackage>com.neohoods.portal.platform.matrix</invokerPackage>
+                            <skipValidateSpec>true</skipValidateSpec>
                             <configOptions>
                                 <dateLibrary>java8</dateLibrary>
                                 <java8>true</java8>
@@ -386,6 +387,7 @@
                             <apiPackage>com.neohoods.portal.platform.mas.api</apiPackage>
                             <modelPackage>com.neohoods.portal.platform.mas.model</modelPackage>
                             <invokerPackage>com.neohoods.portal.platform.mas</invokerPackage>
+                            <skipValidateSpec>true</skipValidateSpec>
                             <configOptions>
                                 <dateLibrary>java8</dateLibrary>
                                 <java8>true</java8>
