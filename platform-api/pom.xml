@@ -3,7 +3,7 @@
 
     <groupId>com.neohoods.portal</groupId>
     <artifactId>platform-api</artifactId>
-    <version>0.0.250-SNAPSHOT</version>
+    <version>0.0.250</version>
     <name>platform-api</name>
     <description>platform API</description>
 
@@ -68,7 +68,7 @@
         <connection>scm:git:${project.scm.url}</connection>
         <developerConnection>scm:git:${project.scm.url}</developerConnection>
         <url>git@github.com:neohoods/neoportal-app.git</url>
-        <tag>HEAD</tag>
+        <tag>0.0.250</tag>
     </scm>
 
     <dependencies>
@@ -436,8 +436,8 @@
                         </goals>
                         <configuration>
                             <target>
-                                <delete dir="${project.basedir}/target/generated-sources/openapi-client/src/test" failonerror="false"/>
-                                <delete dir="${project.basedir}/target/generated-sources/mas-client/src/test" failonerror="false"/>
+                                <delete dir="${project.basedir}/target/generated-sources/openapi-client/src/test" failonerror="false" />
+                                <delete dir="${project.basedir}/target/generated-sources/mas-client/src/test" failonerror="false" />
                             </target>
                         </configuration>
                     </execution>
