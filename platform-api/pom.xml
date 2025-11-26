@@ -28,7 +28,7 @@
         <opentelemetry.version>1.43.0</opentelemetry.version>
         <opentelemetry.spring.boot.version>2.4.0</opentelemetry.spring.boot.version>
 
-        <swagger.core.v3.version>2.2.28</swagger.core.v3.version>
+        <swagger.core.v3.version>2.2.40</swagger.core.v3.version>
         <swagger.version>1.6.16</swagger.version>
         <io.springfox.swagger2.version>3.0.0</io.springfox.swagger2.version>
         <io.springfox.swagger-ui.version>3.0.0</io.springfox.swagger-ui.version>
