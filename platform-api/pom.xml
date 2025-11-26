@@ -332,7 +332,7 @@
                             <generatorName>spring</generatorName>
                             <apiPackage>com.neohoods.portal.platform.api</apiPackage>
                             <modelPackage>com.neohoods.portal.platform.model</modelPackage>
-
+                            <validateSpec>false</validateSpec>
                             <supportingFilesToGenerate>
                                 ApiUtil.java
                             </supportingFilesToGenerate>

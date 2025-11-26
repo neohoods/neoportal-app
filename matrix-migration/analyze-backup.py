@@ -57,15 +57,16 @@ def parse_copy_block(file_path: str, table_name: str) -> List[Dict]:
     return data
 
 
-def extract_room_names_from_events(events: List[Dict], state_events: List[Dict]) -> Dict[str, str]:
+def extract_room_names_from_events(event_json_data: List[Dict], state_events: List[Dict]) -> Dict[str, str]:
     """
     Extrait les noms des rooms depuis les state_events de type m.room.name.
+    Utilise event_json pour obtenir le contenu JSON complet.
     Retourne un dict room_id -> room_name
     """
     room_names = {}
     
-    # Créer un index des events par event_id pour accéder au content
-    events_by_id = {e['event_id']: e for e in events if e.get('event_id')}
+    # Créer un index des event_json par event_id pour accéder au JSON
+    event_json_by_id = {e['event_id']: e for e in event_json_data if e.get('event_id')}
     
     # Parcourir les state_events pour trouver m.room.name
     for state_event in state_events:
@@ -73,18 +74,19 @@ def extract_room_names_from_events(events: List[Dict], state_events: List[Dict])
             room_id = state_event.get('room_id')
             event_id = state_event.get('event_id')
             
-            if room_id and event_id and event_id in events_by_id:
-                event = events_by_id[event_id]
-                content_str = event.get('content')
+            if room_id and event_id and event_id in event_json_by_id:
+                event_json = event_json_by_id[event_id]
+                json_str = event_json.get('json')
                 
-                if content_str and content_str != '\\N':
+                if json_str:
                     try:
-                        # Le content est en JSON
-                        content = json.loads(content_str)
+                        # Le JSON contient l'event complet
+                        event_data = json.loads(json_str)
+                        content = event_data.get('content', {})
                         room_name = content.get('name')
                         if room_name:
                             room_names[room_id] = room_name
-                    except (json.JSONDecodeError, AttributeError):
+                    except (json.JSONDecodeError, AttributeError, TypeError):
                         pass
     
     return room_names
@@ -103,69 +105,94 @@ def identify_encrypted_rooms(state_events: List[Dict]) -> Set[str]:
     return encrypted_rooms
 
 
-def extract_users_from_events(events: List[Dict]) -> Set[str]:
+def extract_users_from_events(events: List[Dict], event_json_data: List[Dict]) -> Set[str]:
     """Extrait tous les user IDs uniques depuis les events."""
     users = set()
+    
+    # Créer un index event_json par event_id
+    event_json_by_id = {e['event_id']: e for e in event_json_data if e.get('event_id')}
     
     for event in events:
         sender = event.get('sender')
         if sender and sender.startswith('@'):
             users.add(sender)
         
-        # Extraire aussi depuis le content JSON si possible
-        content_str = event.get('content')
-        if content_str and content_str != '\\N':
-            try:
-                content = json.loads(content_str)
-                # Chercher des user IDs dans le content
-                if isinstance(content, dict):
-                    for key, value in content.items():
-                        if isinstance(value, str) and value.startswith('@'):
-                            users.add(value)
-                        elif isinstance(value, list):
-                            for item in value:
-                                if isinstance(item, str) and item.startswith('@'):
-                                    users.add(item)
-            except (json.JSONDecodeError, AttributeError):
-                pass
+        # Extraire aussi depuis le JSON complet si disponible
+        event_id = event.get('event_id')
+        if event_id and event_id in event_json_by_id:
+            event_json = event_json_by_id[event_id]
+            json_str = event_json.get('json')
+            if json_str:
+                try:
+                    event_data = json.loads(json_str)
+                    # Extraire sender
+                    sender = event_data.get('sender')
+                    if sender and sender.startswith('@'):
+                        users.add(sender)
+                    
+                    # Extraire depuis content
+                    content = event_data.get('content', {})
+                    if isinstance(content, dict):
+                        for key, value in content.items():
+                            if isinstance(value, str) and value.startswith('@'):
+                                users.add(value)
+                            elif isinstance(value, list):
+                                for item in value:
+                                    if isinstance(item, str) and item.startswith('@'):
+                                        users.add(item)
+                            elif isinstance(value, dict):
+                                # Pour les objets comme users dans power_levels
+                                for sub_key, sub_value in value.items():
+                                    if isinstance(sub_value, (str, int)) and isinstance(sub_key, str) and sub_key.startswith('@'):
+                                        users.add(sub_key)
+                except (json.JSONDecodeError, AttributeError, TypeError):
+                    pass
     
     return users
 
 
-def analyze_dependencies(events: List[Dict]) -> Dict[str, List[str]]:
+def analyze_dependencies(events: List[Dict], event_json_data: List[Dict]) -> Dict[str, List[str]]:
     """
     Analyse les dépendances entre events (prev_events, auth_events).
     Retourne un dict event_id -> [dépendant_event_ids]
     """
     dependencies = defaultdict(list)
     
+    # Créer un index event_json par event_id
+    event_json_by_id = {e['event_id']: e for e in event_json_data if e.get('event_id')}
+    
     for event in events:
         event_id = event.get('event_id')
         if not event_id:
             continue
         
-        content_str = event.get('content')
-        if content_str and content_str != '\\N':
-            try:
-                content = json.loads(content_str)
-                
-                # Extraire prev_events
-                prev_events = content.get('prev_events', [])
-                if isinstance(prev_events, list):
-                    for prev_event in prev_events:
-                        if isinstance(prev_event, list) and len(prev_event) > 0:
-                            prev_event_id = prev_event[0]
-                            if prev_event_id:
-                                dependencies[prev_event_id].append(event_id)
-                
-                # Extraire auth_events
-                auth_events = content.get('auth_events', [])
-                if isinstance(auth_events, list):
-                    for auth_event in auth_events:
-                        if isinstance(auth_event, str):
-                            dependencies[auth_event].append(event_id)
-            except (json.JSONDecodeError, AttributeError):
-                pass
+        # Utiliser event_json pour obtenir le JSON complet
+        if event_id in event_json_by_id:
+            event_json = event_json_by_id[event_id]
+            json_str = event_json.get('json')
+            if json_str:
+                try:
+                    event_data = json.loads(json_str)
+                    
+                    # Extraire prev_events
+                    prev_events = event_data.get('prev_events', [])
+                    if isinstance(prev_events, list):
+                        for prev_event in prev_events:
+                            if isinstance(prev_event, list) and len(prev_event) > 0:
+                                prev_event_id = prev_event[0]
+                                if prev_event_id:
+                                    dependencies[prev_event_id].append(event_id)
+                            elif isinstance(prev_event, str):
+                                dependencies[prev_event].append(event_id)
+                    
+                    # Extraire auth_events
+                    auth_events = event_data.get('auth_events', [])
+                    if isinstance(auth_events, list):
+                        for auth_event in auth_events:
+                            if isinstance(auth_event, str):
+                                dependencies[auth_event].append(event_id)
+                except (json.JSONDecodeError, AttributeError, TypeError):
+                    pass
     
     return dict(dependencies)
 
@@ -193,6 +220,10 @@ def main():
     events = parse_copy_block(backup_file, 'events')
     print(f"   Found {len(events)} events")
     
+    print("\n3b. Parsing event_json table...")
+    event_json_data = parse_copy_block(backup_file, 'event_json')
+    print(f"   Found {len(event_json_data)} event JSON entries")
+    
     # Identifier les rooms encryptées
     print("\n4. Identifying encrypted rooms...")
     encrypted_rooms = identify_encrypted_rooms(state_events)
@@ -205,17 +236,17 @@ def main():
     
     # Extraire les noms des rooms
     print("\n5. Extracting room names...")
-    room_names = extract_room_names_from_events(events, state_events)
+    room_names = extract_room_names_from_events(event_json_data, state_events)
     print(f"   Found names for {len(room_names)} rooms")
     
     # Extraire les users
     print("\n6. Extracting users...")
-    users = extract_users_from_events(events)
+    users = extract_users_from_events(events, event_json_data)
     print(f"   Found {len(users)} unique users")
     
     # Analyser les dépendances
     print("\n7. Analyzing event dependencies...")
-    dependencies = analyze_dependencies(events)
+    dependencies = analyze_dependencies(events, event_json_data)
     print(f"   Found dependencies for {len(dependencies)} events")
     
     # Préparer les données pour la migration

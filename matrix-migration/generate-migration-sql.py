@@ -246,9 +246,10 @@ def generate_migration_sql(
             creator = room['creator']
             if creator:
                 creator = creator.replace(f":{old_server}", f":{new_server}")
+            creator_sql = 'NULL' if not creator else f"'{creator}'"
             room_values.append(
                 f"('{new_room_id}', {room['is_public']}, "
-                f"{'NULL' if not creator else f\"'{creator}'\"}, "
+                f"{creator_sql}, "
                 f"'{room['room_version']}', {room['has_auth_chain_index']})"
             )
         sql_lines.append(",\n".join(room_values) + ";")
@@ -282,6 +283,14 @@ def generate_migration_sql(
             new_room_id = room_mapping[state_event['old_room_id']]['new_room_id']
             event_type = state_event['type']
             state_key = state_event['state_key'] or ''
+            
+            # Mettre à jour les user IDs dans state_key
+            if state_key and state_key.startswith('@'):
+                for old_user_id, new_user_id in user_mapping.items():
+                    if old_user_id in state_key:
+                        state_key = state_key.replace(old_user_id, new_user_id)
+                        break
+            
             prev_state = state_event['prev_state']
             
             # Mapper prev_state si nécessaire
