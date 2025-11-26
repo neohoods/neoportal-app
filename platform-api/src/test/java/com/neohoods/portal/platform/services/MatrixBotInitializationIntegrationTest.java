@@ -67,6 +67,7 @@ import com.neohoods.portal.platform.spaces.services.TTlockRemoteAPIService;
         "spring.datasource.username=local",
         "spring.datasource.password=local"
 })
+@org.junit.jupiter.api.Disabled("Requires Matrix server - run manually with: mvn test -Dtest=MatrixBotInitializationIntegrationTest")
 class MatrixBotInitializationIntegrationTest {
 
     @MockBean

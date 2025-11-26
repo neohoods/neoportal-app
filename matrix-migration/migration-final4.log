@@ -1,0 +1,57 @@
+pod "neohoods-chat-synapse-main-0" deleted from neohoods-chat namespace
+🚀 Migration complète Matrix - Automatique
+============================================================
+
+1️⃣  Analyse du backup...
+   - 18 rooms non-encryptées
+   - 44 users
+   - 5077 events
+
+📝 Création de 44 users en DB...
+  ✅ Users créés/vérifiés
+
+2️⃣  Création de 18 rooms en DB...
+  ✅ Room 'Room !ERzKZEC' créée en DB: !iSIuf17Z26DOrLBOqp:chat.neohoods.com
+  ✅ Room 'G\u00e9n\u00e9ral' créée en DB: !Ea4yfSbAmKSQ26IQiS:chat.neohoods.com
+  ✅ Room '\u00c9v\u00e8nements' créée en DB: !MvrCuEiFHVMC81hgi-:chat.neohoods.com
+  ✅ Room 'Espace-commun' créée en DB: !mWP1oCL6V7nr1LK76J:chat.neohoods.com
+  ✅ Room 'Voitures-partag\u00e9es' créée en DB: !h8HCi_M2lm8ZC8a4KE:chat.neohoods.com
+  ✅ Room 'Mobilite-partag\u00e9e' créée en DB: !NrMPa5J28Md3wFf8FV:chat.neohoods.com
+  ✅ Room 'Potagers-partag\u00e9s' créée en DB: !AXC6kqVOcWSZyTSWyq:chat.neohoods.com
+  ✅ Room 'Chambre-hotes' créée en DB: !2jgQDQ-65evG6nMk40:chat.neohoods.com
+  ✅ Room 'Parents' créée en DB: !n3EXmh5ZEIeZZDmWN6:chat.neohoods.com
+  ✅ Room 'Syndic-de-copropri\u00e9t\u00e9' créée en DB: !tq9L0F9RS4xbG0QQ5a:chat.neohoods.com
+  ✅ Room 'Boite-a-id\u00e9es' créée en DB: !LEajmVIjfM-2dw-zDA:chat.neohoods.com
+  ✅ Room 'Support' créée en DB: !e-SSEEcMFDZnBuLUfh:chat.neohoods.com
+  ✅ Room 'Propi\u00e9taires' créée en DB: !iTfBTOvGDAYeGJcyrc:chat.neohoods.com
+  ✅ Room 'Batiment A' créée en DB: !Bn5ikGsECrJmIYxXYv:chat.neohoods.com
+  ✅ Room 'Batiment B' créée en DB: !6SZ9JqM6wxMI33_2XJ:chat.neohoods.com
+  ✅ Room 'Batiment C' créée en DB: !x59M9jvy9f1BZrl6OH:chat.neohoods.com
+  ✅ Room 'Le bon coin' créée en DB: !da60pJvp-wf5FQ4Hm2:chat.neohoods.com
+  ✅ Room 'Alerte' créée en DB: !4nUSg-hJXKGtdEy8Dx:chat.neohoods.com
+   ✅ 18 rooms créées
+
+📝 Migration de 1254 messages en DB...
+  Migration des events...
+    Batch 1: 100 events migrés
+    Batch 2: 100 events migrés
+    Batch 3: 100 events migrés
+    Batch 4: 100 events migrés
+    Batch 5: 100 events migrés
+    Batch 6: 100 events migrés
+    Batch 7: 100 events migrés
+    Batch 8: 100 events migrés
+    Batch 9: 100 events migrés
+    Batch 10: 100 events migrés
+    Batch 11: 100 events migrés
+    Batch 12: 100 events migrés
+    Batch 13: 54 events migrés
+  Migration de event_json...
+  ✅ 1254 messages migrés
+
+3️⃣  Redémarrage de Synapse...
+
+🔍 Vérification de la migration...
+  ❌ Erreur auth: HTTP Error 401: Unauthorized
+
+⚠️  Migration partielle - vérification échouée

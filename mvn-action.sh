@@ -61,7 +61,9 @@ if command -v pg_ctl &> /dev/null && [ "${USE_LOCAL_POSTGRES:-false}" = "true" ]
             su-exec postgres sh -c 'echo "host all all 127.0.0.1/32 trust" >> /var/lib/postgresql/data/pg_hba.conf'
             su-exec postgres sh -c 'echo "host all all ::1/128 trust" >> /var/lib/postgresql/data/pg_hba.conf'
             su-exec postgres sh -c 'echo "local all all trust" >> /var/lib/postgresql/data/pg_hba.conf'
-            su-exec postgres sh -c 'echo "listen_addresses=\"*\"" >> /var/lib/postgresql/data/postgresql.conf'
+            # Fix listen_addresses - remove existing line and add new one with correct syntax
+            su-exec postgres sh -c 'sed -i "/^listen_addresses/d" /var/lib/postgresql/data/postgresql.conf'
+            su-exec postgres sh -c 'echo "listen_addresses = '\''*'\''" >> /var/lib/postgresql/data/postgresql.conf'
         fi
         
         # Start PostgreSQL with wait flag and check for errors

@@ -1,0 +1,47 @@
+pod "neohoods-chat-synapse-main-0" deleted from neohoods-chat namespace
+🚀 Migration complète Matrix - Automatique
+============================================================
+
+1️⃣  Analyse du backup...
+   - 18 rooms non-encryptées
+   - 44 users
+   - 5077 events
+
+📝 Création de 44 users en DB...
+  ⚠️  Erreur: Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+ERROR:  column "is_deactivated" of relation "users" does not exist
+LINE 2: ...server_notice_sent, appservice_id
+  ⚠️  Erreur création users, continue quand même...
+
+2️⃣  Création de 18 rooms...
+  ❌ Erreur création 'Room !ERzKZEC': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'G\u00e9n\u00e9ral': HTTP Error 500: Internal Server Error
+  ❌ Erreur création '\u00c9v\u00e8nements': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Espace-commun': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Voitures-partag\u00e9es': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Mobilite-partag\u00e9e': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Potagers-partag\u00e9s': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Chambre-hotes': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Parents': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Syndic-de-copropri\u00e9t\u00e9': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Boite-a-id\u00e9es': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Support': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Propi\u00e9taires': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Batiment A': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Batiment B': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Batiment C': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Le bon coin': HTTP Error 500: Internal Server Error
+  ❌ Erreur création 'Alerte': HTTP Error 500: Internal Server Error
+   ✅ 0 rooms créées
+
+📝 Migration de 0 messages en DB...
+  Migration des events...
+  Migration de event_json...
+  ✅ 0 messages migrés
+
+3️⃣  Redémarrage de Synapse...
+
+🔍 Vérification de la migration...
+  ❌ Erreur auth: HTTP Error 500: Internal Server Error
+
+⚠️  Migration partielle - vérification échouée

@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -94,7 +95,6 @@ class MatrixBotInitializationServiceTest {
 
         // Then
         verify(matrixBotService, never()).checkSpaceExists(anyString());
-        verify(matrixBotService, never()).getBotUserId();
     }
 
     @Test
@@ -121,23 +121,26 @@ class MatrixBotInitializationServiceTest {
 
         // Then
         verify(matrixBotService).checkSpaceExists(SPACE_ID);
-        verify(matrixBotService, never()).getBotUserId();
     }
 
     @Test
-    @DisplayName("Should skip initialization when bot user ID cannot be retrieved")
-    void testInitializationSkippedWhenBotUserIdNotFound() {
+    @DisplayName("Should continue initialization even if bot user ID cannot be retrieved (getBotUserId no longer called)")
+    void testInitializationContinuesWhenBotUserIdNotFound() {
         // Given
+        // Note: getBotUserId() is no longer called in doInitializeBot()
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.empty());
+        when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
+        when(resourceLoader.getResource(anyString())).thenReturn(resource);
+        when(resource.exists()).thenReturn(true);
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(new ArrayList<>());
 
         // When
         initializationService.initializeBotManually();
 
         // Then
         verify(matrixBotService).checkSpaceExists(SPACE_ID);
-        verify(matrixBotService).getBotUserId();
-        verify(matrixBotService, never()).getExistingRoomsInSpace(anyString());
+        verify(matrixBotService, times(2)).getExistingRoomsInSpace(SPACE_ID); // Called in doInitializeBot and countPendingInvitations
+        // getBotUserId() is no longer called in the initialization flow
     }
 
     @Test
@@ -156,13 +159,13 @@ class MatrixBotInitializationServiceTest {
         InputStream inputStream = new ByteArrayInputStream(yamlContent.getBytes());
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
-        when(matrixBotService.disableRateLimitForUser(BOT_USER_ID)).thenReturn(true);
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(new ArrayList<>());
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(new ArrayList<>());
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
         when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
         when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 
@@ -186,21 +189,26 @@ class MatrixBotInitializationServiceTest {
         InputStream inputStream = new ByteArrayInputStream(yamlContent.getBytes());
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
-        when(matrixBotService.disableRateLimitForUser(BOT_USER_ID)).thenReturn(true);
+        // getExistingRoomsInSpace is called 3 times: in doInitializeBot, createDefaultRooms, and countPendingInvitations
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(new ArrayList<>());
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(new ArrayList<>());
         when(matrixBotService.createRoomInSpace(anyString(), anyString(), anyString(), eq(SPACE_ID), anyBoolean()))
                 .thenReturn(Optional.of("!roomId:chat.neohoods.com"));
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
+        when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
+        when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
+        when(matrixBotService.getUserRoomMembership(anyString(), anyString())).thenReturn(Optional.empty());
 
         // When
         assertDoesNotThrow(() -> initializationService.initializeBotManually());
 
         // Then
-        verify(matrixBotService).createRoomInSpace(eq("General"), eq("General discussion"), anyString(), eq(SPACE_ID),
+        verify(matrixBotService, times(3)).getExistingRoomsInSpace(SPACE_ID); // Called in doInitializeBot, createDefaultRooms, and countPendingInvitations
+        verify(matrixBotService).createRoomInSpace(eq("General"), eq("General discussion"), any(), eq(SPACE_ID),
                 eq(true));
     }
 
@@ -220,12 +228,15 @@ class MatrixBotInitializationServiceTest {
         existingRooms.put("General", "!existingRoom:chat.neohoods.com");
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(existingRooms);
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(new ArrayList<>());
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(new ArrayList<>());
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
+        when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
+        when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 
         // When
         assertDoesNotThrow(() -> initializationService.initializeBotManually());
@@ -252,22 +263,24 @@ class MatrixBotInitializationServiceTest {
                 "B502");
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
-        when(matrixBotService.disableRateLimitForUser(BOT_USER_ID)).thenReturn(true);
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(Arrays.asList(user1, user2));
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(Arrays.asList(user1, user2));
         when(matrixBotService.createRoomInSpace(anyString(), anyString(), anyString(), eq(SPACE_ID), anyBoolean()))
                 .thenReturn(Optional.of("!roomId:chat.neohoods.com"));
         when(matrixBotService.createMatrixUser(any(UserEntity.class)))
                 .thenReturn(Optional.of("@john_doe:chat.neohoods.com"))
                 .thenReturn(Optional.of("@jane_smith:chat.neohoods.com"));
         when(matrixBotService.updateMatrixUserProfile(anyString(), any(UserEntity.class))).thenReturn(true);
+        when(matrixBotService.inviteUserToSpace(anyString())).thenReturn(true);
         when(matrixBotService.getRoomIdByName(anyString(), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
         when(matrixBotService.inviteUserToRoomWithNotifications(anyString(), anyString(), anyBoolean()))
                 .thenReturn(true);
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
+        when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
         when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 
         // When
@@ -294,21 +307,23 @@ class MatrixBotInitializationServiceTest {
         UserEntity user = createTestUser("john.doe", "John", "Doe", "john.doe@example.com", UserType.TENANT, "A701");
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
-        when(matrixBotService.disableRateLimitForUser(BOT_USER_ID)).thenReturn(true);
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(Arrays.asList(user));
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(Arrays.asList(user));
         when(matrixBotService.createRoomInSpace(anyString(), anyString(), anyString(), eq(SPACE_ID), anyBoolean()))
                 .thenReturn(Optional.of("!roomId:chat.neohoods.com"));
         when(matrixBotService.createMatrixUser(any(UserEntity.class)))
                 .thenReturn(Optional.of("@john_doe:chat.neohoods.com"));
         when(matrixBotService.updateMatrixUserProfile(anyString(), any(UserEntity.class))).thenReturn(true);
+        when(matrixBotService.inviteUserToSpace(anyString())).thenReturn(true);
         when(matrixBotService.getRoomIdByName(anyString(), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
         when(matrixBotService.inviteUserToRoomWithNotifications(anyString(), anyString(), anyBoolean()))
                 .thenReturn(true);
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
+        when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
         when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 
         // When
@@ -341,29 +356,39 @@ class MatrixBotInitializationServiceTest {
         UserEntity tenantB = createTestUser("tenantB", "Tenant", "B", "tenantb@example.com", UserType.TENANT, "B501");
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
-        when(matrixBotService.disableRateLimitForUser(BOT_USER_ID)).thenReturn(true);
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(Arrays.asList(owner, tenantA, tenantB));
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(Arrays.asList(owner, tenantA, tenantB));
+        when(matrixBotService.createRoomInSpace(anyString(), anyString(), anyString(), eq(SPACE_ID), anyBoolean()))
+                .thenReturn(Optional.of("!roomId:chat.neohoods.com"));
         when(matrixBotService.createMatrixUser(any(UserEntity.class)))
-                .thenReturn(Optional.of("@user:chat.neohoods.com"));
+                .thenReturn(Optional.of("@owner:chat.neohoods.com"))
+                .thenReturn(Optional.of("@tenant_a:chat.neohoods.com"))
+                .thenReturn(Optional.of("@tenant_b:chat.neohoods.com"));
         when(matrixBotService.updateMatrixUserProfile(anyString(), any(UserEntity.class))).thenReturn(true);
-        when(matrixBotService.getRoomIdByName(anyString(), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
+        when(matrixBotService.inviteUserToSpace(anyString())).thenReturn(true);
+        when(matrixBotService.getRoomIdByName(eq("Proprio"), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
+        when(matrixBotService.getRoomIdByName(eq("BatimentA"), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
+        when(matrixBotService.getUserRoomMembership(anyString(), anyString())).thenReturn(Optional.empty());
+        when(matrixBotService.parseBuildingFromUnitName(anyString())).thenReturn(Optional.of("A"));
         when(matrixBotService.inviteUserToRoomWithNotifications(anyString(), anyString(), anyBoolean()))
                 .thenReturn(true);
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
+        when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
+        when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 
         // When
         assertDoesNotThrow(() -> initializationService.initializeBotManually());
 
         // Then
-        // Owner should be invited to Proprio room
-        verify(matrixBotService).inviteUserToRoomWithNotifications(eq("@owner:chat.neohoods.com"),
+        // Owner should be invited to Proprio room (and possibly General if auto-join)
+        verify(matrixBotService, atLeast(1)).inviteUserToRoomWithNotifications(eq("@owner:chat.neohoods.com"),
                 eq("!roomId:chat.neohoods.com"), eq(false));
-        // Tenant A should be invited to BatimentA
-        verify(matrixBotService).inviteUserToRoomWithNotifications(eq("@tenant_a:chat.neohoods.com"),
+        // Tenant A should be invited to BatimentA (and possibly General if auto-join)
+        verify(matrixBotService, atLeast(1)).inviteUserToRoomWithNotifications(eq("@tenant_a:chat.neohoods.com"),
                 eq("!roomId:chat.neohoods.com"), eq(false));
     }
 
@@ -380,13 +405,13 @@ class MatrixBotInitializationServiceTest {
         InputStream inputStream = new ByteArrayInputStream(yamlContent.getBytes());
 
         when(matrixBotService.checkSpaceExists(SPACE_ID)).thenReturn(true);
-        when(matrixBotService.getBotUserId()).thenReturn(Optional.of(BOT_USER_ID));
-        when(matrixBotService.disableRateLimitForUser(BOT_USER_ID)).thenReturn(true);
         when(matrixBotService.getExistingRoomsInSpace(SPACE_ID)).thenReturn(new HashMap<>());
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
-        when(usersRepository.findAll()).thenReturn(new ArrayList<>());
+        when(usersRepository.findAllWithPrimaryUnit()).thenReturn(new ArrayList<>());
+        when(matrixBotService.updateBotAvatar()).thenReturn(false);
+        when(matrixBotService.updateBotDisplayName()).thenReturn(false);
         when(matrixBotService.getRoomIdByName(eq("IT"), eq(SPACE_ID))).thenReturn(Optional.of("!itRoom:chat.neohoods.com"));
         when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 

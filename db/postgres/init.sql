@@ -584,6 +584,4 @@ CREATE INDEX idx_matrix_bot_error_notifications_date ON matrix_bot_error_notific
 CREATE TRIGGER update_matrix_bot_tokens_updated_at BEFORE UPDATE ON matrix_bot_tokens
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Create trigger for matrix_bot_sync_state updated_at
-CREATE TRIGGER update_matrix_bot_sync_state_updated_at BEFORE UPDATE ON matrix_bot_sync_state
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Note: matrix_bot_sync_state table was removed, trigger removed accordingly

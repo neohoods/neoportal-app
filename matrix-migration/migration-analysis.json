@@ -1,0 +1,237 @@
+{
+  "old_server": "chat.terresdelaya.fr",
+  "new_server": "chat.neohoods.com",
+  "rooms": [
+    {
+      "room_id": "!ERzKZECwfItMamjNAB:chat.terresdelaya.fr",
+      "name": null,
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!VxDzffhyMMOtGGzcST:chat.terresdelaya.fr",
+      "name": "G\\u00e9n\\u00e9ral",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!RVhdQvzutaeUUynZdm:chat.terresdelaya.fr",
+      "name": "\\u00c9v\\u00e8nements",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!sabgmXeYDeNaKklbhy:chat.terresdelaya.fr",
+      "name": "Espace-commun",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!MAYNOobSMkBbGTBEPD:chat.terresdelaya.fr",
+      "name": "Voitures-partag\\u00e9es",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!PweTSPpiKBkbosdhIA:chat.terresdelaya.fr",
+      "name": "Mobilite-partag\\u00e9e",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!BRhOzxPPlTONwMUCIU:chat.terresdelaya.fr",
+      "name": "Potagers-partag\\u00e9s",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!uoYiYwRfROhyyfHQZJ:chat.terresdelaya.fr",
+      "name": "Chambre-hotes",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!WaBbCLexqOWvFJPjgY:chat.terresdelaya.fr",
+      "name": "Parents",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!QemzRqAiHizuNBUmbC:chat.terresdelaya.fr",
+      "name": "Syndic-de-copropri\\u00e9t\\u00e9",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!DdhRemuBdLICydVTIb:chat.terresdelaya.fr",
+      "name": "Boite-a-id\\u00e9es",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!iBbgwQYSKyrrcvvxyJ:chat.terresdelaya.fr",
+      "name": "Support",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!YynTqDSIvyknfsjZqv:chat.terresdelaya.fr",
+      "name": "Propi\\u00e9taires",
+      "is_public": true,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!IfTBQqUkxgyWyTuxjD:chat.terresdelaya.fr",
+      "name": "Batiment A",
+      "is_public": true,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!TRsDpkBSwPiEUgGtrQ:chat.terresdelaya.fr",
+      "name": "Batiment B",
+      "is_public": true,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!qgDqJbPCtoHIMAWWuF:chat.terresdelaya.fr",
+      "name": "Batiment C",
+      "is_public": true,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!RQYrNyZmBszEzhNbzO:chat.terresdelaya.fr",
+      "name": "Le bon coin",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    },
+    {
+      "room_id": "!FMsZivHwNVoZqQmeUD:chat.terresdelaya.fr",
+      "name": "Alerte",
+      "is_public": false,
+      "creator": "@quentincastel86:chat.terresdelaya.fr",
+      "room_version": "10",
+      "is_encrypted": false
+    }
+  ],
+  "users": [
+    "@amelie-terrien:chat.terresdelaya.fr",
+    "@anna.lushnikova.fr:chat.terresdelaya.fr",
+    "@audreycastel86:chat.terresdelaya.fr",
+    "@aveam98:chat.terresdelaya.fr",
+    "@bbeuzelin:chat.terresdelaya.fr",
+    "@bot:chat.terresdelaya.fr",
+    "@bruet73:chat.terresdelaya.fr",
+    "@camille.gds:chat.terresdelaya.fr",
+    "@carole.fetaz:chat.terresdelaya.fr",
+    "@celine.osteoanimaux:chat.terresdelaya.fr",
+    "@christine.piot:chat.terresdelaya.fr",
+    "@djleix:chat.terresdelaya.fr",
+    "@e.c.q.l:chat.terresdelaya.fr",
+    "@edvernier:chat.terresdelaya.fr",
+    "@fred.74380:chat.terresdelaya.fr",
+    "@frederic.cesure:chat.terresdelaya.fr",
+    "@golivet.florian1:chat.terresdelaya.fr",
+    "@golivet.florian:chat.terresdelaya.fr",
+    "@guillot.aurel74:chat.terresdelaya.fr",
+    "@jducruet:chat.terresdelaya.fr",
+    "@jorisbeckel5:chat.terresdelaya.fr",
+    "@kayocreation:chat.terresdelaya.fr",
+    "@lucie.magniere:chat.terresdelaya.fr",
+    "@ludovic.guabello:chat.terresdelaya.fr",
+    "@lyannie.74:chat.terresdelaya.fr",
+    "@m.badier:chat.terresdelaya.fr",
+    "@m.mazoyerm38:chat.terresdelaya.fr",
+    "@magaliclerget:chat.terresdelaya.fr",
+    "@marie.vieux:chat.terresdelaya.fr",
+    "@marydambollon:chat.terresdelaya.fr",
+    "@melanie.gbx:chat.terresdelaya.fr",
+    "@mellier.julie:chat.terresdelaya.fr",
+    "@mmerlin76:chat.terresdelaya.fr",
+    "@ninie.kostek:chat.terresdelaya.fr",
+    "@o.boukheroufa:chat.terresdelaya.fr",
+    "@pierrot.marcot:chat.terresdelaya.fr",
+    "@quentin.castel:chat.terresdelaya.fr",
+    "@quentincastel86:chat.terresdelaya.fr",
+    "@sam.73:chat.terresdelaya.fr",
+    "@simmorlat:chat.terresdelaya.fr",
+    "@sylvain.valienne:chat.terresdelaya.fr",
+    "@tonylapierre5:chat.terresdelaya.fr",
+    "@vbudillon:chat.terresdelaya.fr",
+    "@ysanchez:chat.terresdelaya.fr"
+  ],
+  "encrypted_rooms": [
+    "!BOrWVUHpHUfmgjSIkE:chat.terresdelaya.fr",
+    "!CblslEIUapUkyMHBMi:chat.terresdelaya.fr",
+    "!DfgRPSyokknDXErAxy:chat.terresdelaya.fr",
+    "!FskElCUUSMjevkFZjZ:chat.terresdelaya.fr",
+    "!HbiClwIedixWUCyxLw:chat.terresdelaya.fr",
+    "!IPZtEaILkrNRuVNfNG:chat.terresdelaya.fr",
+    "!IVdGgTzNQtvaVvVhmJ:chat.terresdelaya.fr",
+    "!IbNlzVYHjNjkKTIhnd:chat.terresdelaya.fr",
+    "!JcCPSzYwWnTZntwuDh:chat.terresdelaya.fr",
+    "!KdiDXcMyoHMZcmHKsM:chat.terresdelaya.fr",
+    "!NSxgyagDFPUUiMNiic:chat.terresdelaya.fr",
+    "!SonzqANgeuIsAJvTxL:chat.terresdelaya.fr",
+    "!XheYifYcRHhiuSpMwi:chat.terresdelaya.fr",
+    "!XrZwuMmeJitxxBzxwz:chat.terresdelaya.fr",
+    "!XzAuYxiYmecBACMAYT:chat.terresdelaya.fr",
+    "!ZAspYMPLUNgQDLhpTj:chat.terresdelaya.fr",
+    "!cSjrofpHSomTNyHNhm:chat.terresdelaya.fr",
+    "!cjUFGrbdkCzxUMzZiC:chat.terresdelaya.fr",
+    "!dEdMJItlZzzxQRzDod:chat.terresdelaya.fr",
+    "!dgyWMyDkpWyqDmUMYh:chat.terresdelaya.fr",
+    "!ecEeeIcBVtbiCUxzzl:chat.terresdelaya.fr",
+    "!gzYqNFrqwWprdwmmhN:chat.terresdelaya.fr",
+    "!hrYSxmGqNztlWTDSII:chat.terresdelaya.fr",
+    "!hucVkdphEpMooWydAf:chat.terresdelaya.fr",
+    "!idTpRroJwkLRqZXrNz:chat.terresdelaya.fr",
+    "!jbftYAaFeVUqrpiWgv:chat.terresdelaya.fr",
+    "!kgdscmZHdCMTMnhGYZ:chat.terresdelaya.fr",
+    "!sKDbomquKjEdtsSRUg:chat.terresdelaya.fr",
+    "!wBUbrROvOLGlBWgfBZ:chat.terresdelaya.fr",
+    "!zonAsuuCEoBtFpvEYn:chat.terresdelaya.fr"
+  ],
+  "statistics": {
+    "total_rooms": 48,
+    "encrypted_rooms": 30,
+    "non_encrypted_rooms": 18,
+    "rooms_with_names": 21,
+    "total_users": 44,
+    "total_events": 5077,
+    "total_state_events": 2026
+  }
+}

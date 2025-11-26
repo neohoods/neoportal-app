@@ -230,9 +230,27 @@ public class SharedPostgresContainer {
         String username = container.getUsername();
         String password = container.getPassword();
 
-        // Utiliser psql pour créer la base de données
+        // Utiliser psql pour créer la base de données - utiliser le chemin complet si disponible
+        String psqlCommand = "psql";
+        // Try to find psql in common locations
+        String[] possiblePaths = {"/usr/bin/psql", "/usr/local/bin/psql", "psql"};
+        for (String path : possiblePaths) {
+            try {
+                ProcessBuilder testPb = new ProcessBuilder(path, "--version");
+                Process testProcess = testPb.start();
+                int testExitCode = testProcess.waitFor();
+                if (testExitCode == 0) {
+                    psqlCommand = path;
+                    break;
+                }
+            } catch (Exception e) {
+                // Try next path
+                continue;
+            }
+        }
+        
         ProcessBuilder pb = new ProcessBuilder(
-                "psql",
+                psqlCommand,
                 "-h", host,
                 "-p", String.valueOf(port),
                 "-U", username,
@@ -316,9 +334,27 @@ public class SharedPostgresContainer {
             }
         }
 
-        // Construire la commande psql
+        // Construire la commande psql - utiliser le chemin complet si disponible
+        String psqlCommand = "psql";
+        // Try to find psql in common locations
+        String[] possiblePaths = {"/usr/bin/psql", "/usr/local/bin/psql", "psql"};
+        for (String path : possiblePaths) {
+            try {
+                ProcessBuilder testPb = new ProcessBuilder(path, "--version");
+                Process testProcess = testPb.start();
+                int testExitCode = testProcess.waitFor();
+                if (testExitCode == 0) {
+                    psqlCommand = path;
+                    break;
+                }
+            } catch (Exception e) {
+                // Try next path
+                continue;
+            }
+        }
+        
         ProcessBuilder pb = new ProcessBuilder(
-                "psql",
+                psqlCommand,
                 "-h", host,
                 "-p", String.valueOf(port),
                 "-U", username,
@@ -411,6 +447,7 @@ public class SharedPostgresContainer {
     private File findScriptFile(String scriptName) {
         // Essayer plusieurs chemins possibles depuis le répertoire de test
         File[] candidates = {
+                new File("/github/workspace/db/postgres/" + scriptName), // CI path
                 new File("../db/postgres/" + scriptName),
                 new File("../../db/postgres/" + scriptName),
                 new File("../../../db/postgres/" + scriptName),
@@ -430,6 +467,7 @@ public class SharedPostgresContainer {
         String userDir = System.getProperty("user.dir");
         if (userDir != null) {
             File[] absoluteCandidates = {
+                    new File("/github/workspace/db/postgres/" + scriptName), // CI path
                     new File(userDir + "/db/postgres/" + scriptName),
                     new File(userDir + "/../db/postgres/" + scriptName),
                     new File(userDir + "/../../db/postgres/" + scriptName),

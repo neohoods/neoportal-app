@@ -1,0 +1,71 @@
+🚀 Migration complète Matrix - Automatique
+============================================================
+
+1️⃣  Analyse du backup...
+   - 18 rooms non-encryptées
+   - 44 users
+   - 5077 events
+
+📝 Création de 44 users en DB...
+  ⚠️  Erreur: Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+ERROR:  column "is_guest" is of type smallint but expression is of type boolean
+LINE 7:     false,
+            
+  ⚠️  Erreur création users, continue quand même...
+
+2️⃣  Création de 18 rooms en DB...
+  ✅ Room 'Room !ERzKZEC' créée en DB: !nFrJvORhgfl8u8RLEn:chat.neohoods.com
+  ✅ Room 'G\u00e9n\u00e9ral' créée en DB: !VvPGHDFgby2Zx_JfWg:chat.neohoods.com
+  ✅ Room '\u00c9v\u00e8nements' créée en DB: !Hcxcq_NYH7rrLZJk_y:chat.neohoods.com
+  ✅ Room 'Espace-commun' créée en DB: !MQMVtCkPaWzvNdxKmJ:chat.neohoods.com
+  ✅ Room 'Voitures-partag\u00e9es' créée en DB: !UZY3KTkqK8iP_WsRD-:chat.neohoods.com
+  ✅ Room 'Mobilite-partag\u00e9e' créée en DB: !a2BSp3aJWENVl8DXrY:chat.neohoods.com
+  ✅ Room 'Potagers-partag\u00e9s' créée en DB: !h0qfsAfPSIXWqurVf1:chat.neohoods.com
+  ✅ Room 'Chambre-hotes' créée en DB: !C3JNFY9YxMFR7zMYHF:chat.neohoods.com
+  ✅ Room 'Parents' créée en DB: !zcjEt_vpvZOC5YFflA:chat.neohoods.com
+  ✅ Room 'Syndic-de-copropri\u00e9t\u00e9' créée en DB: !h0SNkVFZAdh9Ykob5x:chat.neohoods.com
+  ✅ Room 'Boite-a-id\u00e9es' créée en DB: !qXMSxfiBBTi1OGqyJF:chat.neohoods.com
+  ✅ Room 'Support' créée en DB: !obGqCSlFA2XN3v2nBf:chat.neohoods.com
+  ✅ Room 'Propi\u00e9taires' créée en DB: !eoRA6TSbuJLwuV0dam:chat.neohoods.com
+  ✅ Room 'Batiment A' créée en DB: !OmAz_ivw4W1QrYfymN:chat.neohoods.com
+  ✅ Room 'Batiment B' créée en DB: !Z6v5rncPhU2NUMHUVu:chat.neohoods.com
+  ✅ Room 'Batiment C' créée en DB: !8MIzSl8QyfbE1Q64jD:chat.neohoods.com
+  ✅ Room 'Le bon coin' créée en DB: !HbuittHec74ozr_OfO:chat.neohoods.com
+  ✅ Room 'Alerte' créée en DB: !ZS9Xn4oil3-QcNbpV6:chat.neohoods.com
+   ✅ 18 rooms créées
+
+📝 Migration de 1254 messages en DB...
+  Migration des events...
+    Batch 1: 100 events migrés
+    Batch 2: 100 events migrés
+    Batch 3: 100 events migrés
+    Batch 4: 100 events migrés
+    Batch 5: 100 events migrés
+    Batch 6: 100 events migrés
+    Batch 7: 100 events migrés
+    Batch 8: 100 events migrés
+    Batch 9: 100 events migrés
+    Batch 10: 100 events migrés
+    Batch 11: 100 events migrés
+    Batch 12: 100 events migrés
+    Batch 13: 54 events migrés
+  Migration de event_json...
+    Batch 1: 100 event_json migrés
+    Batch 2: 100 event_json migrés
+    Batch 3: 100 event_json migrés
+    Batch 4: 100 event_json migrés
+    Batch 5: 100 event_json migrés
+    Batch 6: 100 event_json migrés
+    Batch 7: 100 event_json migrés
+    Batch 8: 100 event_json migrés
+    Batch 9: 100 event_json migrés
+    Batch 10: 100 event_json migrés
+    Batch 11: 100 event_json migrés
+    Batch 12: 100 event_json migrés
+    Batch 13: 100 event_json migrés
+    Batch 14: 100 event_json migrés
+  ⚠️  Erreur event_json batch 15: Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+exec /usr/local/bin/psql: argument list too long
+command terminated with exit code 1
+
+  ⚠️  Erreur migration messages
