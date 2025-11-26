@@ -1,0 +1,75 @@
+🔄 RESTAURATION AVEC REMPLACEMENT DANS LE DUMP SQL
+============================================================
+
+1️⃣  Création du dump modifié avec remplacement des domaines...
+✅ Dump modifié créé: ./db-terresdelaya-modified.sql ( 20M)
+
+2️⃣  Sauvegarde des tables MAS...
+⚠️  application_services_state vide ou erreur
+⚠️  application_services_txns vide ou erreur
+⚠️  applied_module_schemas vide ou erreur
+✅ Tables MAS sauvegardées
+
+⚠️  ⚠️  ⚠️  ATTENTION ⚠️  ⚠️  ⚠️
+Vous allez écraser la DB actuelle
+Appuyez sur ENTER pour continuer ou Ctrl+C pour annuler...
+
+3️⃣  Nettoyage de la DB (sauf tables MAS)...
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+4️⃣  Restauration du dump modifié...
+ERROR:  role "matrix" does not exist
+ERROR:  function "check_event_stream_ordering" already exists with same argument types
+ERROR:  role "matrix" does not exist
+ERROR:  function "check_partial_state_events" already exists with same argument types
+ERROR:  role "matrix" does not exist
+ERROR:  function "delete_read_write_lock_parent" already exists with same argument types
+ERROR:  role "matrix" does not exist
+ERROR:  function "upsert_read_write_lock_parent" already exists with same argument types
+ERROR:  role "matrix" does not exist
+ERROR:  relation "access_tokens" already exists
+ERROR:  role "matrix" does not exist
+ERROR:  relation "account_data" already exists
+ERROR:  role "matrix" does not exist
+ERROR:  relation "account_data_sequence" already exists
+ERROR:  role "matrix" does not exist
+ERROR:  relation "account_validity" already exists
+ERROR:  role "matrix" does not exist
+ERROR:  relation "application_services_state" already exists
+ERROR:  role "matrix" does not exist
+ERROR:  relation "application_services_txn_id_seq" already exists
+✅ Dump restauré
+
+5️⃣  Restauration des tables MAS...
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+ERROR:  syntax error at or near "\"
+LINE 1: TRUNCATE application_services_state; \copy application_servi...
+                                             ^
+command terminated with exit code 1
+⚠️  Erreur restauration application_services_state
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+ERROR:  syntax error at or near "\"
+LINE 1: TRUNCATE application_services_txns; \copy application_servic...
+                                            ^
+command terminated with exit code 1
+⚠️  Erreur restauration application_services_txns
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
+ERROR:  syntax error at or near "\"
+LINE 1: TRUNCATE applied_module_schemas; \copy applied_module_schema...
+                                         ^
+command terminated with exit code 1
+⚠️  Erreur restauration applied_module_schemas
+✅ Tables MAS restaurées
+
+6️⃣  Redémarrage de Synapse...
+pod "neohoods-chat-synapse-main-0" deleted from neohoods-chat namespace
+✅ Synapse redémarré
+
+✅✅✅ RESTAURATION TERMINÉE ✅✅✅
+
+📁 Fichiers créés:
+  - ./db-terresdelaya-modified.sql
+  - mas-*.csv (tables MAS)
+

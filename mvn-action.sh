@@ -53,6 +53,8 @@ if command -v pg_ctl &> /dev/null && [ "${USE_LOCAL_POSTGRES:-false}" = "true" ]
         fi
         
         # Check if data directory is initialized
+        # Note: In CI, PostgreSQL is initialized at build time, so PG_VERSION should exist
+        # But we check anyway in case we're using a base image without pre-initialized data
         if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
             echo "Initializing PostgreSQL data directory..."
             su-exec postgres initdb -D /var/lib/postgresql/data
