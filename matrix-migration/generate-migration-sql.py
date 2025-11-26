@@ -30,6 +30,7 @@ def parse_backup_sql(backup_file: str, room_mapping: Dict, user_mapping: Dict) -
     rooms_data = []
     state_events_data = []
     events_data = []
+    event_json_data = []
     
     # Parser les rooms
     print("  Parsing rooms...")
@@ -119,10 +120,37 @@ def parse_backup_sql(backup_file: str, room_mapping: Dict, user_mapping: Dict) -
                             'rejection_reason': values[16] if len(values) > 16 else None
                         })
     
+    # Parser event_json pour obtenir le JSON complet des events
+    print("  Parsing event_json...")
+    in_event_json_copy = False
+    with open(backup_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            if 'COPY public.event_json' in line:
+                in_event_json_copy = True
+                continue
+            if in_event_json_copy and line.strip() == '\.':
+                in_event_json_copy = False
+                continue
+            if in_event_json_copy:
+                values = line.rstrip('\n').split('\t')
+                if len(values) >= 5:
+                    old_event_id = values[0]
+                    old_room_id = values[1]
+                    # Ne garder que les events des rooms non-encryptées
+                    if old_room_id in room_mapping:
+                        event_json_data.append({
+                            'old_event_id': old_event_id,
+                            'old_room_id': old_room_id,
+                            'internal_metadata': values[2],
+                            'json': values[3],
+                            'format_version': values[4] if len(values) > 4 else None
+                        })
+    
     return {
         'rooms': rooms_data,
         'state_events': state_events_data,
-        'events': events_data
+        'events': events_data,
+        'event_json': event_json_data
     }
 
 
@@ -150,13 +178,17 @@ def generate_migration_sql(
     # Générer les mappings d'event IDs
     print("Generating event ID mappings...")
     event_mapping = {}
-    for state_event in backup_data['state_events']:
-        old_event_id = state_event['old_event_id']
-        if old_event_id not in event_mapping:
-            event_mapping[old_event_id] = generate_event_id(new_server)
     
+    # Mapper tous les event IDs (state_events, events, event_json)
+    all_event_ids = set()
+    for state_event in backup_data['state_events']:
+        all_event_ids.add(state_event['old_event_id'])
     for event in backup_data['events']:
-        old_event_id = event['old_event_id']
+        all_event_ids.add(event['old_event_id'])
+    for event_json in backup_data['event_json']:
+        all_event_ids.add(event_json['old_event_id'])
+    
+    for old_event_id in all_event_ids:
         if old_event_id not in event_mapping:
             event_mapping[old_event_id] = generate_event_id(new_server)
     
@@ -296,24 +328,172 @@ def generate_migration_sql(
     
     sql_lines.append("")
     
-    # 5. Migrer les events (messages)
+    # 5. Migrer les events (messages) et event_json
     sql_lines.append("-- ========================================")
     sql_lines.append("-- 5. Events (Messages) Migration")
     sql_lines.append("-- ========================================")
     sql_lines.append("")
-    sql_lines.append("-- WARNING: This is a simplified version.")
-    sql_lines.append("-- Full event migration requires:")
-    sql_lines.append("-- - Updating content JSON (prev_events, auth_events, room_id, sender)")
-    sql_lines.append("-- - Managing stream_ordering and topological_ordering")
-    sql_lines.append("-- - Handling rooms that are reused (continue sequences)")
-    sql_lines.append("-- - Creating proper event signatures")
-    sql_lines.append("")
-    sql_lines.append("-- For production use, consider using Matrix API or a more sophisticated migration tool")
-    sql_lines.append("")
     
-    # Note: La migration complète des events est complexe et nécessite
-    # de mettre à jour le JSON content, les séquences, etc.
-    # On va générer un squelette mais recommander l'utilisation de l'API
+    # Créer un index event_json par event_id pour faciliter la mise à jour
+    event_json_by_id = {ej['old_event_id']: ej for ej in backup_data['event_json']}
+    
+    # Migrer les events (table events)
+    if backup_data['events']:
+        sql_lines.append("-- Migrate events table")
+        sql_lines.append("-- Note: stream_ordering and topological_ordering need to be adjusted")
+        sql_lines.append("-- for reused rooms (continue from existing max values)")
+        sql_lines.append("")
+        sql_lines.append("INSERT INTO public.events (topological_ordering, event_id, type, room_id, content, unrecognized_keys, processed, outlier, depth, origin_server_ts, received_ts, sender, contains_url, instance_name, stream_ordering, state_key, rejection_reason)")
+        sql_lines.append("VALUES")
+        event_values = []
+        
+        for event in backup_data['events']:
+            new_event_id = event_mapping[event['old_event_id']]
+            new_room_id = room_mapping[event['old_room_id']]['new_room_id']
+            event_type = event['type']
+            
+            # Mettre à jour le sender
+            sender = event['sender']
+            if sender:
+                for old_user_id, new_user_id in user_mapping.items():
+                    if old_user_id in sender:
+                        sender = sender.replace(old_user_id, new_user_id)
+                        break
+            
+            # Content est NULL dans events, le vrai content est dans event_json
+            content_sql = 'NULL'
+            
+            # Autres champs
+            unrecognized_keys = event.get('unrecognized_keys') or 'NULL'
+            if unrecognized_keys != 'NULL' and unrecognized_keys != '\\N':
+                unrecognized_keys_escaped = unrecognized_keys.replace("'", "''")
+                unrecognized_keys = f"'{unrecognized_keys_escaped}'"
+            
+            processed_sql = "'t'" if event['processed'] == 't' else "'f'"
+            outlier_sql = "'t'" if event['outlier'] == 't' else "'f'"
+            
+            if not sender or sender == '\\N':
+                sender_sql = 'NULL'
+            else:
+                sender_escaped = sender.replace("'", "''")
+                sender_sql = f"'{sender_escaped}'"
+            
+            if not event.get('state_key') or event['state_key'] == '\\N':
+                state_key_sql = 'NULL'
+            else:
+                state_key_escaped = event['state_key'].replace("'", "''")
+                state_key_sql = f"'{state_key_escaped}'"
+            
+            if not event.get('rejection_reason') or event['rejection_reason'] == '\\N':
+                rejection_reason_sql = 'NULL'
+            else:
+                rejection_reason_escaped = event['rejection_reason'].replace("'", "''")
+                rejection_reason_sql = f"'{rejection_reason_escaped}'"
+            
+            event_values.append(
+                f"({event['topological_ordering']}, '{new_event_id}', '{event_type}', "
+                f"'{new_room_id}', {content_sql}, {unrecognized_keys}, {processed_sql}, "
+                f"{outlier_sql}, {event['depth']}, {event['origin_server_ts']}, "
+                f"{event['received_ts']}, {sender_sql}, '{event['contains_url']}', "
+                f"'{event['instance_name']}', {event['stream_ordering']}, {state_key_sql}, "
+                f"{rejection_reason_sql})"
+            )
+        
+        sql_lines.append(",\n".join(event_values) + ";")
+        sql_lines.append("")
+    
+    # Migrer event_json avec mise à jour du JSON content
+    if backup_data['event_json']:
+        sql_lines.append("-- Migrate event_json table with updated JSON content")
+        sql_lines.append("-- JSON content is updated to replace old IDs with new ones")
+        sql_lines.append("-- Using ON CONFLICT DO NOTHING to skip existing events")
+        sql_lines.append("")
+        sql_lines.append("INSERT INTO public.event_json (event_id, room_id, internal_metadata, json, format_version)")
+        sql_lines.append("VALUES")
+        event_json_values = []
+        
+        for event_json in backup_data['event_json']:
+            new_event_id = event_mapping[event_json['old_event_id']]
+            new_room_id = room_mapping[event_json['old_room_id']]['new_room_id']
+            json_str = event_json['json']
+            
+            # Mettre à jour le JSON content
+            try:
+                json_data = json.loads(json_str)
+                
+                # Mettre à jour room_id
+                if 'room_id' in json_data:
+                    json_data['room_id'] = new_room_id
+                
+                # Mettre à jour sender
+                if 'sender' in json_data:
+                    old_sender = json_data['sender']
+                    for old_user_id, new_user_id in user_mapping.items():
+                        if old_user_id in old_sender:
+                            json_data['sender'] = old_sender.replace(old_user_id, new_user_id)
+                            break
+                
+                # Mettre à jour prev_events
+                if 'prev_events' in json_data and isinstance(json_data['prev_events'], list):
+                    updated_prev_events = []
+                    for prev_event in json_data['prev_events']:
+                        if isinstance(prev_event, list) and len(prev_event) > 0:
+                            old_prev_id = prev_event[0]
+                            if old_prev_id in event_mapping:
+                                updated_prev_events.append([event_mapping[old_prev_id], prev_event[1] if len(prev_event) > 1 else ""])
+                            else:
+                                updated_prev_events.append(prev_event)
+                        else:
+                            updated_prev_events.append(prev_event)
+                    json_data['prev_events'] = updated_prev_events
+                
+                # Mettre à jour auth_events
+                if 'auth_events' in json_data and isinstance(json_data['auth_events'], list):
+                    updated_auth_events = []
+                    for auth_event in json_data['auth_events']:
+                        if isinstance(auth_event, str) and auth_event in event_mapping:
+                            updated_auth_events.append(event_mapping[auth_event])
+                        else:
+                            updated_auth_events.append(auth_event)
+                    json_data['auth_events'] = updated_auth_events
+                
+                # Mettre à jour origin (server name)
+                if 'origin' in json_data:
+                    json_data['origin'] = new_server
+                
+                # Mettre à jour les signatures (changer le server name)
+                if 'signatures' in json_data and isinstance(json_data['signatures'], dict):
+                    if old_server in json_data['signatures']:
+                        json_data['signatures'][new_server] = json_data['signatures'].pop(old_server)
+                
+                # Régénérer le JSON
+                updated_json_str = json.dumps(json_data, ensure_ascii=False)
+                
+            except (json.JSONDecodeError, TypeError, KeyError) as e:
+                # Si erreur, faire un remplacement simple
+                updated_json_str = json_str
+                updated_json_str = updated_json_str.replace(f":{old_server}", f":{new_server}")
+                for old_room_id, mapping in room_mapping.items():
+                    updated_json_str = updated_json_str.replace(old_room_id, mapping['new_room_id'])
+                for old_user_id, new_user_id in user_mapping.items():
+                    updated_json_str = updated_json_str.replace(old_user_id, new_user_id)
+                for old_event_id, new_event_id in event_mapping.items():
+                    updated_json_str = updated_json_str.replace(old_event_id, new_event_id)
+            
+            # Échapper les quotes pour SQL
+            updated_json_str_escaped = updated_json_str.replace("'", "''")
+            internal_metadata = event_json.get('internal_metadata') or '{}'
+            internal_metadata_escaped = internal_metadata.replace("'", "''")
+            format_version = event_json.get('format_version') or '3'
+            
+            event_json_values.append(
+                f"('{new_event_id}', '{new_room_id}', '{internal_metadata_escaped}', "
+                f"'{updated_json_str_escaped}', {format_version})"
+            )
+        
+        sql_lines.append(",\n".join(event_json_values))
+        sql_lines.append("ON CONFLICT (event_id) DO NOTHING;")
+        sql_lines.append("")
     
     sql_lines.append("COMMIT;")
     sql_lines.append("")
@@ -325,6 +505,7 @@ def generate_migration_sql(
     sql_lines.append(f"--   - New: {sum(1 for m in room_mapping.values() if not m['reused'])}")
     sql_lines.append(f"-- State events: {len(backup_data['state_events'])}")
     sql_lines.append(f"-- Message events: {len(backup_data['events'])}")
+    sql_lines.append(f"-- Event JSON entries: {len(backup_data['event_json'])}")
     sql_lines.append("")
     sql_lines.append("-- IMPORTANT: Review and test this script before running on production!")
     
@@ -336,8 +517,9 @@ def generate_migration_sql(
     print(f"  - Rooms: {len(backup_data['rooms'])}")
     print(f"  - State events: {len(backup_data['state_events'])}")
     print(f"  - Message events: {len(backup_data['events'])}")
-    print("\n⚠️  WARNING: Full event migration requires additional processing.")
-    print("   Consider using Matrix API for complete migration.")
+    print(f"  - Event JSON entries: {len(backup_data['event_json'])}")
+    print("\n⚠️  NOTE: Event JSON content has been updated with new IDs.")
+    print("   Stream ordering may need adjustment for reused rooms.")
 
 
 def main():

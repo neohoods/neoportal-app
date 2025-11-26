@@ -77,8 +77,6 @@ class MatrixBotInitializationServiceTest {
     void setUp() {
         // Set up configuration values using reflection
         ReflectionTestUtils.setField(initializationService, "spaceId", SPACE_ID);
-        ReflectionTestUtils.setField(initializationService, "userCreationEnabled", true);
-        ReflectionTestUtils.setField(initializationService, "itRoomName", "IT");
         ReflectionTestUtils.setField(initializationService, "roomsConfigFile", "classpath:matrix-default-rooms.yaml");
         ReflectionTestUtils.setField(initializationService, "disabled", false);
         ReflectionTestUtils.setField(initializationService, "homeserverUrl", HOMESERVER_URL);
@@ -263,7 +261,7 @@ class MatrixBotInitializationServiceTest {
         when(usersRepository.findAll()).thenReturn(Arrays.asList(user1, user2));
         when(matrixBotService.createRoomInSpace(anyString(), anyString(), anyString(), eq(SPACE_ID), anyBoolean()))
                 .thenReturn(Optional.of("!roomId:chat.neohoods.com"));
-        when(matrixBotService.createMatrixUser(anyString(), anyString(), anyString(), anyString()))
+        when(matrixBotService.createMatrixUser(any(UserEntity.class)))
                 .thenReturn(Optional.of("@john_doe:chat.neohoods.com"))
                 .thenReturn(Optional.of("@jane_smith:chat.neohoods.com"));
         when(matrixBotService.updateMatrixUserProfile(anyString(), any(UserEntity.class))).thenReturn(true);
@@ -276,15 +274,15 @@ class MatrixBotInitializationServiceTest {
         assertDoesNotThrow(() -> initializationService.initializeBotManually());
 
         // Then
-        verify(matrixBotService, times(2)).createMatrixUser(anyString(), anyString(), anyString(), anyString());
+        verify(matrixBotService, times(2)).createMatrixUser(any(UserEntity.class));
         verify(matrixBotService, times(2)).updateMatrixUserProfile(anyString(), any(UserEntity.class));
     }
 
     @Test
-    @DisplayName("Should skip user creation when user creation is disabled")
-    void testSkipUserCreationWhenDisabled() throws Exception {
+    @DisplayName("Should always create users (userCreationEnabled was removed)")
+    void testAlwaysCreateUsers() throws Exception {
         // Given
-        ReflectionTestUtils.setField(initializationService, "userCreationEnabled", false);
+        // Note: userCreationEnabled field was removed - users are always created now
         String yamlContent = """
                 rooms:
                   - name: "General"
@@ -303,12 +301,21 @@ class MatrixBotInitializationServiceTest {
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
         when(usersRepository.findAll()).thenReturn(Arrays.asList(user));
+        when(matrixBotService.createRoomInSpace(anyString(), anyString(), anyString(), eq(SPACE_ID), anyBoolean()))
+                .thenReturn(Optional.of("!roomId:chat.neohoods.com"));
+        when(matrixBotService.createMatrixUser(any(UserEntity.class)))
+                .thenReturn(Optional.of("@john_doe:chat.neohoods.com"));
+        when(matrixBotService.updateMatrixUserProfile(anyString(), any(UserEntity.class))).thenReturn(true);
+        when(matrixBotService.getRoomIdByName(anyString(), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
+        when(matrixBotService.inviteUserToRoomWithNotifications(anyString(), anyString(), anyBoolean()))
+                .thenReturn(true);
+        when(matrixBotService.sendMessage(anyString(), anyString())).thenReturn(true);
 
         // When
         assertDoesNotThrow(() -> initializationService.initializeBotManually());
 
         // Then
-        verify(matrixBotService, never()).createMatrixUser(anyString(), anyString(), anyString(), anyString());
+        verify(matrixBotService, times(1)).createMatrixUser(any(UserEntity.class));
     }
 
     @Test
@@ -341,7 +348,7 @@ class MatrixBotInitializationServiceTest {
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
         when(usersRepository.findAll()).thenReturn(Arrays.asList(owner, tenantA, tenantB));
-        when(matrixBotService.createMatrixUser(anyString(), anyString(), anyString(), anyString()))
+        when(matrixBotService.createMatrixUser(any(UserEntity.class)))
                 .thenReturn(Optional.of("@user:chat.neohoods.com"));
         when(matrixBotService.updateMatrixUserProfile(anyString(), any(UserEntity.class))).thenReturn(true);
         when(matrixBotService.getRoomIdByName(anyString(), eq(SPACE_ID))).thenReturn(Optional.of("!roomId:chat.neohoods.com"));
