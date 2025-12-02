@@ -84,7 +84,7 @@ neohoods:
       disabled: ${MATRIX_BOT_DISABLED:false}
       homeserver-url: ${MATRIX_HOMESERVER_URL:matrix.neohoods.com}
       server-name: ${MATRIX_SERVER_NAME:chat.neohoods.com}
-      space-id: ${MATRIX_SPACE_ID:!bePOjqLOikmzzkRBgV:chat.neohoods.com}
+      space-id: ${MATRIX_SPACE_ID:!oQtazfkIAFxaQJKvbP:chat.neohoods.com}
       initialization:
         enabled: ${MATRIX_INITIALIZATION_ENABLED:true}
       mas:

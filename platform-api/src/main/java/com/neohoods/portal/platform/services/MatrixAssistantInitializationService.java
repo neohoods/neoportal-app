@@ -990,27 +990,40 @@ public class MatrixAssistantInitializationService {
             }
 
             // Invite all admin users to IT room
-            List<UserEntity> adminUsersList = new ArrayList<>();
-            usersRepository.findAll().forEach(user -> {
-                if (user.getType() == UserType.ADMIN) {
-                    adminUsersList.add(user);
+            // Use MATRIX_INITIALIZATION_ADMIN_USERS directly instead of finding via MAS/OAuth2
+            List<String> adminMatrixUserIds = new ArrayList<>();
+            if (adminUsersConfig != null && !adminUsersConfig.isEmpty()) {
+                // Parse comma-separated list of Matrix user IDs
+                String[] userIds = adminUsersConfig.split(",");
+                for (String userId : userIds) {
+                    String trimmed = userId.trim();
+                    if (!trimmed.isEmpty()) {
+                        adminMatrixUserIds.add(trimmed);
+                    }
                 }
-            });
+            }
 
-            if (!adminUsersList.isEmpty()) {
-                log.info("Inviting {} admin users to IT room", adminUsersList.size());
-                for (UserEntity adminUser : adminUsersList) {
-                    try {
-                        // Find existing Matrix user (may have different username)
-                        Optional<String> matrixUserIdOpt = matrixAssistantService.findUserInMatrix(adminUser);
-                        if (matrixUserIdOpt.isEmpty()) {
-                            log.warn("Admin {} not found in Matrix, skipping IT room invitation",
-                                    adminUser.getUsername());
-                            continue;
+            // Also check database for admin users as fallback
+            if (adminMatrixUserIds.isEmpty()) {
+                log.debug("No admin users configured in MATRIX_INITIALIZATION_ADMIN_USERS, checking database...");
+                usersRepository.findAll().forEach(user -> {
+                    if (user.getType() == UserType.ADMIN) {
+                        // Try to find Matrix user ID via MAS (may fail if OAuth2 is not available)
+                        Optional<String> matrixUserIdOpt = matrixAssistantService.findUserInMatrix(user);
+                        if (matrixUserIdOpt.isPresent()) {
+                            adminMatrixUserIds.add(matrixUserIdOpt.get());
+                        } else {
+                            log.warn("Admin {} not found in Matrix via MAS, skipping IT room invitation",
+                                    user.getUsername());
                         }
+                    }
+                });
+            }
 
-                        String matrixUserId = matrixUserIdOpt.get();
-
+            if (!adminMatrixUserIds.isEmpty()) {
+                log.info("Inviting {} admin users to IT room", adminMatrixUserIds.size());
+                for (String matrixUserId : adminMatrixUserIds) {
+                    try {
                         // Check if admin is already in room
                         Optional<String> membership = matrixAssistantService.getUserRoomMembership(matrixUserId,
                                 itRoomId.get());
@@ -1019,7 +1032,7 @@ public class MatrixAssistantInitializationService {
                             continue;
                         }
 
-                        // Invite admin to IT room
+                        // Invite admin to IT room using bot permanent token
                         boolean invited = matrixAssistantService.inviteUserToRoomWithNotifications(
                                 matrixUserId,
                                 itRoomId.get(),
@@ -1030,7 +1043,7 @@ public class MatrixAssistantInitializationService {
                             log.warn("Failed to invite admin {} to IT room", matrixUserId);
                         }
                     } catch (Exception e) {
-                        log.warn("Error inviting admin {} to IT room: {}", adminUser.getUsername(), e.getMessage());
+                        log.warn("Error inviting admin {} to IT room: {}", matrixUserId, e.getMessage());
                     }
                 }
             } else {
