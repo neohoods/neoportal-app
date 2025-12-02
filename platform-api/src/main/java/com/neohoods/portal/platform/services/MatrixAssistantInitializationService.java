@@ -50,7 +50,7 @@ public class MatrixAssistantInitializationService {
     @Value("${neohoods.portal.matrix.homeserver-url:}")
     private String homeserverUrl;
 
-    @Value("${neohoods.portal.matrix.initialization.admin-users:}")
+    @Value("${neohoods.portal.matrix.mas.admin-users:}")
     private String adminUsersConfig;
 
     /**
