@@ -269,7 +269,8 @@ public class ReservationFlowTest extends BaseIntegrationTest {
     @DisplayName("Complete flow: Platform fees calculated correctly")
     public void testCompleteFlow_PlatformFees() {
         // Arrange - Use far future date to avoid conflicts with other tests and
-        // data.sql reservations. Use 450 days to avoid conflict with PricingCalculationTest (400 days)
+        // data.sql reservations. Use 450 days to avoid conflict with
+        // PricingCalculationTest (400 days)
         LocalDate startDate = LocalDate.now().plusDays(450);
         LocalDate endDate = startDate.plusDays(4);
 

@@ -274,6 +274,20 @@
             <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Mistral AI dependencies -->
+        <!-- Using HTTP client (WebClient from Spring WebFlux) for Mistral API calls -->
+        <!-- No official Java SDK available, using REST API directly -->
+        
+        <!-- JSON-RPC 2.0 for MCP protocol -->
+        <dependency>
+            <groupId>com.github.briandilley.jsonrpc4j</groupId>
+            <artifactId>jsonrpc4j</artifactId>
+            <version>1.6</version>
+        </dependency>
+        
+        <!-- Jackson for JSON processing (already included via Spring Boot, but explicit for clarity) -->
+        <!-- Spring WebFlux WebClient already provides HTTP client capabilities -->
     </dependencies>
 
     <build>

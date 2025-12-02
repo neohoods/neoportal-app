@@ -1,5 +1,0 @@
-Defaulted container "postgres" out of: postgres, postgres-ess-updater, postgres-exporter
-ERROR:  syntax error at or near "\"
-LINE 2: \copy (SELECT * FROM application_services_txns) TO STDOUT WI...
-        ^
-command terminated with exit code 1

@@ -66,7 +66,7 @@ public class AuthApi implements AuthApiApiDelegate {
         private final ValidationService validationService;
         private final NotificationsService notificationsService;
         private final EmailTemplateService emailTemplateService;
-        private final java.util.Optional<com.neohoods.portal.platform.services.MatrixBotService> matrixBotService;
+        private final java.util.Optional<com.neohoods.portal.platform.services.MatrixAssistantService> matrixAssistantService;
 
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;
@@ -230,9 +230,9 @@ public class AuthApi implements AuthApiApiDelegate {
                         log.info("Successfully saved user to local database: {}", newUser.getUsername());
                         
                         // Handle new user in Matrix bot if enabled
-                        if (matrixBotService.isPresent()) {
+                        if (matrixAssistantService.isPresent()) {
                             try {
-                                matrixBotService.get().handleNewUser(newUser);
+                                matrixAssistantService.get().handleNewUser(newUser);
                             } catch (Exception e) {
                                 log.error("Failed to handle new user in Matrix bot", e);
                                 // Don't fail user creation if Matrix fails

@@ -1,4 +1,8 @@
 rooms:
+  - name: "General"
+    description: "Espace pour les annonces générales, discussions diverses et échanges entre membres de la communauté."
+    image: https://neohoods.com/assets/chat/general.png
+    auto-join: true 
   - name: "Chambre-hotes"
     description: "Cette room est dédiée à la chambre d'hôtes mise à disposition de tous."
     image: https://neohoods.com/assets/chat/chambre-hote.png

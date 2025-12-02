@@ -20,8 +20,8 @@ import com.neohoods.portal.platform.model.MatrixBotStatusCurrentSpacesInner;
 import com.neohoods.portal.platform.model.MatrixBotStatus.MatrixAccessEnum;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCode200Response;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCodeRequest;
-import com.neohoods.portal.platform.services.MatrixBotService;
-import com.neohoods.portal.platform.services.MatrixBotInitializationService;
+import com.neohoods.portal.platform.services.MatrixAssistantService;
+import com.neohoods.portal.platform.services.MatrixAssistantInitializationService;
 import com.neohoods.portal.platform.services.MatrixOAuth2Service;
 import com.neohoods.portal.platform.services.MatrixOAuth2Service.DeviceCodeInfo;
 
@@ -35,9 +35,9 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public class MatrixBotAdminApi implements MatrixBotAdminApiApiDelegate {
 
-    private final MatrixBotService matrixBotService;
+    private final MatrixAssistantService matrixAssistantService;
     private final MatrixOAuth2Service oauth2Service;
-    private final MatrixBotInitializationService matrixBotInitializationService;
+    private final MatrixAssistantInitializationService matrixBotInitializationService;
 
     /**
      * Get Matrix bot status
@@ -46,7 +46,7 @@ public class MatrixBotAdminApi implements MatrixBotAdminApiApiDelegate {
     @Override
     public Mono<ResponseEntity<MatrixBotStatus>> getMatrixBotStatus(ServerWebExchange exchange) {
         try {
-            Map<String, Object> statusMap = matrixBotService.getBotStatus();
+            Map<String, Object> statusMap = matrixAssistantService.getBotStatus();
             MatrixBotStatus status = convertToMatrixBotStatus(statusMap);
             return Mono.just(ResponseEntity.ok(status));
         } catch (Exception e) {

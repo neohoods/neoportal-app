@@ -84,7 +84,7 @@ neohoods:
       disabled: ${MATRIX_BOT_DISABLED:false}
       homeserver-url: ${MATRIX_HOMESERVER_URL:matrix.neohoods.com}
       server-name: ${MATRIX_SERVER_NAME:chat.neohoods.com}
-      space-id: ${MATRIX_SPACE_ID:!YenniyNVsUoBCLHtZS:chat.neohoods.com}
+      space-id: ${MATRIX_SPACE_ID:!bePOjqLOikmzzkRBgV:chat.neohoods.com}
       initialization:
         enabled: ${MATRIX_INITIALIZATION_ENABLED:true}
       mas:
@@ -99,11 +99,30 @@ neohoods:
         authorization-endpoint: ${MATRIX_OAUTH2_AUTHORIZATION_ENDPOINT:${neohoods.portal.matrix.homeserver-url}/_matrix/client/v3/oauth2/authorize}
         token-endpoint: ${MATRIX_OAUTH2_TOKEN_ENDPOINT:${neohoods.portal.matrix.homeserver-url}/_matrix/client/v3/oauth2/token}
         device-authorization-endpoint: ${MATRIX_OAUTH2_DEVICE_AUTHORIZATION_ENDPOINT:https://mas.chat.neohoods.com/oauth2/device}
-      local-bot:
-        enabled: ${MATRIX_LOCAL_BOT_ENABLED:true}
-        user-id: ${MATRIX_LOCAL_BOT_USER_ID:@bot:chat.neohoods.com}
-        permanent-token: ${MATRIX_LOCAL_BOT_PERMANENT_TOKEN:}
-        avatar-url: ${MATRIX_LOCAL_BOT_AVATAR_URL:https://neohoods.com/assets/chat/bot-avatar.jpeg}
+      local-assistant:
+        enabled: ${MATRIX_LOCAL_ASSISTANT_ENABLED:true}
+        user-id: ${MATRIX_LOCAL_ASSISTANT_USER_ID:@alfred:chat.neohoods.com}
+        permanent-token: ${MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN:}
+        avatar-url: ${MATRIX_LOCAL_ASSISTANT_AVATAR_URL:https://neohoods.com/assets/chat/alfred-avatar.jpeg}
+        display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred}
+      assistant:
+        ai:
+          enabled: ${MATRIX_ASSISTANT_AI_ENABLED:true}
+          provider: mistral
+          api-key: ${MISTRAL_AI_TOKEN:}
+          model: ${MATRIX_ASSISTANT_AI_MODEL:mistral-small}
+        rag:
+          enabled: ${MATRIX_ASSISTANT_RAG_ENABLED:true}
+        mcp:
+          enabled: ${MATRIX_ASSISTANT_MCP_ENABLED:true}
+          base-url: ${MATRIX_ASSISTANT_MCP_BASE_URL:http://localhost:8080/mcp}
+        reminders:
+          enabled: ${MATRIX_ASSISTANT_REMINDERS_ENABLED:false}
+          before-reservation-hours: ${MATRIX_ASSISTANT_REMINDERS_BEFORE_HOURS:24}
+          checkout-reminder-hours: ${MATRIX_ASSISTANT_REMINDERS_CHECKOUT_HOURS:9}
+          feedback-days-after: ${MATRIX_ASSISTANT_REMINDERS_FEEDBACK_DAYS:1}
+        notifications:
+          enabled: ${MATRIX_ASSISTANT_NOTIFICATIONS_ENABLED:false}
 mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:

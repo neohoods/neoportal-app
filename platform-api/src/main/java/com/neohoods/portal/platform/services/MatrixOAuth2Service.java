@@ -466,9 +466,9 @@ public class MatrixOAuth2Service {
      */
     public Optional<String> getUserAccessToken() {
         // Check if local bot is enabled and has a permanent token
-        // This is handled by MatrixBotService which calls this method
+        // This is handled by MatrixAssistantService which calls this method
         // The local bot token check should be done in
-        // MatrixBotService.getMatrixApiClientWithUserToken()
+        // MatrixAssistantService.getMatrixApiClientWithUserToken()
 
         Optional<MatrixBotTokenEntity> tokenOpt = tokenRepository.findFirstByOrderByCreatedAtDesc();
         if (tokenOpt.isEmpty()) {

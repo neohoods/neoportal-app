@@ -14,9 +14,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.neohoods.portal.platform.services.Auth0Service;
 import com.neohoods.portal.platform.services.MailService;
-import com.neohoods.portal.platform.services.MatrixBotService;
+import com.neohoods.portal.platform.services.MatrixAssistantService;
 import com.neohoods.portal.platform.services.MatrixOAuth2Service;
-import com.neohoods.portal.platform.services.MatrixBotInitializationService;
+import com.neohoods.portal.platform.services.MatrixAssistantInitializationService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.spaces.services.DigitalLockService;
 import com.neohoods.portal.platform.spaces.services.NukiRemoteAPIService;
@@ -115,13 +115,13 @@ public abstract class BaseIntegrationTest {
     protected NotificationsService notificationsService;
 
     @MockBean
-    protected MatrixBotService matrixBotService;
+    protected MatrixAssistantService matrixAssistantService;
 
     @MockBean
     protected MatrixOAuth2Service matrixOAuth2Service;
 
     @MockBean
-    protected MatrixBotInitializationService matrixBotInitializationService;
+    protected MatrixAssistantInitializationService matrixBotInitializationService;
 
     @BeforeEach
     public void baseSetUp() {

@@ -64,7 +64,7 @@ public class SSOService {
     private final MailService mailService;
     private final NotificationsService notificationsService;
     private final EmailTemplateService emailTemplateService;
-    private final java.util.Optional<MatrixBotService> matrixBotService;
+    private final java.util.Optional<MatrixAssistantService> matrixAssistantService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Value("${neohoods.portal.frontend-url}")
     private String frontendUrl;
@@ -91,7 +91,7 @@ public class SSOService {
                       MailService mailService,
                       NotificationsService notificationsService,
                       EmailTemplateService emailTemplateService,
-                      java.util.Optional<MatrixBotService> matrixBotService) {
+                      java.util.Optional<MatrixAssistantService> matrixAssistantService) {
         this.serverSecurityContextRepository = serverSecurityContextRepository;
         this.usersRepository = usersRepository;
         this.notificationSettingsRepository = notificationSettingsRepository;
@@ -100,7 +100,7 @@ public class SSOService {
         this.mailService = mailService;
         this.notificationsService = notificationsService;
         this.emailTemplateService = emailTemplateService;
-        this.matrixBotService = matrixBotService;
+        this.matrixAssistantService = matrixAssistantService;
     }
 
     public URI generateSSOLoginUrl() {
@@ -264,9 +264,9 @@ public class SSOService {
                     log.info("Created notification settings for user: {}", email);
 
                     // Handle new user in Matrix bot if enabled
-                    if (matrixBotService.isPresent()) {
+                    if (matrixAssistantService.isPresent()) {
                         try {
-                            matrixBotService.get().handleNewUser(user);
+                            matrixAssistantService.get().handleNewUser(user);
                         } catch (Exception e) {
                             log.error("Failed to handle new user in Matrix bot", e);
                             // Don't fail user creation if Matrix fails

@@ -455,7 +455,7 @@ public class UnitsHubApiApiDelegateImpl implements UnitsHubApiApiDelegate {
             Mono<CreateJoinRequestRequest> requestBody, ServerWebExchange exchange) {
         return getCurrentUserId(exchange)
                 .flatMap(currentUserId -> {
-                    // Handle both empty Mono, null body, and empty object body
+                    // Handl'assistant Alfredh empty Mono, null body, and empty object body
                     // Extract message from request body, defaulting to null if not provided
                     return requestBody
                             .switchIfEmpty(Mono.just(new CreateJoinRequestRequest())) // Handle empty body

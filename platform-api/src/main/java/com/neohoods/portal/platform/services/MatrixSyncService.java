@@ -13,14 +13,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import com.neohoods.portal.platform.matrix.ApiException;
 
 import com.neohoods.portal.platform.matrix.ApiClient;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @RequiredArgsConstructor
@@ -29,67 +30,124 @@ import lombok.extern.slf4j.Slf4j;
 public class MatrixSyncService {
 
     private final MatrixOAuth2Service oauth2Service;
-    private final MatrixBotService matrixBotService;
-    private final RestTemplate restTemplate;
+    private final MatrixAssistantService matrixAssistantService;
+
+    // Optional: AI message handler (only available if AI is enabled)
+    @Autowired(required = false)
+    private MatrixAssistantMessageHandler messageHandler;
 
     @Value("${neohoods.portal.matrix.homeserver-url:}")
     private String homeserverUrl;
 
-    @Value("${neohoods.portal.matrix.local-bot.user-id:@bot:chat.neohoods.com}")
-    private String botUserId;
+    @Value("${neohoods.portal.matrix.local-assistant.user-id:@alfred:chat.neohoods.com}")
+    private String assistantUserId;
 
-    @Value("${neohoods.portal.matrix.local-bot.permanent-token:}")
-    private String botPermanentToken;
+    @Value("${neohoods.portal.matrix.local-assistant.permanent-token:}")
+    private String assistantPermanentToken;
 
-    @Value("${neohoods.portal.matrix.local-bot.enabled:false}")
-    private boolean localBotEnabled;
+    @Value("${neohoods.portal.matrix.local-assistant.enabled:false}")
+    private boolean localAssistantEnabled;
 
     private String nextBatchToken = null;
     private long podStartupTimestampMs; // Timestamp when pod started (in milliseconds)
 
     /**
-     * Initialize pod startup timestamp
+     * Initialize pod startup timestamp and accept pending invitations
      * This ensures we only process messages received after pod startup
      */
     @PostConstruct
     public void initializeStartupTimestamp() {
         podStartupTimestampMs = System.currentTimeMillis();
-        log.info("Matrix sync service initialized. Pod startup timestamp: {} (will ignore messages before this)", 
+        log.info("Matrix sync service initialized. Pod startup timestamp: {} (will ignore messages before this)",
                 podStartupTimestampMs);
+
+        // Accept all pending invitations on startup
+        acceptPendingInvitations();
+    }
+
+    /**
+     * Accept all pending invitations for the bot
+     * Called on startup to ensure the bot joins all rooms it was invited to
+     * Uses Matrix SDK client (ApiClient) for consistency
+     */
+    private void acceptPendingInvitations() {
+        try {
+            // Use MatrixAssistantService to get ApiClient (uses SDK)
+            // We need to access the private method, so we'll use reflection or create a
+            // public method
+            // For now, let's use the same approach as pollMatrixSync but ensure we use SDK
+            // patterns
+            Optional<String> accessTokenOpt = getAssistantAccessToken();
+            if (accessTokenOpt.isEmpty()) {
+                log.warn("Cannot accept pending invitations: no bot access token available");
+                return;
+            }
+
+            log.info("Checking for pending invitations on startup using Matrix SDK...");
+
+            // Use MatrixAssistantService to perform sync (uses SDK internally)
+            // Create a helper method in MatrixAssistantService or use existing sync method
+            String syncUrl = buildSyncUrlForInitialSync();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> syncData = matrixAssistantService.performSync(syncUrl, accessTokenOpt.get());
+
+            // Extract invited rooms and accept them
+            @SuppressWarnings("unchecked")
+            Map<String, Object> rooms = (Map<String, Object>) syncData.get("rooms");
+            if (rooms != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> invitedRooms = (Map<String, Object>) rooms.get("invite");
+                if (invitedRooms != null && !invitedRooms.isEmpty()) {
+                    log.info("Found {} pending invitation(s) on startup", invitedRooms.size());
+                    processRooms(invitedRooms, "invite");
+                } else {
+                    log.info("No pending invitations found on startup");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error accepting pending invitations on startup", e);
+        }
+    }
+
+    /**
+     * Build sync URL for initial sync (without nextBatchToken to get all current
+     * state)
+     */
+    private String buildSyncUrlForInitialSync() {
+        String normalizedUrl = normalizeHomeserverUrl(homeserverUrl);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(normalizedUrl)
+                .path("/_matrix/client/v3/sync")
+                .queryParam("timeout", "0"); // No timeout for initial sync
+
+        // Don't include nextBatchToken for initial sync to get all current state
+        return builder.toUriString();
     }
 
     /**
      * Poll Matrix sync API to listen for messages
      * Runs every 30 seconds
      */
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 5000)
     public void pollMatrixSync() {
         try {
-            Optional<String> accessTokenOpt = getBotAccessToken();
+            Optional<String> accessTokenOpt = getAssistantAccessToken();
             if (accessTokenOpt.isEmpty()) {
                 log.debug("No bot access token available for sync");
                 return;
             }
 
+            // Use MatrixAssistantService to perform sync (uses SDK internally)
             String syncUrl = buildSyncUrl();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessTokenOpt.get());
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-
             log.debug("Polling Matrix sync API (nextBatch: {})", nextBatchToken);
 
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    syncUrl,
-                    HttpMethod.GET,
-                    request,
-                    Map.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            try {
                 @SuppressWarnings("unchecked")
-                Map<String, Object> syncData = (Map<String, Object>) response.getBody();
-                processSyncResponse(syncData);
-            } else {
-                log.warn("Sync API returned status: {}", response.getStatusCode());
+                Map<String, Object> syncData = matrixAssistantService.performSync(syncUrl, accessTokenOpt.get());
+                if (syncData != null) {
+                    processSyncResponse(syncData);
+                }
+            } catch (Exception e) {
+                log.warn("Sync API returned error: {}", e.getMessage());
             }
 
         } catch (Exception e) {
@@ -181,6 +239,7 @@ public class MatrixSyncService {
 
     /**
      * Process rooms and extract timeline events (messages)
+     * Also handles automatic invitation acceptance for invited rooms
      */
     @SuppressWarnings("unchecked")
     private void processRooms(Map<String, Object> rooms, String membershipType) {
@@ -194,7 +253,20 @@ public class MatrixSyncService {
 
             Map<String, Object> roomData = (Map<String, Object>) roomDataObj;
 
-            // Extract timeline events
+            // Handle invitations: automatically accept them
+            if ("invite".equals(membershipType)) {
+                log.info("Bot received invitation to room: {}", roomId);
+                boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
+                if (joined) {
+                    log.info("Bot successfully accepted invitation and joined room: {}", roomId);
+                } else {
+                    log.warn("Bot failed to accept invitation to room: {}", roomId);
+                }
+                // Don't process timeline events for invited rooms (we're not in the room yet)
+                continue;
+            }
+
+            // For joined rooms, extract timeline events (messages)
             Object timelineObj = roomData.get("timeline");
             if (timelineObj instanceof Map) {
                 Map<String, Object> timeline = (Map<String, Object>) timelineObj;
@@ -220,7 +292,7 @@ public class MatrixSyncService {
             }
 
             String sender = (String) event.get("sender");
-            if (sender == null || sender.equals(botUserId)) {
+            if (sender == null || sender.equals(assistantUserId)) {
                 continue; // Skip messages from the bot itself
             }
 
@@ -250,10 +322,10 @@ public class MatrixSyncService {
      * Get bot access token for sync API
      * Uses permanent token if available, otherwise falls back to OAuth2 token
      */
-    private Optional<String> getBotAccessToken() {
+    private Optional<String> getAssistantAccessToken() {
         // Prefer permanent token for local bot
-        if (localBotEnabled && botPermanentToken != null && !botPermanentToken.isEmpty()) {
-            return Optional.of(botPermanentToken);
+        if (localAssistantEnabled && assistantPermanentToken != null && !assistantPermanentToken.isEmpty()) {
+            return Optional.of(assistantPermanentToken);
         }
 
         // Fallback to OAuth2 token
@@ -264,7 +336,7 @@ public class MatrixSyncService {
      * Process incoming message and respond if needed
      * Only responds to:
      * - Direct messages (DMs - rooms with exactly 2 members)
-     * - Messages that mention the bot (@bot:chat.neohoods.com)
+     * - Messages that mention the bot (@alfred:chat.neohoods.com)
      */
     @SuppressWarnings("unchecked")
     private void processMessage(String roomId, String sender, String messageBody, Map<String, Object> event) {
@@ -272,28 +344,95 @@ public class MatrixSyncService {
             return;
         }
 
-        // Check if message mentions the bot
-        boolean isMention = messageBody.contains(botUserId) || messageBody.contains("@bot");
-        
+        // Check if message mentions the bot using the m.mentions field from the event
+        // Matrix events contain a "m.mentions" field in content with a "user_ids" array
+        boolean isMention = false;
+        try {
+            Object contentObj = event.get("content");
+            if (contentObj instanceof Map) {
+                Map<String, Object> content = (Map<String, Object>) contentObj;
+                Object mentionsObj = content.get("m.mentions");
+                if (mentionsObj instanceof Map) {
+                    Map<String, Object> mentions = (Map<String, Object>) mentionsObj;
+                    Object userIdsObj = mentions.get("user_ids");
+                    if (userIdsObj instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<String> userIds = (List<String>) userIdsObj;
+                        isMention = userIds.contains(assistantUserId);
+                        log.debug("Found mentions in event: {} (bot mentioned: {})", userIds, isMention);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error extracting mentions from event: {}", e.getMessage());
+            // Fallback: check in message body if mentions extraction fails
+            String normalizedMessage = messageBody.toLowerCase();
+            isMention = normalizedMessage.contains(assistantUserId.toLowerCase()) ||
+                    normalizedMessage.contains("@bot");
+        }
+
         // Check if it's a direct message (DM)
         boolean isDirectMessage = isDirectMessage(roomId);
 
-        // Only respond to DMs or mentions
+        // Only respond to:
+        // - DMs (direct messages) - toujours répondre dans un DM
+        // - Messages dans une room publique qui mentionnent explicitement l'assistant Alfred
         if (!isDirectMessage && !isMention) {
-            log.debug("Ignoring message in room {} (not a DM and no mention): {}", roomId, messageBody);
+            log.debug("Ignoring message in public room {} without bot mention (DM: {}, Mention: {}): {}",
+                    roomId, isDirectMessage, isMention, messageBody);
             return;
         }
 
-        log.info("Processing message in room {} from {} (DM: {}, Mention: {}): {}", 
+        log.info("Processing message in room {} from {} (DM: {}, Mention: {}): {}",
                 roomId, sender, isDirectMessage, isMention, messageBody);
 
-        // Hello world test: respond if message contains "hello"
-        if (messageBody.toLowerCase().contains("hello")) {
-            try {
-                sendMessage(roomId, "Hello! How can I help you?");
-                log.info("Responded to hello message in room {}", roomId);
-            } catch (Exception e) {
-                log.error("Failed to send response message", e);
+        // Use AI message handler if available
+        if (messageHandler != null) {
+            // Envoyer immédiatement un typing indicator pour montrer que l'assistant Alfred traite la
+            // requête
+            // Plusieurs messages peuvent être traités en parallèle, chacun avec ses propres
+            // typing indicators
+            boolean typingSent = matrixAssistantService.sendTypingIndicator(roomId, true, 30000);
+            if (typingSent) {
+                log.debug("Typing indicator sent for room {}", roomId);
+            } else {
+                log.warn("Failed to send typing indicator for room {}", roomId);
+            }
+
+            messageHandler.handleMessage(roomId, sender, messageBody, isDirectMessage)
+                    .subscribe(
+                            response -> {
+                                // Arrêter l'indicateur de frappe avant d'envoyer la réponse
+                                matrixAssistantService.sendTypingIndicator(roomId, false, 0);
+                                if (response != null && !response.isEmpty()) {
+                                    try {
+                                        sendMessage(roomId, response);
+                                        log.info("Sent AI response to room {}", roomId);
+                                    } catch (Exception e) {
+                                        log.error("Failed to send AI response message", e);
+                                    }
+                                }
+                            },
+                            error -> {
+                                // Arrêter l'indicateur de frappe en cas d'erreur
+                                matrixAssistantService.sendTypingIndicator(roomId, false, 0);
+                                log.error("Error in AI message handler", error);
+                                // Fallback to simple response
+                                try {
+                                    sendMessage(roomId, "Désolé, une erreur s'est produite. Veuillez réessayer.");
+                                } catch (Exception e) {
+                                    log.error("Failed to send error response", e);
+                                }
+                            });
+        } else {
+            // Fallback: simple hello response if AI handler not available
+            if (messageBody.toLowerCase().contains("hello")) {
+                try {
+                    sendMessage(roomId, "Hello! How can I help you?");
+                    log.info("Responded to hello message in room {}", roomId);
+                } catch (Exception e) {
+                    log.error("Failed to send response message", e);
+                }
             }
         }
     }
@@ -304,15 +443,15 @@ public class MatrixSyncService {
      */
     private boolean isDirectMessage(String roomId) {
         try {
-            Optional<String> botUserIdOpt = matrixBotService.getBotUserId();
-            if (botUserIdOpt.isEmpty()) {
+            Optional<String> assistantUserIdOpt = matrixAssistantService.getAssistantUserId();
+            if (assistantUserIdOpt.isEmpty()) {
                 return false;
             }
 
-            String botUserId = botUserIdOpt.get();
-            
+            String assistantUserId = assistantUserIdOpt.get();
+
             // Get room members from cache or API
-            Map<String, String> roomMembers = matrixBotService.getRoomMembers(roomId);
+            Map<String, String> roomMembers = matrixAssistantService.getRoomMembers(roomId);
             if (roomMembers == null) {
                 return false;
             }
@@ -323,12 +462,12 @@ public class MatrixSyncService {
                     .count();
 
             // A DM has exactly 2 joined members (bot + one user)
-            boolean isDM = joinedMembers == 2 && roomMembers.containsKey(botUserId);
-            
+            boolean isDM = joinedMembers == 2 && roomMembers.containsKey(assistantUserId);
+
             if (isDM) {
                 log.debug("Room {} is a direct message (2 members: bot + user)", roomId);
             }
-            
+
             return isDM;
         } catch (Exception e) {
             log.debug("Error checking if room {} is a DM: {}", roomId, e.getMessage());
@@ -370,12 +509,12 @@ public class MatrixSyncService {
             // Allow 5 seconds margin for potential clock differences
             long marginMs = 5000;
             boolean isAfterStartup = messageTimestampMs >= (podStartupTimestampMs - marginMs);
-            
+
             if (!isAfterStartup) {
-                log.debug("Message timestamp {} is before pod startup {} (margin: {}ms)", 
+                log.debug("Message timestamp {} is before pod startup {} (margin: {}ms)",
                         messageTimestampMs, podStartupTimestampMs, marginMs);
             }
-            
+
             return isAfterStartup;
         } catch (Exception e) {
             log.warn("Error checking message timestamp, skipping message: {}", e.getMessage());
@@ -387,7 +526,7 @@ public class MatrixSyncService {
      * Send a message to a room
      */
     private void sendMessage(String roomId, String message) {
-        matrixBotService.sendMessage(roomId, message);
+        matrixAssistantService.sendMessage(roomId, message);
     }
 
 }

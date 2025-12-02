@@ -122,7 +122,7 @@ public class UserEntity {
         if (preferredLanguage == null || preferredLanguage.trim().isEmpty()) {
             return Locale.ENGLISH; // Default to English
         }
-        // Handle both formats: "en" and "en-US"
+        // Handl'assistant Alfredh formats: "en" and "en-US"
         String[] parts = preferredLanguage.split("-");
         return parts.length > 1
                 ? new Locale(parts[0], parts[1])

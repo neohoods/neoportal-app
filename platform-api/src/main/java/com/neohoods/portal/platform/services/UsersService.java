@@ -24,13 +24,13 @@ import reactor.core.publisher.Mono;
 public class UsersService {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
-    private final java.util.Optional<MatrixBotService> matrixBotService;
+    private final java.util.Optional<MatrixAssistantService> matrixAssistantService;
 
     public UsersService(UsersRepository usersRepository, PasswordEncoder passwordEncoder, 
-                        java.util.Optional<MatrixBotService> matrixBotService) {
+                        java.util.Optional<MatrixAssistantService> matrixAssistantService) {
         this.usersRepository = usersRepository;
         this.passwordEncoder = passwordEncoder;
-        this.matrixBotService = matrixBotService;
+        this.matrixAssistantService = matrixAssistantService;
     }
 
     public Mono<User> getUserById(UUID id) {
@@ -165,9 +165,9 @@ public class UsersService {
         UserEntity savedEntity = usersRepository.save(entity);
         
         // Handle new user in Matrix bot if enabled
-        if (user.getId() == null && matrixBotService.isPresent()) {
+        if (user.getId() == null && matrixAssistantService.isPresent()) {
             try {
-                matrixBotService.get().handleNewUser(savedEntity);
+                matrixAssistantService.get().handleNewUser(savedEntity);
             } catch (Exception e) {
                 log.error("Failed to handle new user in Matrix bot", e);
                 // Don't fail user creation if Matrix fails

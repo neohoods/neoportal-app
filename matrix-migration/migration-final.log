@@ -1,4 +1,0 @@
-  File "migrate-full-auto.py", line 152
-    old_room_id = event.get('room_id')
-              ^
-IndentationError: expected an indented block
