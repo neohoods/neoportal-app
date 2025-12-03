@@ -89,17 +89,33 @@ public class MatrixConversationContextService {
      * @param message Contenu du message utilisateur
      */
     public void addUserMessage(String roomId, String message) {
+        addUserMessage(roomId, message, null);
+    }
+
+    /**
+     * Ajoute un message utilisateur à l'historique de la room avec le sender
+     * 
+     * @param roomId ID de la room Matrix
+     * @param message Contenu du message utilisateur
+     * @param sender Matrix user ID du sender (optionnel, pour le contexte)
+     */
+    public void addUserMessage(String roomId, String message, String sender) {
         if (!conversationContextEnabled) {
             return;
         }
 
+        // Formater le message avec le sender si disponible
+        String formattedMessage = sender != null && !sender.isEmpty()
+                ? String.format("[%s]: %s", sender, message)
+                : message;
+
         roomHistory.computeIfAbsent(roomId, k -> new ArrayList<>())
-                .add(new ConversationMessage("user", message));
+                .add(new ConversationMessage("user", formattedMessage));
 
         // Limiter la taille de l'historique
         trimHistory(roomId);
 
-        log.debug("Added user message to conversation history for room {} (total: {})", roomId,
+        log.debug("Added user message to conversation history for room {} (sender: {}, total: {})", roomId, sender,
                 roomHistory.get(roomId).size());
     }
 

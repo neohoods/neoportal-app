@@ -28,6 +28,11 @@ public class MatrixSyncService {
     @Autowired(required = false)
     private MatrixAssistantMessageHandler messageHandler;
 
+    // Optional: Conversation context service (only available if conversation is
+    // enabled)
+    @Autowired(required = false)
+    private MatrixConversationContextService conversationContextService;
+
     @Value("${neohoods.portal.matrix.homeserver-url:}")
     private String homeserverUrl;
 
@@ -39,6 +44,9 @@ public class MatrixSyncService {
 
     @Value("${neohoods.portal.matrix.local-assistant.enabled:false}")
     private boolean localAssistantEnabled;
+
+    @Value("${MATRIX_LOCAL_ASSISTANT_SPACE_ID:}")
+    private String localAssistantSpaceId;
 
     @Value("${neohoods.portal.matrix.space-id:}")
     private String spaceId;
@@ -248,9 +256,29 @@ public class MatrixSyncService {
 
             Map<String, Object> roomData = (Map<String, Object>) roomDataObj;
 
-            // Handle invitations: automatically accept them
+            // Handle invitations: automatically accept them only if room belongs to
+            // configured space
             if ("invite".equals(membershipType)) {
                 log.info("Bot received invitation to room: {}", roomId);
+
+                // Check if room belongs to configured space (if space-id is configured)
+                // Use local assistant space-id if local assistant is enabled, otherwise use
+                // main space-id
+                String spaceIdToCheck = localAssistantEnabled && localAssistantSpaceId != null
+                        && !localAssistantSpaceId.isEmpty()
+                                ? localAssistantSpaceId
+                                : spaceId;
+
+                if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
+                    boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceIdToCheck);
+                    if (!belongsToSpace) {
+                        log.info(
+                                "Ignoring invitation to room {} that does not belong to configured space {} (local assistant: {})",
+                                roomId, spaceIdToCheck, localAssistantEnabled);
+                        continue; // Skip this invitation
+                    }
+                }
+
                 boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
                 if (joined) {
                     log.info("Bot successfully accepted invitation and joined room: {}", roomId);
@@ -307,6 +335,12 @@ public class MatrixSyncService {
                     log.debug("Ignoring message from {} (timestamp before pod startup): {}", sender, body);
                     continue;
                 }
+
+                // Store all messages in conversation context (for full room context)
+                if (conversationContextService != null && !sender.equals(assistantUserId)) {
+                    conversationContextService.addUserMessage(roomId, body, sender);
+                }
+
                 log.info("Received message in room {} from {}: {}", roomId, sender, body);
                 processMessage(roomId, sender, body, event);
             }
@@ -366,23 +400,33 @@ public class MatrixSyncService {
                     normalizedMessage.contains("@bot");
         }
 
-        // Check if it's a direct message (DM)
-        boolean isDirectMessage = isDirectMessage(roomId);
-
         // Check if the room belongs to the configured space (if space-id is configured)
-        // DMs are always allowed (they don't belong to a space)
-        if (!isDirectMessage && spaceId != null && !spaceId.isEmpty()) {
-            boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceId);
+        // Use local assistant space-id if local assistant is enabled, otherwise use
+        // main space-id
+        String spaceIdToCheck = localAssistantEnabled && localAssistantSpaceId != null
+                && !localAssistantSpaceId.isEmpty()
+                        ? localAssistantSpaceId
+                        : spaceId;
+
+        // Verify that the room belongs to the configured space (for all rooms,
+        // including those with 2 members)
+        if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
+            boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceIdToCheck);
             if (!belongsToSpace) {
-                log.info("Ignoring message in room {} that does not belong to configured space {} (sender: {})",
-                        roomId, spaceId, sender);
+                log.info(
+                        "Ignoring message in room {} that does not belong to configured space {} (sender: {}, local assistant: {})",
+                        roomId, spaceIdToCheck, sender, localAssistantEnabled);
                 return;
             }
         }
 
+        // Check if it's a direct message (DM) - after verifying space membership
+        boolean isDirectMessage = isDirectMessage(roomId);
+
         // Only respond to:
         // - DMs (direct messages) - toujours répondre dans un DM
-        // - Messages dans une room publique qui mentionnent explicitement l'assistant Alfred
+        // - Messages dans une room publique qui mentionnent explicitement l'assistant
+        // Alfred
         if (!isDirectMessage && !isMention) {
             log.debug("Ignoring message in public room {} without bot mention (DM: {}, Mention: {}): {}",
                     roomId, isDirectMessage, isMention, messageBody);
@@ -394,7 +438,8 @@ public class MatrixSyncService {
 
         // Use AI message handler if available
         if (messageHandler != null) {
-            // Envoyer immédiatement un typing indicator pour montrer que l'assistant Alfred traite la
+            // Envoyer immédiatement un typing indicator pour montrer que l'assistant Alfred
+            // traite la
             // requête
             // Plusieurs messages peuvent être traités en parallèle, chacun avec ses propres
             // typing indicators
@@ -533,6 +578,11 @@ public class MatrixSyncService {
      */
     private void sendMessage(String roomId, String message) {
         matrixAssistantService.sendMessage(roomId, message);
+
+        // Store bot's message in conversation context for full room context
+        if (conversationContextService != null) {
+            conversationContextService.addAssistantResponse(roomId, message);
+        }
     }
 
 }

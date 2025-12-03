@@ -32,9 +32,9 @@ public class MatrixAssistantMessageHandler {
     /**
      * Traite un message Matrix et génère une réponse IA
      * 
-     * @param roomId ID de la room Matrix
-     * @param sender Matrix user ID du sender
-     * @param messageBody Contenu du message
+     * @param roomId          ID de la room Matrix
+     * @param sender          Matrix user ID du sender
+     * @param messageBody     Contenu du message
      * @param isDirectMessage true si c'est un DM
      * @return Réponse à envoyer (ou null si pas de réponse)
      */
@@ -43,38 +43,42 @@ public class MatrixAssistantMessageHandler {
             String sender,
             String messageBody,
             boolean isDirectMessage) {
-        
+
         if (!aiEnabled) {
             log.debug("AI bot is disabled, skipping message handling");
             return Mono.empty();
         }
 
-        log.info("Handling message from {} in room {} (DM: {}): {}", 
+        log.info("Handling message from {} in room {} (DM: {}): {}",
                 sender, roomId, isDirectMessage, messageBody.substring(0, Math.min(100, messageBody.length())));
 
         try {
-            // Le typing indicator est déjà envoyé dans MatrixSyncService avant l'appel à handleMessage
+            // Le typing indicator est déjà envoyé dans MatrixSyncService avant l'appel à
+            // handleMessage
             // On peut le renouveler ici si le traitement prend du temps (optionnel)
-            
+
             // Créer le contexte d'autorisation
             MatrixAssistantAuthContext authContext = authContextService.createAuthContext(
                     sender, roomId, isDirectMessage);
 
-            // Ajouter le message utilisateur à l'historique de conversation
-            conversationContextService.addUserMessage(roomId, messageBody);
+            // Note: Le message utilisateur a déjà été ajouté au contexte dans
+            // processTimelineEvents
+            // On ne l'ajoute pas à nouveau ici pour éviter les doublons
 
             // Récupérer l'historique de conversation pour cette room
             List<Map<String, Object>> conversationHistory = conversationContextService.getConversationHistory(roomId);
 
             // Générer la réponse via l'IA avec l'historique de conversation
             // Le typing indicator est géré dans MatrixSyncService
+            // Note: La réponse sera stockée dans le contexte par sendMessage() dans
+            // MatrixSyncService
             return aiService.generateResponse(messageBody, null, conversationHistory, authContext)
                     .map(response -> {
                         if (response == null || response.isEmpty()) {
                             return null;
                         }
-                        // Ajouter la réponse de l'assistant à l'historique
-                        conversationContextService.addAssistantResponse(roomId, response);
+                        // La réponse sera stockée dans le contexte par sendMessage() dans
+                        // MatrixSyncService
                         return response;
                     })
                     .onErrorResume(e -> {
@@ -87,8 +91,3 @@ public class MatrixAssistantMessageHandler {
         }
     }
 }
-
-
-
-
-
