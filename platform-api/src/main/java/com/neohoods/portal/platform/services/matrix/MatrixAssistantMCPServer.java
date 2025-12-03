@@ -23,6 +23,10 @@ import com.neohoods.portal.platform.repositories.UnitRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.repositories.InfoRepository;
 import com.neohoods.portal.platform.entities.InfoEntity;
+import com.neohoods.portal.platform.services.AnnouncementsService;
+import com.neohoods.portal.platform.services.ApplicationsService;
+import com.neohoods.portal.platform.services.InfosService;
+import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
@@ -31,9 +35,11 @@ import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
+import com.neohoods.portal.platform.entities.UserType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 /**
  * Serveur MCP (Model Context Protocol) pour l'assistant Alfred Matrix.
@@ -55,6 +61,11 @@ public class MatrixAssistantMCPServer {
         private final UsersRepository usersRepository;
         private final InfoRepository infoRepository;
         private final com.neohoods.portal.platform.spaces.services.StripeService stripeService;
+        private final AnnouncementsService announcementsService;
+        private final ApplicationsService applicationsService;
+        private final InfosService infosService;
+        private final NotificationsService notificationsService;
+        private final MatrixAssistantAdminCommandService adminCommandService;
 
         @Value("${neohoods.portal.matrix.assistant.mcp.enabled:false}")
         private boolean mcpEnabled;
@@ -69,23 +80,29 @@ public class MatrixAssistantMCPServer {
                                 .name("get_resident_info")
                                 .description(
                                                 "Get resident information for an apartment or floor. " +
-                                                "The building has 3 buildings: A, B, and C. " +
-                                                "Apartment numbers follow the format: [Building][Floor][Number] (e.g., A701 = Building A, 7th floor, apartment 01; C302 = Building C, 3rd floor, apartment 02). " +
-                                                "When searching by floor, specify the building letter and floor number (e.g., '6' for 6th floor of building C = C6XX apartments). " +
-                                                "Returns who lives in a specific apartment or on a specific floor of a building.")
+                                                                "The building has 3 buildings: A, B, and C. " +
+                                                                "Apartment numbers follow the format: [Building][Floor][Number] (e.g., A701 = Building A, 7th floor, apartment 01; C302 = Building C, 3rd floor, apartment 02). "
+                                                                +
+                                                                "When searching by floor, specify the building letter and floor number (e.g., '6' for 6th floor of building C = C6XX apartments). "
+                                                                +
+                                                                "Returns who lives in a specific apartment or on a specific floor of a building.")
                                 .inputSchema(Map.of(
                                                 "type", "object",
                                                 "properties", Map.of(
                                                                 "apartment",
                                                                 Map.of("type", "string", "description",
-                                                                                "Full apartment number in format [Building][Floor][Number] (e.g., A701, B302, C601). " +
-                                                                                "Building can be A, B, or C. Floor is 1-9. Number is 01-99."),
+                                                                                "Full apartment number in format [Building][Floor][Number] (e.g., A701, B302, C601). "
+                                                                                                +
+                                                                                                "Building can be A, B, or C. Floor is 1-9. Number is 01-99."),
                                                                 "floor",
                                                                 Map.of("type", "string", "description",
-                                                                                "Floor number (e.g., '6' for 6th floor). " +
-                                                                                "When used with building context (e.g., '6ème étage du bâtiment C'), " +
-                                                                                "searches all apartments on that floor of that building (e.g., C601, C602, etc.). " +
-                                                                                "If building is not specified, searches all buildings.")),
+                                                                                "Floor number (e.g., '6' for 6th floor). "
+                                                                                                +
+                                                                                                "When used with building context (e.g., '6ème étage du bâtiment C'), "
+                                                                                                +
+                                                                                                "searches all apartments on that floor of that building (e.g., C601, C602, etc.). "
+                                                                                                +
+                                                                                                "If building is not specified, searches all buildings.")),
                                                 "required", List.of()))
                                 .build());
 
@@ -223,6 +240,97 @@ public class MatrixAssistantMCPServer {
                                                 "required", List.of("reservationId")))
                                 .build());
 
+                // Hub endpoints - accessible to all authenticated users
+                tools.add(MCPTool.builder()
+                                .name("get_infos")
+                                .description("Get community information (contact numbers, delegates, next AG date, rules URL). Requires authentication (DM only).")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("get_announcements")
+                                .description("Get all community announcements. Requires authentication (DM only).")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of(
+                                                                "page",
+                                                                Map.of("type", "integer", "description",
+                                                                                "Page number (default: 1)", "default",
+                                                                                1),
+                                                                "pageSize",
+                                                                Map.of("type", "integer", "description",
+                                                                                "Number of announcements per page (default: 10)",
+                                                                                "default", 10)),
+                                                "required", List.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("get_applications")
+                                .description("Get all community applications (apps available in the portal). Requires authentication (DM only).")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("get_notifications")
+                                .description("Get all notifications for the authenticated user. Requires authentication (DM only).")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("get_unread_notifications_count")
+                                .description("Get the count of unread notifications for the authenticated user. Requires authentication (DM only).")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("get_users")
+                                .description("Get the user directory (list of all users in the community). Requires authentication (DM only).")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                // Admin endpoints - accessible only to admin users
+                tools.add(MCPTool.builder()
+                                .name("admin_get_users")
+                                .description("Get all users (admin only). Requires authentication (DM only) and admin role.")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("admin_get_units")
+                                .description("Get all units/residences (admin only). Requires authentication (DM only) and admin role.")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("admin_get_reservations")
+                                .description("Get all reservations (admin only). Requires authentication (DM only) and admin role.")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
+                tools.add(MCPTool.builder()
+                                .name("admin_get_spaces")
+                                .description("Get all spaces (admin only). Requires authentication (DM only) and admin role.")
+                                .inputSchema(Map.of(
+                                                "type", "object",
+                                                "properties", Map.of()))
+                                .build());
+
                 return tools;
         }
 
@@ -239,17 +347,46 @@ public class MatrixAssistantMCPServer {
                 // Récupérer trace ID et span ID depuis MDC pour les logs
                 String traceId = MDC.get("traceId");
                 String spanId = MDC.get("spanId");
-                log.info("Calling MCP tool: {} with arguments: {} for user: {} [traceId={}, spanId={}]", 
-                                toolName, arguments, authContext.getMatrixUserId(), 
+                log.info("Calling MCP tool: {} with arguments: {} for user: {} [traceId={}, spanId={}]",
+                                toolName, arguments, authContext.getMatrixUserId(),
                                 traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
 
-                // Valider l'autorisation pour les outils sensibles
-                if (requiresAuth(toolName) && !authContext.isAuthenticated()) {
-                        throw new MatrixAssistantAuthContext.UnauthorizedException(
-                                        "Tool " + toolName + " requires authentication (DM only)");
-                }
-
                 try {
+                        // Vérifier si l'outil nécessite un userEntity (authentification au portail)
+                        if (requiresAuth(toolName)) {
+                                // Vérifier si l'utilisateur a un userEntity (est connecté au portail)
+                                if (!authContext.getUserEntity().isPresent()) {
+                                        return MCPToolResult.builder()
+                                                        .isError(true)
+                                                        .content(List.of(MCPContent.builder()
+                                                                        .type("text")
+                                                                        .text("Cette fonctionnalité nécessite d'être connecté au portail. Veuillez vous connecter au portail NeoHoods.")
+                                                                        .build()))
+                                                        .build();
+                                }
+
+                                // Vérifier si l'outil nécessite un DM (pour les données sensibles)
+                                if (requiresDM(toolName) && !authContext.isDirectMessage()) {
+                                        return MCPToolResult.builder()
+                                                        .isError(true)
+                                                        .content(List.of(MCPContent.builder()
+                                                                        .type("text")
+                                                                        .text("Cette fonctionnalité nécessite un message privé (DM) pour protéger vos informations personnelles.")
+                                                                        .build()))
+                                                        .build();
+                                }
+                        }
+
+                        // Vérifier les permissions admin pour les outils admin
+                        if (toolName.startsWith("admin_") && !isAdminUser(authContext)) {
+                                return MCPToolResult.builder()
+                                                .isError(true)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Cette fonctionnalité est réservée aux administrateurs.")
+                                                                .build()))
+                                                .build();
+                        }
                         MCPToolResult result = switch (toolName) {
                                 case "get_resident_info" -> getResidentInfo(arguments);
                                 case "get_emergency_numbers" -> getEmergencyNumbers();
@@ -262,10 +399,23 @@ public class MatrixAssistantMCPServer {
                                 case "list_my_reservations" -> listMyReservations(arguments, authContext);
                                 case "get_reservation_access_code" -> getReservationAccessCode(arguments, authContext);
                                 case "generate_payment_link" -> generatePaymentLink(arguments, authContext);
+                                // Hub endpoints
+                                case "get_infos" -> getInfos(authContext);
+                                case "get_announcements" -> getAnnouncements(arguments, authContext);
+                                case "get_applications" -> getApplications(authContext);
+                                case "get_notifications" -> getNotifications(authContext);
+                                case "get_unread_notifications_count" -> getUnreadNotificationsCount(authContext);
+                                case "get_users" -> getUsers(authContext);
+                                // Admin endpoints
+                                case "admin_get_users" -> adminGetUsers(authContext);
+                                case "admin_get_units" -> adminGetUnits(authContext);
+                                case "admin_get_reservations" -> adminGetReservations(authContext);
+                                case "admin_get_spaces" -> adminGetSpaces(authContext);
                                 default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
                         };
 
-                        // Logger la réponse MCP avec trace ID et span ID (réutiliser les variables déjà déclarées)
+                        // Logger la réponse MCP avec trace ID et span ID (réutiliser les variables déjà
+                        // déclarées)
                         if (result.isError()) {
                                 log.warn("MCP tool {} returned an error: {} [traceId={}, spanId={}]", toolName,
                                                 result.getContent().isEmpty() ? "Unknown error"
@@ -276,7 +426,8 @@ public class MatrixAssistantMCPServer {
                                                 .map(MCPContent::getText)
                                                 .filter(text -> text != null)
                                                 .collect(Collectors.joining("\n"));
-                                log.info("MCP tool {} succeeded. Response (first 500 chars): {} [traceId={}, spanId={}]", toolName,
+                                log.info("MCP tool {} succeeded. Response (first 500 chars): {} [traceId={}, spanId={}]",
+                                                toolName,
                                                 resultText.length() > 500 ? resultText.substring(0, 500) + "..."
                                                                 : resultText,
                                                 traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
@@ -284,8 +435,9 @@ public class MatrixAssistantMCPServer {
 
                         return result;
                 } catch (Exception e) {
-                        // Réutiliser les variables traceId et spanId déjà déclarées au début de la méthode
-                        log.error("Error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName, e.getMessage(), 
+                        // Réutiliser les variables traceId et spanId déjà déclarées au début de la
+                        // méthode
+                        log.error("Error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName, e.getMessage(),
                                         traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A", e);
                         return MCPToolResult.builder()
                                         .isError(true)
@@ -297,12 +449,58 @@ public class MatrixAssistantMCPServer {
                 }
         }
 
+        /**
+         * Vérifie si un outil nécessite une authentification (userEntity présent)
+         * Les outils hub nécessitent juste un userEntity (peuvent être utilisés en room
+         * publique)
+         */
         private boolean requiresAuth(String toolName) {
                 return "create_reservation".equals(toolName) ||
                                 "create_github_issue".equals(toolName) ||
                                 "list_my_reservations".equals(toolName) ||
                                 "get_reservation_access_code".equals(toolName) ||
-                                "generate_payment_link".equals(toolName);
+                                "generate_payment_link".equals(toolName) ||
+                                "get_infos".equals(toolName) ||
+                                "get_announcements".equals(toolName) ||
+                                "get_applications".equals(toolName) ||
+                                "get_notifications".equals(toolName) ||
+                                "get_unread_notifications_count".equals(toolName) ||
+                                "get_users".equals(toolName) ||
+                                toolName.startsWith("admin_"); // All admin tools require auth
+        }
+
+        /**
+         * Vérifie si un outil nécessite un DM (pas juste un userEntity)
+         * Certains outils sensibles nécessitent un DM pour la confidentialité
+         */
+        private boolean requiresDM(String toolName) {
+                return "create_reservation".equals(toolName) ||
+                                "create_github_issue".equals(toolName) ||
+                                "list_my_reservations".equals(toolName) ||
+                                "get_reservation_access_code".equals(toolName) ||
+                                "generate_payment_link".equals(toolName) ||
+                                "get_notifications".equals(toolName) ||
+                                "get_unread_notifications_count".equals(toolName) ||
+                                toolName.startsWith("admin_"); // Admin tools require DM
+        }
+
+        /**
+         * Vérifie si un utilisateur est admin (soit via Matrix admin config, soit via
+         * UserType.ADMIN)
+         */
+        private boolean isAdminUser(MatrixAssistantAuthContext authContext) {
+                // Vérifier via Matrix admin config
+                if (adminCommandService != null && adminCommandService.isAdminUser(authContext.getMatrixUserId())) {
+                        return true;
+                }
+
+                // Vérifier via UserEntity type
+                if (authContext.getUserEntity().isPresent()) {
+                        UserEntity user = authContext.getUserEntity().get();
+                        return user.getType() == UserType.ADMIN;
+                }
+
+                return false;
         }
 
         private MCPToolResult getResidentInfo(Map<String, Object> arguments) {
@@ -311,8 +509,10 @@ public class MatrixAssistantMCPServer {
 
                 List<String> results = new ArrayList<>();
 
-                // Cas spécial : si on a à la fois floor et apartment, et que apartment est juste une lettre (A, B, C)
-                // alors on cherche tous les appartements de ce bâtiment à cet étage (ex: C + 6 = C6XX)
+                // Cas spécial : si on a à la fois floor et apartment, et que apartment est
+                // juste une lettre (A, B, C)
+                // alors on cherche tous les appartements de ce bâtiment à cet étage (ex: C + 6
+                // = C6XX)
                 if (floor != null && !floor.isEmpty() && apartment != null && !apartment.isEmpty()) {
                         String building = apartment.trim().toUpperCase();
                         if (building.length() == 1 && building.matches("[ABC]")) {
@@ -325,18 +525,23 @@ public class MatrixAssistantMCPServer {
                                                                 return false;
                                                         }
                                                         String name = u.getName().toUpperCase();
-                                                        // Chercher les appartements qui commencent par [Building][Floor]
+                                                        // Chercher les appartements qui commencent par
+                                                        // [Building][Floor]
                                                         // Ex: C6 pour C601, C602, etc.
-                                                        return name.startsWith(floorPattern) && name.length() > floorPattern.length();
+                                                        return name.startsWith(floorPattern)
+                                                                        && name.length() > floorPattern.length();
                                                 })
                                                 .collect(Collectors.toList());
 
                                 if (floorUnits.isEmpty()) {
-                                        results.add("Aucun appartement trouvé au " + floor + "ème étage du bâtiment " + building + ".");
+                                        results.add("Aucun appartement trouvé au " + floor + "ème étage du bâtiment "
+                                                        + building + ".");
                                 } else {
-                                        results.add("Résidents du " + floor + "ème étage du bâtiment " + building + " (" + floorUnits.size() + " appartement(s)):");
+                                        results.add("Résidents du " + floor + "ème étage du bâtiment " + building + " ("
+                                                        + floorUnits.size() + " appartement(s)):");
                                         for (UnitEntity unit : floorUnits) {
-                                                List<UnitMemberEntity> members = unitMemberRepository.findByUnitId(unit.getId());
+                                                List<UnitMemberEntity> members = unitMemberRepository
+                                                                .findByUnitId(unit.getId());
                                                 if (!members.isEmpty()) {
                                                         results.add("\nAppartement " + unit.getName() + ":");
                                                         for (UnitMemberEntity member : members) {
@@ -345,9 +550,14 @@ public class MatrixAssistantMCPServer {
                                                                         String firstName = user.getFirstName();
                                                                         String lastName = user.getLastName();
                                                                         String email = user.getEmail();
-                                                                        String name = (firstName != null ? firstName : "") +
-                                                                                        " " + (lastName != null ? lastName : "");
-                                                                        results.add("  - " + name.trim() + (email != null ? " (" + email + ")" : ""));
+                                                                        String name = (firstName != null ? firstName
+                                                                                        : "") +
+                                                                                        " "
+                                                                                        + (lastName != null ? lastName
+                                                                                                        : "");
+                                                                        results.add("  - " + name.trim()
+                                                                                        + (email != null ? " (" + email
+                                                                                                        + ")" : ""));
                                                                 }
                                                         }
                                                 }
@@ -514,6 +724,14 @@ public class MatrixAssistantMCPServer {
                                 if (contact.getDescription() != null) {
                                         contactInfo.append(" (").append(contact.getDescription()).append(")");
                                 }
+                                // Ajouter l'adresse si disponible
+                                if (contact.getAddress() != null && !contact.getAddress().isEmpty()) {
+                                        contactInfo.append(" - Adresse: ").append(contact.getAddress());
+                                }
+                                // Ajouter l'email si disponible
+                                if (contact.getEmail() != null && !contact.getEmail().isEmpty()) {
+                                        contactInfo.append(" - Email: ").append(contact.getEmail());
+                                }
                                 results.add(contactInfo.toString());
                         }
                 }
@@ -526,8 +744,19 @@ public class MatrixAssistantMCPServer {
                 if (!acafContacts.isEmpty()) {
                         results.add("\nACAF:");
                         for (ContactNumberEntity acaf : acafContacts) {
-                                results.add("- " + (acaf.getPhoneNumber() != null ? acaf.getPhoneNumber()
-                                                : "Non disponible"));
+                                StringBuilder acafInfo = new StringBuilder();
+                                if (acaf.getPhoneNumber() != null) {
+                                        acafInfo.append("- Téléphone: ").append(acaf.getPhoneNumber());
+                                } else {
+                                        acafInfo.append("- Téléphone: Non disponible");
+                                }
+                                if (acaf.getAddress() != null && !acaf.getAddress().isEmpty()) {
+                                        acafInfo.append("\n  Adresse: ").append(acaf.getAddress());
+                                }
+                                if (acaf.getEmail() != null && !acaf.getEmail().isEmpty()) {
+                                        acafInfo.append("\n  Email: ").append(acaf.getEmail());
+                                }
+                                results.add(acafInfo.toString());
                         }
                 }
 
@@ -540,7 +769,8 @@ public class MatrixAssistantMCPServer {
                                 .build();
         }
 
-        private MCPToolResult getReservationDetails(Map<String, Object> arguments, MatrixAssistantAuthContext authContext) {
+        private MCPToolResult getReservationDetails(Map<String, Object> arguments,
+                        MatrixAssistantAuthContext authContext) {
                 String reservationIdStr = (String) arguments.get("reservationId");
                 if (reservationIdStr == null || reservationIdStr.isEmpty()) {
                         return MCPToolResult.builder()
@@ -972,7 +1202,8 @@ public class MatrixAssistantMCPServer {
                 }
         }
 
-        private MCPToolResult listMyReservations(Map<String, Object> arguments, MatrixAssistantAuthContext authContext) {
+        private MCPToolResult listMyReservations(Map<String, Object> arguments,
+                        MatrixAssistantAuthContext authContext) {
                 try {
                         UserEntity user = authContext.getAuthenticatedUser();
                         String statusFilter = (String) arguments.getOrDefault("status", "all");
@@ -1134,7 +1365,8 @@ public class MatrixAssistantMCPServer {
                 }
         }
 
-        private MCPToolResult generatePaymentLink(Map<String, Object> arguments, MatrixAssistantAuthContext authContext) {
+        private MCPToolResult generatePaymentLink(Map<String, Object> arguments,
+                        MatrixAssistantAuthContext authContext) {
                 String reservationIdStr = (String) arguments.get("reservationId");
                 if (reservationIdStr == null || reservationIdStr.isEmpty()) {
                         return MCPToolResult.builder()
@@ -1262,6 +1494,566 @@ public class MatrixAssistantMCPServer {
                         case CANCELLED -> "❌ Annulée";
                         case REFUNDED -> "💰 Remboursée";
                 };
+        }
+
+        // ========== Hub endpoints implementations ==========
+
+        private MCPToolResult getInfos(MatrixAssistantAuthContext authContext) {
+                try {
+                        com.neohoods.portal.platform.model.Info info = infosService.getInfos().block();
+                        if (info == null) {
+                                return MCPToolResult.builder()
+                                                .isError(true)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucune information communautaire disponible.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Informations communautaires:");
+
+                        if (info.getNextAGDate() != null) {
+                                results.add("\n📅 Prochaine AG: " + info.getNextAGDate());
+                        }
+                        if (info.getRulesUrl() != null && !info.getRulesUrl().isEmpty()) {
+                                results.add("📋 Règlement: " + info.getRulesUrl());
+                        }
+
+                        if (info.getDelegates() != null && !info.getDelegates().isEmpty()) {
+                                results.add("\n👥 Délégués:");
+                                for (com.neohoods.portal.platform.model.Delegate delegate : info.getDelegates()) {
+                                        StringBuilder delegateInfo = new StringBuilder("- ");
+                                        if (delegate.getFirstName() != null) {
+                                                delegateInfo.append(delegate.getFirstName());
+                                        }
+                                        if (delegate.getLastName() != null) {
+                                                delegateInfo.append(" ").append(delegate.getLastName());
+                                        }
+                                        if (delegate.getEmail() != null) {
+                                                delegateInfo.append(" (").append(delegate.getEmail()).append(")");
+                                        }
+                                        results.add(delegateInfo.toString());
+                                }
+                        }
+
+                        if (info.getContactNumbers() != null && !info.getContactNumbers().isEmpty()) {
+                                results.add("\n📞 Contacts:");
+                                for (com.neohoods.portal.platform.model.ContactNumber contact : info
+                                                .getContactNumbers()) {
+                                        StringBuilder contactInfo = new StringBuilder("- ");
+                                        contactInfo.append(contact.getName() != null ? contact.getName()
+                                                        : contact.getType());
+                                        if (contact.getPhoneNumber() != null) {
+                                                contactInfo.append(": ").append(contact.getPhoneNumber());
+                                        }
+                                        if (contact.getEmail() != null) {
+                                                contactInfo.append(" - Email: ").append(contact.getEmail());
+                                        }
+                                        if (contact.getAddress() != null) {
+                                                contactInfo.append(" - Adresse: ").append(contact.getAddress());
+                                        }
+                                        results.add(contactInfo.toString());
+                                }
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting infos: {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des informations: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult getAnnouncements(Map<String, Object> arguments, MatrixAssistantAuthContext authContext) {
+                try {
+                        Integer page = arguments.get("page") != null ? (Integer) arguments.get("page") : 1;
+                        Integer pageSize = arguments.get("pageSize") != null ? (Integer) arguments.get("pageSize") : 10;
+
+                        com.neohoods.portal.platform.model.PaginatedAnnouncementsResponse response = announcementsService
+                                        .getAnnouncementsPaginated(page, pageSize)
+                                        .block();
+
+                        if (response == null || response.getAnnouncements() == null
+                                        || response.getAnnouncements().isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucune annonce disponible.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Annonces communautaires:");
+                        for (com.neohoods.portal.platform.model.Announcement announcement : response
+                                        .getAnnouncements()) {
+                                results.add("\n📢 " + announcement.getTitle());
+                                if (announcement.getContent() != null) {
+                                        results.add(announcement.getContent());
+                                }
+                                if (announcement.getCategory() != null) {
+                                        results.add("Catégorie: " + announcement.getCategory().getValue());
+                                }
+                                if (announcement.getCreatedAt() != null) {
+                                        results.add("Date: " + announcement.getCreatedAt());
+                                }
+                                results.add("---");
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting announcements: {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des annonces: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult getApplications(MatrixAssistantAuthContext authContext) {
+                try {
+                        List<com.neohoods.portal.platform.model.Application> applications = applicationsService
+                                        .getApplications()
+                                        .collectList()
+                                        .block();
+
+                        if (applications == null || applications.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucune application disponible.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Applications disponibles:");
+                        for (com.neohoods.portal.platform.model.Application app : applications) {
+                                if (app.getDisabled() != null && app.getDisabled()) {
+                                        continue; // Skip disabled apps
+                                }
+                                results.add("\n📱 " + app.getName());
+                                if (app.getUrl() != null) {
+                                        results.add("URL: " + app.getUrl());
+                                }
+                                if (app.getHelpText() != null) {
+                                        results.add("Description: " + app.getHelpText());
+                                }
+                                results.add("---");
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting applications: {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des applications: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult getNotifications(MatrixAssistantAuthContext authContext) {
+                try {
+                        // getNotifications nécessite un DM (données personnelles)
+                        UserEntity user = authContext.getAuthenticatedUser();
+                        List<com.neohoods.portal.platform.model.Notification> notifications = notificationsService
+                                        .getNotifications(user.getId())
+                                        .collectList()
+                                        .block();
+
+                        if (notifications == null || notifications.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucune notification disponible.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Vos notifications:");
+                        for (com.neohoods.portal.platform.model.Notification notification : notifications) {
+                                results.add("\n🔔 " + (notification.getAuthor() != null ? notification.getAuthor()
+                                                : "Système"));
+                                if (notification.getPayload() != null) {
+                                        Object title = notification.getPayload().get("title");
+                                        if (title != null) {
+                                                results.add("Titre: " + title);
+                                        }
+                                        Object content = notification.getPayload().get("content");
+                                        if (content != null) {
+                                                results.add("Contenu: " + content);
+                                        }
+                                }
+                                if (notification.getDate() != null) {
+                                        results.add("Date: " + notification.getDate());
+                                }
+                                results.add("Lu: " + (notification.getAlreadyRead() != null
+                                                && notification.getAlreadyRead() ? "Oui" : "Non"));
+                                results.add("---");
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting notifications: {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des notifications: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult getUnreadNotificationsCount(MatrixAssistantAuthContext authContext) {
+                try {
+                        // getUnreadNotificationsCount nécessite un DM (données personnelles)
+                        UserEntity user = authContext.getAuthenticatedUser();
+                        com.neohoods.portal.platform.model.GetUnreadNotificationsCount200Response response = notificationsService
+                                        .getUnreadNotificationsCount(user.getId())
+                                        .block();
+
+                        if (response == null) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Nombre de notifications non lues: 0")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Nombre de notifications non lues: "
+                                                                        + response.getCount())
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting unread notifications count: {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération du nombre de notifications: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult getUsers(MatrixAssistantAuthContext authContext) {
+                try {
+                        List<UserEntity> users = new ArrayList<>();
+                        usersRepository.findAll().forEach(users::add);
+                        if (users == null || users.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucun utilisateur trouvé.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Annuaire des utilisateurs:");
+                        for (UserEntity user : users) {
+                                StringBuilder userInfo = new StringBuilder("\n👤 ");
+                                if (user.getFirstName() != null) {
+                                        userInfo.append(user.getFirstName());
+                                }
+                                if (user.getLastName() != null) {
+                                        userInfo.append(" ").append(user.getLastName());
+                                }
+                                if (user.getEmail() != null) {
+                                        userInfo.append(" (").append(user.getEmail()).append(")");
+                                }
+                                if (user.getType() != null) {
+                                        userInfo.append(" - Type: ").append(user.getType());
+                                }
+                                results.add(userInfo.toString());
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting users: {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des utilisateurs: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        // ========== Admin endpoints implementations ==========
+
+        private MCPToolResult adminGetUsers(MatrixAssistantAuthContext authContext) {
+                try {
+                        List<UserEntity> users = new ArrayList<>();
+                        usersRepository.findAll().forEach(users::add);
+                        if (users == null || users.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucun utilisateur trouvé.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Tous les utilisateurs (admin):");
+                        for (UserEntity user : users) {
+                                StringBuilder userInfo = new StringBuilder("\n👤 ");
+                                userInfo.append("ID: ").append(user.getId());
+                                if (user.getUsername() != null) {
+                                        userInfo.append(" - Username: ").append(user.getUsername());
+                                }
+                                if (user.getFirstName() != null) {
+                                        userInfo.append(" - Prénom: ").append(user.getFirstName());
+                                }
+                                if (user.getLastName() != null) {
+                                        userInfo.append(" - Nom: ").append(user.getLastName());
+                                }
+                                if (user.getEmail() != null) {
+                                        userInfo.append(" - Email: ").append(user.getEmail());
+                                }
+                                if (user.getType() != null) {
+                                        userInfo.append(" - Type: ").append(user.getType());
+                                }
+                                userInfo.append(" - Désactivé: ").append(user.isDisabled());
+                                results.add(userInfo.toString());
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting users (admin): {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des utilisateurs: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult adminGetUnits(MatrixAssistantAuthContext authContext) {
+                try {
+                        List<UnitEntity> units = unitRepository.findAll();
+                        if (units == null || units.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucune unité trouvée.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Toutes les unités/résidences (admin):");
+                        for (UnitEntity unit : units) {
+                                StringBuilder unitInfo = new StringBuilder("\n🏠 ");
+                                unitInfo.append("ID: ").append(unit.getId());
+                                if (unit.getName() != null) {
+                                        unitInfo.append(" - Nom: ").append(unit.getName());
+                                }
+                                List<UnitMemberEntity> members = unitMemberRepository.findByUnitId(unit.getId());
+                                unitInfo.append(" - Membres: ").append(members.size());
+                                results.add(unitInfo.toString());
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting units (admin): {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des unités: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult adminGetReservations(MatrixAssistantAuthContext authContext) {
+                try {
+                        List<ReservationEntity> reservations = reservationRepository.findAll();
+                        if (reservations == null || reservations.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucune réservation trouvée.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Toutes les réservations (admin):");
+                        for (ReservationEntity reservation : reservations) {
+                                StringBuilder reservationInfo = new StringBuilder("\n📅 ");
+                                reservationInfo.append("ID: ").append(reservation.getId());
+                                if (reservation.getSpace() != null) {
+                                        reservationInfo.append(" - Espace: ").append(reservation.getSpace().getName());
+                                }
+                                if (reservation.getUser() != null) {
+                                        reservationInfo.append(" - Utilisateur: ")
+                                                        .append(reservation.getUser().getFirstName())
+                                                        .append(" ").append(reservation.getUser().getLastName());
+                                }
+                                if (reservation.getStartDate() != null) {
+                                        reservationInfo.append(" - Début: ").append(reservation.getStartDate());
+                                }
+                                if (reservation.getEndDate() != null) {
+                                        reservationInfo.append(" - Fin: ").append(reservation.getEndDate());
+                                }
+                                if (reservation.getStatus() != null) {
+                                        reservationInfo.append(" - Statut: ").append(reservation.getStatus());
+                                }
+                                results.add(reservationInfo.toString());
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting reservations (admin): {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des réservations: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
+        }
+
+        private MCPToolResult adminGetSpaces(MatrixAssistantAuthContext authContext) {
+                try {
+                        List<SpaceEntity> spaces = spaceRepository.findAll();
+                        if (spaces == null || spaces.isEmpty()) {
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text("Aucun espace trouvé.")
+                                                                .build()))
+                                                .build();
+                        }
+
+                        List<String> results = new ArrayList<>();
+                        results.add("Tous les espaces (admin):");
+                        for (SpaceEntity space : spaces) {
+                                StringBuilder spaceInfo = new StringBuilder("\n🏢 ");
+                                spaceInfo.append("ID: ").append(space.getId());
+                                if (space.getName() != null) {
+                                        spaceInfo.append(" - Nom: ").append(space.getName());
+                                }
+                                if (space.getType() != null) {
+                                        spaceInfo.append(" - Type: ").append(space.getType());
+                                }
+                                if (space.getDescription() != null) {
+                                        spaceInfo.append(" - Description: ").append(space.getDescription());
+                                }
+                                results.add(spaceInfo.toString());
+                        }
+
+                        return MCPToolResult.builder()
+                                        .isError(false)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text(String.join("\n", results))
+                                                        .build()))
+                                        .build();
+                } catch (Exception e) {
+                        log.error("Error getting spaces (admin): {}", e.getMessage(), e);
+                        return MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MCPContent.builder()
+                                                        .type("text")
+                                                        .text("Erreur lors de la récupération des espaces: "
+                                                                        + e.getMessage())
+                                                        .build()))
+                                        .build();
+                }
         }
 
         /**

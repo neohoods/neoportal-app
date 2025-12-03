@@ -97,20 +97,17 @@ public class MatrixConversationContextService {
      * 
      * @param roomId ID de la room Matrix
      * @param message Contenu du message utilisateur
-     * @param sender Matrix user ID du sender (optionnel, pour le contexte)
+     * @param sender Matrix user ID du sender (optionnel, pour le contexte - non inclus dans le message pour éviter que le LLM reproduise le format)
      */
     public void addUserMessage(String roomId, String message, String sender) {
         if (!conversationContextEnabled) {
             return;
         }
 
-        // Formater le message avec le sender si disponible
-        String formattedMessage = sender != null && !sender.isEmpty()
-                ? String.format("[%s]: %s", sender, message)
-                : message;
-
+        // Ne pas formater avec le sender pour éviter que le LLM reproduise le format Matrix user ID
+        // Le sender est gardé uniquement pour les logs
         roomHistory.computeIfAbsent(roomId, k -> new ArrayList<>())
-                .add(new ConversationMessage("user", formattedMessage));
+                .add(new ConversationMessage("user", message));
 
         // Limiter la taille de l'historique
         trimHistory(roomId);

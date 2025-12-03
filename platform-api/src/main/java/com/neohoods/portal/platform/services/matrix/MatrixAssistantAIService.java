@@ -8,10 +8,16 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import jakarta.annotation.PostConstruct;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPContent;
@@ -34,10 +40,20 @@ public class MatrixAssistantAIService {
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
     private final MatrixAssistantMCPAdapter mcpAdapter;
+    private final ResourceLoader resourceLoader;
+
+    @Value("${neohoods.portal.matrix.assistant.ai.system-prompt-file:classpath:matrix-assistant-system-prompt.txt}")
+    private String systemPromptFile;
+
+    private String baseSystemPrompt;
 
     // Optional: RAG service (only available if RAG is enabled)
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private MatrixAssistantRAGService ragService;
+
+    // Optional: Admin command service
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private MatrixAssistantAdminCommandService adminCommandService;
 
     @Value("${neohoods.portal.matrix.assistant.ai.provider:mistral}")
     private String provider;
@@ -60,6 +76,41 @@ public class MatrixAssistantAIService {
     private static final String MISTRAL_API_BASE_URL = "https://api.mistral.ai/v1";
 
     /**
+     * Charge le prompt système depuis le fichier de ressources au démarrage
+     */
+    @PostConstruct
+    public void loadSystemPrompt() {
+        try {
+            Resource resource = resourceLoader.getResource(systemPromptFile);
+            if (!resource.exists()) {
+                log.warn("System prompt file not found: {}, using default", systemPromptFile);
+                baseSystemPrompt = getDefaultSystemPrompt();
+                return;
+            }
+
+            try (InputStream is = resource.getInputStream()) {
+                baseSystemPrompt = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                log.info("Loaded system prompt from: {}", systemPromptFile);
+            }
+        } catch (Exception e) {
+            log.error("Error loading system prompt from: {}, using default", systemPromptFile, e);
+            baseSystemPrompt = getDefaultSystemPrompt();
+        }
+    }
+
+    /**
+     * Prompt système par défaut (fallback si le fichier n'est pas trouvé)
+     */
+    private String getDefaultSystemPrompt() {
+        return "Tu es Alfred, l'assistant IA pour NeoHoods, une plateforme de gestion de copropriété.\n" +
+                "Tu réponds aux questions des résidents via Matrix (Element).\n\n" +
+                "⚠️ RÈGLE ABSOLUE - NE JAMAIS INVENTER D'INFORMATIONS:\n" +
+                "- Si tu n'as PAS l'information dans le contexte de conversation OU via les outils MCP, " +
+                "tu dois répondre: \"Je n'ai pas cette information. Laissez-moi la rechercher pour vous.\" " +
+                "puis utiliser l'outil MCP approprié.\n";
+    }
+
+    /**
      * Génère une réponse à un message utilisateur en utilisant Mistral AI
      * avec support pour RAG et MCP
      */
@@ -74,10 +125,12 @@ public class MatrixAssistantAIService {
      * Génère une réponse à un message utilisateur en utilisant Mistral AI
      * avec support pour RAG et MCP
      * 
-     * @param userMessage Message de l'utilisateur
-     * @param conversationHistory Historique de conversation (format string, pour compatibilité)
-     * @param conversationHistoryList Historique de conversation (format liste, préféré)
-     * @param authContext Contexte d'autorisation
+     * @param userMessage             Message de l'utilisateur
+     * @param conversationHistory     Historique de conversation (format string,
+     *                                pour compatibilité)
+     * @param conversationHistoryList Historique de conversation (format liste,
+     *                                préféré)
+     * @param authContext             Contexte d'autorisation
      */
     public Mono<String> generateResponse(
             String userMessage,
@@ -115,7 +168,8 @@ public class MatrixAssistantAIService {
 
         // 4. Appeler Mistral API avec function calling
         return ragContextMono.flatMap(ragContext -> {
-            return callMistralAPI(userMessage, conversationHistory, conversationHistoryList, ragContext, systemPrompt, finalTools, authContext);
+            return callMistralAPI(userMessage, conversationHistory, conversationHistoryList, ragContext, systemPrompt,
+                    finalTools, authContext);
         });
     }
 
@@ -140,10 +194,28 @@ public class MatrixAssistantAIService {
         // Construire les messages
         List<Map<String, Object>> messages = new ArrayList<>();
 
+        // Optimisation: Si c'est le premier message de la conversation, envoyer le
+        // prompt système complet
+        // Sinon, utiliser un prompt système minimal (le modèle a déjà le contexte dans
+        // l'historique)
+        boolean isFirstMessage = (conversationHistoryList == null || conversationHistoryList.isEmpty()) &&
+                (conversationHistory == null || conversationHistory.isEmpty());
+
+        String systemPromptToUse;
+        if (isFirstMessage) {
+            // Premier message: prompt système complet
+            systemPromptToUse = systemPrompt + "\n\n" + ragContext;
+            log.debug("Using full system prompt (first message in conversation)");
+        } else {
+            // Messages suivants: prompt système minimal (juste les règles critiques)
+            systemPromptToUse = buildMinimalSystemPrompt(authContext) + "\n\n" + ragContext;
+            log.debug("Using minimal system prompt (conversation in progress)");
+        }
+
         // Message système
         Map<String, Object> systemMsg = new HashMap<>();
         systemMsg.put("role", "system");
-        systemMsg.put("content", systemPrompt + "\n\n" + ragContext);
+        systemMsg.put("content", systemPromptToUse);
         messages.add(systemMsg);
 
         // Historique de conversation (si disponible)
@@ -172,7 +244,8 @@ public class MatrixAssistantAIService {
                     }
                 }
             }
-            log.debug("Added {} messages from conversation history (string format)", messages.size() - 1); // -1 pour system
+            log.debug("Added {} messages from conversation history (string format)", messages.size() - 1); // -1 pour
+                                                                                                           // system
         }
 
         // Message utilisateur
@@ -201,7 +274,7 @@ public class MatrixAssistantAIService {
                 .bodyToMono(Map.class)
                 .flatMap(response -> {
                     // Traiter la réponse Mistral
-                    return processMistralResponse(response, authContext, messages);
+                    return processMistralResponse(response, authContext, messages, ragContext);
                 })
                 .onErrorResume(e -> {
                     log.error("Error calling Mistral API: {}",
@@ -215,7 +288,7 @@ public class MatrixAssistantAIService {
      */
     @SuppressWarnings("unchecked")
     private Mono<String> processMistralResponse(Map<String, Object> response, MatrixAssistantAuthContext authContext,
-            List<Map<String, Object>> previousMessages) {
+            List<Map<String, Object>> previousMessages, String ragContext) {
         List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
         if (choices == null || choices.isEmpty()) {
             return Mono.just("Aucune réponse générée.");
@@ -256,7 +329,7 @@ public class MatrixAssistantAIService {
                 // Appeler à nouveau Mistral avec le résultat du tool
                 // On passe le message assistant original avec tool_calls et le tool_call_id
                 return callMistralWithToolResult(previousMessages, message, toolCallId, functionName, toolResultText,
-                        authContext);
+                        authContext, ragContext);
             } catch (Exception e) {
                 log.error("Error parsing function arguments: {}", e.getMessage(), e);
                 return Mono.just("Erreur lors de l'appel de l'outil: " + e.getMessage());
@@ -264,7 +337,39 @@ public class MatrixAssistantAIService {
         }
 
         // Pas de function call, retourner la réponse directe
+        // MAIS: Si la question nécessite des données (adresses, numéros, etc.),
+        // on ne devrait pas avoir de réponse directe sans tool call
         String content = (String) message.get("content");
+
+        // LOG: Toutes les réponses finales du bot pour audit
+        if (content != null) {
+            log.info("🤖 BOT FINAL RESPONSE (no tool call) [user={}, room={}]: {}",
+                    authContext.getMatrixUserId(),
+                    authContext.getRoomId(),
+                    content.length() > 500 ? content.substring(0, 500) + "..." : content);
+        }
+
+        // Vérifier si la réponse semble contenir des informations inventées
+        // (adresses, numéros de téléphone, horaires, etc. qui ne sont pas dans le
+        // contexte RAG ou toolResult)
+        if (content != null && containsPotentiallyInventedInfo(content)) {
+            // Vérifier si les informations suspectes sont dans le RAG
+            boolean infoInRag = ragContext != null && !ragContext.isEmpty() &&
+                    ragContext.toLowerCase()
+                            .contains(content.toLowerCase().substring(0, Math.min(100, content.length())));
+
+            if (!infoInRag) {
+                log.warn(
+                        "🚨 Bot response may contain invented information (no tool call, not in RAG). Forcing tool usage. Content: {}",
+                        content.substring(0, Math.min(200, content.length())));
+                // Ne pas envoyer cette réponse, retourner un message indiquant qu'on n'a pas
+                // l'info
+                return Mono.just("Je n'ai pas cette information disponible. Laissez-moi la rechercher pour vous.");
+            } else {
+                log.debug("Bot response contains potentially invented info but it's in RAG context, allowing it.");
+            }
+        }
+
         return Mono.just(content != null ? content : "Aucune réponse générée.");
     }
 
@@ -278,6 +383,8 @@ public class MatrixAssistantAIService {
      * @param functionName     Le nom de la fonction appelée
      * @param toolResult       Le résultat du tool call
      * @param authContext      Le contexte d'autorisation
+     * @param ragContext       Le contexte RAG (peut contenir des informations
+     *                         valides)
      */
     private Mono<String> callMistralWithToolResult(
             List<Map<String, Object>> previousMessages,
@@ -285,7 +392,8 @@ public class MatrixAssistantAIService {
             String toolCallId,
             String functionName,
             String toolResult,
-            MatrixAssistantAuthContext authContext) {
+            MatrixAssistantAuthContext authContext,
+            String ragContext) {
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
@@ -325,6 +433,126 @@ public class MatrixAssistantAIService {
                         Map<String, Object> choice = choices.get(0);
                         Map<String, Object> message = (Map<String, Object>) choice.get("message");
                         String content = (String) message.get("content");
+
+                        // LOG: Toutes les réponses finales du bot pour audit
+                        if (content != null) {
+                            log.info("🤖 BOT FINAL RESPONSE [user={}, room={}]: {}",
+                                    authContext.getMatrixUserId(),
+                                    authContext.getRoomId(),
+                                    content.length() > 500 ? content.substring(0, 500) + "..." : content);
+                        }
+
+                        // Vérifier si la réponse contient des informations inventées
+                        // Si le toolResult ne contenait pas l'info demandée (ex: adresse, horaires)
+                        // mais que la réponse en contient, c'est suspect
+                        if (content != null && toolResult != null) {
+                            String lowerContent = content.toLowerCase();
+                            String lowerToolResult = toolResult.toLowerCase();
+
+                            // Vérifier si la question demandait des horaires
+                            // (on peut détecter ça dans le contexte précédent ou dans la réponse)
+                            boolean askingForHours = lowerContent.contains("horaires") ||
+                                    lowerContent.contains("horaire") ||
+                                    lowerContent.contains("ouverture") ||
+                                    lowerContent.contains("ouvert");
+
+                            // Vérifier si la réponse contient des horaires
+                            boolean responseHasHours = lowerContent
+                                    .matches(".*(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche).*\\d+h.*") ||
+                                    lowerContent.matches(".*\\d+h\\d+.*\\d+h\\d+.*") ||
+                                    lowerContent.matches(
+                                            ".*(du|de)\\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche).*\\d+h.*");
+
+                            // Vérifier si toolResult contient des horaires
+                            boolean toolResultHasHours = lowerToolResult.contains("horaire") ||
+                                    lowerToolResult.contains("ouverture") ||
+                                    lowerToolResult.matches(".*\\d+h.*\\d+h.*");
+
+                            // Si on demandait des horaires, que la réponse en contient, mais que toolResult
+                            // n'en a pas, vérifier si c'est dans le RAG
+                            if (askingForHours && responseHasHours && !toolResultHasHours) {
+                                // Vérifier si les horaires sont dans le RAG
+                                boolean hoursInRag = ragContext != null && !ragContext.isEmpty() &&
+                                        (ragContext.toLowerCase().contains("horaire") ||
+                                                ragContext.toLowerCase().contains("ouverture") ||
+                                                ragContext.toLowerCase().matches(".*\\d+h.*\\d+h.*"));
+
+                                if (!hoursInRag) {
+                                    log.warn("🚨 BOT INVENTED OPENING HOURS! Tool result: {}, Response: {}, RAG: {}",
+                                            toolResult.substring(0, Math.min(300, toolResult.length())),
+                                            content.substring(0, Math.min(300, content.length())),
+                                            ragContext != null
+                                                    ? ragContext.substring(0, Math.min(200, ragContext.length()))
+                                                    : "null");
+                                    return "Je n'ai pas les horaires d'ouverture disponibles dans mes données.";
+                                } else {
+                                    log.debug("Opening hours found in RAG context, allowing response.");
+                                }
+                            }
+
+                            // Si on cherchait une adresse mais que toolResult ne la contient pas
+                            boolean askingForAddress = lowerToolResult.contains("adresse") ||
+                                    lowerToolResult.contains("postal");
+                            boolean responseHasAddress = lowerContent
+                                    .matches(".*\\d+\\s+(rue|avenue|boulevard|place).*") ||
+                                    lowerContent.matches(".*\\d{5}\\s+paris.*");
+
+                            if (askingForAddress && responseHasAddress &&
+                                    !lowerToolResult.contains("adresse:")) {
+                                // Vérifier si l'adresse est dans le RAG
+                                boolean addressInRag = ragContext != null && !ragContext.isEmpty() &&
+                                        (ragContext.toLowerCase().contains("adresse") ||
+                                                ragContext.toLowerCase()
+                                                        .matches(".*\\d+\\s+(rue|avenue|boulevard|place).*"));
+
+                                if (!addressInRag) {
+                                    log.warn("🚨 BOT INVENTED ADDRESS! Tool result: {}, Response: {}, RAG: {}",
+                                            toolResult.substring(0, Math.min(300, toolResult.length())),
+                                            content.substring(0, Math.min(300, content.length())),
+                                            ragContext != null
+                                                    ? ragContext.substring(0, Math.min(200, ragContext.length()))
+                                                    : "null");
+                                    return "Je n'ai pas cette information disponible dans mes données.";
+                                } else {
+                                    log.debug("Address found in RAG context, allowing response.");
+                                }
+                            }
+
+                            // Vérification générale des informations inventées
+                            // Si la réponse contient des patterns suspects mais que toolResult ne les
+                            // contient pas
+                            if (containsPotentiallyInventedInfo(content)) {
+                                // Vérifier si toolResult contient au moins une partie de ces infos
+                                boolean toolResultHasInfo = lowerToolResult.contains("adresse") ||
+                                        lowerToolResult.contains("téléphone") ||
+                                        lowerToolResult.contains("phone") ||
+                                        lowerToolResult.contains("horaire") ||
+                                        lowerToolResult.contains("ouverture");
+
+                                if (!toolResultHasInfo) {
+                                    // Vérifier si l'information est dans le RAG
+                                    boolean infoInRag = ragContext != null && !ragContext.isEmpty() &&
+                                            (ragContext.toLowerCase().contains("adresse") ||
+                                                    ragContext.toLowerCase().contains("téléphone") ||
+                                                    ragContext.toLowerCase().contains("phone") ||
+                                                    ragContext.toLowerCase().contains("horaire") ||
+                                                    ragContext.toLowerCase().contains("ouverture"));
+
+                                    if (!infoInRag) {
+                                        log.warn("🚨 BOT INVENTED INFORMATION! Tool result: {}, Response: {}, RAG: {}",
+                                                toolResult.substring(0, Math.min(300, toolResult.length())),
+                                                content.substring(0, Math.min(300, content.length())),
+                                                ragContext != null
+                                                        ? ragContext.substring(0, Math.min(200, ragContext.length()))
+                                                        : "null");
+                                        return "Je n'ai pas cette information disponible dans mes données.";
+                                    } else {
+                                        log.debug("Information found in RAG context, allowing response.");
+                                    }
+                                }
+                            }
+                        }
+
                         return content != null ? content : "Aucune réponse générée.";
                     }
                     return "Aucune réponse générée.";
@@ -336,80 +564,144 @@ public class MatrixAssistantAIService {
     }
 
     /**
-     * Construit le prompt système pour Mistral
+     * Vérifie si une réponse contient potentiellement des informations inventées
+     * (adresses, numéros de téléphone, horaires, etc. qui ressemblent à des données
+     * réelles)
      */
-    private String buildSystemPrompt(MatrixAssistantAuthContext authContext) {
+    private boolean containsPotentiallyInventedInfo(String content) {
+        if (content == null || content.isEmpty()) {
+            return false;
+        }
+
+        String lowerContent = content.toLowerCase();
+
+        // Détecter des patterns qui suggèrent des informations inventées:
+        // - Adresses avec numéros de rue (ex: "1 Rue", "75010", etc.)
+        // - Numéros de téléphone français (format +33 ou 0X XX XX XX XX)
+        // - Codes postaux français (5 chiffres)
+        // - Horaires d'ouverture (ex: "8h30", "lundi au vendredi", "9h-17h", etc.)
+        boolean hasAddressPattern = lowerContent.matches(".*\\d+\\s+(rue|avenue|boulevard|place|chemin|allée).*") ||
+                lowerContent.matches(".*\\d{5}\\s+paris.*") ||
+                lowerContent.matches(".*adresse.*\\d+.*");
+
+        boolean hasPhonePattern = lowerContent
+                .matches(".*\\+33\\s*[0-9]\\s*[0-9]{2}\\s*[0-9]{2}\\s*[0-9]{2}\\s*[0-9]{2}.*") ||
+                lowerContent.matches(".*0[1-9]\\s*[0-9]{2}\\s*[0-9]{2}\\s*[0-9]{2}\\s*[0-9]{2}.*");
+
+        boolean hasPostalCode = lowerContent.matches(".*\\d{5}.*");
+
+        // Détecter les horaires d'ouverture (patterns communs)
+        boolean hasOpeningHours = lowerContent
+                .matches(".*(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche).*\\d+h.*") ||
+                lowerContent.matches(".*\\d+h\\d+.*\\d+h\\d+.*") ||
+                lowerContent.matches(
+                        ".*(horaires|horaire|ouverture).*(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche).*")
+                ||
+                lowerContent.matches(".*(du|de)\\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche).*\\d+h.*");
+
+        // Si on a une adresse, un numéro de téléphone, ou des horaires ET que le
+        // contexte ne mentionne
+        // pas explicitement qu'on a utilisé un outil, c'est suspect
+        return (hasAddressPattern || hasPhonePattern) && hasPostalCode || hasOpeningHours;
+    }
+
+    /**
+     * Construit un prompt système minimal pour les messages suivants dans une
+     * conversation
+     * (le prompt complet est déjà dans l'historique du premier message)
+     */
+    private String buildMinimalSystemPrompt(MatrixAssistantAuthContext authContext) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("Tu es Alfred, l'assistant IA pour NeoHoods, une plateforme de gestion de copropriété.\n");
-        prompt.append("Tu réponds aux questions des résidents via Matrix (Element).\n\n");
+        prompt.append("Tu es Alfred, l'assistant IA pour NeoHoods.\n");
+        prompt.append("⚠️ RÈGLE ABSOLUE: Ne JAMAIS inventer d'informations. Utilise les outils MCP si nécessaire.\n");
 
         if (authContext.isPublicResponse()) {
-            prompt.append("ATTENTION: Cette conversation est dans une room publique. ");
-            prompt.append("Ta réponse sera visible par tous les membres de la room. ");
-            prompt.append("Ne partage pas d'informations sensibles ou personnelles.\n\n");
-        } else {
-            prompt.append("Cette conversation est en message privé (DM). ");
-            prompt.append("Tu peux accéder aux informations personnelles de l'utilisateur si nécessaire.\n\n");
+            prompt.append("ATTENTION: Room publique - ne partage pas d'informations sensibles.\n");
         }
 
-        prompt.append("## Capacités disponibles:\n\n");
-        prompt.append("### Informations générales:\n");
-        prompt.append("- Répondre aux questions sur l'utilisation d'Element (installation, threads, encryption)\n");
-        prompt.append("- Donner les numéros d'urgence (ACAF, etc.) - utilise get_emergency_numbers\n");
-        prompt.append("- Dire qui habite à quel appartement ou étage - utilise get_resident_info\n");
-        prompt.append("- Expliquer pourquoi une réservation a échoué - utilise get_reservation_details\n\n");
-
-        prompt.append("### Gestion des espaces et réservations:\n");
-        prompt.append("**IMPORTANT: Pour les questions sur les espaces, SUIS TOUJOURS CE FLOW:**\n\n");
-        prompt.append("1. **Lister les espaces**: Quand l'utilisateur demande quels espaces sont disponibles, ");
-        prompt.append(
-                "quels espaces peuvent être réservés, ou liste les espaces, utilise TOUJOURS list_spaces en PREMIER.\n");
-        prompt.append(
-                "   - Exemples: 'Quels sont les espaces réservables?', 'Liste les espaces', 'Quels espaces puis-je réserver?'\n\n");
-
-        prompt.append("2. **Détails d'un espace**: Quand l'utilisateur demande des détails sur un espace spécifique ");
-        prompt.append("(règles, tarifs, description), utilise get_space_info avec l'ID de l'espace.\n");
-        prompt.append(
-                "   - Exemples: 'Quels sont les tarifs de l'espace X?', 'Quelles sont les règles de l'espace Y?'\n\n");
-
-        prompt.append("3. **Vérifier disponibilité**: Quand l'utilisateur demande si un espace est disponible ");
-        prompt.append(
-                "sur une période (même vague comme 'Noël', 'semaine prochaine'), utilise check_space_availability.\n");
-        prompt.append("   - Exemples: 'Est-ce disponible à Noël?', 'Disponibilité du X au Y', 'Période de Noël'\n");
-        prompt.append(
-                "   - Tu peux interpréter les périodes: 'Noël' = 24-25 décembre, 'semaine prochaine' = dans 7 jours, etc.\n\n");
-
-        if (authContext.isAuthenticated()) {
-            prompt.append("4. **Créer une réservation**: Quand l'utilisateur veut réserver un espace:\n");
-            prompt.append("   a) Vérifie d'abord la disponibilité avec check_space_availability\n");
-            prompt.append("   b) Présente un RÉCAPITULATIF avec:\n");
-            prompt.append("      - Nom de l'espace\n");
-            prompt.append("      - Dates (début et fin)\n");
-            prompt.append("      - Tarif total estimé (si disponible)\n");
-            prompt.append("   c) DEMANDE CONFIRMATION avant d'appeler create_reservation\n");
-            prompt.append("   d) Seulement après confirmation explicite, appelle create_reservation\n");
-            prompt.append("   e) Après création, informe l'utilisateur qu'un lien de paiement sera généré\n\n");
-
-            prompt.append(
-                    "5. **Mes réservations**: Quand l'utilisateur demande ses réservations, utilise list_my_reservations.\n");
-            prompt.append(
-                    "   - Exemples: 'Mes réservations', 'Quelles sont mes réservations?', 'Liste mes réservations'\n\n");
-
-            prompt.append(
-                    "6. **Code d'accès**: Quand l'utilisateur demande le code d'accès ou les instructions pour une réservation, ");
-            prompt.append("utilise get_reservation_access_code avec l'ID de la réservation.\n");
-            prompt.append("   - Inclus toujours les instructions de check-in, check-out, draps, etc.\n\n");
+        // Ajouter seulement les commandes admin si nécessaire (partie dynamique)
+        if (adminCommandService != null && adminCommandService.isAdminUser(authContext.getMatrixUserId())) {
+            String adminCommands = adminCommandService.getAdminCommandsForPrompt();
+            if (adminCommands != null && !adminCommands.isEmpty()) {
+                prompt.append("\n").append(adminCommands);
+            }
         }
-
-        prompt.append("## Règles importantes:\n");
-        prompt.append("- Sois proactif: Si l'utilisateur demande 'les espaces', utilise list_spaces IMMÉDIATEMENT\n");
-        prompt.append("- Sois conversationnel: Guide l'utilisateur dans le flow de réservation naturellement\n");
-        prompt.append("- Sois précis: Utilise toujours les bons outils MCP pour chaque type de question\n");
-        prompt.append("- Sois concis mais complet: Donne toutes les informations nécessaires sans être verbeux\n");
-        prompt.append("- Utilise le Markdown pour formater tes réponses (listes, gras, etc.)\n");
-        prompt.append("- Sois amical et professionnel\n");
 
         return prompt.toString();
+    }
+
+    /**
+     * Construit le prompt système complet pour Mistral en chargeant le template
+     * depuis les ressources
+     * et en remplaçant les placeholders dynamiques
+     */
+    private String buildSystemPrompt(MatrixAssistantAuthContext authContext) {
+        if (baseSystemPrompt == null || baseSystemPrompt.isEmpty()) {
+            log.warn("Base system prompt not loaded, using default");
+            baseSystemPrompt = getDefaultSystemPrompt();
+        }
+
+        String prompt = baseSystemPrompt;
+
+        // Remplacer {CONTEXT_PUBLIC_OR_PRIVATE}
+        String contextMessage;
+        if (authContext.isPublicResponse()) {
+            contextMessage = "ATTENTION: Cette conversation est dans une room publique. " +
+                    "Ta réponse sera visible par tous les membres de la room. " +
+                    "Ne partage pas d'informations sensibles ou personnelles.\n\n";
+        } else {
+            contextMessage = "Cette conversation est en message privé (DM). " +
+                    "Tu peux accéder aux informations personnelles de l'utilisateur si nécessaire.\n\n";
+        }
+        prompt = prompt.replace("{CONTEXT_PUBLIC_OR_PRIVATE}", contextMessage);
+
+        // Remplacer {RESERVATION_FLOW}
+        String reservationFlow = "";
+        if (authContext.isAuthenticated()) {
+            reservationFlow = "4. **Créer une réservation**: Quand l'utilisateur veut réserver un espace:\n" +
+                    "   a) Vérifie d'abord la disponibilité avec check_space_availability\n" +
+                    "   b) Présente un RÉCAPITULATIF avec:\n" +
+                    "      - Nom de l'espace\n" +
+                    "      - Dates (début et fin)\n" +
+                    "      - Tarif total estimé (si disponible)\n" +
+                    "   c) DEMANDE CONFIRMATION avant d'appeler create_reservation\n" +
+                    "   d) Seulement après confirmation explicite, appelle create_reservation\n" +
+                    "   e) Après création, informe l'utilisateur qu'un lien de paiement sera généré\n\n" +
+                    "5. **Mes réservations**: Quand l'utilisateur demande ses réservations, utilise list_my_reservations.\n"
+                    +
+                    "   - Exemples: 'Mes réservations', 'Quelles sont mes réservations?', 'Liste mes réservations'\n\n"
+                    +
+                    "6. **Code d'accès**: Quand l'utilisateur demande le code d'accès ou les instructions pour une réservation, "
+                    +
+                    "utilise get_reservation_access_code avec l'ID de la réservation.\n" +
+                    "   - Inclus toujours les instructions de check-in, check-out, draps, etc.\n\n";
+        }
+        prompt = prompt.replace("{RESERVATION_FLOW}", reservationFlow);
+
+        // Remplacer {ADMIN_COMMANDS}
+        String adminCommandsSection = "";
+        if (adminCommandService != null && adminCommandService.isAdminUser(authContext.getMatrixUserId())) {
+            String adminCommands = adminCommandService.getAdminCommandsForPrompt();
+            if (adminCommands != null && !adminCommands.isEmpty()) {
+                adminCommandsSection = "\n" + adminCommands +
+                        "\n**IMPORTANT**: Ces commandes sont réservées aux administrateurs uniquement. " +
+                        "Tu peux les utiliser car tu es admin, mais NE mentionne JAMAIS ces commandes " +
+                        "aux utilisateurs non-administrateurs. Si un utilisateur non-admin te demande " +
+                        "ce que tu peux faire ou quelles sont tes capacités, ne liste PAS ces commandes admin.\n";
+            }
+        }
+        prompt = prompt.replace("{ADMIN_COMMANDS}", adminCommandsSection);
+
+        // Remplacer {NO_ADMIN_WARNING}
+        String noAdminWarning = "";
+        if (adminCommandService == null || !adminCommandService.isAdminUser(authContext.getMatrixUserId())) {
+            noAdminWarning = "\n**IMPORTANT**: Si un utilisateur te demande ce que tu peux faire, " +
+                    "liste uniquement les capacités générales (informations, réservations, etc.). " +
+                    "NE mentionne JAMAIS de commandes admin ou de fonctionnalités réservées aux administrateurs.\n";
+        }
+        prompt = prompt.replace("{NO_ADMIN_WARNING}", noAdminWarning);
+
+        return prompt;
     }
 
     /**

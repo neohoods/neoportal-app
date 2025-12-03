@@ -33,6 +33,10 @@ public class MatrixSyncService {
     @Autowired(required = false)
     private MatrixConversationContextService conversationContextService;
 
+    // Optional: Admin command service
+    @Autowired(required = false)
+    private MatrixAssistantAdminCommandService adminCommandService;
+
     @Value("${neohoods.portal.matrix.homeserver-url:}")
     private String homeserverUrl;
 
@@ -435,6 +439,20 @@ public class MatrixSyncService {
 
         log.info("Processing message in room {} from {} (DM: {}, Mention: {}): {}",
                 roomId, sender, isDirectMessage, isMention, messageBody);
+
+        // Check for admin commands first (before AI handler)
+        if (adminCommandService != null) {
+            String adminCommandResponse = adminCommandService.handleAdminCommand(sender, messageBody);
+            if (adminCommandResponse != null) {
+                try {
+                    sendMessage(roomId, adminCommandResponse);
+                    log.info("Sent admin command response to room {}", roomId);
+                } catch (Exception e) {
+                    log.error("Failed to send admin command response", e);
+                }
+                return; // Don't process with AI handler
+            }
+        }
 
         // Use AI message handler if available
         if (messageHandler != null) {

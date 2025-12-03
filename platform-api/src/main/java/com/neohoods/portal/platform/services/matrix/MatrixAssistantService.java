@@ -985,6 +985,58 @@ public class MatrixAssistantService {
     }
 
     /**
+     * Convert Markdown to HTML for Matrix formatted messages
+     * Supports: **bold**, *italic*, line breaks
+     * 
+     * @param markdown Markdown text
+     * @return HTML formatted text, or original text if no formatting detected
+     */
+    private String convertMarkdownToMatrixHtml(String markdown) {
+        if (markdown == null || markdown.isEmpty()) {
+            return markdown;
+        }
+
+        // Check if message contains Markdown formatting
+        boolean hasMarkdown = markdown.contains("**") || markdown.contains("*") || markdown.contains("\n");
+        if (!hasMarkdown) {
+            return markdown; // No formatting, return as-is
+        }
+
+        // Escape HTML to prevent injection
+        String html = escapeHtml(markdown);
+
+        // Convert Markdown to HTML
+        // **bold** -> <strong>bold</strong>
+        html = html.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
+
+        // *italic* -> <em>italic</em> (but not if it's part of **bold**)
+        // We need to be careful here - only match single * that are not part of **
+        html = html.replaceAll("(?<!\\*)\\*([^*]+?)\\*(?!\\*)", "<em>$1</em>");
+
+        // Convert line breaks to <br />
+        html = html.replace("\n", "<br />");
+
+        return html;
+    }
+
+    /**
+     * Escape HTML special characters
+     * 
+     * @param text Text to escape
+     * @return Escaped HTML text
+     */
+    private String escapeHtml(String text) {
+        if (text == null) {
+            return null;
+        }
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    /**
      * Send a message to a room
      * Uses admin token for initialization operations, user token for regular bot
      * operations
@@ -1074,14 +1126,27 @@ public class MatrixAssistantService {
                 log.info("Bot {} successfully joined room {} before sending message", assistantUserId, decodedRoomId);
             }
 
-            // Build message body - use plain text format to avoid HTML parsing issues
+            // Build message body - convert Markdown to HTML for Matrix
             Map<String, Object> messageBody = new HashMap<>();
             messageBody.put("msgtype", "m.text");
             messageBody.put("body", message);
-            // Only add HTML format if message contains HTML tags
-            if (message != null && (message.contains("<") && message.contains(">"))) {
+
+            // Check if message already contains HTML tags (don't convert Markdown if HTML
+            // is present)
+            boolean hasHtmlTags = message != null && message.contains("<") && message.contains(">");
+
+            if (hasHtmlTags) {
+                // Message already contains HTML tags, use as-is
                 messageBody.put("format", "org.matrix.custom.html");
                 messageBody.put("formatted_body", message);
+            } else {
+                // Convert Markdown to HTML for Matrix formatted messages
+                String htmlBody = convertMarkdownToMatrixHtml(message);
+                if (htmlBody != null && !htmlBody.equals(message)) {
+                    // Message contains formatting, add HTML format
+                    messageBody.put("format", "org.matrix.custom.html");
+                    messageBody.put("formatted_body", htmlBody);
+                }
             }
 
             // Generate transaction ID (must be unique per room)
@@ -1844,14 +1909,16 @@ public class MatrixAssistantService {
                             currentAvatarUrl);
                     Boolean identical = imagesAreIdentical(botAvatarUrl, currentAvatarUrl, normalizedUrl);
                     if (identical == null) {
-                        // Comparison failed, log warning but don't update to be safe
-                        log.warn("Could not compare bot avatar images, skipping update to avoid unnecessary change");
-                        return true; // Skip update if comparison fails
+                        // Comparison failed - could be due to network issues, cache, or image change
+                        // Force update to ensure avatar is up to date (URL might point to new image)
+                        log.warn(
+                                "Could not compare bot avatar images (comparison failed), will update to ensure avatar is current");
+                        // Continue to update (don't return)
                     } else if (identical) {
                         log.info("Bot avatar image is identical to current, skipping update");
                         return true; // Already set correctly
                     } else {
-                        log.info("Bot avatar image differs from current, will update");
+                        log.info("Bot avatar image differs from current (hash mismatch), will update");
                     }
                 }
             }
@@ -2756,14 +2823,16 @@ public class MatrixAssistantService {
                     log.info("Comparing room avatar images (source: {}, current: {})...", imageUrl, currentRoomAvatar);
                     Boolean identical = imagesAreIdentical(imageUrl, currentRoomAvatar, normalizedUrl);
                     if (identical == null) {
-                        // Comparison failed, log warning but don't update to be safe
-                        log.warn("Could not compare room avatar images, skipping update to avoid unnecessary change");
-                        return true; // Skip update if comparison fails
+                        // Comparison failed - could be due to network issues, cache, or image change
+                        // Force update to ensure avatar is up to date (URL might point to new image)
+                        log.warn(
+                                "Could not compare room avatar images (comparison failed), will update to ensure avatar is current");
+                        // Continue to update (don't return)
                     } else if (identical) {
                         log.info("Room avatar image is identical to current, skipping update");
                         return true; // Already set correctly
                     } else {
-                        log.info("Room avatar image differs from current, will update");
+                        log.info("Room avatar image differs from current (hash mismatch), will update");
                     }
                 }
             }
@@ -3019,7 +3088,8 @@ public class MatrixAssistantService {
             if (identical) {
                 log.info("Images are identical (hash: {})", sourceHash);
             } else {
-                log.info("Images differ (source hash: {}, current hash: {})", sourceHash, currentHash);
+                log.info("Images differ - source hash: {} ({} bytes), current hash: {} ({} bytes)",
+                        sourceHash, sourceImage.length, currentHash, currentImage.length);
             }
             return identical;
         } catch (Exception e) {
