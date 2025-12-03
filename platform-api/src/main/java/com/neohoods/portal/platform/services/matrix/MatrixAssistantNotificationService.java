@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
@@ -8,9 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service for sending notifications when reservations are completed

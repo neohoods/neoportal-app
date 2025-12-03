@@ -44,6 +44,7 @@ import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.services.UsersService;
 import com.neohoods.portal.platform.services.ValidationService;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantService;
 import com.nimbusds.jwt.JWTClaimsSet;
 
 import lombok.RequiredArgsConstructor;
@@ -66,7 +67,7 @@ public class AuthApi implements AuthApiApiDelegate {
         private final ValidationService validationService;
         private final NotificationsService notificationsService;
         private final EmailTemplateService emailTemplateService;
-        private final java.util.Optional<com.neohoods.portal.platform.services.MatrixAssistantService> matrixAssistantService;
+        private final java.util.Optional<MatrixAssistantService> matrixAssistantService;
 
         @Value("${neohoods.portal.frontend-url}")
         private String frontendUrl;

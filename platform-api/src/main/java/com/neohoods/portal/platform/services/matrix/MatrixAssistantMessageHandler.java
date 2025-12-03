@@ -1,6 +1,7 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,6 +24,7 @@ public class MatrixAssistantMessageHandler {
     private final MatrixAssistantAIService aiService;
     private final MatrixAssistantAuthContextService authContextService;
     private final MatrixAssistantService matrixAssistantService;
+    private final MatrixConversationContextService conversationContextService;
 
     @Value("${neohoods.portal.matrix.assistant.ai.enabled:false}")
     private boolean aiEnabled;
@@ -58,14 +60,21 @@ public class MatrixAssistantMessageHandler {
             MatrixAssistantAuthContext authContext = authContextService.createAuthContext(
                     sender, roomId, isDirectMessage);
 
-            // Générer la réponse via l'IA
-            // Pour l'instant, pas d'historique de conversation (sera ajouté plus tard)
+            // Ajouter le message utilisateur à l'historique de conversation
+            conversationContextService.addUserMessage(roomId, messageBody);
+
+            // Récupérer l'historique de conversation pour cette room
+            List<Map<String, Object>> conversationHistory = conversationContextService.getConversationHistory(roomId);
+
+            // Générer la réponse via l'IA avec l'historique de conversation
             // Le typing indicator est géré dans MatrixSyncService
-            return aiService.generateResponse(messageBody, null, authContext)
+            return aiService.generateResponse(messageBody, null, conversationHistory, authContext)
                     .map(response -> {
                         if (response == null || response.isEmpty()) {
                             return null;
                         }
+                        // Ajouter la réponse de l'assistant à l'historique
+                        conversationContextService.addAssistantResponse(roomId, response);
                         return response;
                     })
                     .onErrorResume(e -> {

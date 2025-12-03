@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -52,6 +52,9 @@ public class MatrixAssistantInitializationService {
 
     @Value("${neohoods.portal.matrix.mas.admin-users:}")
     private String adminUsersConfig;
+
+    @Value("${neohoods.portal.matrix.it-room.avatar-url:}")
+    private String itRoomAvatarUrl;
 
     /**
      * Room configuration from YAML
@@ -406,7 +409,8 @@ public class MatrixAssistantInitializationService {
                     // Update room avatar if image URL is provided and different
                     if (room.getImage() != null && !room.getImage().isEmpty()) {
                         log.info("Updating avatar for existing room {} ({})", room.getName(), existingRoomId);
-                        boolean avatarUpdated = matrixAssistantService.updateRoomAvatar(existingRoomId, room.getImage());
+                        boolean avatarUpdated = matrixAssistantService.updateRoomAvatar(existingRoomId,
+                                room.getImage());
                         if (avatarUpdated) {
                             log.info("Successfully updated avatar for room {}", room.getName());
                             stats.setAvatarsUpdated(stats.getAvatarsUpdated() + 1);
@@ -758,7 +762,8 @@ public class MatrixAssistantInitializationService {
             }
             if (syndicRoomIdStr != null) {
                 // Check if user is already a member or invited before inviting
-                Optional<String> membership = matrixAssistantService.getUserRoomMembership(matrixUserId, syndicRoomIdStr);
+                Optional<String> membership = matrixAssistantService.getUserRoomMembership(matrixUserId,
+                        syndicRoomIdStr);
                 if (membership.isPresent()) {
                     if ("join".equals(membership.get())) {
                         log.info("Syndic user {} is already a member (joined) of {} room, skipping invitation",
@@ -970,7 +975,7 @@ public class MatrixAssistantInitializationService {
                 itRoomId = matrixAssistantService.createRoomInSpace(
                         IT_ROOM_NAME,
                         "Room pour les notifications techniques de l'assistant Matrix",
-                        null,
+                        itRoomAvatarUrl != null && !itRoomAvatarUrl.isEmpty() ? itRoomAvatarUrl : null,
                         spaceId,
                         false); // IT room is restricted
             }
@@ -978,6 +983,17 @@ public class MatrixAssistantInitializationService {
             if (itRoomId.isEmpty()) {
                 log.error("Could not find or create IT room");
                 return;
+            }
+
+            // Update IT room avatar if configured and different
+            if (itRoomAvatarUrl != null && !itRoomAvatarUrl.isEmpty()) {
+                log.info("Updating avatar for IT room: {}", itRoomId.get());
+                boolean avatarUpdated = matrixAssistantService.updateRoomAvatar(itRoomId.get(), itRoomAvatarUrl);
+                if (avatarUpdated) {
+                    log.info("Successfully updated avatar for IT room");
+                } else {
+                    log.warn("Failed to update avatar for IT room");
+                }
             }
 
             // Make sure bot joins the IT room
@@ -990,7 +1006,8 @@ public class MatrixAssistantInitializationService {
             }
 
             // Invite all admin users to IT room
-            // Use MATRIX_INITIALIZATION_ADMIN_USERS directly instead of finding via MAS/OAuth2
+            // Use MATRIX_INITIALIZATION_ADMIN_USERS directly instead of finding via
+            // MAS/OAuth2
             List<String> adminMatrixUserIds = new ArrayList<>();
             if (adminUsersConfig != null && !adminUsersConfig.isEmpty()) {
                 // Parse comma-separated list of Matrix user IDs
@@ -1079,12 +1096,15 @@ public class MatrixAssistantInitializationService {
                 summary.append("🖼️  **Avatars des rooms - Actions effectuées**\n");
                 summary.append("   ├─ Mis à jour: **").append(stats.getAvatarsUpdated()).append("**\n");
                 if (stats.getAvatarsSkipped() > 0) {
-                    summary.append("   ├─ Ignorés: **").append(stats.getAvatarsSkipped()).append("** (pas d'image configurée)\n");
+                    summary.append("   ├─ Ignorés: **").append(stats.getAvatarsSkipped())
+                            .append("** (pas d'image configurée)\n");
                 }
                 if (stats.getAvatarsFailed() > 0) {
                     summary.append("   ├─ Échecs: **").append(stats.getAvatarsFailed()).append("** ⚠️\n");
                 }
-                summary.append("   └─ Total traité: **").append(stats.getAvatarsUpdated() + stats.getAvatarsSkipped() + stats.getAvatarsFailed()).append("**\n\n");
+                summary.append("   └─ Total traité: **")
+                        .append(stats.getAvatarsUpdated() + stats.getAvatarsSkipped() + stats.getAvatarsFailed())
+                        .append("**\n\n");
             }
 
             // Users section - Actions during initialization

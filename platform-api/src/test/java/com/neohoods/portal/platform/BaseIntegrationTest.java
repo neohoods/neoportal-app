@@ -14,9 +14,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.neohoods.portal.platform.services.Auth0Service;
 import com.neohoods.portal.platform.services.MailService;
-import com.neohoods.portal.platform.services.MatrixAssistantService;
-import com.neohoods.portal.platform.services.MatrixOAuth2Service;
-import com.neohoods.portal.platform.services.MatrixAssistantInitializationService;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantService;
+import com.neohoods.portal.platform.services.matrix.MatrixOAuth2Service;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantInitializationService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.spaces.services.DigitalLockService;
 import com.neohoods.portal.platform.spaces.services.NukiRemoteAPIService;

@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.neohoods.portal.platform.services.MailService;
 import com.nimbusds.oauth2.sdk.AccessTokenResponse;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
 import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;

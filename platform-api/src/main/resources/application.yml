@@ -103,8 +103,10 @@ neohoods:
         enabled: ${MATRIX_LOCAL_ASSISTANT_ENABLED:true}
         user-id: ${MATRIX_LOCAL_ASSISTANT_USER_ID:@alfred:chat.neohoods.com}
         permanent-token: ${MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN:}
-        avatar-url: ${MATRIX_LOCAL_ASSISTANT_AVATAR_URL:https://neohoods.com/assets/chat/alfred-avatar.jpeg}
+        avatar-url: ${MATRIX_LOCAL_ASSISTANT_AVATAR_URL:https://neohoods.com/assets/chat/alfred-avatar.png}
         display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred}
+      it-room:
+        avatar-url: ${MATRIX_IT_ROOM_AVATAR_URL:https://neohoods.com/assets/chat/it.png}
       assistant:
         ai:
           enabled: ${MATRIX_ASSISTANT_AI_ENABLED:true}
@@ -113,6 +115,10 @@ neohoods:
           model: ${MATRIX_ASSISTANT_AI_MODEL:mistral-small}
         rag:
           enabled: ${MATRIX_ASSISTANT_RAG_ENABLED:true}
+          custom-documentation-file: ${MATRIX_ASSISTANT_RAG_CUSTOM_DOC_FILE:classpath:rag-custom-documentation.md}
+        conversation:
+          enabled: ${MATRIX_ASSISTANT_CONVERSATION_ENABLED:true}
+          max-history: ${MATRIX_ASSISTANT_CONVERSATION_MAX_HISTORY:20}
         mcp:
           enabled: ${MATRIX_ASSISTANT_MCP_ENABLED:true}
           base-url: ${MATRIX_ASSISTANT_MCP_BASE_URL:http://localhost:8080/mcp}

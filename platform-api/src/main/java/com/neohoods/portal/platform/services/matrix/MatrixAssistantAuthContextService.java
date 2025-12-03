@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.util.Optional;
 

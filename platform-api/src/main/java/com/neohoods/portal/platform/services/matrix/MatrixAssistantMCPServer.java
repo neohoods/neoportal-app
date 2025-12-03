@@ -1,16 +1,14 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -25,6 +23,7 @@ import com.neohoods.portal.platform.repositories.UnitRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.repositories.InfoRepository;
 import com.neohoods.portal.platform.entities.InfoEntity;
+import com.neohoods.portal.platform.services.UnitsService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
@@ -32,7 +31,6 @@ import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
-import com.neohoods.portal.platform.spaces.services.StripeService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,16 +68,25 @@ public class MatrixAssistantMCPServer {
                 tools.add(MCPTool.builder()
                                 .name("get_resident_info")
                                 .description(
-                                                "Get resident information for an apartment or floor. Returns who lives in a specific apartment or on a specific floor.")
+                                                "Get resident information for an apartment or floor. " +
+                                                "The building has 3 buildings: A, B, and C. " +
+                                                "Apartment numbers follow the format: [Building][Floor][Number] (e.g., A701 = Building A, 7th floor, apartment 01; C302 = Building C, 3rd floor, apartment 02). " +
+                                                "When searching by floor, specify the building letter and floor number (e.g., '6' for 6th floor of building C = C6XX apartments). " +
+                                                "Returns who lives in a specific apartment or on a specific floor of a building.")
                                 .inputSchema(Map.of(
                                                 "type", "object",
                                                 "properties", Map.of(
                                                                 "apartment",
                                                                 Map.of("type", "string", "description",
-                                                                                "Apartment number (e.g., A701, B302)"),
+                                                                                "Full apartment number in format [Building][Floor][Number] (e.g., A701, B302, C601). " +
+                                                                                "Building can be A, B, or C. Floor is 1-9. Number is 01-99."),
                                                                 "floor",
                                                                 Map.of("type", "string", "description",
-                                                                                "Floor number (e.g., 7, 3)"))))
+                                                                                "Floor number (e.g., '6' for 6th floor). " +
+                                                                                "When used with building context (e.g., '6ème étage du bâtiment C'), " +
+                                                                                "searches all apartments on that floor of that building (e.g., C601, C602, etc.). " +
+                                                                                "If building is not specified, searches all buildings.")),
+                                                "required", List.of()))
                                 .build());
 
                 tools.add(MCPTool.builder()
@@ -229,8 +236,12 @@ public class MatrixAssistantMCPServer {
         @Transactional
         public MCPToolResult callTool(String toolName, Map<String, Object> arguments,
                         MatrixAssistantAuthContext authContext) {
-                log.info("Calling MCP tool: {} with arguments: {} for user: {}", toolName, arguments,
-                                authContext.getMatrixUserId());
+                // Récupérer trace ID et span ID depuis MDC pour les logs
+                String traceId = MDC.get("traceId");
+                String spanId = MDC.get("spanId");
+                log.info("Calling MCP tool: {} with arguments: {} for user: {} [traceId={}, spanId={}]", 
+                                toolName, arguments, authContext.getMatrixUserId(), 
+                                traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
 
                 // Valider l'autorisation pour les outils sensibles
                 if (requiresAuth(toolName) && !authContext.isAuthenticated()) {
@@ -254,24 +265,28 @@ public class MatrixAssistantMCPServer {
                                 default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
                         };
 
-                        // Logger la réponse MCP
+                        // Logger la réponse MCP avec trace ID et span ID (réutiliser les variables déjà déclarées)
                         if (result.isError()) {
-                                log.warn("MCP tool {} returned an error: {}", toolName,
+                                log.warn("MCP tool {} returned an error: {} [traceId={}, spanId={}]", toolName,
                                                 result.getContent().isEmpty() ? "Unknown error"
-                                                                : result.getContent().get(0).getText());
+                                                                : result.getContent().get(0).getText(),
+                                                traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
                         } else {
                                 String resultText = result.getContent().stream()
                                                 .map(MCPContent::getText)
                                                 .filter(text -> text != null)
                                                 .collect(Collectors.joining("\n"));
-                                log.info("MCP tool {} succeeded. Response (first 500 chars): {}", toolName,
+                                log.info("MCP tool {} succeeded. Response (first 500 chars): {} [traceId={}, spanId={}]", toolName,
                                                 resultText.length() > 500 ? resultText.substring(0, 500) + "..."
-                                                                : resultText);
+                                                                : resultText,
+                                                traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
                         }
 
                         return result;
                 } catch (Exception e) {
-                        log.error("Error calling MCP tool {}: {}", toolName, e.getMessage(), e);
+                        // Réutiliser les variables traceId et spanId déjà déclarées au début de la méthode
+                        log.error("Error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName, e.getMessage(), 
+                                        traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A", e);
                         return MCPToolResult.builder()
                                         .isError(true)
                                         .content(List.of(MCPContent.builder()
@@ -295,6 +310,59 @@ public class MatrixAssistantMCPServer {
                 String floor = (String) arguments.get("floor");
 
                 List<String> results = new ArrayList<>();
+
+                // Cas spécial : si on a à la fois floor et apartment, et que apartment est juste une lettre (A, B, C)
+                // alors on cherche tous les appartements de ce bâtiment à cet étage (ex: C + 6 = C6XX)
+                if (floor != null && !floor.isEmpty() && apartment != null && !apartment.isEmpty()) {
+                        String building = apartment.trim().toUpperCase();
+                        if (building.length() == 1 && building.matches("[ABC]")) {
+                                // C'est un bâtiment, chercher tous les appartements de ce bâtiment à cet étage
+                                String floorPattern = building + floor;
+                                List<UnitEntity> units = unitRepository.findAll();
+                                List<UnitEntity> floorUnits = units.stream()
+                                                .filter(u -> {
+                                                        if (u.getName() == null || u.getName().isEmpty()) {
+                                                                return false;
+                                                        }
+                                                        String name = u.getName().toUpperCase();
+                                                        // Chercher les appartements qui commencent par [Building][Floor]
+                                                        // Ex: C6 pour C601, C602, etc.
+                                                        return name.startsWith(floorPattern) && name.length() > floorPattern.length();
+                                                })
+                                                .collect(Collectors.toList());
+
+                                if (floorUnits.isEmpty()) {
+                                        results.add("Aucun appartement trouvé au " + floor + "ème étage du bâtiment " + building + ".");
+                                } else {
+                                        results.add("Résidents du " + floor + "ème étage du bâtiment " + building + " (" + floorUnits.size() + " appartement(s)):");
+                                        for (UnitEntity unit : floorUnits) {
+                                                List<UnitMemberEntity> members = unitMemberRepository.findByUnitId(unit.getId());
+                                                if (!members.isEmpty()) {
+                                                        results.add("\nAppartement " + unit.getName() + ":");
+                                                        for (UnitMemberEntity member : members) {
+                                                                UserEntity user = member.getUser();
+                                                                if (user != null) {
+                                                                        String firstName = user.getFirstName();
+                                                                        String lastName = user.getLastName();
+                                                                        String email = user.getEmail();
+                                                                        String name = (firstName != null ? firstName : "") +
+                                                                                        " " + (lastName != null ? lastName : "");
+                                                                        results.add("  - " + name.trim() + (email != null ? " (" + email + ")" : ""));
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+
+                                return MCPToolResult.builder()
+                                                .isError(false)
+                                                .content(List.of(MCPContent.builder()
+                                                                .type("text")
+                                                                .text(String.join("\n", results))
+                                                                .build()))
+                                                .build();
+                        }
+                }
 
                 if (apartment != null && !apartment.isEmpty()) {
                         // Recherche par appartement

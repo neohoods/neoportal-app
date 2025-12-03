@@ -3,7 +3,6 @@ package com.neohoods.portal.platform.api.internal.mcp;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +12,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.neohoods.portal.platform.services.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer.MCPContent;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer.MCPTool;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer.MCPToolResult;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPTool;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPToolResult;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

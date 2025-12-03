@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +16,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPController.MCPCallToolRequest;
 import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPController.MCPCallToolParams;
 import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPController.MCPCallToolResponse;
-import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPController.MCPListToolsResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

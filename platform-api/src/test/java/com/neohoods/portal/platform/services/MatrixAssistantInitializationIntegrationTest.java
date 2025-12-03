@@ -21,12 +21,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import com.neohoods.portal.platform.BaseIntegrationTest;
-
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.matrix.api.RoomParticipationApi;
 import com.neohoods.portal.platform.matrix.model.ClientEvent;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantInitializationService;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantService;
 import com.neohoods.portal.platform.spaces.services.DigitalLockService;
 import com.neohoods.portal.platform.spaces.services.NukiRemoteAPIService;
 import com.neohoods.portal.platform.spaces.services.StripeService;

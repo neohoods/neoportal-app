@@ -1,22 +1,14 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
-import com.neohoods.portal.platform.matrix.ApiException;
-
-import com.neohoods.portal.platform.matrix.ApiClient;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +39,9 @@ public class MatrixSyncService {
 
     @Value("${neohoods.portal.matrix.local-assistant.enabled:false}")
     private boolean localAssistantEnabled;
+
+    @Value("${neohoods.portal.matrix.space-id:}")
+    private String spaceId;
 
     private String nextBatchToken = null;
     private long podStartupTimestampMs; // Timestamp when pod started (in milliseconds)
@@ -373,6 +368,17 @@ public class MatrixSyncService {
 
         // Check if it's a direct message (DM)
         boolean isDirectMessage = isDirectMessage(roomId);
+
+        // Check if the room belongs to the configured space (if space-id is configured)
+        // DMs are always allowed (they don't belong to a space)
+        if (!isDirectMessage && spaceId != null && !spaceId.isEmpty()) {
+            boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceId);
+            if (!belongsToSpace) {
+                log.info("Ignoring message in room {} that does not belong to configured space {} (sender: {})",
+                        roomId, spaceId, sender);
+                return;
+            }
+        }
 
         // Only respond to:
         // - DMs (direct messages) - toujours répondre dans un DM

@@ -1,7 +1,9 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,12 +51,9 @@ import com.neohoods.portal.platform.mas.model.PaginatedResponseForUpstreamOAuthL
 import com.neohoods.portal.platform.mas.model.SingleResourceForUser;
 import com.neohoods.portal.platform.mas.model.SingleResourceForUpstreamOAuthLink;
 import com.neohoods.portal.platform.mas.model.IncludeCount;
-import com.neohoods.portal.platform.mas.model.SingleResourceForUserEmail;
 import com.neohoods.portal.platform.mas.model.SingleResponseForUser;
-import com.neohoods.portal.platform.mas.model.UpstreamOAuthLink;
-import com.neohoods.portal.platform.mas.model.User;
-import com.neohoods.portal.platform.mas.model.UserEmail;
 
+import com.neohoods.portal.platform.services.Auth0Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -135,7 +134,8 @@ public class MatrixAssistantService {
         }
         // Priority 2: Check if local bot is enabled and has a permanent token
         // configured
-        else if (localAssistantEnabled && localAssistantPermanentToken != null && !localAssistantPermanentToken.isEmpty()) {
+        else if (localAssistantEnabled && localAssistantPermanentToken != null
+                && !localAssistantPermanentToken.isEmpty()) {
             log.info("✅ Using permanent token for local bot user: {} (token prefix: {})", localAssistantUserId,
                     localAssistantPermanentToken.substring(0, Math.min(10, localAssistantPermanentToken.length())));
             accessTokenOpt = Optional.of(localAssistantPermanentToken);
@@ -1015,7 +1015,8 @@ public class MatrixAssistantService {
             if (matrixAccessToken != null && !matrixAccessToken.isEmpty()) {
                 log.debug("Using matrix-access-token for sendMessage (token prefix: {})",
                         matrixAccessToken.substring(0, Math.min(10, matrixAccessToken.length())));
-            } else if (localAssistantEnabled && localAssistantPermanentToken != null && !localAssistantPermanentToken.isEmpty()) {
+            } else if (localAssistantEnabled && localAssistantPermanentToken != null
+                    && !localAssistantPermanentToken.isEmpty()) {
                 log.debug("Using permanent token for sendMessage (token prefix: {})",
                         localAssistantPermanentToken.substring(0, Math.min(10, localAssistantPermanentToken.length())));
             } else {
@@ -1065,7 +1066,8 @@ public class MatrixAssistantService {
                 // Re-check membership after joining
                 membership = getUserRoomMembership(assistantUserId, decodedRoomId);
                 if (!membership.isPresent() || !"join".equals(membership.get())) {
-                    log.error("Bot {} still not a member of room {} after join attempt (membership: {})", assistantUserId,
+                    log.error("Bot {} still not a member of room {} after join attempt (membership: {})",
+                            assistantUserId,
                             decodedRoomId, membership.orElse("none"));
                     return false;
                 }
@@ -1099,9 +1101,10 @@ public class MatrixAssistantService {
                             "❌ Failed to send message: HTTP 500 - This usually means the token doesn't have access_token_id in Synapse. "
                                     +
                                     "The token being used is: {} (local bot enabled: {}, permanent token configured: {})",
-                            localAssistantEnabled && localAssistantPermanentToken != null && !localAssistantPermanentToken.isEmpty()
-                                    ? "permanent token"
-                                    : "OAuth2 token",
+                            localAssistantEnabled && localAssistantPermanentToken != null
+                                    && !localAssistantPermanentToken.isEmpty()
+                                            ? "permanent token"
+                                            : "OAuth2 token",
                             localAssistantEnabled,
                             localAssistantPermanentToken != null && !localAssistantPermanentToken.isEmpty());
                     log.error(
@@ -1138,7 +1141,8 @@ public class MatrixAssistantService {
      * Envoie un indicateur de frappe (typing indicator) dans une room Matrix
      * 
      * @param roomId    ID de la room Matrix
-     * @param typing    true pour indiquer que l'assistant Alfred est en train d'écrire, false
+     * @param typing    true pour indiquer que l'assistant Alfred est en train
+     *                  d'écrire, false
      *                  pour arrêter
      * @param timeoutMs Durée en millisecondes pendant laquelle l'indicateur reste
      *                  actif (défaut: 30000ms)
@@ -1554,6 +1558,63 @@ public class MatrixAssistantService {
     }
 
     /**
+     * Check if a room belongs to a specific space
+     * 
+     * @param roomId  The room ID to check
+     * @param spaceId The space ID to check against
+     * @return true if the room belongs to the space, false otherwise
+     */
+    public boolean roomBelongsToSpace(String roomId, String spaceId) {
+        if (roomId == null || spaceId == null || roomId.isEmpty() || spaceId.isEmpty()) {
+            return false;
+        }
+
+        // If the room is the space itself, it belongs to it
+        if (roomId.equals(spaceId)) {
+            return true;
+        }
+
+        try {
+            Optional<ApiClient> apiClientOpt = getMatrixAccessToken();
+            if (apiClientOpt.isEmpty()) {
+                log.warn("Cannot check room space membership: no access token available");
+                return false;
+            }
+
+            ApiClient apiClient = apiClientOpt.get();
+            RoomParticipationApi participationApi = new RoomParticipationApi(apiClient);
+
+            try {
+                // Get all room states
+                List<ClientEvent> roomStates = participationApi.getRoomState(roomId);
+
+                // Check if this room belongs to the space by looking for m.space.parent state
+                for (ClientEvent state : roomStates) {
+                    if (state.getType() != null && "m.space.parent".equals(state.getType())
+                            && spaceId.equals(state.getStateKey())) {
+                        log.debug("Room {} belongs to space {}", roomId, spaceId);
+                        return true;
+                    }
+                }
+            } catch (ApiException e) {
+                // Room might not have m.space.parent state or might not exist
+                if (e.getCode() != 404) {
+                    log.debug("Error checking room {} state: {}", roomId, e.getMessage());
+                }
+                return false;
+            } catch (Exception e) {
+                log.debug("Error checking room {}: {}", roomId, e.getMessage());
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("Error checking if room {} belongs to space {}", roomId, spaceId, e);
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
      * Create room in space (convenience method with allowGuests=true by default)
      */
     public Optional<String> createRoomInSpace(String roomName, String description, String imageUrl, String spaceId) {
@@ -1732,6 +1793,18 @@ public class MatrixAssistantService {
      * @return true if avatar was updated successfully, false otherwise
      */
     public boolean updateBotAvatar() {
+        return updateBotAvatar(false);
+    }
+
+    /**
+     * Update bot avatar from configured URL
+     * If the URL is HTTP/HTTPS, uploads it to Matrix first to get an MXC URL
+     * Then updates the bot's profile avatar_url
+     * 
+     * @param force If true, force update even if avatar is already set
+     * @return true if avatar was updated successfully, false otherwise
+     */
+    public boolean updateBotAvatar(boolean force) {
         if (botAvatarUrl == null || botAvatarUrl.isEmpty()) {
             log.debug("No bot avatar URL configured, skipping avatar update");
             return false;
@@ -1744,7 +1817,7 @@ public class MatrixAssistantService {
         }
 
         String assistantUserId = assistantUserIdOpt.get();
-        log.info("Updating avatar for bot user: {} from URL: {}", assistantUserId, botAvatarUrl);
+        log.info("Updating avatar for bot user: {} from URL: {} (force: {})", assistantUserId, botAvatarUrl, force);
 
         try {
             Optional<ApiClient> apiClientOpt = getMatrixAccessToken();
@@ -1757,30 +1830,34 @@ public class MatrixAssistantService {
             String normalizedUrl = normalizeHomeserverUrl(homeserverUrl);
             String currentAvatarUrl = getCurrentBotAvatar(assistantUserId, normalizedUrl);
 
-            // If avatar is already set and we have an HTTP/HTTPS URL, skip update
-            // (uploading the same image would create a new MXC URL, so we can't compare)
-            // Only update if current avatar is null/empty or if the configured URL is
-            // already an MXC URL
-            if (currentAvatarUrl != null && !currentAvatarUrl.isEmpty()) {
-                if (botAvatarUrl.startsWith("http://") || botAvatarUrl.startsWith("https://")) {
-                    // Current avatar exists and configured URL is HTTP/HTTPS
-                    // We can't compare them, so assume it's already correct to avoid re-uploading
-                    log.debug(
-                            "Bot avatar is already set (current: {}), skipping update to avoid re-uploading same image",
-                            currentAvatarUrl);
-                    return true; // Already set, skip update
-                } else if (botAvatarUrl.startsWith("mxc://")) {
+            // Check if update is needed by comparing images (not just URLs)
+            if (!force && currentAvatarUrl != null && !currentAvatarUrl.isEmpty()) {
+                if (botAvatarUrl.startsWith("mxc://")) {
                     // Both are MXC URLs, can compare directly
                     if (currentAvatarUrl.equals(botAvatarUrl)) {
-                        log.debug("Bot avatar is already set to {}, skipping update", botAvatarUrl);
+                        log.info("Bot avatar is already set to {}, skipping update", botAvatarUrl);
                         return true; // Already set correctly
+                    }
+                } else if (botAvatarUrl.startsWith("http://") || botAvatarUrl.startsWith("https://")) {
+                    // Compare images by hash to avoid unnecessary uploads
+                    log.info("Comparing bot avatar images (source: {}, current: {})...", botAvatarUrl,
+                            currentAvatarUrl);
+                    Boolean identical = imagesAreIdentical(botAvatarUrl, currentAvatarUrl, normalizedUrl);
+                    if (identical == null) {
+                        // Comparison failed, log warning but don't update to be safe
+                        log.warn("Could not compare bot avatar images, skipping update to avoid unnecessary change");
+                        return true; // Skip update if comparison fails
+                    } else if (identical) {
+                        log.info("Bot avatar image is identical to current, skipping update");
+                        return true; // Already set correctly
+                    } else {
+                        log.info("Bot avatar image differs from current, will update");
                     }
                 }
             }
 
+            // Convert configured URL to MXC if needed
             String mxcUrl = botAvatarUrl;
-
-            // If URL is HTTP/HTTPS, upload it to Matrix first
             if (botAvatarUrl.startsWith("http://") || botAvatarUrl.startsWith("https://")) {
                 log.info("Uploading avatar image from {} to Matrix...", botAvatarUrl);
                 mxcUrl = uploadImageToMatrix(botAvatarUrl);
@@ -1789,6 +1866,12 @@ public class MatrixAssistantService {
                     return false;
                 }
                 log.info("Avatar image uploaded to Matrix: {}", mxcUrl);
+            }
+
+            if (currentAvatarUrl == null || currentAvatarUrl.isEmpty()) {
+                log.info("Bot avatar not set, setting to {}", mxcUrl);
+            } else {
+                log.info("Bot avatar differs, updating from {} to {}", currentAvatarUrl, mxcUrl);
             }
 
             // Update bot profile avatar_url
@@ -1855,7 +1938,6 @@ public class MatrixAssistantService {
         }
 
         String assistantUserId = assistantUserIdOpt.get();
-        log.info("Updating display name for bot user: {} to: {}", assistantUserId, botDisplayName);
 
         try {
             Optional<ApiClient> apiClientOpt = getMatrixAccessToken();
@@ -1864,8 +1946,22 @@ public class MatrixAssistantService {
                 return false;
             }
 
-            // Update bot profile displayname
+            // Get current display name first
             String normalizedUrl = normalizeHomeserverUrl(homeserverUrl);
+            String currentDisplayName = getCurrentBotDisplayName(assistantUserId, normalizedUrl);
+
+            // Check if update is needed
+            if (currentDisplayName != null && currentDisplayName.equals(botDisplayName)) {
+                log.debug("Bot display name is already set to {}, skipping update", botDisplayName);
+                return true; // Already set correctly
+            } else if (currentDisplayName != null) {
+                log.info("Bot display name differs (current: {}, configured: {}), updating...", currentDisplayName,
+                        botDisplayName);
+            } else {
+                log.info("Bot display name not set, setting to {}", botDisplayName);
+            }
+
+            // Update bot profile displayname
             String profileUrl = UriComponentsBuilder.fromHttpUrl(normalizedUrl)
                     .pathSegment("_matrix", "client", "v3", "profile", assistantUserId, "displayname")
                     .build()
@@ -2440,7 +2536,8 @@ public class MatrixAssistantService {
 
                 try {
                     restTemplate.postForEntity(joinUrl, request, Map.class);
-                    log.info("Bot {} successfully joined room {} (accepted invitation)", assistantUserId, decodedRoomId);
+                    log.info("Bot {} successfully joined room {} (accepted invitation)", assistantUserId,
+                            decodedRoomId);
                     return true;
                 } catch (org.springframework.web.client.HttpClientErrorException e) {
                     if (e.getStatusCode().value() == 403) {
@@ -2646,25 +2743,33 @@ public class MatrixAssistantService {
             String normalizedUrl = normalizeHomeserverUrl(homeserverUrl);
             String currentRoomAvatar = getCurrentRoomAvatar(decodedRoomId, normalizedUrl);
 
-            // If avatar is already set and we have an HTTP/HTTPS URL, we should still
-            // update
-            // to ensure the avatar matches the current configuration
-            // Only skip if both are MXC URLs and they match
+            // Check if update is needed by comparing images (not just URLs)
             if (currentRoomAvatar != null && !currentRoomAvatar.isEmpty()) {
                 if (imageUrl.startsWith("mxc://")) {
                     // Both are MXC URLs, can compare directly
                     if (currentRoomAvatar.equals(imageUrl)) {
-                        log.debug("Room avatar is already set to {}, skipping update", imageUrl);
+                        log.info("Room avatar is already set to {}, skipping update", imageUrl);
                         return true; // Already set correctly
                     }
+                } else if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                    // Compare images by hash to avoid unnecessary uploads
+                    log.info("Comparing room avatar images (source: {}, current: {})...", imageUrl, currentRoomAvatar);
+                    Boolean identical = imagesAreIdentical(imageUrl, currentRoomAvatar, normalizedUrl);
+                    if (identical == null) {
+                        // Comparison failed, log warning but don't update to be safe
+                        log.warn("Could not compare room avatar images, skipping update to avoid unnecessary change");
+                        return true; // Skip update if comparison fails
+                    } else if (identical) {
+                        log.info("Room avatar image is identical to current, skipping update");
+                        return true; // Already set correctly
+                    } else {
+                        log.info("Room avatar image differs from current, will update");
+                    }
                 }
-                // For HTTP/HTTPS URLs, we'll update anyway to ensure consistency
-                // This allows updating avatars even if they were previously set
             }
 
+            // Convert configured URL to MXC if needed
             String mxcUrl = imageUrl;
-
-            // If URL is HTTP/HTTPS, upload it to Matrix first
             if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
                 log.info("Uploading room avatar image from {} to Matrix...", imageUrl);
                 mxcUrl = uploadImageToMatrix(imageUrl);
@@ -2673,6 +2778,12 @@ public class MatrixAssistantService {
                     return false;
                 }
                 log.info("Room avatar image uploaded to Matrix: {}", mxcUrl);
+            }
+
+            if (currentRoomAvatar == null || currentRoomAvatar.isEmpty()) {
+                log.info("Room avatar not set, setting to {}", mxcUrl);
+            } else {
+                log.info("Room avatar differs, updating from {} to {}", currentRoomAvatar, mxcUrl);
             }
 
             // Send state event to update room avatar
@@ -2724,8 +2835,8 @@ public class MatrixAssistantService {
     /**
      * Get current bot avatar URL
      * 
-     * @param assistantUserId     Bot user ID
-     * @param normalizedUrl Normalized homeserver URL
+     * @param assistantUserId Bot user ID
+     * @param normalizedUrl   Normalized homeserver URL
      * @return Current avatar URL or null if not set or error
      */
     @SuppressWarnings("unchecked")
@@ -2814,6 +2925,206 @@ public class MatrixAssistantService {
         } catch (Exception e) {
             log.debug("Error getting current room avatar: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Get current bot display name
+     * 
+     * @param assistantUserId Bot user ID
+     * @param normalizedUrl   Normalized homeserver URL
+     * @return Current display name or null if not set or error
+     */
+    @SuppressWarnings("unchecked")
+    private String getCurrentBotDisplayName(String assistantUserId, String normalizedUrl) {
+        try {
+            String profileUrl = UriComponentsBuilder.fromHttpUrl(normalizedUrl)
+                    .pathSegment("_matrix", "client", "v3", "profile", assistantUserId, "displayname")
+                    .build()
+                    .toUriString();
+
+            HttpHeaders headers = new HttpHeaders();
+            String accessToken = matrixAccessToken != null && !matrixAccessToken.isEmpty()
+                    ? matrixAccessToken
+                    : (localAssistantPermanentToken != null && !localAssistantPermanentToken.isEmpty()
+                            ? localAssistantPermanentToken
+                            : oauth2Service.getUserAccessToken().orElse(null));
+
+            if (accessToken == null) {
+                return null;
+            }
+
+            headers.setBearerAuth(accessToken);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    profileUrl,
+                    HttpMethod.GET,
+                    request,
+                    Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Map<String, Object> body = response.getBody();
+                Object displayNameObj = body.get("displayname");
+                if (displayNameObj != null) {
+                    return displayNameObj.toString();
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            log.debug("Error getting current bot display name: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Compare two images to check if they are identical
+     * Downloads both images and compares their SHA-256 hash
+     * 
+     * @param sourceUrl     HTTP/HTTPS URL of the source image
+     * @param currentMxcUrl MXC URL of the current image
+     * @param normalizedUrl Normalized homeserver URL
+     * @return true if images are identical, false if different, null if comparison
+     *         failed
+     */
+    private Boolean imagesAreIdentical(String sourceUrl, String currentMxcUrl, String normalizedUrl) {
+        try {
+            log.debug("Downloading source image from {}...", sourceUrl);
+            // Download source image
+            byte[] sourceImage = downloadImageFromUrl(sourceUrl);
+            if (sourceImage == null || sourceImage.length == 0) {
+                log.warn("Failed to download source image from {} (null or empty)", sourceUrl);
+                return null; // Comparison failed
+            }
+            log.debug("Source image downloaded: {} bytes", sourceImage.length);
+
+            log.debug("Downloading current image from Matrix {}...", currentMxcUrl);
+            // Download current image from Matrix
+            byte[] currentImage = downloadImageFromMxc(currentMxcUrl, normalizedUrl);
+            if (currentImage == null || currentImage.length == 0) {
+                log.warn("Failed to download current image from Matrix {} (null or empty)", currentMxcUrl);
+                return null; // Comparison failed
+            }
+            log.debug("Current image downloaded: {} bytes", currentImage.length);
+
+            // Compare hash of both images
+            String sourceHash = calculateImageHash(sourceImage);
+            String currentHash = calculateImageHash(currentImage);
+
+            if (sourceHash == null || sourceHash.isEmpty() || currentHash == null || currentHash.isEmpty()) {
+                log.warn("Failed to calculate image hashes (source: {}, current: {})", sourceHash, currentHash);
+                return null; // Comparison failed
+            }
+
+            boolean identical = sourceHash.equals(currentHash);
+            if (identical) {
+                log.info("Images are identical (hash: {})", sourceHash);
+            } else {
+                log.info("Images differ (source hash: {}, current hash: {})", sourceHash, currentHash);
+            }
+            return identical;
+        } catch (Exception e) {
+            log.warn("Error comparing images: {}", e.getMessage(), e);
+            return null; // If comparison fails, return null to indicate failure
+        }
+    }
+
+    /**
+     * Download image from HTTP/HTTPS URL
+     * 
+     * @param imageUrl HTTP/HTTPS URL
+     * @return Image bytes or null if download failed
+     */
+    private byte[] downloadImageFromUrl(String imageUrl) {
+        try {
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    imageUrl,
+                    HttpMethod.GET,
+                    null,
+                    byte[].class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            }
+            return null;
+        } catch (Exception e) {
+            log.debug("Error downloading image from {}: {}", imageUrl, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Download image from Matrix MXC URL
+     * 
+     * @param mxcUrl        MXC URL (mxc://server/mediaId)
+     * @param normalizedUrl Normalized homeserver URL
+     * @return Image bytes or null if download failed
+     */
+    private byte[] downloadImageFromMxc(String mxcUrl, String normalizedUrl) {
+        try {
+            // Parse MXC URL: mxc://server/mediaId
+            if (!mxcUrl.startsWith("mxc://")) {
+                log.warn("Invalid MXC URL format: {}", mxcUrl);
+                return null;
+            }
+
+            String mxcPath = mxcUrl.substring(6); // Remove "mxc://"
+            String[] parts = mxcPath.split("/", 2);
+            if (parts.length != 2) {
+                log.warn("Invalid MXC URL format (cannot split): {}", mxcUrl);
+                return null;
+            }
+
+            String server = parts[0];
+            String mediaId = parts[1];
+
+            // Build download URL
+            String downloadUrl = UriComponentsBuilder.fromHttpUrl(normalizedUrl)
+                    .pathSegment("_matrix", "media", "v3", "download", server, mediaId)
+                    .build()
+                    .toUriString();
+
+            log.debug("Downloading image from Matrix: {}", downloadUrl);
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    downloadUrl,
+                    HttpMethod.GET,
+                    null,
+                    byte[].class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                log.debug("Successfully downloaded image from Matrix: {} bytes", response.getBody().length);
+                return response.getBody();
+            } else {
+                log.warn("Failed to download image from Matrix: HTTP {}", response.getStatusCode());
+                return null;
+            }
+        } catch (Exception e) {
+            log.warn("Error downloading image from Matrix {}: {}", mxcUrl, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Calculate SHA-256 hash of image bytes
+     * 
+     * @param imageData Image bytes
+     * @return Hex string of SHA-256 hash
+     */
+    private String calculateImageHash(byte[] imageData) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(imageData);
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            log.error("SHA-256 algorithm not available", e);
+            return "";
         }
     }
 

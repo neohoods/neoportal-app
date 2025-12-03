@@ -31,6 +31,7 @@ import com.neohoods.portal.platform.exceptions.CodedError;
 import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.repositories.NotificationSettingsRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantService;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
 import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;

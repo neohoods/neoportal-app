@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;

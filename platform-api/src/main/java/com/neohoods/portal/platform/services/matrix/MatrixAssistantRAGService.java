@@ -1,16 +1,20 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -29,12 +33,16 @@ import reactor.core.publisher.Mono;
 public class MatrixAssistantRAGService {
 
     private final WebClient.Builder webClientBuilder;
+    private final ResourceLoader resourceLoader;
 
     @Value("${neohoods.portal.matrix.assistant.ai.api-key:}")
     private String apiKey;
 
     @Value("${neohoods.portal.matrix.assistant.rag.enabled:false}")
     private boolean ragEnabled;
+
+    @Value("${neohoods.portal.matrix.assistant.rag.custom-documentation-file:}")
+    private String customDocumentationFile;
 
     private static final String MISTRAL_EMBEDDINGS_API_URL = "https://api.mistral.ai/v1/embeddings";
 
@@ -50,21 +58,43 @@ public class MatrixAssistantRAGService {
             return Mono.just("");
         }
 
-        log.debug("Searching RAG context for query: {}", query.substring(0, Math.min(50, query.length())));
+        String queryPreview = query.length() > 50 ? query.substring(0, 50) + "..." : query;
+        log.debug("Searching RAG context for query: {} (total chunks: {})", queryPreview, documentChunks.size());
 
         // TODO: Implémenter la recherche vectorielle avec Mistral embeddings
         // Pour l'instant, retourner une recherche simple par mots-clés
         return Mono.fromCallable(() -> {
             String lowerQuery = query.toLowerCase();
             List<String> relevantChunks = new ArrayList<>();
+            List<String> matchedTitles = new ArrayList<>();
 
+            // Recherche par mots-clés dans le contenu
             for (DocumentChunk chunk : documentChunks) {
-                if (chunk.getContent().toLowerCase().contains(lowerQuery)) {
+                String lowerContent = chunk.getContent().toLowerCase();
+                // Vérifier si au moins un mot du query est dans le contenu
+                String[] queryWords = lowerQuery.split("\\s+");
+                boolean matches = false;
+                for (String word : queryWords) {
+                    if (word.length() > 2 && lowerContent.contains(word)) { // Ignorer les mots trop courts
+                        matches = true;
+                        break;
+                    }
+                }
+                
+                if (matches) {
                     relevantChunks.add(chunk.getContent());
+                    matchedTitles.add(chunk.getTitle());
                     if (relevantChunks.size() >= 3) { // Limiter à 3 chunks
                         break;
                     }
                 }
+            }
+
+            if (!relevantChunks.isEmpty()) {
+                log.debug("Found {} relevant chunks for query: {} (matched: {})", 
+                        relevantChunks.size(), queryPreview, matchedTitles);
+            } else {
+                log.debug("No relevant chunks found for query: {}", queryPreview);
             }
 
             return String.join("\n\n", relevantChunks);
@@ -130,7 +160,84 @@ public class MatrixAssistantRAGService {
                         "- Si vous perdez l'accès à tous vos appareils, vous devrez réinitialiser les clés\n" +
                         "- Pour éviter cela, configurez une clé de récupération (recovery key)");
 
+        // Charger la documentation complémentaire personnalisée si configurée
+        loadCustomDocumentation();
+
         log.info("Loaded {} document chunks for RAG", documentChunks.size());
+    }
+
+    /**
+     * Charge la documentation complémentaire personnalisée depuis un fichier configuré
+     * Le fichier peut être :
+     * - Un fichier local (file:/path/to/file)
+     * - Un fichier classpath (classpath:path/to/file)
+     * - Un fichier absolu (/path/to/file)
+     */
+    private void loadCustomDocumentation() {
+        if (customDocumentationFile == null || customDocumentationFile.isEmpty()) {
+            log.debug("No custom documentation file configured");
+            return;
+        }
+
+        log.info("Loading custom documentation from: {}", customDocumentationFile);
+
+        try {
+            String content;
+            
+            // Essayer d'abord comme Resource Spring (classpath:, file:, etc.)
+            try {
+                Resource resource = resourceLoader.getResource(customDocumentationFile);
+                if (resource.exists() && resource.isReadable()) {
+                    try (InputStream is = resource.getInputStream()) {
+                        content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                    }
+                    log.info("Loaded custom documentation from resource: {}", customDocumentationFile);
+                } else {
+                    // Si la resource n'existe pas, essayer comme chemin de fichier absolu
+                    Path filePath = Paths.get(customDocumentationFile);
+                    if (Files.exists(filePath) && Files.isReadable(filePath)) {
+                        content = Files.readString(filePath);
+                        log.info("Loaded custom documentation from file path: {}", customDocumentationFile);
+                    } else {
+                        log.warn("Custom documentation file not found: {}", customDocumentationFile);
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                // Si la resource échoue, essayer comme chemin de fichier absolu
+                Path filePath = Paths.get(customDocumentationFile);
+                if (Files.exists(filePath) && Files.isReadable(filePath)) {
+                    content = Files.readString(filePath);
+                    log.info("Loaded custom documentation from file path: {}", customDocumentationFile);
+                } else {
+                    log.warn("Custom documentation file not found: {} - {}", customDocumentationFile, e.getMessage());
+                    return;
+                }
+            }
+
+            // Indexer le contenu personnalisé
+            // Le fichier peut contenir plusieurs sections séparées par "---" ou des lignes vides
+            String[] sections = content.split("---");
+            for (int i = 0; i < sections.length; i++) {
+                String section = sections[i].trim();
+                if (!section.isEmpty()) {
+                    // Extraire le titre (première ligne) si présent
+                    String[] lines = section.split("\n", 2);
+                    String title = lines.length > 0 && !lines[0].trim().isEmpty() 
+                            ? lines[0].trim() 
+                            : "Custom Documentation " + (i + 1);
+                    String sectionContent = lines.length > 1 ? lines[1].trim() : section;
+                    
+                    indexDocument(title, sectionContent);
+                }
+            }
+
+            log.info("Successfully loaded custom documentation from: {}", customDocumentationFile);
+        } catch (IOException e) {
+            log.error("Error loading custom documentation from: {}", customDocumentationFile, e);
+        } catch (Exception e) {
+            log.error("Unexpected error loading custom documentation from: {}", customDocumentationFile, e);
+        }
     }
 
     /**

@@ -2,7 +2,6 @@ package com.neohoods.portal.platform.api.admin.matrix;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,10 +19,10 @@ import com.neohoods.portal.platform.model.MatrixBotStatusCurrentSpacesInner;
 import com.neohoods.portal.platform.model.MatrixBotStatus.MatrixAccessEnum;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCode200Response;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCodeRequest;
-import com.neohoods.portal.platform.services.MatrixAssistantService;
-import com.neohoods.portal.platform.services.MatrixAssistantInitializationService;
-import com.neohoods.portal.platform.services.MatrixOAuth2Service;
-import com.neohoods.portal.platform.services.MatrixOAuth2Service.DeviceCodeInfo;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantService;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantInitializationService;
+import com.neohoods.portal.platform.services.matrix.MatrixOAuth2Service;
+import com.neohoods.portal.platform.services.matrix.MatrixOAuth2Service.DeviceCodeInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -171,7 +170,7 @@ public class MatrixBotAdminApi implements MatrixBotAdminApiApiDelegate {
                 }
 
                 // Get device code entry to retrieve interval and expiration
-                com.neohoods.portal.platform.services.MatrixOAuth2Service.DeviceCodeEntry deviceCodeEntry = oauth2Service
+                MatrixOAuth2Service.DeviceCodeEntry deviceCodeEntry = oauth2Service
                         .getDeviceCodeEntry(deviceCode);
 
                 if (deviceCodeEntry == null) {

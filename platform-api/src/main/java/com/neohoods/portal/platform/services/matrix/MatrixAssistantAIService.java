@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services;
+package com.neohoods.portal.platform.services.matrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer.MCPContent;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer.MCPTool;
-import com.neohoods.portal.platform.services.MatrixAssistantMCPServer.MCPToolResult;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPContent;
+import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPTool;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -69,6 +67,23 @@ public class MatrixAssistantAIService {
             String userMessage,
             String conversationHistory,
             MatrixAssistantAuthContext authContext) {
+        return generateResponse(userMessage, conversationHistory, null, authContext);
+    }
+
+    /**
+     * Génère une réponse à un message utilisateur en utilisant Mistral AI
+     * avec support pour RAG et MCP
+     * 
+     * @param userMessage Message de l'utilisateur
+     * @param conversationHistory Historique de conversation (format string, pour compatibilité)
+     * @param conversationHistoryList Historique de conversation (format liste, préféré)
+     * @param authContext Contexte d'autorisation
+     */
+    public Mono<String> generateResponse(
+            String userMessage,
+            String conversationHistory,
+            List<Map<String, Object>> conversationHistoryList,
+            MatrixAssistantAuthContext authContext) {
 
         if (!aiEnabled) {
             return Mono.just("L'assistant IA n'est pas activé.");
@@ -100,7 +115,7 @@ public class MatrixAssistantAIService {
 
         // 4. Appeler Mistral API avec function calling
         return ragContextMono.flatMap(ragContext -> {
-            return callMistralAPI(userMessage, conversationHistory, ragContext, systemPrompt, finalTools, authContext);
+            return callMistralAPI(userMessage, conversationHistory, conversationHistoryList, ragContext, systemPrompt, finalTools, authContext);
         });
     }
 
@@ -110,6 +125,7 @@ public class MatrixAssistantAIService {
     private Mono<String> callMistralAPI(
             String userMessage,
             String conversationHistory,
+            List<Map<String, Object>> conversationHistoryList,
             String ragContext,
             String systemPrompt,
             List<Map<String, Object>> tools,
@@ -131,9 +147,32 @@ public class MatrixAssistantAIService {
         messages.add(systemMsg);
 
         // Historique de conversation (si disponible)
-        if (conversationHistory != null && !conversationHistory.isEmpty()) {
-            // TODO: Parser l'historique et l'ajouter aux messages
-            // Pour l'instant, on ignore l'historique
+        // Préférer la liste si disponible, sinon parser la string
+        if (conversationHistoryList != null && !conversationHistoryList.isEmpty()) {
+            // Utiliser directement la liste (format préféré)
+            messages.addAll(conversationHistoryList);
+            log.debug("Added {} messages from conversation history (list format)", conversationHistoryList.size());
+        } else if (conversationHistory != null && !conversationHistory.isEmpty()) {
+            // Parser l'historique string (format legacy)
+            // Format attendu: "role: content\nrole: content\n..."
+            String[] lines = conversationHistory.split("\n");
+            for (String line : lines) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+                int colonIndex = line.indexOf(":");
+                if (colonIndex > 0) {
+                    String role = line.substring(0, colonIndex).trim();
+                    String content = line.substring(colonIndex + 1).trim();
+                    if (("user".equals(role) || "assistant".equals(role)) && !content.isEmpty()) {
+                        Map<String, Object> histMsg = new HashMap<>();
+                        histMsg.put("role", role);
+                        histMsg.put("content", content);
+                        messages.add(histMsg);
+                    }
+                }
+            }
+            log.debug("Added {} messages from conversation history (string format)", messages.size() - 1); // -1 pour system
         }
 
         // Message utilisateur
