@@ -8,3 +8,5 @@ COMMENT ON COLUMN contact_numbers.responsibility IS 'Responsibility/scope of the
 COMMENT ON COLUMN contact_numbers.metadata IS 'Additional metadata/instructions (e.g., "QR code à scanner", "numéro à donner")';
 
 
+
+

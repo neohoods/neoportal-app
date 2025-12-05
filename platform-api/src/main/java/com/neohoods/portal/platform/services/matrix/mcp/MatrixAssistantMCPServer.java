@@ -20,6 +20,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.dao.DataAccessException;
 import org.hibernate.HibernateException;
 import org.yaml.snakeyaml.Yaml;
@@ -367,6 +368,23 @@ public class MatrixAssistantMCPServer {
                                                         .build();
                                 }
                         });
+                } catch (UnexpectedRollbackException e) {
+                        // Handle transaction rollback exceptions
+                        // This happens when a transaction was marked as rollback-only
+                        // (e.g., due to a DataAccessException or HibernateException)
+                        log.error("Transaction rollback error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName,
+                                        e.getMessage(),
+                                        traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A", e);
+                        Locale locale = getLocaleFromAuthContext(authContext);
+                        String errorMessage = translate("matrix.mcp.error.generic", locale,
+                                        "Database error occurred. Please try again.");
+                        return MatrixMCPModels.MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
+                                                        .type("text")
+                                                        .text(errorMessage)
+                                                        .build()))
+                                        .build();
                 } catch (DataAccessException | HibernateException e) {
                         // Handle database exceptions that were re-thrown from TransactionTemplate
                         // These exceptions cause transaction rollback, which is expected
