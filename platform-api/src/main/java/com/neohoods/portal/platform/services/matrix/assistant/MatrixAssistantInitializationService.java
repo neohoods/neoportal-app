@@ -1,11 +1,13 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.assistant;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +22,12 @@ import org.yaml.snakeyaml.Yaml;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.matrix.ApiException;
 
+import com.neohoods.portal.platform.services.matrix.space.MatrixInitializationStats;
+import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
+import com.neohoods.portal.platform.services.matrix.space.MatrixRoomConfig;
+import com.neohoods.portal.platform.services.matrix.space.MatrixRoomInvitationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,212 +43,26 @@ public class MatrixAssistantInitializationService {
     private final UsersRepository usersRepository;
     private final ResourceLoader resourceLoader;
 
-    @Value("${neohoods.portal.matrix.space-id:}")
+    @Value("${neohoods.portal.matrix.space-id}")
     private String spaceId;
 
     private static final String IT_ROOM_NAME = "IT";
 
-    @Value("${neohoods.portal.matrix.initialization.rooms-config-file:classpath:matrix-default-rooms.yaml}")
+    @Value("${neohoods.portal.matrix.initialization.rooms-config-file}")
     private String roomsConfigFile;
 
-    @Value("${neohoods.portal.matrix.disabled:false}")
+    @Value("${neohoods.portal.matrix.disabled}")
     private boolean disabled;
 
-    @Value("${neohoods.portal.matrix.homeserver-url:}")
+    @Value("${neohoods.portal.matrix.homeserver-url}")
     private String homeserverUrl;
 
-    @Value("${neohoods.portal.matrix.mas.admin-users:}")
+    @Value("${neohoods.portal.matrix.mas.admin-users}")
     private String adminUsersConfig;
 
-    @Value("${neohoods.portal.matrix.it-room.avatar-url:}")
+    @Value("${neohoods.portal.matrix.it-room.avatar-url}")
     private String itRoomAvatarUrl;
 
-    /**
-     * Room configuration from YAML
-     */
-    @SuppressWarnings("unchecked")
-    public static class RoomConfig {
-        private String name;
-        private String description;
-        private String image;
-        private Boolean autoJoin;
-
-        public RoomConfig(Map<String, Object> map) {
-            this.name = (String) map.get("name");
-            this.description = (String) map.get("description");
-            this.image = (String) map.get("image");
-            this.autoJoin = map.get("auto-join") != null ? (Boolean) map.get("auto-join") : true;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getImage() {
-            return image;
-        }
-
-        public Boolean getAutoJoin() {
-            return autoJoin;
-        }
-    }
-
-    /**
-     * Statistics collected during initialization
-     */
-    public static class InitializationStats {
-        private int roomsCreated = 0;
-        private int roomsExisting = 0;
-        private int roomsErrors = 0;
-        private int usersCreated = 0;
-        private int usersUpdated = 0;
-        private int usersErrors = 0;
-        private int spaceInvitationsSent = 0;
-        private int roomInvitationsSent = 0;
-        private int pendingInvitations = 0;
-        private int avatarsUpdated = 0;
-        private int avatarsSkipped = 0;
-        private int avatarsFailed = 0;
-
-        public int getRoomsCreated() {
-            return roomsCreated;
-        }
-
-        public void setRoomsCreated(int roomsCreated) {
-            this.roomsCreated = roomsCreated;
-        }
-
-        public int getRoomsExisting() {
-            return roomsExisting;
-        }
-
-        public void setRoomsExisting(int roomsExisting) {
-            this.roomsExisting = roomsExisting;
-        }
-
-        public int getRoomsErrors() {
-            return roomsErrors;
-        }
-
-        public void setRoomsErrors(int roomsErrors) {
-            this.roomsErrors = roomsErrors;
-        }
-
-        public int getUsersCreated() {
-            return usersCreated;
-        }
-
-        public void setUsersCreated(int usersCreated) {
-            this.usersCreated = usersCreated;
-        }
-
-        public int getUsersUpdated() {
-            return usersUpdated;
-        }
-
-        public void setUsersUpdated(int usersUpdated) {
-            this.usersUpdated = usersUpdated;
-        }
-
-        public int getUsersErrors() {
-            return usersErrors;
-        }
-
-        public void setUsersErrors(int usersErrors) {
-            this.usersErrors = usersErrors;
-        }
-
-        public int getSpaceInvitationsSent() {
-            return spaceInvitationsSent;
-        }
-
-        public void setSpaceInvitationsSent(int spaceInvitationsSent) {
-            this.spaceInvitationsSent = spaceInvitationsSent;
-        }
-
-        public int getRoomInvitationsSent() {
-            return roomInvitationsSent;
-        }
-
-        public void setRoomInvitationsSent(int roomInvitationsSent) {
-            this.roomInvitationsSent = roomInvitationsSent;
-        }
-
-        public int getPendingInvitations() {
-            return pendingInvitations;
-        }
-
-        public void setPendingInvitations(int pendingInvitations) {
-            this.pendingInvitations = pendingInvitations;
-        }
-
-        public int getAvatarsUpdated() {
-            return avatarsUpdated;
-        }
-
-        public void setAvatarsUpdated(int avatarsUpdated) {
-            this.avatarsUpdated = avatarsUpdated;
-        }
-
-        public int getAvatarsSkipped() {
-            return avatarsSkipped;
-        }
-
-        public void setAvatarsSkipped(int avatarsSkipped) {
-            this.avatarsSkipped = avatarsSkipped;
-        }
-
-        public int getAvatarsFailed() {
-            return avatarsFailed;
-        }
-
-        public void setAvatarsFailed(int avatarsFailed) {
-            this.avatarsFailed = avatarsFailed;
-        }
-    }
-
-    /**
-     * Result of room invitation process
-     */
-    public static class RoomInvitationResult {
-        private final List<String> newlyInvitedRooms;
-        private final List<String> alreadyMemberOrInvitedRooms;
-
-        public RoomInvitationResult() {
-            this.newlyInvitedRooms = new ArrayList<>();
-            this.alreadyMemberOrInvitedRooms = new ArrayList<>();
-        }
-
-        public void addNewlyInvited(String roomName) {
-            newlyInvitedRooms.add(roomName);
-        }
-
-        public void addAlreadyMemberOrInvited(String roomName) {
-            alreadyMemberOrInvitedRooms.add(roomName);
-        }
-
-        public List<String> getAllRooms() {
-            List<String> all = new ArrayList<>(newlyInvitedRooms);
-            all.addAll(alreadyMemberOrInvitedRooms);
-            return all;
-        }
-
-        public List<String> getNewlyInvitedRooms() {
-            return newlyInvitedRooms;
-        }
-
-        public List<String> getAlreadyMemberOrInvitedRooms() {
-            return alreadyMemberOrInvitedRooms;
-        }
-
-        public int getTotalCount() {
-            return newlyInvitedRooms.size() + alreadyMemberOrInvitedRooms.size();
-        }
-    }
 
     /**
      * Initialize bot on application startup
@@ -284,7 +105,7 @@ public class MatrixAssistantInitializationService {
             }
 
             // 2. Load rooms configuration
-            List<RoomConfig> rooms = loadRoomsConfig();
+            List<MatrixRoomConfig> rooms = loadRoomsConfig();
 
             // 3. Load existing rooms and preload their participants
             Map<String, String> allRooms = matrixAssistantService.getExistingRoomsInSpace(spaceId);
@@ -300,7 +121,7 @@ public class MatrixAssistantInitializationService {
             }
 
             // Initialize stats
-            InitializationStats stats = new InitializationStats();
+            MatrixInitializationStats stats = new MatrixInitializationStats();
 
             // 4. Create default rooms if needed
             if (rooms.isEmpty()) {
@@ -357,8 +178,8 @@ public class MatrixAssistantInitializationService {
      * Load rooms configuration from YAML file
      */
     @SuppressWarnings("unchecked")
-    private List<RoomConfig> loadRoomsConfig() {
-        List<RoomConfig> rooms = new ArrayList<>();
+    private List<MatrixRoomConfig> loadRoomsConfig() {
+        List<MatrixRoomConfig> rooms = new ArrayList<>();
         try {
             Resource resource = resourceLoader.getResource(roomsConfigFile);
             if (!resource.exists()) {
@@ -372,7 +193,7 @@ public class MatrixAssistantInitializationService {
                 if (data != null && data.containsKey("rooms")) {
                     List<Map<String, Object>> roomsList = (List<Map<String, Object>>) data.get("rooms");
                     for (Map<String, Object> roomMap : roomsList) {
-                        rooms.add(new RoomConfig(roomMap));
+                        rooms.add(new MatrixRoomConfig(roomMap));
                     }
                 }
             }
@@ -388,7 +209,7 @@ public class MatrixAssistantInitializationService {
     /**
      * Create default rooms with rate limiting to avoid 429 errors
      */
-    private void createDefaultRooms(List<RoomConfig> rooms, InitializationStats stats) {
+    private void createDefaultRooms(List<MatrixRoomConfig> rooms, MatrixInitializationStats stats) {
         int created = 0;
         int existing = 0;
         int errors = 0;
@@ -398,7 +219,7 @@ public class MatrixAssistantInitializationService {
         log.info("Found {} existing rooms in space", existingRooms.size());
 
         for (int i = 0; i < rooms.size(); i++) {
-            RoomConfig room = rooms.get(i);
+            MatrixRoomConfig room = rooms.get(i);
             try {
                 // Check if room already exists in the pre-loaded map
                 String existingRoomId = existingRooms.get(room.getName());
@@ -431,8 +252,8 @@ public class MatrixAssistantInitializationService {
                 }
 
                 // Create room
-                // Rooms with autoJoin=false are restricted (e.g., Proprio,
-                // Syndic-de-copropriété)
+                // Rooms with autoJoin=false are restricted (e.g., Owner,
+                // Property Management)
                 // Rooms with autoJoin=true allow guests
                 boolean allowGuests = room.getAutoJoin() != null && room.getAutoJoin();
                 Optional<String> roomId = matrixAssistantService.createRoomInSpace(
@@ -478,8 +299,8 @@ public class MatrixAssistantInitializationService {
                 // If we get a 429 error, wait longer before retrying
                 // Try to extract retry_after_ms from error response
                 long waitTime = 5000; // Default 5 seconds
-                if (e instanceof com.neohoods.portal.platform.matrix.ApiException) {
-                    com.neohoods.portal.platform.matrix.ApiException apiEx = (com.neohoods.portal.platform.matrix.ApiException) e;
+                if (e instanceof ApiException) {
+                    ApiException apiEx = (ApiException) e;
                     if (apiEx.getCode() == 429) {
                         // Try to extract retry_after_ms from response body
                         try {
@@ -555,7 +376,7 @@ public class MatrixAssistantInitializationService {
     /**
      * Synchronize users with rate limiting to avoid 429 errors
      */
-    private void synchronizeUsers(List<RoomConfig> rooms, InitializationStats stats) {
+    private void synchronizeUsers(List<MatrixRoomConfig> rooms, MatrixInitializationStats stats) {
         List<UserEntity> allUsers = usersRepository.findAllWithPrimaryUnit();
         List<String> usernames = allUsers.stream()
                 .map(UserEntity::getUsername)
@@ -631,7 +452,7 @@ public class MatrixAssistantInitializationService {
 
                 // Invite to appropriate rooms
                 log.info("Inviting user {} ({}) to appropriate rooms", user.getUsername(), matrixUserId);
-                RoomInvitationResult invitationResult = inviteUserToRooms(user, matrixUserId, rooms);
+                MatrixRoomInvitationResult invitationResult = inviteUserToRooms(user, matrixUserId, rooms);
                 List<String> allRooms = invitationResult.getAllRooms();
                 if (allRooms.isEmpty()) {
                     log.warn("User {} ({}) was not invited to any rooms", user.getUsername(), matrixUserId);
@@ -709,7 +530,7 @@ public class MatrixAssistantInitializationService {
     /**
      * Count pending invitations (users with "invite" status in rooms)
      */
-    private void countPendingInvitations(List<RoomConfig> rooms, InitializationStats stats) {
+    private void countPendingInvitations(List<MatrixRoomConfig> rooms, MatrixInitializationStats stats) {
         try {
             // Get all rooms in space
             Map<String, String> allRoomsMap = matrixAssistantService.getExistingRoomsInSpace(spaceId);
@@ -744,14 +565,14 @@ public class MatrixAssistantInitializationService {
      * Invite user to appropriate rooms based on user type and primary unit
      * Includes rate limiting delays between invitations
      */
-    private RoomInvitationResult inviteUserToRooms(UserEntity user, String matrixUserId, List<RoomConfig> rooms) {
+    private MatrixRoomInvitationResult inviteUserToRooms(UserEntity user, String matrixUserId, List<MatrixRoomConfig> rooms) {
         // Load all rooms once for efficiency
         Map<String, String> allRoomsMap = matrixAssistantService.getExistingRoomsInSpace(spaceId);
         log.info("Loaded {} rooms from space for user {} invitations", allRoomsMap.size(), matrixUserId);
-        RoomInvitationResult result = new RoomInvitationResult();
+        MatrixRoomInvitationResult result = new MatrixRoomInvitationResult();
 
-        // If user is PROPERTY_MANAGEMENT (syndic), invite ONLY to
-        // "Syndic-de-copropriété" with notifications
+        // If user is PROPERTY_MANAGEMENT (property manager), invite ONLY to
+        // "Property Management" room with notifications
         if (user.getType() == UserType.PROPERTY_MANAGEMENT) {
             String syndicRoomName = "Syndic-de-copropriété";
             // Try to find room in the pre-loaded map first
@@ -796,7 +617,7 @@ public class MatrixAssistantInitializationService {
         }
 
         // For other users, invite to auto-join rooms
-        for (RoomConfig room : rooms) {
+        for (MatrixRoomConfig room : rooms) {
             if (Boolean.TRUE.equals(room.getAutoJoin())) {
                 // Try to find room in the pre-loaded map first (more efficient)
                 String roomIdStr = allRoomsMap.get(room.getName());
@@ -965,7 +786,7 @@ public class MatrixAssistantInitializationService {
     /**
      * Send initialization summary to IT room
      */
-    private void sendInitializationSummary(List<RoomConfig> rooms, InitializationStats stats) {
+    private void sendInitializationSummary(List<MatrixRoomConfig> rooms, MatrixInitializationStats stats) {
         try {
             // Find or create IT room
             Optional<String> itRoomId = matrixAssistantService.getRoomIdByName(IT_ROOM_NAME, spaceId);
@@ -1069,50 +890,50 @@ public class MatrixAssistantInitializationService {
 
             // Build summary message
             StringBuilder summary = new StringBuilder();
-            summary.append("🎉 **Initialisation de l'assistant Matrix terminée avec succès !**\n\n");
+            summary.append("🎉 **Matrix Assistant initialization completed successfully!**\n\n");
 
             // Space section
-            summary.append("📦 **Space Matrix**\n");
+            summary.append("📦 **Matrix Space**\n");
             summary.append("   └─ Space ID: `").append(spaceId).append("`\n");
-            summary.append("   └─ Statut: ✅ Vérifié et opérationnel\n\n");
+            summary.append("   └─ Status: ✅ Verified and operational\n\n");
 
             // Rooms section - Actions during initialization
-            summary.append("🏠 **Rooms - Actions effectuées**\n");
-            summary.append("   ├─ Créées: **").append(stats.getRoomsCreated()).append("**\n");
-            summary.append("   ├─ Déjà existantes: **").append(stats.getRoomsExisting()).append("**\n");
+            summary.append("🏠 **Rooms - Actions performed**\n");
+            summary.append("   ├─ Created: **").append(stats.getRoomsCreated()).append("**\n");
+            summary.append("   ├─ Already existing: **").append(stats.getRoomsExisting()).append("**\n");
             if (stats.getRoomsErrors() > 0) {
-                summary.append("   ├─ Erreurs: **").append(stats.getRoomsErrors()).append("** ⚠️\n");
+                summary.append("   ├─ Errors: **").append(stats.getRoomsErrors()).append("** ⚠️\n");
             }
-            summary.append("   └─ Total configurées: **").append(rooms.size()).append(" rooms**\n");
+            summary.append("   └─ Total configured: **").append(rooms.size()).append(" rooms**\n");
 
             // Count rooms by auto-join
             long autoJoinCount = rooms.stream().filter(r -> Boolean.TRUE.equals(r.getAutoJoin())).count();
             long manualCount = rooms.size() - autoJoinCount;
-            summary.append("      ├─ Auto-join: **").append(autoJoinCount).append("** (ajout automatique)\n");
-            summary.append("      └─ Manuelles: **").append(manualCount).append("** (invitation requise)\n\n");
+            summary.append("      ├─ Auto-join: **").append(autoJoinCount).append("** (automatic addition)\n");
+            summary.append("      └─ Manual: **").append(manualCount).append("** (invitation required)\n\n");
 
             // Avatars section
             if (stats.getAvatarsUpdated() > 0 || stats.getAvatarsSkipped() > 0 || stats.getAvatarsFailed() > 0) {
-                summary.append("🖼️  **Avatars des rooms - Actions effectuées**\n");
-                summary.append("   ├─ Mis à jour: **").append(stats.getAvatarsUpdated()).append("**\n");
+                summary.append("🖼️  **Room Avatars - Actions performed**\n");
+                summary.append("   ├─ Updated: **").append(stats.getAvatarsUpdated()).append("**\n");
                 if (stats.getAvatarsSkipped() > 0) {
-                    summary.append("   ├─ Ignorés: **").append(stats.getAvatarsSkipped())
-                            .append("** (pas d'image configurée)\n");
+                    summary.append("   ├─ Skipped: **").append(stats.getAvatarsSkipped())
+                            .append("** (no image configured)\n");
                 }
                 if (stats.getAvatarsFailed() > 0) {
-                    summary.append("   ├─ Échecs: **").append(stats.getAvatarsFailed()).append("** ⚠️\n");
+                    summary.append("   ├─ Failed: **").append(stats.getAvatarsFailed()).append("** ⚠️\n");
                 }
-                summary.append("   └─ Total traité: **")
+                summary.append("   └─ Total processed: **")
                         .append(stats.getAvatarsUpdated() + stats.getAvatarsSkipped() + stats.getAvatarsFailed())
                         .append("**\n\n");
             }
 
             // Users section - Actions during initialization
-            summary.append("👥 **Utilisateurs - Actions effectuées**\n");
-            summary.append("   ├─ Créés: **").append(stats.getUsersCreated()).append("**\n");
-            summary.append("   ├─ Mis à jour: **").append(stats.getUsersUpdated()).append("**\n");
+            summary.append("👥 **Users - Actions performed**\n");
+            summary.append("   ├─ Created: **").append(stats.getUsersCreated()).append("**\n");
+            summary.append("   ├─ Updated: **").append(stats.getUsersUpdated()).append("**\n");
             if (stats.getUsersErrors() > 0) {
-                summary.append("   ├─ Erreurs: **").append(stats.getUsersErrors()).append("** ⚠️\n");
+                summary.append("   ├─ Errors: **").append(stats.getUsersErrors()).append("** ⚠️\n");
             }
 
             // Get user stats
@@ -1124,29 +945,29 @@ public class MatrixAssistantInitializationService {
             long ownerCount = allUsers.stream().filter(u -> u.getType() == UserType.OWNER).count();
             long otherCount = allUsers.size() - syndicCount - ownerCount;
 
-            summary.append("   └─ Total synchronisés: **").append(allUsers.size()).append(" utilisateurs**\n");
+            summary.append("   └─ Total synchronized: **").append(allUsers.size()).append(" users**\n");
             if (syndicCount > 0 || ownerCount > 0 || otherCount > 0) {
-                summary.append("      ├─ 🏢 Syndics: **").append(syndicCount).append("**\n");
-                summary.append("      ├─ 🏡 Propriétaires: **").append(ownerCount).append("**\n");
+                summary.append("      ├─ 🏢 Property Managers: **").append(syndicCount).append("**\n");
+                summary.append("      ├─ 🏡 Owners: **").append(ownerCount).append("**\n");
                 if (otherCount > 0) {
-                    summary.append("      └─ 👤 Autres: **").append(otherCount).append("**\n");
+                    summary.append("      └─ 👤 Others: **").append(otherCount).append("**\n");
                 } else {
-                    summary.append("      └─ 👤 Autres: **0**\n");
+                    summary.append("      └─ 👤 Others: **0**\n");
                 }
             }
             summary.append("\n");
 
             // Invitations section
-            summary.append("📨 **Invitations envoyées**\n");
+            summary.append("📨 **Invitations sent**\n");
             summary.append("   ├─ Space: **").append(stats.getSpaceInvitationsSent()).append("** invitations\n");
             summary.append("   ├─ Rooms: **").append(stats.getRoomInvitationsSent()).append("** invitations\n");
-            summary.append("   └─ En attente: **").append(stats.getPendingInvitations())
-                    .append("** invitations non acceptées");
+            summary.append("   └─ Pending: **").append(stats.getPendingInvitations())
+                    .append("** unaccepted invitations");
             if (stats.getPendingInvitations() > 0) {
                 summary.append(" ⏳");
             }
 
-            summary.append("\n\n✨ **Le bot est maintenant opérationnel et prêt à répondre aux messages !**");
+            summary.append("\n\n✨ **The bot is now operational and ready to respond to messages!**");
 
             // Send message
             matrixAssistantService.sendMessage(itRoomId.get(), summary.toString());
@@ -1164,7 +985,7 @@ public class MatrixAssistantInitializationService {
             if (homeserverUrl == null || homeserverUrl.isEmpty()) {
                 return "chat.neohoods.com";
             }
-            java.net.URI uri = new java.net.URI(homeserverUrl);
+            URI uri = new URI(homeserverUrl);
             String host = uri.getHost();
             if (host != null) {
                 return host;
@@ -1179,6 +1000,6 @@ public class MatrixAssistantInitializationService {
      * Generate random password
      */
     private String generateRandomPassword() {
-        return java.util.UUID.randomUUID().toString() + java.util.UUID.randomUUID().toString();
+        return UUID.randomUUID().toString() + UUID.randomUUID().toString();
     }
 }

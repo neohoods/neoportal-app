@@ -1,7 +1,8 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.space;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,31 +13,30 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service de gestion du contexte de conversation par room.
- * Stocke l'historique des messages pour chaque room afin de maintenir le contexte
- * de conversation entre les messages.
+ * Service for managing conversation context per room.
+ * Stores message history for each room to maintain conversation context between messages.
  */
 @Service
 @Slf4j
 public class MatrixConversationContextService {
 
-    @Value("${neohoods.portal.matrix.assistant.conversation.max-history:20}")
+    @Value("${neohoods.portal.matrix.assistant.conversation.max-history}")
     private int maxHistoryPerRoom;
 
-    @Value("${neohoods.portal.matrix.assistant.conversation.enabled:true}")
+    @Value("${neohoods.portal.matrix.assistant.conversation.enabled}")
     private boolean conversationContextEnabled;
 
     /**
-     * Stockage en mémoire de l'historique par room
-     * Key: roomId, Value: liste des messages (user/assistant)
+     * In-memory storage of history per room
+     * Key: roomId, Value: list of messages (user/assistant)
      */
     private final Map<String, List<ConversationMessage>> roomHistory = new ConcurrentHashMap<>();
 
     /**
-     * Représente un message dans la conversation
+     * Represents a message in the conversation
      */
     public static class ConversationMessage {
-        private final String role; // "user" ou "assistant"
+        private final String role; // "user" or "assistant"
         private final String content;
 
         public ConversationMessage(String role, String content) {
@@ -54,10 +54,10 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Récupère l'historique de conversation pour une room
+     * Gets conversation history for a room
      * 
-     * @param roomId ID de la room Matrix
-     * @return Liste des messages de conversation (format pour Mistral API)
+     * @param roomId Matrix room ID
+     * @return List of conversation messages (format for Mistral API)
      */
     public List<Map<String, Object>> getConversationHistory(String roomId) {
         if (!conversationContextEnabled) {
@@ -69,10 +69,10 @@ public class MatrixConversationContextService {
             return Collections.emptyList();
         }
 
-        // Convertir en format Mistral API
+        // Convert to Mistral API format
         List<Map<String, Object>> messages = new ArrayList<>();
         for (ConversationMessage msg : history) {
-            Map<String, Object> message = new java.util.HashMap<>();
+            Map<String, Object> message = new HashMap<>();
             message.put("role", msg.getRole());
             message.put("content", msg.getContent());
             messages.add(message);
@@ -83,33 +83,33 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Ajoute un message utilisateur à l'historique de la room
+     * Adds a user message to the room history
      * 
-     * @param roomId ID de la room Matrix
-     * @param message Contenu du message utilisateur
+     * @param roomId Matrix room ID
+     * @param message User message content
      */
     public void addUserMessage(String roomId, String message) {
         addUserMessage(roomId, message, null);
     }
 
     /**
-     * Ajoute un message utilisateur à l'historique de la room avec le sender
+     * Adds a user message to the room history with sender
      * 
-     * @param roomId ID de la room Matrix
-     * @param message Contenu du message utilisateur
-     * @param sender Matrix user ID du sender (optionnel, pour le contexte - non inclus dans le message pour éviter que le LLM reproduise le format)
+     * @param roomId Matrix room ID
+     * @param message User message content
+     * @param sender Matrix user ID of sender (optional, for context - not included in message to avoid LLM reproducing the format)
      */
     public void addUserMessage(String roomId, String message, String sender) {
         if (!conversationContextEnabled) {
             return;
         }
 
-        // Ne pas formater avec le sender pour éviter que le LLM reproduise le format Matrix user ID
-        // Le sender est gardé uniquement pour les logs
+        // Don't format with sender to avoid LLM reproducing Matrix user ID format
+        // Sender is kept only for logs
         roomHistory.computeIfAbsent(roomId, k -> new ArrayList<>())
                 .add(new ConversationMessage("user", message));
 
-        // Limiter la taille de l'historique
+        // Limit history size
         trimHistory(roomId);
 
         log.debug("Added user message to conversation history for room {} (sender: {}, total: {})", roomId, sender,
@@ -117,10 +117,10 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Ajoute une réponse de l'assistant à l'historique de la room
+     * Adds an assistant response to the room history
      * 
-     * @param roomId ID de la room Matrix
-     * @param response Réponse de l'assistant
+     * @param roomId Matrix room ID
+     * @param response Assistant response
      */
     public void addAssistantResponse(String roomId, String response) {
         if (!conversationContextEnabled) {
@@ -130,7 +130,7 @@ public class MatrixConversationContextService {
         roomHistory.computeIfAbsent(roomId, k -> new ArrayList<>())
                 .add(new ConversationMessage("assistant", response));
 
-        // Limiter la taille de l'historique
+        // Limit history size
         trimHistory(roomId);
 
         log.debug("Added assistant response to conversation history for room {} (total: {})", roomId,
@@ -138,9 +138,9 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Limite la taille de l'historique en gardant les N derniers messages
+     * Limits history size by keeping the last N messages
      * 
-     * @param roomId ID de la room
+     * @param roomId Room ID
      */
     private void trimHistory(String roomId) {
         List<ConversationMessage> history = roomHistory.get(roomId);
@@ -149,7 +149,7 @@ public class MatrixConversationContextService {
         }
 
         if (history.size() > maxHistoryPerRoom) {
-            // Garder les N derniers messages
+            // Keep the last N messages
             int toRemove = history.size() - maxHistoryPerRoom;
             history.subList(0, toRemove).clear();
             log.debug("Trimmed conversation history for room {} (removed {} messages)", roomId, toRemove);
@@ -157,9 +157,9 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Efface l'historique d'une room (utile pour les tests ou reset)
+     * Clears history for a room (useful for tests or reset)
      * 
-     * @param roomId ID de la room
+     * @param roomId Room ID
      */
     public void clearHistory(String roomId) {
         roomHistory.remove(roomId);
@@ -167,10 +167,10 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Retourne le nombre de messages dans l'historique d'une room
+     * Returns the number of messages in a room's history
      * 
-     * @param roomId ID de la room
-     * @return Nombre de messages
+     * @param roomId Room ID
+     * @return Number of messages
      */
     public int getHistorySize(String roomId) {
         List<ConversationMessage> history = roomHistory.get(roomId);
@@ -178,9 +178,9 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Vérifie si le contexte de conversation est activé
+     * Checks if conversation context is enabled
      * 
-     * @return true si activé
+     * @return true if enabled
      */
     public boolean isEnabled() {
         return conversationContextEnabled;

@@ -5985,6 +5985,14 @@ components:
         address:
           type: string
           example: "123 Main St, Neighborhood City"
+        responsibility:
+          type: string
+          description: "Responsibility/scope of the contact (e.g., 'garages, portails', 'canalisations, système de chauffage', 'chaufferie')"
+          example: "garages, portails"
+        metadata:
+          type: string
+          description: "Additional metadata/instructions (e.g., 'QR code à scanner', 'numéro à donner')"
+          example: "numéro à donner"
 
     Application:
       type: object

@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.oauth2;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import com.neohoods.portal.platform.services.MailService;
 import com.nimbusds.oauth2.sdk.AccessTokenResponse;
@@ -59,6 +60,7 @@ import com.neohoods.portal.platform.repositories.MatrixBotErrorNotificationRepos
 import com.neohoods.portal.platform.repositories.MatrixBotTokenRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 
+import com.neohoods.portal.platform.matrix.ApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,31 +74,31 @@ public class MatrixOAuth2Service {
     private final UsersRepository usersRepository;
     private final MailService mailService;
 
-    @Value("${neohoods.portal.matrix.oauth2.client-id:}")
+    @Value("${neohoods.portal.matrix.oauth2.client-id}")
     private String clientId;
 
-    @Value("${neohoods.portal.matrix.oauth2.client-secret:}")
+    @Value("${neohoods.portal.matrix.oauth2.client-secret}")
     private String clientSecret;
 
-    @Value("${neohoods.portal.matrix.oauth2.redirect-uri:}")
+    @Value("${neohoods.portal.matrix.oauth2.redirect-uri}")
     private String redirectUri;
 
-    @Value("${neohoods.portal.matrix.oauth2.authorization-endpoint:}")
+    @Value("${neohoods.portal.matrix.oauth2.authorization-endpoint}")
     private String authorizationEndpoint;
 
-    @Value("${neohoods.portal.matrix.oauth2.token-endpoint:}")
+    @Value("${neohoods.portal.matrix.oauth2.token-endpoint}")
     private String tokenEndpoint;
 
-    @Value("${neohoods.portal.matrix.oauth2.scope:urn:matrix:client:api:*}")
+    @Value("${neohoods.portal.matrix.oauth2.scope}")
     private String scope;
 
-    @Value("${neohoods.portal.matrix.homeserver-url:}")
+    @Value("${neohoods.portal.matrix.homeserver-url}")
     private String homeserverUrl;
 
-    @Value("${neohoods.portal.base-url:}")
+    @Value("${neohoods.portal.base-url}")
     private String baseUrl;
 
-    @Value("${neohoods.portal.matrix.oauth2.device-authorization-endpoint:https://mas.chat.neohoods.com/oauth2/device}")
+    @Value("${neohoods.portal.matrix.oauth2.device-authorization-endpoint}")
     private String deviceAuthorizationEndpoint;
 
     @PostConstruct
@@ -820,6 +822,153 @@ public class MatrixOAuth2Service {
             log.error("IO error getting admin access token", e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Get Matrix API client configured with access token
+     * Priority order:
+     * 1. matrixAccessToken (from Kubernetes secret) - highest priority
+     * 2. localAssistantPermanentToken (from MATRIX_LOCAL_BOT_PERMANENT_TOKEN)
+     * 3. OAuth2 token (fallback, but may not work for sendMessage)
+     * 
+     * @param homeserverUrl Matrix homeserver URL
+     * @param matrixAccessToken Optional Kubernetes secret token
+     * @param localAssistantEnabled Whether local assistant is enabled
+     * @param localAssistantPermanentToken Optional permanent token for local assistant
+     * @param localAssistantUserId Local assistant user ID (for logging)
+     * @param createPermanentTokenCallback Optional callback to create permanent token if needed
+     * @return Optional Matrix API client configured with access token
+     */
+    public Optional<ApiClient> getMatrixApiClient(
+            String homeserverUrl,
+            String matrixAccessToken,
+            boolean localAssistantEnabled,
+            String localAssistantPermanentToken,
+            String localAssistantUserId,
+            Function<String, Optional<String>> createPermanentTokenCallback) {
+        
+        Optional<String> accessTokenOpt = Optional.empty();
+
+        // Priority 1: Use matrix-access-token from Kubernetes secret
+        if (matrixAccessToken != null && !matrixAccessToken.isEmpty()) {
+            log.info("Using matrix-access-token from Kubernetes secret (token prefix: {})",
+                    matrixAccessToken.substring(0, Math.min(10, matrixAccessToken.length())));
+            accessTokenOpt = Optional.of(matrixAccessToken);
+        }
+        // Priority 2: Check if local bot is enabled and has a permanent token configured
+        else if (localAssistantEnabled && localAssistantPermanentToken != null
+                && !localAssistantPermanentToken.isEmpty()) {
+            log.info("Using permanent token for local bot user: {} (token prefix: {})", localAssistantUserId,
+                    localAssistantPermanentToken.substring(0, Math.min(10, localAssistantPermanentToken.length())));
+            accessTokenOpt = Optional.of(localAssistantPermanentToken);
+        } else if (localAssistantEnabled && createPermanentTokenCallback != null) {
+            // Local bot enabled but no token configured - try to create one
+            log.warn(
+                    "Local bot enabled but no permanent token configured. Attempting to create one for: {}",
+                    localAssistantUserId);
+            log.warn(
+                    "   NOTE: This will likely fail because we need a Synapse admin token (not MAS admin token) to create permanent tokens.");
+            accessTokenOpt = createPermanentTokenCallback.apply(localAssistantUserId);
+            if (accessTokenOpt.isPresent()) {
+                log.info(
+                        "Successfully created permanent token for local bot. Store it in MATRIX_LOCAL_BOT_PERMANENT_TOKEN for future use.");
+            } else {
+                log.error(
+                        "Failed to create permanent token. Falling back to OAuth2 token (which will fail for sendMessage).");
+            }
+        }
+
+        // Priority 3: Fallback to OAuth2 token if no other token is available
+        // WARNING: OAuth2 tokens may not work for sending messages (they don't have access_token_id in Synapse)
+        if (accessTokenOpt.isEmpty()) {
+            log.error(
+                    "No matrix-access-token or local bot token available, falling back to OAuth2 token. This WILL cause issues with sendMessage (500 error: AssertionError: Requester must have an access_token_id).");
+            accessTokenOpt = getUserAccessToken();
+            if (accessTokenOpt.isPresent()) {
+                log.error(
+                        "Using OAuth2 token (does NOT have access_token_id in Synapse). sendMessage will fail with 500 error.");
+                log.error(
+                        "SOLUTION: Configure MATRIX_ACCESS_TOKEN (from Kubernetes secret neohoods-chat-matrix.matrix-access-token)");
+                log.error("   OR create a permanent token via Synapse Admin API:");
+                log.error(
+                        "   1. Get a Synapse admin token (from an admin user like @quentincastel86:chat.neohoods.com)");
+                log.error("   2. POST https://matrix.neohoods.com/_synapse/admin/v1/users/{}/login",
+                        localAssistantUserId != null ? localAssistantUserId : "@alfred:chat.neohoods.com");
+                log.error(
+                        "   3. Configure the returned token in MATRIX_LOCAL_BOT_PERMANENT_TOKEN or MATRIX_ACCESS_TOKEN");
+            }
+        }
+
+        if (accessTokenOpt.isEmpty()) {
+            log.warn("No access token available for Matrix API");
+            return Optional.empty();
+        }
+
+        ApiClient apiClient = new ApiClient();
+        apiClient.setHost(homeserverUrl);
+
+        Optional<String> finalAccessTokenOpt = accessTokenOpt;
+        apiClient.setRequestInterceptor(builder -> {
+            builder.header("Authorization", "Bearer " + finalAccessTokenOpt.get());
+        });
+
+        return Optional.of(apiClient);
+    }
+
+    /**
+     * Get Matrix API client configured with OAuth2 user access token
+     * Uses the user OAuth2 token flow (device code or authorization code)
+     * 
+     * @param homeserverUrl Matrix homeserver URL
+     * @return Optional Matrix API client configured with OAuth2 user access token
+     */
+    public Optional<ApiClient> getMatrixApiClientWithUserToken(String homeserverUrl) {
+        Optional<String> accessTokenOpt = getUserAccessToken();
+        if (accessTokenOpt.isEmpty()) {
+            log.warn("No OAuth2 user access token available for Matrix API");
+            return Optional.empty();
+        }
+
+        log.debug("Using OAuth2 user access token for Matrix API (token prefix: {})",
+                accessTokenOpt.get().substring(0, Math.min(10, accessTokenOpt.get().length())));
+
+        ApiClient apiClient = new ApiClient();
+        apiClient.setHost(homeserverUrl);
+
+        Optional<String> finalAccessTokenOpt = accessTokenOpt;
+        apiClient.setRequestInterceptor(builder -> {
+            builder.header("Authorization", "Bearer " + finalAccessTokenOpt.get());
+        });
+
+        return Optional.of(apiClient);
+    }
+
+    /**
+     * Get MAS API client configured with admin access token (client credentials flow)
+     * 
+     * @param masUrl MAS API URL
+     * @return Optional MAS API client configured with admin access token
+     */
+    public Optional<com.neohoods.portal.platform.mas.ApiClient> getMASApiClient(String masUrl) {
+        Optional<String> adminTokenOpt = getAdminAccessToken();
+        if (adminTokenOpt.isEmpty()) {
+            log.warn("No admin access token available for MAS API");
+            return Optional.empty();
+        }
+
+        com.neohoods.portal.platform.mas.ApiClient apiClient = new com.neohoods.portal.platform.mas.ApiClient();
+        String normalizedMasUrl = masUrl;
+        if (!normalizedMasUrl.startsWith("http://") && !normalizedMasUrl.startsWith("https://")) {
+            normalizedMasUrl = "https://" + normalizedMasUrl;
+        }
+        apiClient.updateBaseUri(normalizedMasUrl);
+        log.info("Configured MAS API client with base path: {}", normalizedMasUrl);
+
+        apiClient.setRequestInterceptor(builder -> {
+            builder.header("Authorization", "Bearer " + adminTokenOpt.get());
+        });
+
+        return Optional.of(apiClient);
     }
 
     /**

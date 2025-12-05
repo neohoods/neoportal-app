@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer;
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPTool;
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantMCPServer.MCPToolResult;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.services.matrix.mcp.MatrixAssistantMCPServer;
+import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPModels.MCPTool;
+import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPModels.MCPToolResult;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

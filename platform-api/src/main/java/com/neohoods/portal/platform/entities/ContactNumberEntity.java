@@ -54,8 +54,18 @@ public class ContactNumberEntity {
     @Column(name = "contact_type")
     private String contactType; // "syndic" or "emergency"
 
+    @Column(name = "responsibility")
+    private String responsibility; // e.g., "garages, portails", "canalisations, système de chauffage",
+                                   // "chaufferie"
+
+    @Column(name = "metadata")
+    private String metadata; // e.g., "QR code à scanner", "numéro à donner"
+
+    @Column(name = "qr_code_url", length = 500)
+    private String qrCodeUrl; // URL of QR code image (e.g., for Otis elevator service)
+
     public ContactNumber toContactNumber() {
-        return new ContactNumber()
+        ContactNumber contactNumber = new ContactNumber()
                 .contactType(contactType != null ? ContactNumber.ContactTypeEnum.fromValue(contactType) : null)
                 .type(type)
                 .description(description)
@@ -65,7 +75,11 @@ public class ContactNumberEntity {
                 .phoneNumber(phoneNumber)
                 .email(email)
                 .officeHours(officeHours)
-                .address(address);
+                .address(address)
+                .responsibility(responsibility)
+                .metadata(metadata);
+        // Note: qrCodeUrl will be added to ContactNumber model when OpenAPI is updated
+        return contactNumber;
     }
 
     public static ContactNumberEntity fromContactNumber(ContactNumber contactNumber, InfoEntity info,
@@ -82,6 +96,9 @@ public class ContactNumberEntity {
                 .address(contactNumber.getAddress())
                 .info(info)
                 .contactType(contactType)
+                .responsibility(contactNumber.getResponsibility())
+                .metadata(contactNumber.getMetadata())
+                // Note: qrCodeUrl will be set from ContactNumber when OpenAPI is updated
                 .build();
     }
 }

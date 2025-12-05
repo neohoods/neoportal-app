@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.space;
 
 import java.util.List;
 import java.util.Map;
@@ -6,14 +6,23 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.MessageSource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantMessageHandler;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +32,8 @@ public class MatrixSyncService {
 
     private final MatrixOAuth2Service oauth2Service;
     private final MatrixAssistantService matrixAssistantService;
+    private final MessageSource messageSource;
+    private final MatrixAssistantAuthContextService authContextService;
 
     // Optional: AI message handler (only available if AI is enabled)
     @Autowired(required = false)
@@ -37,22 +48,19 @@ public class MatrixSyncService {
     @Autowired(required = false)
     private MatrixAssistantAdminCommandService adminCommandService;
 
-    @Value("${neohoods.portal.matrix.homeserver-url:}")
+    @Value("${neohoods.portal.matrix.homeserver-url}")
     private String homeserverUrl;
 
-    @Value("${neohoods.portal.matrix.local-assistant.user-id:@alfred:chat.neohoods.com}")
+    @Value("${neohoods.portal.matrix.local-assistant.user-id}")
     private String assistantUserId;
 
-    @Value("${neohoods.portal.matrix.local-assistant.permanent-token:}")
+    @Value("${neohoods.portal.matrix.local-assistant.permanent-token}")
     private String assistantPermanentToken;
 
-    @Value("${neohoods.portal.matrix.local-assistant.enabled:false}")
+    @Value("${neohoods.portal.matrix.local-assistant.enabled}")
     private boolean localAssistantEnabled;
 
-    @Value("${MATRIX_LOCAL_ASSISTANT_SPACE_ID:}")
-    private String localAssistantSpaceId;
-
-    @Value("${neohoods.portal.matrix.space-id:}")
+    @Value("${neohoods.portal.matrix.space-id}")
     private String spaceId;
 
     private String nextBatchToken = null;
@@ -268,10 +276,7 @@ public class MatrixSyncService {
                 // Check if room belongs to configured space (if space-id is configured)
                 // Use local assistant space-id if local assistant is enabled, otherwise use
                 // main space-id
-                String spaceIdToCheck = localAssistantEnabled && localAssistantSpaceId != null
-                        && !localAssistantSpaceId.isEmpty()
-                                ? localAssistantSpaceId
-                                : spaceId;
+                String spaceIdToCheck = spaceId;
 
                 if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
                     boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceIdToCheck);
@@ -405,12 +410,8 @@ public class MatrixSyncService {
         }
 
         // Check if the room belongs to the configured space (if space-id is configured)
-        // Use local assistant space-id if local assistant is enabled, otherwise use
-        // main space-id
-        String spaceIdToCheck = localAssistantEnabled && localAssistantSpaceId != null
-                && !localAssistantSpaceId.isEmpty()
-                        ? localAssistantSpaceId
-                        : spaceId;
+        // Check if the room belongs to the configured space
+        String spaceIdToCheck = spaceId;
 
         // Verify that the room belongs to the configured space (for all rooms,
         // including those with 2 members)
@@ -428,8 +429,8 @@ public class MatrixSyncService {
         boolean isDirectMessage = isDirectMessage(roomId);
 
         // Only respond to:
-        // - DMs (direct messages) - toujours répondre dans un DM
-        // - Messages dans une room publique qui mentionnent explicitement l'assistant
+        // - DMs (direct messages) - always respond in a DM
+        // - Messages in a public room that explicitly mention the assistant
         // Alfred
         if (!isDirectMessage && !isMention) {
             log.debug("Ignoring message in public room {} without bot mention (DM: {}, Mention: {}): {}",
@@ -456,10 +457,9 @@ public class MatrixSyncService {
 
         // Use AI message handler if available
         if (messageHandler != null) {
-            // Envoyer immédiatement un typing indicator pour montrer que l'assistant Alfred
-            // traite la
-            // requête
-            // Plusieurs messages peuvent être traités en parallèle, chacun avec ses propres
+            // Send typing indicator immediately to show that assistant Alfred
+            // is processing the request
+            // Multiple messages can be processed in parallel, each with its own
             // typing indicators
             boolean typingSent = matrixAssistantService.sendTypingIndicator(roomId, true, 30000);
             if (typingSent) {
@@ -471,7 +471,7 @@ public class MatrixSyncService {
             messageHandler.handleMessage(roomId, sender, messageBody, isDirectMessage)
                     .subscribe(
                             response -> {
-                                // Arrêter l'indicateur de frappe avant d'envoyer la réponse
+                                // Stop typing indicator before sending response
                                 matrixAssistantService.sendTypingIndicator(roomId, false, 0);
                                 if (response != null && !response.isEmpty()) {
                                     try {
@@ -483,12 +483,15 @@ public class MatrixSyncService {
                                 }
                             },
                             error -> {
-                                // Arrêter l'indicateur de frappe en cas d'erreur
+                                // Stop typing indicator on error
                                 matrixAssistantService.sendTypingIndicator(roomId, false, 0);
                                 log.error("Error in AI message handler", error);
                                 // Fallback to simple response
                                 try {
-                                    sendMessage(roomId, "Désolé, une erreur s'est produite. Veuillez réessayer.");
+                                    Locale locale = getLocaleForUser(sender);
+                                    String errorMessage = messageSource.getMessage("matrix.error.generic", null,
+                                            locale);
+                                    sendMessage(roomId, errorMessage);
                                 } catch (Exception e) {
                                     log.error("Failed to send error response", e);
                                 }
@@ -601,6 +604,22 @@ public class MatrixSyncService {
         if (conversationContextService != null) {
             conversationContextService.addAssistantResponse(roomId, message);
         }
+    }
+
+    /**
+     * Gets locale for a Matrix user (defaults to English)
+     */
+    private Locale getLocaleForUser(String matrixUserId) {
+        try {
+            MatrixAssistantAuthContext authContext = authContextService.createAuthContext(
+                    matrixUserId, null, false);
+            if (authContext.getUserEntity().isPresent()) {
+                return authContext.getUserEntity().get().getLocale();
+            }
+        } catch (Exception e) {
+            log.debug("Could not get locale for user {}, using default", matrixUserId);
+        }
+        return Locale.ENGLISH;
     }
 
 }

@@ -1,0 +1,45 @@
+---
+title: Element Mobile Installation
+content: |
+  To install Element on your phone:
+  
+  1. Go to Play Store (Android) or App Store (iOS)
+  2. Search for 'Element'
+  3. Install the application
+  4. Open Element and connect with your Matrix account
+  5. Your Matrix server is: chat.neohoods.com
+  
+  Once connected, you will see all your rooms and can receive notifications.
+---
+title: Space Reservations
+content: |
+  To reserve a space:
+  
+  1. Go to the 'Spaces' section of the application
+  2. Select the space you want to reserve
+  3. Choose start and end dates
+  4. Check availability
+  5. Confirm the reservation
+  6. Complete payment
+  
+  Reservations may fail if:
+  - The space is not available for this period
+  - You don't have the necessary permissions
+  - Payment was not completed within 15 minutes
+---
+title: Element - Threads and Encryption
+content: |
+  Element uses Matrix, a decentralized and encrypted messaging protocol.
+  
+  Threads:
+  - Threads allow organizing conversations
+  - Click 'Reply in thread' to create a thread
+  - Threads appear in the side panel
+  
+  Encryption:
+  - Element uses end-to-end encryption (E2EE) by default
+  - Your messages are encrypted and can only be read by participants
+  - Encryption keys are stored on your devices
+  - If you lose access to all your devices, you will need to reset the keys
+  - To avoid this, configure a recovery key
+

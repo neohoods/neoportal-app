@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.rag;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
- * Service RAG (Retrieval-Augmented Generation) pour la documentation.
- * Utilise Mistral embeddings pour rechercher dans la documentation.
+ * RAG (Retrieval-Augmented Generation) service for documentation.
+ * Uses Mistral embeddings to search in documentation.
  */
 @Service
 @RequiredArgsConstructor
@@ -35,23 +35,24 @@ public class MatrixAssistantRAGService {
     private final WebClient.Builder webClientBuilder;
     private final ResourceLoader resourceLoader;
 
-    @Value("${neohoods.portal.matrix.assistant.ai.api-key:}")
+    @Value("${neohoods.portal.matrix.assistant.ai.api-key}")
     private String apiKey;
 
-    @Value("${neohoods.portal.matrix.assistant.rag.enabled:false}")
+    @Value("${neohoods.portal.matrix.assistant.rag.enabled}")
     private boolean ragEnabled;
 
-    @Value("${neohoods.portal.matrix.assistant.rag.custom-documentation-file:}")
+    @Value("${neohoods.portal.matrix.assistant.rag.custom-documentation-file}")
     private String customDocumentationFile;
 
-    private static final String MISTRAL_EMBEDDINGS_API_URL = "https://api.mistral.ai/v1/embeddings";
+    @Value("${neohoods.portal.matrix.assistant.rag.embeddings-api-url}")
+    private String embeddingsApiUrl;
 
-    // Stockage simple des embeddings en mémoire (à remplacer par une DB vectorielle
-    // en production)
+    // Simple in-memory storage of embeddings (to be replaced by a vector database
+    // in production)
     private final List<DocumentChunk> documentChunks = new ArrayList<>();
 
     /**
-     * Recherche le contexte pertinent dans la documentation pour une question
+     * Searches for relevant context in the documentation for a question
      */
     public Mono<String> searchRelevantContext(String query) {
         if (!ragEnabled || documentChunks.isEmpty()) {
@@ -61,37 +62,38 @@ public class MatrixAssistantRAGService {
         String queryPreview = query.length() > 50 ? query.substring(0, 50) + "..." : query;
         log.debug("Searching RAG context for query: {} (total chunks: {})", queryPreview, documentChunks.size());
 
-        // TODO: Implémenter la recherche vectorielle avec Mistral embeddings
-        // Pour l'instant, retourner une recherche simple par mots-clés
+        // Future improvement: Implement vector search with Mistral embeddings for
+        // better semantic matching
+        // For now, return a simple keyword search
         return Mono.fromCallable(() -> {
             String lowerQuery = query.toLowerCase();
             List<String> relevantChunks = new ArrayList<>();
             List<String> matchedTitles = new ArrayList<>();
 
-            // Recherche par mots-clés dans le contenu
+            // Keyword search in content
             for (DocumentChunk chunk : documentChunks) {
                 String lowerContent = chunk.getContent().toLowerCase();
-                // Vérifier si au moins un mot du query est dans le contenu
+                // Check if at least one word from the query is in the content
                 String[] queryWords = lowerQuery.split("\\s+");
                 boolean matches = false;
                 for (String word : queryWords) {
-                    if (word.length() > 2 && lowerContent.contains(word)) { // Ignorer les mots trop courts
+                    if (word.length() > 2 && lowerContent.contains(word)) { // Ignore words that are too short
                         matches = true;
                         break;
                     }
                 }
-                
+
                 if (matches) {
                     relevantChunks.add(chunk.getContent());
                     matchedTitles.add(chunk.getTitle());
-                    if (relevantChunks.size() >= 3) { // Limiter à 3 chunks
+                    if (relevantChunks.size() >= 3) { // Limit to 3 chunks
                         break;
                     }
                 }
             }
 
             if (!relevantChunks.isEmpty()) {
-                log.debug("Found {} relevant chunks for query: {} (matched: {})", 
+                log.debug("Found {} relevant chunks for query: {} (matched: {})",
                         relevantChunks.size(), queryPreview, matchedTitles);
             } else {
                 log.debug("No relevant chunks found for query: {}", queryPreview);
@@ -102,13 +104,13 @@ public class MatrixAssistantRAGService {
     }
 
     /**
-     * Indexe un document dans le système RAG
+     * Indexes a document in the RAG system
      */
     public void indexDocument(String title, String content) {
-        // Découper le contenu en chunks
+        // Split content into chunks
         String[] chunks = content.split("\n\n");
         for (String chunk : chunks) {
-            if (chunk.trim().length() > 50) { // Ignorer les chunks trop courts
+            if (chunk.trim().length() > 50) { // Ignore chunks that are too short
                 documentChunks.add(new DocumentChunk(title, chunk.trim()));
             }
         }
@@ -116,62 +118,72 @@ public class MatrixAssistantRAGService {
     }
 
     /**
-     * Charge la documentation initiale au démarrage de l'application
+     * Loads initial documentation at application startup
      */
     @EventListener(ApplicationReadyEvent.class)
     public void loadInitialDocumentation() {
         log.info("Loading initial documentation for RAG");
 
-        // Guide d'installation Element sur mobile
-        indexDocument("Element Mobile Installation",
-                "Pour installer Element sur votre téléphone:\n\n" +
-                        "1. Allez sur le Play Store (Android) ou App Store (iOS)\n" +
-                        "2. Recherchez 'Element'\n" +
-                        "3. Installez l'application\n" +
-                        "4. Ouvrez Element et connectez-vous avec votre compte Matrix\n" +
-                        "5. Votre serveur Matrix est: chat.neohoods.com\n\n" +
-                        "Une fois connecté, vous verrez toutes vos rooms et pourrez recevoir des notifications.");
+        // Load documentation from resource file
+        loadDocumentationFromResource();
 
-        // Documentation des réservations
-        indexDocument("Réservation d'espaces",
-                "Pour réserver un espace:\n\n" +
-                        "1. Allez dans la section 'Espaces' de l'application\n" +
-                        "2. Sélectionnez l'espace que vous souhaitez réserver\n" +
-                        "3. Choisissez les dates de début et de fin\n" +
-                        "4. Vérifiez la disponibilité\n" +
-                        "5. Confirmez la réservation\n" +
-                        "6. Effectuez le paiement\n\n" +
-                        "Les réservations peuvent échouer si:\n" +
-                        "- L'espace n'est pas disponible pour cette période\n" +
-                        "- Vous n'avez pas les permissions nécessaires\n" +
-                        "- Le paiement n'a pas été complété dans les 15 minutes");
-
-        // Guide Element
-        indexDocument("Element - Threads et Encryption",
-                "Element utilise Matrix, un protocole de messagerie décentralisé et chiffré.\n\n" +
-                        "Threads:\n" +
-                        "- Les threads permettent d'organiser les conversations\n" +
-                        "- Cliquez sur 'Répondre dans un thread' pour créer un thread\n" +
-                        "- Les threads apparaissent dans le panneau latéral\n\n" +
-                        "Encryption:\n" +
-                        "- Element utilise le chiffrement end-to-end (E2EE) par défaut\n" +
-                        "- Vos messages sont chiffrés et ne peuvent être lus que par les participants\n" +
-                        "- Les clés de chiffrement sont stockées sur vos appareils\n" +
-                        "- Si vous perdez l'accès à tous vos appareils, vous devrez réinitialiser les clés\n" +
-                        "- Pour éviter cela, configurez une clé de récupération (recovery key)");
-
-        // Charger la documentation complémentaire personnalisée si configurée
+        // Load custom complementary documentation if configured
         loadCustomDocumentation();
 
         log.info("Loaded {} document chunks for RAG", documentChunks.size());
     }
 
     /**
-     * Charge la documentation complémentaire personnalisée depuis un fichier configuré
-     * Le fichier peut être :
-     * - Un fichier local (file:/path/to/file)
-     * - Un fichier classpath (classpath:path/to/file)
-     * - Un fichier absolu (/path/to/file)
+     * Loads initial documentation from resource file
+     */
+    private void loadDocumentationFromResource() {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:matrix-rag-documentation.yaml");
+            if (resource.exists() && resource.isReadable()) {
+                try (InputStream is = resource.getInputStream()) {
+                    String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                    parseAndIndexDocumentation(content);
+                    log.info("Loaded documentation from matrix-rag-documentation.yaml");
+                }
+            } else {
+                log.warn("matrix-rag-documentation.yaml not found, skipping initial documentation load");
+            }
+        } catch (Exception e) {
+            log.error("Error loading documentation from matrix-rag-documentation.yaml", e);
+        }
+    }
+
+    /**
+     * Parses YAML documentation content and indexes it
+     */
+    private void parseAndIndexDocumentation(String content) {
+        // Simple YAML parsing - split by "---" separator
+        String[] sections = content.split("---");
+        for (String section : sections) {
+            section = section.trim();
+            if (section.isEmpty()) {
+                continue;
+            }
+
+            String[] lines = section.split("\n", 2);
+            String title = lines.length > 0 && !lines[0].trim().isEmpty()
+                    ? lines[0].trim().replace("title:", "").trim()
+                    : "Documentation";
+            String sectionContent = lines.length > 1 ? lines[1].trim() : section;
+
+            // Remove YAML markers if present
+            title = title.replaceAll("^['\"]|['\"]$", "");
+
+            indexDocument(title, sectionContent);
+        }
+    }
+
+    /**
+     * Loads custom complementary documentation from a configured file
+     * The file can be:
+     * - A local file (file:/path/to/file)
+     * - A classpath file (classpath:path/to/file)
+     * - An absolute file path (/path/to/file)
      */
     private void loadCustomDocumentation() {
         if (customDocumentationFile == null || customDocumentationFile.isEmpty()) {
@@ -183,8 +195,8 @@ public class MatrixAssistantRAGService {
 
         try {
             String content;
-            
-            // Essayer d'abord comme Resource Spring (classpath:, file:, etc.)
+
+            // Try first as Spring Resource (classpath:, file:, etc.)
             try {
                 Resource resource = resourceLoader.getResource(customDocumentationFile);
                 if (resource.exists() && resource.isReadable()) {
@@ -193,7 +205,7 @@ public class MatrixAssistantRAGService {
                     }
                     log.info("Loaded custom documentation from resource: {}", customDocumentationFile);
                 } else {
-                    // Si la resource n'existe pas, essayer comme chemin de fichier absolu
+                    // If resource doesn't exist, try as absolute file path
                     Path filePath = Paths.get(customDocumentationFile);
                     if (Files.exists(filePath) && Files.isReadable(filePath)) {
                         content = Files.readString(filePath);
@@ -204,7 +216,7 @@ public class MatrixAssistantRAGService {
                     }
                 }
             } catch (Exception e) {
-                // Si la resource échoue, essayer comme chemin de fichier absolu
+                // If resource fails, try as absolute file path
                 Path filePath = Paths.get(customDocumentationFile);
                 if (Files.exists(filePath) && Files.isReadable(filePath)) {
                     content = Files.readString(filePath);
@@ -215,22 +227,9 @@ public class MatrixAssistantRAGService {
                 }
             }
 
-            // Indexer le contenu personnalisé
-            // Le fichier peut contenir plusieurs sections séparées par "---" ou des lignes vides
-            String[] sections = content.split("---");
-            for (int i = 0; i < sections.length; i++) {
-                String section = sections[i].trim();
-                if (!section.isEmpty()) {
-                    // Extraire le titre (première ligne) si présent
-                    String[] lines = section.split("\n", 2);
-                    String title = lines.length > 0 && !lines[0].trim().isEmpty() 
-                            ? lines[0].trim() 
-                            : "Custom Documentation " + (i + 1);
-                    String sectionContent = lines.length > 1 ? lines[1].trim() : section;
-                    
-                    indexDocument(title, sectionContent);
-                }
-            }
+            // Index custom content
+            // File can contain multiple sections separated by "---" or empty lines
+            parseAndIndexDocumentation(content);
 
             log.info("Successfully loaded custom documentation from: {}", customDocumentationFile);
         } catch (IOException e) {
@@ -241,14 +240,14 @@ public class MatrixAssistantRAGService {
     }
 
     /**
-     * Représente un chunk de document indexé
+     * Represents an indexed document chunk
      */
     @lombok.Data
     @lombok.AllArgsConstructor
     private static class DocumentChunk {
         private String title;
         private String content;
-        // TODO: Ajouter embedding vectoriel quand on implémente la recherche
-        // vectorielle
+        // Future improvement: Add vector embedding field when implementing vector
+        // search
     }
 }

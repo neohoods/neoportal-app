@@ -1,0 +1,236 @@
+tools:
+  - name: get_resident_info
+    description: |
+      Get resident information for an apartment or floor. 
+      The building has 3 buildings: A, B, and C. 
+      Apartment numbers follow the format: [Building][Floor][Number] (e.g., A701 = Building A, 7th floor, apartment 01; C302 = Building C, 3rd floor, apartment 02). 
+      When searching by floor, specify the building letter and floor number (e.g., '6' for 6th floor of building C = C6XX apartments). 
+      Returns who lives in a specific apartment or on a specific floor of a building.
+    inputSchema:
+      type: object
+      properties:
+        apartment:
+          type: string
+          description: |
+            Full apartment number in format [Building][Floor][Number] (e.g., A701, B302, C601). 
+            Building can be A, B, or C. Floor is 1-9. Number is 01-99.
+        floor:
+          type: string
+          description: |
+            Floor number (e.g., '6' for 6th floor). 
+            When used with building context (e.g., '6ème étage du bâtiment C'), 
+            searches all apartments on that floor of that building (e.g., C601, C602, etc.). 
+            If building is not specified, searches all buildings.
+      required: []
+
+  - name: get_emergency_numbers
+    description: Get emergency contact numbers (ACAF, etc.) with complete information including phone number, postal address, email, and description. Returns all available contact information for emergency contacts.
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: get_reservation_details
+    description: Get details of a reservation by ID. Can explain why a reservation failed.
+    inputSchema:
+      type: object
+      properties:
+        reservationId:
+          type: string
+          description: Reservation UUID
+      required:
+        - reservationId
+
+  - name: create_reservation
+    description: Create a new space reservation. Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties:
+        spaceId:
+          type: string
+          description: Space UUID
+        startDate:
+          type: string
+          description: Start date (YYYY-MM-DD)
+        endDate:
+          type: string
+          description: End date (YYYY-MM-DD)
+        startTime:
+          type: string
+          description: Start time (HH:mm)
+        endTime:
+          type: string
+          description: End time (HH:mm)
+      required:
+        - spaceId
+        - startDate
+        - endDate
+        - startTime
+        - endTime
+
+  - name: create_github_issue
+    description: Create a GitHub issue if justified. Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Issue title
+        body:
+          type: string
+          description: Issue description
+        labels:
+          type: array
+          items:
+            type: string
+          description: Issue labels
+      required:
+        - title
+        - body
+
+  - name: get_space_info
+    description: Get detailed information about a space (name, type, description, rules, pricing, etc.)
+    inputSchema:
+      type: object
+      properties:
+        spaceId:
+          type: string
+          description: Space UUID
+      required:
+        - spaceId
+
+  - name: list_spaces
+    description: List all available reservable spaces. Use this when user asks about spaces, rooms, or what can be reserved.
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: check_space_availability
+    description: Check if a space is available for a given period. Can handle vague periods like 'Christmas' or 'next week'. Returns available and unavailable dates.
+    inputSchema:
+      type: object
+      properties:
+        spaceId:
+          type: string
+          description: Space UUID
+        startDate:
+          type: string
+          description: Start date (YYYY-MM-DD) or period name (e.g., 'Christmas', 'next week')
+        endDate:
+          type: string
+          description: End date (YYYY-MM-DD) or period name
+      required:
+        - spaceId
+        - startDate
+        - endDate
+
+  - name: list_my_reservations
+    description: List current and upcoming reservations for the authenticated user. Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties:
+        status:
+          type: string
+          description: "Filter by status: 'current', 'upcoming', 'past', 'all' (default: 'all')"
+      required: []
+
+  - name: get_reservation_access_code
+    description: Get access code and instructions for a reservation (check-in, check-out, sheets, etc.). Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties:
+        reservationId:
+          type: string
+          description: Reservation UUID
+      required:
+        - reservationId
+
+  - name: generate_payment_link
+    description: Generate a Stripe payment link for a reservation. Requires authentication (DM only). Use this after creating a reservation to get the payment URL.
+    inputSchema:
+      type: object
+      properties:
+        reservationId:
+          type: string
+          description: Reservation UUID
+      required:
+        - reservationId
+
+  - name: get_infos
+    description: Get community information (contact numbers, delegates, next AG date, rules URL). Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: get_announcements
+    description: Get all community announcements. Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: "Page number (default: 1)"
+          "default": 1
+        pageSize:
+          type: integer
+          description: "Number of announcements per page (default: 10)"
+          "default": 10
+      required: []
+
+  - name: get_applications
+    description: Get all community applications (apps available in the portal). Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: get_notifications
+    description: Get all notifications for the authenticated user. Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: get_unread_notifications_count
+    description: Get the count of unread notifications for the authenticated user. Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: get_users
+    description: Get the user directory (list of all users in the community). Requires authentication (DM only).
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: admin_get_users
+    description: Get all users (admin only). Requires authentication (DM only) and admin role.
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: admin_get_units
+    description: Get all units/residences (admin only). Requires authentication (DM only) and admin role.
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: admin_get_reservations
+    description: Get all reservations (admin only). Requires authentication (DM only) and admin role.
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+
+  - name: admin_get_spaces
+    description: Get all spaces (admin only). Requires authentication (DM only) and admin role.
+    inputSchema:
+      type: object
+      properties: {}
+      required: []

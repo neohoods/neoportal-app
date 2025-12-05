@@ -19,10 +19,10 @@ import com.neohoods.portal.platform.model.MatrixBotStatusCurrentSpacesInner;
 import com.neohoods.portal.platform.model.MatrixBotStatus.MatrixAccessEnum;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCode200Response;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCodeRequest;
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantService;
-import com.neohoods.portal.platform.services.matrix.MatrixAssistantInitializationService;
-import com.neohoods.portal.platform.services.matrix.MatrixOAuth2Service;
-import com.neohoods.portal.platform.services.matrix.MatrixOAuth2Service.DeviceCodeInfo;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantInitializationService;
+import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
+import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service.DeviceCodeInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

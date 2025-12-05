@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.mcp;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,13 +17,14 @@ import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPControlle
 import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPController.MCPCallToolParams;
 import com.neohoods.portal.platform.api.internal.mcp.MatrixAssistantMCPController.MCPCallToolResponse;
 
+import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
- * Adaptateur pour transformer les function calls Mistral en requêtes MCP.
- * Gère les sessions MCP et les appels HTTP vers le serveur MCP.
+ * Adapter to transform Mistral function calls into MCP requests.
+ * Manages MCP sessions and HTTP calls to the MCP server.
  */
 @Service
 @RequiredArgsConstructor
@@ -34,66 +35,66 @@ public class MatrixAssistantMCPAdapter {
     private final WebClient.Builder webClientBuilder;
     private final MatrixAssistantMCPServer mcpServer;
 
-    @Value("${neohoods.portal.matrix.assistant.mcp.base-url:http://localhost:8080/mcp}")
+    @Value("${neohoods.portal.matrix.assistant.mcp.base-url}")
     private String mcpBaseUrl;
 
-    // Stockage des sessions MCP par roomId (en mémoire)
+    // MCP session storage by roomId (in-memory)
     private final Map<String, String> sessionStore = new ConcurrentHashMap<>();
 
     /**
-     * Récupère ou crée une session MCP pour une room
+     * Gets or creates an MCP session for a room
      */
     public String getOrCreateSession(String roomId) {
         return sessionStore.computeIfAbsent(roomId, k -> UUID.randomUUID().toString());
     }
 
     /**
-     * Liste tous les outils MCP disponibles
-     * Utilisé pour construire la liste de functions à passer à Mistral
+     * Lists all available MCP tools
+     * Used to build the list of functions to pass to Mistral
      */
-    public List<MatrixAssistantMCPServer.MCPTool> listTools() {
+    public List<MatrixMCPModels.MCPTool> listTools() {
         return mcpServer.listTools();
     }
 
     /**
-     * Transforme un function call Mistral en requête MCP et exécute l'outil
+     * Transforms a Mistral function call into an MCP request and executes the tool
      * 
-     * @param functionName Nom de la fonction appelée par Mistral
-     * @param functionArguments Arguments de la fonction
-     * @param authContext Contexte d'autorisation
-     * @return Résultat de l'outil MCP
+     * @param functionName      Name of the function called by Mistral
+     * @param functionArguments Function arguments
+     * @param authContext       Authorization context
+     * @return MCP tool result
      */
-    public Mono<MatrixAssistantMCPServer.MCPToolResult> callMCPTool(
+    public Mono<MatrixMCPModels.MCPToolResult> callMCPTool(
             String functionName,
             Map<String, Object> functionArguments,
             MatrixAssistantAuthContext authContext) {
-        
+
         log.info("Adapting Mistral function call {} to MCP tool call", functionName);
-        
-        // Récupérer ou créer la session MCP
+
+        // Get or create MCP session
         String sessionId = getOrCreateSession(authContext.getRoomId());
-        
-        // Construire la requête MCP JSON-RPC 2.0
+
+        // Build MCP JSON-RPC 2.0 request
         MCPCallToolRequest request = new MCPCallToolRequest();
-        request.setId(1); // ID de requête (peut être incrémenté si nécessaire)
+        request.setId(1); // Request ID (can be incremented if needed)
         request.setMethod("tools/call");
-        
+
         MCPCallToolParams params = new MCPCallToolParams();
         params.setName(functionName);
         params.setArguments(functionArguments != null ? functionArguments : new HashMap<>());
         request.setParams(params);
-        
-        // Construire les headers avec le contexte d'autorisation
+
+        // Build headers with authorization context
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-Matrix-User-Id", authContext.getMatrixUserId());
         headers.set("X-Matrix-Room-Id", authContext.getRoomId());
         headers.set("X-Matrix-Is-DM", String.valueOf(authContext.isDirectMessage()));
         headers.set("X-MCP-Session-Id", sessionId);
-        
-        // Appeler le serveur MCP via HTTP
+
+        // Call MCP server via HTTP
         WebClient webClient = webClientBuilder.baseUrl(mcpBaseUrl).build();
-        
+
         return webClient.post()
                 .uri("/tools/call")
                 .headers(h -> h.addAll(headers))
@@ -102,29 +103,29 @@ public class MatrixAssistantMCPAdapter {
                 .bodyToMono(MCPCallToolResponse.class)
                 .map(response -> {
                     if (response.getError() != null) {
-                        log.error("MCP tool call error: {} - {}", 
-                                response.getError().getCode(), 
+                        log.error("MCP tool call error: {} - {}",
+                                response.getError().getCode(),
                                 response.getError().getMessage());
-                        // Créer un résultat d'erreur
-                        return MatrixAssistantMCPServer.MCPToolResult.builder()
+                        // Create error result
+                        return MatrixMCPModels.MCPToolResult.builder()
                                 .isError(true)
-                                .content(List.of(MatrixAssistantMCPServer.MCPContent.builder()
+                                .content(List.of(MatrixMCPModels.MCPContent.builder()
                                         .type("text")
                                         .text("Error: " + response.getError().getMessage())
                                         .build()))
                                 .build();
                     }
-                    
-                    // Extraire le résultat de la réponse MCP
+
+                    // Extract result from MCP response
                     @SuppressWarnings("unchecked")
                     Map<String, Object> result = response.getResult();
                     if (result != null && result.containsKey("content")) {
                         @SuppressWarnings("unchecked")
                         List<Map<String, Object>> contentList = (List<Map<String, Object>>) result.get("content");
-                        List<MatrixAssistantMCPServer.MCPContent> contents = contentList.stream()
+                        List<MatrixMCPModels.MCPContent> contents = contentList.stream()
                                 .map(contentMap -> {
-                                    MatrixAssistantMCPServer.MCPContent.MCPContentBuilder builder = 
-                                            MatrixAssistantMCPServer.MCPContent.builder();
+                                    MatrixMCPModels.MCPContent.MCPContentBuilder builder = MatrixMCPModels.MCPContent
+                                            .builder();
                                     builder.type((String) contentMap.get("type"));
                                     if (contentMap.containsKey("text")) {
                                         builder.text((String) contentMap.get("text"));
@@ -132,24 +133,24 @@ public class MatrixAssistantMCPAdapter {
                                     return builder.build();
                                 })
                                 .toList();
-                        
-                        return MatrixAssistantMCPServer.MCPToolResult.builder()
+
+                        return MatrixMCPModels.MCPToolResult.builder()
                                 .isError(false)
                                 .content(contents)
                                 .build();
                     }
-                    
-                    // Résultat vide si pas de contenu
-                    return MatrixAssistantMCPServer.MCPToolResult.builder()
+
+                    // Empty result if no content
+                    return MatrixMCPModels.MCPToolResult.builder()
                             .isError(false)
                             .content(List.of())
                             .build();
                 })
                 .onErrorResume(e -> {
                     log.error("Error calling MCP tool {}: {}", functionName, e.getMessage(), e);
-                    return Mono.just(MatrixAssistantMCPServer.MCPToolResult.builder()
+                    return Mono.just(MatrixMCPModels.MCPToolResult.builder()
                             .isError(true)
-                            .content(List.of(MatrixAssistantMCPServer.MCPContent.builder()
+                            .content(List.of(MatrixMCPModels.MCPContent.builder()
                                     .type("text")
                                     .text("Error calling MCP tool: " + e.getMessage())
                                     .build()))
@@ -158,29 +159,25 @@ public class MatrixAssistantMCPAdapter {
     }
 
     /**
-     * Appelle directement l'outil MCP sans passer par HTTP (pour usage interne)
-     * Plus efficace que l'appel HTTP
+     * Calls MCP tool directly without going through HTTP (for internal use)
+     * More efficient than HTTP call
      */
-    public MatrixAssistantMCPServer.MCPToolResult callMCPToolDirect(
+    public MatrixMCPModels.MCPToolResult callMCPToolDirect(
             String toolName,
             Map<String, Object> arguments,
             MatrixAssistantAuthContext authContext) {
-        
+
         log.info("Calling MCP tool {} directly (internal call) with arguments: {}", toolName, arguments);
-        MatrixAssistantMCPServer.MCPToolResult result = mcpServer.callTool(toolName, arguments, authContext);
-        
-        // Logger le résultat (le résultat est déjà loggé dans MatrixAssistantMCPServer, mais on peut ajouter un log ici aussi)
+        MatrixMCPModels.MCPToolResult result = mcpServer.callTool(toolName, arguments, authContext);
+
+        // Log result (already logged in MatrixAssistantMCPServer, but can add log here
+        // too)
         if (result.isError()) {
             log.warn("MCP tool {} returned error in adapter", toolName);
         } else {
             log.debug("MCP tool {} completed successfully in adapter", toolName);
         }
-        
+
         return result;
     }
 }
-
-
-
-
-

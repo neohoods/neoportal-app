@@ -113,7 +113,10 @@ CREATE TABLE "contact_numbers" (
     "phone_number" varchar(255),
     "email" varchar(255),
     "office_hours" varchar(255),
-    "address" text
+    "address" text,
+    "responsibility" text,
+    "metadata" text,
+    "qr_code_url" varchar(500)
 );
 
 CREATE TABLE "announcements" (

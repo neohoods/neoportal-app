@@ -87,9 +87,10 @@ neohoods:
       space-id: ${MATRIX_SPACE_ID:!oQtazfkIAFxaQJKvbP:chat.neohoods.com}
       initialization:
         enabled: ${MATRIX_INITIALIZATION_ENABLED:true}
+        rooms-config-file: ${MATRIX_ROOMS_CONFIG_FILE:classpath:matrix-default-rooms.yaml}
       mas:
         url: ${MATRIX_MAS_URL:https://mas.chat.neohoods.com}
-        rooms-config-file: ${MATRIX_ROOMS_CONFIG_FILE:classpath:matrix-default-rooms.yaml}
+        auth0-provider-id: ${MATRIX_MAS_AUTH0_PROVIDER_ID:auth0}
         admin-users: ${MATRIX_INITIALIZATION_ADMIN_USERS:@quentincastel86:chat.neohoods.com,@quentin.castel.neohoods:chat.neohoods.com}
       oauth2:
         client-id: ${MATRIX_OAUTH2_CLIENT_ID:}
@@ -104,7 +105,7 @@ neohoods:
         user-id: ${MATRIX_LOCAL_ASSISTANT_USER_ID:@alfred:chat.neohoods.com}
         permanent-token: ${MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN:}
         avatar-url: ${MATRIX_LOCAL_ASSISTANT_AVATAR_URL:https://neohoods.com/assets/chat/alfred-avatar.png}
-        display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred}
+        display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred [Assistant AI]}
       it-room:
         avatar-url: ${MATRIX_IT_ROOM_AVATAR_URL:https://neohoods.com/assets/chat/it.png}
       assistant:
@@ -113,8 +114,14 @@ neohoods:
           provider: mistral
           api-key: ${MISTRAL_AI_TOKEN:}
           model: ${MATRIX_ASSISTANT_AI_MODEL:mistral-small}
+          system-prompt-file: ${MATRIX_ASSISTANT_AI_SYSTEM_PROMPT_FILE:classpath:matrix-assistant-system-prompt.txt}
+          context-public-file: ${MATRIX_ASSISTANT_AI_CONTEXT_PUBLIC_FILE:classpath:matrix-assistant-context-public.txt}
+          context-private-file: ${MATRIX_ASSISTANT_AI_CONTEXT_PRIVATE_FILE:classpath:matrix-assistant-context-private.txt}
+          reservation-flow-file: ${MATRIX_ASSISTANT_AI_RESERVATION_FLOW_FILE:classpath:matrix-assistant-reservation-flow.txt}
+          minimal-prompt-file: ${MATRIX_ASSISTANT_AI_MINIMAL_PROMPT_FILE:classpath:matrix-assistant-minimal-prompt.txt}
         rag:
           enabled: ${MATRIX_ASSISTANT_RAG_ENABLED:true}
+          embeddings-api-url: ${MATRIX_ASSISTANT_RAG_EMBEDDINGS_API_URL:https://api.mistral.ai/v1/embeddings}
           custom-documentation-file: ${MATRIX_ASSISTANT_RAG_CUSTOM_DOC_FILE:classpath:rag-custom-documentation.md}
         conversation:
           enabled: ${MATRIX_ASSISTANT_CONVERSATION_ENABLED:true}

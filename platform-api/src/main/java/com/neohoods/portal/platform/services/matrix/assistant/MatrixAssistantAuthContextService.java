@@ -1,4 +1,4 @@
-package com.neohoods.portal.platform.services.matrix;
+package com.neohoods.portal.platform.services.matrix.assistant;
 
 import java.util.Optional;
 
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service pour créer et gérer les contextes d'autorisation Matrix.
+ * Service for creating and managing Matrix authorization contexts.
  */
 @Service
 @RequiredArgsConstructor
@@ -22,27 +22,27 @@ public class MatrixAssistantAuthContextService {
     private final UsersRepository usersRepository;
 
     /**
-     * Crée un contexte d'autorisation depuis les informations Matrix
+     * Creates an authorization context from Matrix information
      */
     public MatrixAssistantAuthContext createAuthContext(String matrixUserId, String roomId, boolean isDirectMessage) {
-        // Mapper Matrix User ID → UserEntity
+        // Map Matrix User ID → UserEntity
         Optional<UserEntity> userEntity = Optional.empty();
 
         if (matrixUserId != null && !matrixUserId.isEmpty()) {
-            // Extraire le username du Matrix user ID (format: @username:server.com)
+            // Extract username from Matrix user ID (format: @username:server.com)
             String matrixUsername = extractUsernameFromMatrixUserId(matrixUserId);
             if (matrixUsername != null) {
-                // Le username Matrix peut être différent du username dans la DB
-                // (normalisé: lowercase, caractères spéciaux remplacés par _)
-                // Chercher dans la DB avec le username normalisé
+                // Matrix username may differ from DB username
+                // (normalized: lowercase, special chars replaced by _)
+                // Search in DB with normalized username
                 String normalizedUsername = matrixUsername.toLowerCase().replaceAll("[^a-z0-9_]", "_");
                 UserEntity foundUser = usersRepository.findByUsername(normalizedUsername);
                 userEntity = foundUser != null ? Optional.of(foundUser) : Optional.empty();
 
                 if (userEntity.isEmpty()) {
                     log.debug("User not found by username: {}, trying to find via Matrix", normalizedUsername);
-                    // TODO: Améliorer en utilisant MatrixAssistantService pour trouver via MAS/Auth0
-                    // Pour l'instant, on retourne empty si pas trouvé
+                    // Future improvement: Use MatrixAssistantService to find via MAS/Auth0 for better user lookup
+                    // For now, return empty if not found
                 }
             }
         }
@@ -56,10 +56,10 @@ public class MatrixAssistantAuthContextService {
     }
 
     /**
-     * Extrait le username d'un Matrix user ID
+     * Extracts username from a Matrix user ID
      * 
      * @param matrixUserId Format: @username:server.com
-     * @return username ou null
+     * @return username or null
      */
     private String extractUsernameFromMatrixUserId(String matrixUserId) {
         if (matrixUserId == null || !matrixUserId.startsWith("@")) {

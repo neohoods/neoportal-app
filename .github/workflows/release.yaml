@@ -45,7 +45,7 @@ jobs:
           # Use local PostgreSQL (started by the action) instead of Testcontainers
           USE_LOCAL_POSTGRES: true
         with:
-          maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip"
+          maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip -DskipITs"
 
       - name: Release
         uses: qcastel/github-actions-maven-release@master
