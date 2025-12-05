@@ -530,7 +530,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <!-- Parallel execution: classes run in parallel, each with its own DB -->
                     <!-- forkCount: number of JVM forks (processes) to run in parallel -->
