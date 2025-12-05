@@ -382,8 +382,9 @@ public class MatrixAssistantAIService {
 
                 // Call Mistral again with the tool result
                 // Pass the original assistant message with tool_calls and tool_call_id
+                // Also pass tools so Mistral can make additional tool calls if needed (reasoning chain)
                 return callMistralWithToolResult(previousMessages, message, toolCallId, functionName, toolResultText,
-                        authContext, ragContext);
+                        authContext, ragContext, tools);
             } catch (Exception e) {
                 log.error("Error parsing function arguments: {}", e.getMessage(), e);
                 return Mono.just("Error calling tool: " + e.getMessage());
@@ -396,16 +397,21 @@ public class MatrixAssistantAIService {
         String content = (String) message.get("content");
 
         // LOG: All final bot responses for audit
-        if (content != null) {
+        if (content != null && !content.isEmpty()) {
             log.info("🤖 BOT FINAL RESPONSE (no tool call) [user={}, room={}]: {}",
                     authContext.getMatrixUserId(),
                     authContext.getRoomId(),
                     content.length() > 500 ? content.substring(0, 500) + "..." : content);
+        } else {
+            log.warn("⚠️ BOT FINAL RESPONSE (no tool call) IS EMPTY OR NULL [user={}, room={}], content={}",
+                    authContext.getMatrixUserId(),
+                    authContext.getRoomId(),
+                    content == null ? "null" : "empty string");
         }
 
         // CRITICAL: If bot says "Je vais chercher" or similar but didn't call a tool,
         // we MUST force a tool call
-        if (content != null && !tools.isEmpty()) {
+        if (content != null && !content.trim().isEmpty() && !tools.isEmpty()) {
             String lowerContent = content.toLowerCase();
             boolean saysWillSearch = lowerContent.contains("vais chercher") ||
                     lowerContent.contains("vais verifier") ||
@@ -438,7 +444,7 @@ public class MatrixAssistantAIService {
         // Check if the response seems to contain invented information
         // (addresses, phone numbers, opening hours, etc. that are not in the
         // RAG context or toolResult)
-        if (content != null && containsPotentiallyInventedInfo(content)) {
+        if (content != null && !content.trim().isEmpty() && containsPotentiallyInventedInfo(content)) {
             // Check if suspicious information is in RAG
             boolean infoInRag = ragContext != null && !ragContext.isEmpty() &&
                     ragContext.toLowerCase()
@@ -456,11 +462,19 @@ public class MatrixAssistantAIService {
             }
         }
 
-        return Mono.just(content != null ? content : "No response generated.");
+        // Return content if not null and not empty, otherwise return a default message
+        if (content != null && !content.trim().isEmpty()) {
+            return Mono.just(content);
+        } else {
+            log.warn("⚠️ Mistral returned empty response (no tool call), returning default message");
+            return Mono.just("Je n'ai pas pu générer de réponse. Pouvez-vous reformuler votre question ?");
+        }
     }
 
     /**
      * Calls Mistral with the result of a tool call
+     * Supports chained tool calls: if Mistral wants to call another tool after receiving the result,
+     * it will do so automatically (up to MAX_TOOL_CALL_CHAIN iterations)
      * 
      * @param previousMessages Previous messages (system + user)
      * @param assistantMessage Original assistant message with tool_calls
@@ -469,7 +483,10 @@ public class MatrixAssistantAIService {
      * @param toolResult       Tool call result
      * @param authContext      Authorization context
      * @param ragContext       RAG context (may contain valid information)
+     * @param tools            Available tools (needed for chained tool calls)
      */
+    private static final int MAX_TOOL_CALL_CHAIN = 5; // Maximum number of tool calls in a chain
+    
     private Mono<String> callMistralWithToolResult(
             List<Map<String, Object>> previousMessages,
             Map<String, Object> assistantMessage,
@@ -477,7 +494,32 @@ public class MatrixAssistantAIService {
             String functionName,
             String toolResult,
             MatrixAssistantAuthContext authContext,
-            String ragContext) {
+            String ragContext,
+            List<Map<String, Object>> tools) {
+        
+        return callMistralWithToolResultRecursive(previousMessages, assistantMessage, toolCallId, functionName, toolResult,
+                authContext, ragContext, tools, 0);
+    }
+    
+    /**
+     * Recursive helper for chained tool calls
+     */
+    private Mono<String> callMistralWithToolResultRecursive(
+            List<Map<String, Object>> previousMessages,
+            Map<String, Object> assistantMessage,
+            String toolCallId,
+            String functionName,
+            String toolResult,
+            MatrixAssistantAuthContext authContext,
+            String ragContext,
+            List<Map<String, Object>> tools,
+            int iteration) {
+        
+        // Prevent infinite loops
+        if (iteration >= MAX_TOOL_CALL_CHAIN) {
+            log.warn("⚠️ Maximum tool call chain reached ({}), returning current result", MAX_TOOL_CALL_CHAIN);
+            return Mono.just("J'ai effectué plusieurs vérifications mais je n'ai pas pu obtenir toutes les informations nécessaires. Pouvez-vous reformuler votre question ?");
+        }
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
@@ -502,6 +544,11 @@ public class MatrixAssistantAIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", model);
         requestBody.put("messages", messages);
+        // Pass tools so Mistral can make additional tool calls if needed
+        if (tools != null && !tools.isEmpty()) {
+            requestBody.put("tools", tools);
+            requestBody.put("tool_choice", "auto"); // Allow Mistral to decide if it needs more tools
+        }
         requestBody.put("temperature", 0.7);
         requestBody.put("max_tokens", 1000);
 
@@ -510,7 +557,67 @@ public class MatrixAssistantAIService {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
+                    // Check if Mistral wants to make another tool call (chained reasoning)
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        Map<String, Object> choice = choices.get(0);
+                        Map<String, Object> message = (Map<String, Object>) choice.get("message");
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
+                        
+                        if (toolCalls != null && !toolCalls.isEmpty()) {
+                            // Mistral wants to make another tool call - chain it!
+                            log.info("🔗 Chained tool call #{}: Mistral wants to call {} tool(s) after receiving result from {}",
+                                    iteration + 1, toolCalls.size(), functionName);
+                            
+                            // Call the first tool in the chain
+                            Map<String, Object> toolCall = toolCalls.get(0);
+                            String newToolCallId = (String) toolCall.get("id");
+                            Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                            String newFunctionName = (String) function.get("name");
+                            String newFunctionArgumentsJson = (String) function.get("arguments");
+                            
+                            try {
+                                Map<String, Object> newFunctionArguments = objectMapper.readValue(
+                                        newFunctionArgumentsJson,
+                                        objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+                                
+                                // Call the chained MCP tool
+                                MatrixMCPModels.MCPToolResult newToolResult = mcpAdapter.callMCPToolDirect(newFunctionName,
+                                        newFunctionArguments, authContext);
+                                
+                                String newToolResultText = newToolResult.getContent().stream()
+                                        .map(MCPContent::getText)
+                                        .filter(text -> text != null)
+                                        .collect(Collectors.joining("\n"));
+                                
+                                // Build updated messages with the previous tool result
+                                List<Map<String, Object>> updatedMessages = new ArrayList<>(previousMessages);
+                                updatedMessages.add(assistantMessage);
+                                
+                                // Add previous tool result message
+                                Map<String, Object> prevToolMsg = new HashMap<>();
+                                prevToolMsg.put("role", "tool");
+                                prevToolMsg.put("tool_call_id", toolCallId);
+                                prevToolMsg.put("content", toolResult);
+                                updatedMessages.add(prevToolMsg);
+                                
+                                // Add new assistant message with tool_calls
+                                updatedMessages.add(message);
+                                
+                                // Recursively call with the new tool result
+                                return callMistralWithToolResultRecursive(updatedMessages, message, newToolCallId,
+                                        newFunctionName, newToolResultText, authContext, ragContext, tools, iteration + 1);
+                            } catch (Exception e) {
+                                log.error("Error in chained tool call: {}", e.getMessage(), e);
+                                return Mono.just("Erreur lors de l'appel d'un outil en chaîne: " + e.getMessage());
+                            }
+                        }
+                    }
+                    
+                    // No more tool calls, process the final response
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
                     if (choices != null && !choices.isEmpty()) {
@@ -519,18 +626,23 @@ public class MatrixAssistantAIService {
                         String content = (String) message.get("content");
 
                         // LOG: All final bot responses for audit
-                        if (content != null) {
+                        if (content != null && !content.isEmpty()) {
                             log.info("🤖 BOT FINAL RESPONSE [user={}, room={}]: {}",
                                     authContext.getMatrixUserId(),
                                     authContext.getRoomId(),
                                     content.length() > 500 ? content.substring(0, 500) + "..." : content);
+                        } else {
+                            log.warn("⚠️ BOT FINAL RESPONSE IS EMPTY OR NULL [user={}, room={}], content={}",
+                                    authContext.getMatrixUserId(),
+                                    authContext.getRoomId(),
+                                    content == null ? "null" : "empty string");
                         }
 
                         // Check if the response contains invented information
                         // If toolResult did not contain the requested info (e.g., address, opening
                         // hours)
                         // but the response contains it, it's suspicious
-                        if (content != null && toolResult != null) {
+                        if (content != null && !content.trim().isEmpty() && toolResult != null) {
                             String lowerContent = content.toLowerCase();
                             String lowerToolResult = toolResult.toLowerCase();
 
@@ -569,7 +681,7 @@ public class MatrixAssistantAIService {
                                             ragContext != null
                                                     ? ragContext.substring(0, Math.min(200, ragContext.length()))
                                                     : "null");
-                                    return "I don't have opening hours available in my data.";
+                                    return Mono.just("I don't have opening hours available in my data.");
                                 } else {
                                     log.debug("Opening hours found in RAG context, allowing response.");
                                 }
@@ -597,7 +709,7 @@ public class MatrixAssistantAIService {
                                             ragContext != null
                                                     ? ragContext.substring(0, Math.min(200, ragContext.length()))
                                                     : "null");
-                                    return "I don't have this information available in my data.";
+                                    return Mono.just("I don't have this information available in my data.");
                                 } else {
                                     log.debug("Address found in RAG context, allowing response.");
                                 }
@@ -630,7 +742,7 @@ public class MatrixAssistantAIService {
                                                 ragContext != null
                                                         ? ragContext.substring(0, Math.min(200, ragContext.length()))
                                                         : "null");
-                                        return "I don't have this information available in my data.";
+                                        return Mono.just("I don't have this information available in my data.");
                                     } else {
                                         log.debug("Information found in RAG context, allowing response.");
                                     }
@@ -638,9 +750,16 @@ public class MatrixAssistantAIService {
                             }
                         }
 
-                        return content != null ? content : "No response generated.";
+                        // Return content if not null and not empty, otherwise return a default message
+                        if (content != null && !content.trim().isEmpty()) {
+                            return Mono.just(content);
+                        } else {
+                            log.warn("⚠️ Mistral returned empty response, returning default message");
+                            return Mono.just("Je n'ai pas pu générer de réponse. Pouvez-vous reformuler votre question ?");
+                        }
                     }
-                    return "No response generated.";
+                    log.warn("⚠️ Mistral API returned no choices in response");
+                    return Mono.just("Je n'ai pas reçu de réponse de l'API. Pouvez-vous réessayer ?");
                 })
                 .onErrorResume(e -> {
                     log.error("Error calling Mistral with tool result: {}", e.getMessage(), e);

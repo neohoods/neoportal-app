@@ -107,19 +107,24 @@ tools:
       required: []
 
   - name: check_space_availability
-    description: Check if a space is available for a given period. Can handle vague periods like 'Christmas' or 'next week'. Returns available and unavailable dates.
+    description: |
+      Check if a space is available for a given period. Can handle vague periods like 'tomorrow', 'Christmas', or 'next week'. 
+      Returns available and unavailable dates for the space.
+      **IMPORTANT**: If the user mentions a space name (e.g., "salle commune", "common room") instead of a space ID, 
+      you MUST first call list_spaces to find the space ID, then call this tool with the space ID.
+      **CRITICAL**: When user asks "Can I reserve X for tomorrow?" or "Is X available for Y?", use this tool IMMEDIATELY after getting the space ID from list_spaces.
     inputSchema:
       type: object
       properties:
         spaceId:
           type: string
-          description: Space UUID
+          description: Space UUID (required). If you only have a space name, call list_spaces first to get the space ID.
         startDate:
           type: string
-          description: Start date (YYYY-MM-DD) or period name (e.g., 'Christmas', 'next week')
+          description: Start date (YYYY-MM-DD) or period name (e.g., 'tomorrow', 'Christmas', 'next week', '2024-12-06')
         endDate:
           type: string
-          description: End date (YYYY-MM-DD) or period name
+          description: End date (YYYY-MM-DD) or period name (e.g., 'tomorrow', 'Christmas', 'next week', '2024-12-06')
       required:
         - spaceId
         - startDate
