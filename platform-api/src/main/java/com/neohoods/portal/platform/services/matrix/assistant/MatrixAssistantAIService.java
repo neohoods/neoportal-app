@@ -472,6 +472,11 @@ public class MatrixAssistantAIService {
     }
 
     /**
+     * Maximum number of tool calls in a chain to prevent infinite loops
+     */
+    private static final int MAX_TOOL_CALL_CHAIN = 5;
+    
+    /**
      * Calls Mistral with the result of a tool call
      * Supports chained tool calls: if Mistral wants to call another tool after receiving the result,
      * it will do so automatically (up to MAX_TOOL_CALL_CHAIN iterations)
@@ -485,8 +490,6 @@ public class MatrixAssistantAIService {
      * @param ragContext       RAG context (may contain valid information)
      * @param tools            Available tools (needed for chained tool calls)
      */
-    private static final int MAX_TOOL_CALL_CHAIN = 5; // Maximum number of tool calls in a chain
-    
     private Mono<String> callMistralWithToolResult(
             List<Map<String, Object>> previousMessages,
             Map<String, Object> assistantMessage,
@@ -618,8 +621,7 @@ public class MatrixAssistantAIService {
                     }
                     
                     // No more tool calls, process the final response
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                    choices = (List<Map<String, Object>>) response.get("choices");
                     if (choices != null && !choices.isEmpty()) {
                         Map<String, Object> choice = choices.get(0);
                         Map<String, Object> message = (Map<String, Object>) choice.get("message");
