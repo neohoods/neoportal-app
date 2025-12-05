@@ -62,7 +62,8 @@ import lombok.extern.slf4j.Slf4j;
         "neohoods.portal.matrix.assistant.ai.model=mistral-small",
         "neohoods.portal.matrix.assistant.mcp.enabled=true",
         "neohoods.portal.matrix.assistant.rag.enabled=false",
-        "neohoods.portal.matrix.assistant.conversation.enabled=true"
+        "neohoods.portal.matrix.assistant.conversation.enabled=true",
+        "neohoods.portal.matrix.assistant.llm-judge.enabled=false" // Disable LLM-as-a-Judge for integration tests
 })
 @Transactional
 @Slf4j
@@ -85,6 +86,11 @@ public class MatrixAssistantEmergencyContactsIntegrationTest extends BaseIntegra
 
     @BeforeEach
     void setUp() {
+        // Skip tests if MISTRAL_AI_TOKEN is not set (e.g., in CI without token)
+        String apiKey = System.getenv("MISTRAL_AI_TOKEN");
+        if (apiKey == null || apiKey.isEmpty()) {
+            org.junit.jupiter.api.Assumptions.assumeTrue(false, "MISTRAL_AI_TOKEN not set - skipping integration test");
+        }
         // Create test user
         testUser = new UserEntity();
         testUser.setId(UUID.randomUUID());
