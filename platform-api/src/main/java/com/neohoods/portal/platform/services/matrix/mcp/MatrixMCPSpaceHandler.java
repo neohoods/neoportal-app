@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class MatrixMCPSpaceHandler extends MatrixMCPBaseHandler {
         public MatrixMCPSpaceHandler(
                         MessageSource messageSource,
                         UsersRepository usersRepository,
-                        MatrixAssistantAdminCommandService adminCommandService,
+                        @Autowired(required = false) MatrixAssistantAdminCommandService adminCommandService,
                         SpacesService spacesService,
                         SpaceRepository spaceRepository) {
                 super(messageSource, usersRepository, adminCommandService);
@@ -317,4 +318,3 @@ public class MatrixMCPSpaceHandler extends MatrixMCPBaseHandler {
                 }
         }
 }
-

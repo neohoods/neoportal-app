@@ -2,6 +2,7 @@ package com.neohoods.portal.platform.services.matrix.mcp;
 
 import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
 import com.neohoods.portal.platform.entities.UserEntity;
@@ -21,7 +22,8 @@ public abstract class MatrixMCPBaseHandler {
         protected final UsersRepository usersRepository;
         protected final MatrixAssistantAdminCommandService adminCommandService;
 
-        protected MatrixMCPBaseHandler(MessageSource messageSource, UsersRepository usersRepository, MatrixAssistantAdminCommandService adminCommandService) {
+        protected MatrixMCPBaseHandler(MessageSource messageSource, UsersRepository usersRepository,
+                        @Autowired(required = false) MatrixAssistantAdminCommandService adminCommandService) {
                 this.messageSource = messageSource;
                 this.usersRepository = usersRepository;
                 this.adminCommandService = adminCommandService;
@@ -34,24 +36,25 @@ public abstract class MatrixMCPBaseHandler {
                 if (matrixUserId == null || matrixUserId.isEmpty()) {
                         throw new IllegalArgumentException("Matrix user ID cannot be null or empty");
                 }
-                
+
                 String matrixUsername = extractUsernameFromMatrixUserId(matrixUserId);
                 if (matrixUsername == null) {
                         throw new IllegalArgumentException("Invalid Matrix user ID format: " + matrixUserId);
                 }
-                
+
                 String normalizedUsername = matrixUsername.toLowerCase().replaceAll("[^a-z0-9_]", "_");
                 UserEntity user = usersRepository.findByUsername(normalizedUsername);
-                
+
                 if (user == null) {
                         throw new IllegalStateException("UserEntity not found for Matrix user ID: " + matrixUserId);
                 }
-                
+
                 return user;
         }
-        
+
         /**
          * Extracts username from Matrix user ID
+         * 
          * @param matrixUserId Format: @username:server.com
          * @return username or null
          */
@@ -65,7 +68,7 @@ public abstract class MatrixMCPBaseHandler {
                 }
                 return matrixUserId.substring(1);
         }
-        
+
         /**
          * Checks if user has admin role
          */
@@ -75,14 +78,14 @@ public abstract class MatrixMCPBaseHandler {
                 }
                 return userEntity.getType() == com.neohoods.portal.platform.entities.UserType.ADMIN;
         }
-        
+
         /**
          * Gets locale from UserEntity, defaults to English
          */
         protected Locale getLocale(UserEntity userEntity) {
                 return userEntity != null ? userEntity.getLocale() : Locale.ENGLISH;
         }
-        
+
         /**
          * Gets locale from auth context
          */
@@ -92,7 +95,7 @@ public abstract class MatrixMCPBaseHandler {
                 }
                 return Locale.ENGLISH;
         }
-        
+
         /**
          * Gets translated message
          */
@@ -104,7 +107,7 @@ public abstract class MatrixMCPBaseHandler {
                         return key;
                 }
         }
-        
+
         /**
          * Gets translated message using auth context locale
          */
@@ -113,4 +116,3 @@ public abstract class MatrixMCPBaseHandler {
                 return translate(key, locale, args);
         }
 }
-

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.neohoods.portal.platform.entities.UserEntity;
@@ -33,105 +34,109 @@ import reactor.test.StepVerifier;
 @DisplayName("MatrixAssistantMessageHandler Unit Tests")
 class MatrixAssistantMessageHandlerTest {
 
-    @Mock
-    private MatrixAssistantAIService aiService;
+        @Mock
+        private MatrixAssistantAIService aiService;
 
-    @Mock
-    private MatrixAssistantAuthContextService authContextService;
+        @Mock
+        private MatrixAssistantAuthContextService authContextService;
 
-    @Mock
-    private MatrixAssistantService matrixAssistantService;
+        @Mock
+        private MatrixAssistantService matrixAssistantService;
 
-    @Mock
-    private MatrixConversationContextService conversationContextService;
+        @Mock
+        private MatrixConversationContextService conversationContextService;
 
-    @InjectMocks
-    private MatrixAssistantMessageHandler messageHandler;
+        @Mock
+        private MessageSource messageSource;
 
-    private MatrixAssistantAuthContext authContext;
-    private UserEntity testUser;
+        @InjectMocks
+        private MatrixAssistantMessageHandler messageHandler;
 
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(messageHandler, "aiEnabled", true);
+        private MatrixAssistantAuthContext authContext;
+        private UserEntity testUser;
 
-        testUser = new UserEntity();
-        testUser.setId(java.util.UUID.randomUUID());
-        testUser.setPreferredLanguage("en");
+        @BeforeEach
+        void setUp() {
+                ReflectionTestUtils.setField(messageHandler, "aiEnabled", true);
 
-        authContext = MatrixAssistantAuthContext.builder()
-                .matrixUserId("@testuser:chat.neohoods.com")
-                .roomId("!room:chat.neohoods.com")
-                .isDirectMessage(false)
-                .userEntity(Optional.of(testUser))
-                .build();
-    }
+                testUser = new UserEntity();
+                testUser.setId(java.util.UUID.randomUUID());
+                testUser.setPreferredLanguage("en");
 
-    @Test
-    @DisplayName("handleMessage should return empty when AI is disabled")
-    void testHandleMessage_AIDisabled() {
-        // Given
-        ReflectionTestUtils.setField(messageHandler, "aiEnabled", false);
+                authContext = MatrixAssistantAuthContext.builder()
+                                .matrixUserId("@testuser:chat.neohoods.com")
+                                .roomId("!room:chat.neohoods.com")
+                                .isDirectMessage(false)
+                                .userEntity(Optional.of(testUser))
+                                .build();
+        }
 
-        // When
-        Mono<String> result = messageHandler.handleMessage(
-                "!room:chat.neohoods.com",
-                "@user:chat.neohoods.com",
-                "Hello",
-                false);
+        @Test
+        @DisplayName("handleMessage should return empty when AI is disabled")
+        void testHandleMessage_AIDisabled() {
+                // Given
+                ReflectionTestUtils.setField(messageHandler, "aiEnabled", false);
 
-        // Then
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
+                // When
+                Mono<String> result = messageHandler.handleMessage(
+                                "!room:chat.neohoods.com",
+                                "@user:chat.neohoods.com",
+                                "Hello",
+                                false);
 
-    @Test
-    @DisplayName("handleMessage should process message when AI is enabled")
-    void testHandleMessage_AIEnabled() {
-        // Given
-        when(authContextService.createAuthContext(anyString(), anyString(), eq(false)))
-                .thenReturn(authContext);
-        when(conversationContextService.getConversationHistory(anyString()))
-                .thenReturn(new ArrayList<>());
-        when(aiService.generateResponse(anyString(), any(), any(), eq(authContext)))
-                .thenReturn(Mono.just("Test response"));
+                // Then
+                StepVerifier.create(result)
+                                .verifyComplete();
+        }
 
-        // When
-        Mono<String> result = messageHandler.handleMessage(
-                "!room:chat.neohoods.com",
-                "@user:chat.neohoods.com",
-                "Hello",
-                false);
+        @Test
+        @DisplayName("handleMessage should process message when AI is enabled")
+        void testHandleMessage_AIEnabled() {
+                // Given
+                when(authContextService.createAuthContext(anyString(), anyString(), eq(false)))
+                                .thenReturn(authContext);
+                when(conversationContextService.getConversationHistory(anyString()))
+                                .thenReturn(new ArrayList<>());
+                when(aiService.generateResponse(anyString(), any(), any(), eq(authContext)))
+                                .thenReturn(Mono.just("Test response"));
 
-        // Then
-        StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertNotNull(response);
-                })
-                .verifyComplete();
-    }
+                // When
+                Mono<String> result = messageHandler.handleMessage(
+                                "!room:chat.neohoods.com",
+                                "@user:chat.neohoods.com",
+                                "Hello",
+                                false);
 
-    @Test
-    @DisplayName("handleMessage should handle errors gracefully")
-    void testHandleMessage_HandlesErrors() {
-        // Given
-        when(authContextService.createAuthContext(anyString(), anyString(), eq(false)))
-                .thenThrow(new RuntimeException("Test error"));
+                // Then
+                StepVerifier.create(result)
+                                .assertNext(response -> {
+                                        assertNotNull(response);
+                                })
+                                .verifyComplete();
+        }
 
-        // When
-        Mono<String> result = messageHandler.handleMessage(
-                "!room:chat.neohoods.com",
-                "@user:chat.neohoods.com",
-                "Hello",
-                false);
+        @Test
+        @DisplayName("handleMessage should handle errors gracefully")
+        void testHandleMessage_HandlesErrors() {
+                // Given
+                when(authContextService.createAuthContext(anyString(), anyString(), eq(false)))
+                                .thenThrow(new RuntimeException("Test error"));
+                when(messageSource.getMessage(anyString(), any(), any()))
+                                .thenReturn("Error message");
 
-        // Then
-        StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertNotNull(response);
-                    // Should return error message in French (will be replaced with translation key later)
-                })
-                .verifyComplete();
-    }
+                // When
+                Mono<String> result = messageHandler.handleMessage(
+                                "!room:chat.neohoods.com",
+                                "@user:chat.neohoods.com",
+                                "Hello",
+                                false);
+
+                // Then
+                StepVerifier.create(result)
+                                .assertNext(response -> {
+                                        assertNotNull(response);
+                                        // Should return error message
+                                })
+                                .verifyComplete();
+        }
 }
-

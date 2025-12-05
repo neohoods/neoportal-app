@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.Locale;
 
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -38,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
  * Implements MCP tools allowing the LLM to interact with the system.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @ConditionalOnProperty(name = "neohoods.portal.matrix.assistant.mcp.enabled", havingValue = "true", matchIfMissing = false)
 public class MatrixAssistantMCPServer {
@@ -54,6 +54,31 @@ public class MatrixAssistantMCPServer {
         private final MatrixMCPAdminHandler adminHandler;
         private final ResourceLoader resourceLoader;
         private final TransactionTemplate transactionTemplate;
+
+        public MatrixAssistantMCPServer(
+                        UsersRepository usersRepository,
+                        MessageSource messageSource,
+                        MatrixAssistantAuthContextService authContextService,
+                        MatrixMCPResidentHandler residentHandler,
+                        MatrixMCPReservationHandler reservationHandler,
+                        MatrixMCPSpaceHandler spaceHandler,
+                        MatrixMCPHubHandler hubHandler,
+                        MatrixMCPAdminHandler adminHandler,
+                        ResourceLoader resourceLoader,
+                        TransactionTemplate transactionTemplate,
+                        @Autowired(required = false) MatrixAssistantAdminCommandService adminCommandService) {
+                this.usersRepository = usersRepository;
+                this.messageSource = messageSource;
+                this.authContextService = authContextService;
+                this.residentHandler = residentHandler;
+                this.reservationHandler = reservationHandler;
+                this.spaceHandler = spaceHandler;
+                this.hubHandler = hubHandler;
+                this.adminHandler = adminHandler;
+                this.resourceLoader = resourceLoader;
+                this.transactionTemplate = transactionTemplate;
+                this.adminCommandService = adminCommandService;
+        }
 
         @Value("${neohoods.portal.matrix.assistant.mcp.enabled}")
         private boolean mcpEnabled;
@@ -159,171 +184,194 @@ public class MatrixAssistantMCPServer {
                                 traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
 
                 // Use TransactionTemplate to programmatically control transaction
-                // This allows us to catch exceptions without marking the transaction as rollback-only
+                // This allows us to catch exceptions without marking the transaction as
+                // rollback-only
                 try {
                         return transactionTemplate.execute(status -> {
-                        try {
-                        // Get user entity and locale - only if needed
-                        UserEntity userEntity = null;
-                        Locale locale = Locale.ENGLISH;
-
-                        // Check if tool requires DM (for sensitive data)
-                        if (requiresDM(toolName)) {
-                                // Get user entity - required for DM tools
                                 try {
-                                        userEntity = getUser(authContext.getMatrixUserId());
-                                        locale = getLocale(userEntity);
-                                } catch (IllegalStateException | IllegalArgumentException e) {
-                                        // User not found - return error with translation
-                                        return MatrixMCPModels.MCPToolResult.builder()
-                                                        .isError(true)
-                                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
-                                                                        .type("text")
-                                                                        .text(translate("matrix.mcp.error.requiresDM",
-                                                                                        locale))
-                                                                        .build()))
-                                                        .build();
-                                }
+                                        // Get user entity and locale - only if needed
+                                        UserEntity userEntity = null;
+                                        Locale locale = Locale.ENGLISH;
 
-                                // Check if conversation is public (DM required)
-                                if (authContext.isConversationPublic()) {
-                                        return MatrixMCPModels.MCPToolResult.builder()
-                                                        .isError(true)
-                                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
-                                                                        .type("text")
-                                                                        .text(translate("matrix.mcp.error.requiresDM",
-                                                                                        locale))
-                                                                        .build()))
-                                                        .build();
-                                }
-                        } else {
-                                // For public tools, try to get user entity for locale, but don't fail if not
-                                // found
-                                try {
-                                        userEntity = getUser(authContext.getMatrixUserId());
-                                        locale = getLocale(userEntity);
-                                } catch (Exception e) {
-                                        // User not found - use default locale (English)
-                                        log.debug("User not found for public tool, using default locale: {}",
-                                                        e.getMessage());
-                                }
-                        }
-                        // Note: get_infos, get_announcements, get_applications are public (no security
-                        // in OpenAPI)
+                                        // Check if tool requires DM (for sensitive data)
+                                        if (requiresDM(toolName)) {
+                                                // Get user entity - required for DM tools
+                                                try {
+                                                        userEntity = getUser(authContext.getMatrixUserId());
+                                                        locale = getLocale(userEntity);
+                                                } catch (IllegalStateException | IllegalArgumentException e) {
+                                                        // User not found - return error with translation
+                                                        return MatrixMCPModels.MCPToolResult.builder()
+                                                                        .isError(true)
+                                                                        .content(List.of(MatrixMCPModels.MCPContent
+                                                                                        .builder()
+                                                                                        .type("text")
+                                                                                        .text(translate("matrix.mcp.error.requiresDM",
+                                                                                                        locale))
+                                                                                        .build()))
+                                                                        .build();
+                                                }
 
-                        // Check admin permissions for admin tools
-                        if (toolName.startsWith("admin_")) {
-                                if (userEntity == null) {
-                                        // Try to get user for admin check
-                                        try {
-                                                userEntity = getUser(authContext.getMatrixUserId());
-                                                locale = getLocale(userEntity);
-                                        } catch (Exception e) {
-                                                return MatrixMCPModels.MCPToolResult.builder()
-                                                                .isError(true)
-                                                                .content(List.of(MatrixMCPModels.MCPContent.builder()
-                                                                                .type("text")
-                                                                                .text(translate("matrix.mcp.error.requiresDM",
-                                                                                                locale))
-                                                                                .build()))
-                                                                .build();
+                                                // Check if conversation is public (DM required)
+                                                if (authContext.isConversationPublic()) {
+                                                        return MatrixMCPModels.MCPToolResult.builder()
+                                                                        .isError(true)
+                                                                        .content(List.of(MatrixMCPModels.MCPContent
+                                                                                        .builder()
+                                                                                        .type("text")
+                                                                                        .text(translate("matrix.mcp.error.requiresDM",
+                                                                                                        locale))
+                                                                                        .build()))
+                                                                        .build();
+                                                }
+                                        } else {
+                                                // For public tools, try to get user entity for locale, but don't fail
+                                                // if not
+                                                // found
+                                                try {
+                                                        userEntity = getUser(authContext.getMatrixUserId());
+                                                        locale = getLocale(userEntity);
+                                                } catch (Exception e) {
+                                                        // User not found - use default locale (English)
+                                                        log.debug("User not found for public tool, using default locale: {}",
+                                                                        e.getMessage());
+                                                }
                                         }
-                                }
+                                        // Note: get_infos, get_announcements, get_applications are public (no security
+                                        // in OpenAPI)
 
-                                if (!needAdminRole(userEntity)) {
+                                        // Check admin permissions for admin tools
+                                        if (toolName.startsWith("admin_")) {
+                                                if (userEntity == null) {
+                                                        // Try to get user for admin check
+                                                        try {
+                                                                userEntity = getUser(authContext.getMatrixUserId());
+                                                                locale = getLocale(userEntity);
+                                                        } catch (Exception e) {
+                                                                return MatrixMCPModels.MCPToolResult.builder()
+                                                                                .isError(true)
+                                                                                .content(List.of(
+                                                                                                MatrixMCPModels.MCPContent
+                                                                                                                .builder()
+                                                                                                                .type("text")
+                                                                                                                .text(translate("matrix.mcp.error.requiresDM",
+                                                                                                                                locale))
+                                                                                                                .build()))
+                                                                                .build();
+                                                        }
+                                                }
+
+                                                if (!needAdminRole(userEntity)) {
+                                                        return MatrixMCPModels.MCPToolResult.builder()
+                                                                        .isError(true)
+                                                                        .content(List.of(MatrixMCPModels.MCPContent
+                                                                                        .builder()
+                                                                                        .type("text")
+                                                                                        .text(translate("matrix.mcp.error.adminOnly",
+                                                                                                        locale))
+                                                                                        .build()))
+                                                                        .build();
+                                                }
+                                        }
+                                        MatrixMCPModels.MCPToolResult result = switch (toolName) {
+                                                case "get_resident_info" ->
+                                                        residentHandler.getResidentInfo(arguments, authContext);
+                                                case "get_emergency_numbers" ->
+                                                        residentHandler.getEmergencyNumbers(authContext);
+                                                case "get_reservation_details" ->
+                                                        reservationHandler.getReservationDetails(arguments,
+                                                                        authContext);
+                                                case "create_reservation" ->
+                                                        reservationHandler.createReservation(arguments, authContext);
+                                                case "create_github_issue" -> createGithubIssue(arguments, authContext);
+                                                case "get_space_info" ->
+                                                        spaceHandler.getSpaceInfo(arguments, authContext);
+                                                case "list_spaces" -> spaceHandler.listSpaces(authContext);
+                                                case "check_space_availability" ->
+                                                        spaceHandler.checkSpaceAvailability(arguments, authContext);
+                                                case "list_my_reservations" ->
+                                                        reservationHandler.listMyReservations(arguments, authContext);
+                                                case "get_reservation_access_code" ->
+                                                        reservationHandler.getReservationAccessCode(arguments,
+                                                                        authContext);
+                                                case "generate_payment_link" ->
+                                                        reservationHandler.generatePaymentLink(arguments, authContext);
+                                                // Hub endpoints
+                                                case "get_infos" -> hubHandler.getInfos(authContext);
+                                                case "get_announcements" ->
+                                                        hubHandler.getAnnouncements(arguments, authContext);
+                                                case "get_applications" -> hubHandler.getApplications(authContext);
+                                                case "get_notifications" -> hubHandler.getNotifications(authContext);
+                                                case "get_unread_notifications_count" ->
+                                                        hubHandler.getUnreadNotificationsCount(authContext);
+                                                case "get_users" -> hubHandler.getUsers(authContext);
+                                                // Admin endpoints
+                                                case "admin_get_users" -> adminHandler.adminGetUsers(authContext);
+                                                case "admin_get_units" -> adminHandler.adminGetUnits(authContext);
+                                                case "admin_get_reservations" ->
+                                                        adminHandler.adminGetReservations(authContext);
+                                                case "admin_get_spaces" -> adminHandler.adminGetSpaces(authContext);
+                                                default ->
+                                                        throw new IllegalArgumentException("Unknown tool: " + toolName);
+                                        };
+
+                                        // Log MCP response with trace ID and span ID (reuse variables already declared)
+                                        if (result.isError()) {
+                                                log.warn("MCP tool {} returned an error: {} [traceId={}, spanId={}]",
+                                                                toolName,
+                                                                result.getContent().isEmpty() ? "Unknown error"
+                                                                                : result.getContent().get(0).getText(),
+                                                                traceId != null ? traceId : "N/A",
+                                                                spanId != null ? spanId : "N/A");
+                                        } else {
+                                                String resultText = result.getContent().stream()
+                                                                .map(MatrixMCPModels.MCPContent::getText)
+                                                                .filter(text -> text != null)
+                                                                .collect(Collectors.joining("\n"));
+                                                log.info("MCP tool {} succeeded. Response (first 500 chars): {} [traceId={}, spanId={}]",
+                                                                toolName,
+                                                                resultText.length() > 500
+                                                                                ? resultText.substring(0, 500) + "..."
+                                                                                : resultText,
+                                                                traceId != null ? traceId : "N/A",
+                                                                spanId != null ? spanId : "N/A");
+                                        }
+
+                                        return result;
+                                } catch (Exception e) {
+                                        // Reuse traceId and spanId variables already declared at the beginning of the
+                                        // method
+                                        log.error("Error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName,
+                                                        e.getMessage(),
+                                                        traceId != null ? traceId : "N/A",
+                                                        spanId != null ? spanId : "N/A", e);
+
+                                        // For database/data access exceptions, we need to let them propagate
+                                        // so the transaction can be rolled back properly
+                                        if (e instanceof DataAccessException || e instanceof HibernateException) {
+                                                // Re-throw to let TransactionTemplate handle rollback
+                                                throw e;
+                                        }
+
+                                        // For other exceptions (validation, business logic, etc.), return error result
+                                        // These don't require transaction rollback
+                                        Locale locale = getLocaleFromAuthContext(authContext);
+                                        String errorMessage = translate("matrix.mcp.error.generic", locale,
+                                                        e.getMessage());
                                         return MatrixMCPModels.MCPToolResult.builder()
                                                         .isError(true)
                                                         .content(List.of(MatrixMCPModels.MCPContent.builder()
                                                                         .type("text")
-                                                                        .text(translate("matrix.mcp.error.adminOnly",
-                                                                                        locale))
+                                                                        .text(errorMessage)
                                                                         .build()))
                                                         .build();
                                 }
-                        }
-                        MatrixMCPModels.MCPToolResult result = switch (toolName) {
-                                case "get_resident_info" -> residentHandler.getResidentInfo(arguments, authContext);
-                                case "get_emergency_numbers" -> residentHandler.getEmergencyNumbers(authContext);
-                                case "get_reservation_details" ->
-                                        reservationHandler.getReservationDetails(arguments, authContext);
-                                case "create_reservation" ->
-                                        reservationHandler.createReservation(arguments, authContext);
-                                case "create_github_issue" -> createGithubIssue(arguments, authContext);
-                                case "get_space_info" -> spaceHandler.getSpaceInfo(arguments, authContext);
-                                case "list_spaces" -> spaceHandler.listSpaces(authContext);
-                                case "check_space_availability" ->
-                                        spaceHandler.checkSpaceAvailability(arguments, authContext);
-                                case "list_my_reservations" ->
-                                        reservationHandler.listMyReservations(arguments, authContext);
-                                case "get_reservation_access_code" ->
-                                        reservationHandler.getReservationAccessCode(arguments, authContext);
-                                case "generate_payment_link" ->
-                                        reservationHandler.generatePaymentLink(arguments, authContext);
-                                // Hub endpoints
-                                case "get_infos" -> hubHandler.getInfos(authContext);
-                                case "get_announcements" -> hubHandler.getAnnouncements(arguments, authContext);
-                                case "get_applications" -> hubHandler.getApplications(authContext);
-                                case "get_notifications" -> hubHandler.getNotifications(authContext);
-                                case "get_unread_notifications_count" ->
-                                        hubHandler.getUnreadNotificationsCount(authContext);
-                                case "get_users" -> hubHandler.getUsers(authContext);
-                                // Admin endpoints
-                                case "admin_get_users" -> adminHandler.adminGetUsers(authContext);
-                                case "admin_get_units" -> adminHandler.adminGetUnits(authContext);
-                                case "admin_get_reservations" -> adminHandler.adminGetReservations(authContext);
-                                case "admin_get_spaces" -> adminHandler.adminGetSpaces(authContext);
-                                default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
-                        };
-
-                        // Log MCP response with trace ID and span ID (reuse variables already declared)
-                        if (result.isError()) {
-                                log.warn("MCP tool {} returned an error: {} [traceId={}, spanId={}]", toolName,
-                                                result.getContent().isEmpty() ? "Unknown error"
-                                                                : result.getContent().get(0).getText(),
-                                                traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
-                        } else {
-                                String resultText = result.getContent().stream()
-                                                .map(MatrixMCPModels.MCPContent::getText)
-                                                .filter(text -> text != null)
-                                                .collect(Collectors.joining("\n"));
-                                log.info("MCP tool {} succeeded. Response (first 500 chars): {} [traceId={}, spanId={}]",
-                                                toolName,
-                                                resultText.length() > 500 ? resultText.substring(0, 500) + "..."
-                                                                : resultText,
-                                                traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A");
-                        }
-
-                        return result;
-                } catch (Exception e) {
-                        // Reuse traceId and spanId variables already declared at the beginning of the
-                        // method
-                        log.error("Error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName, e.getMessage(),
-                                        traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A", e);
-                        
-                        // For database/data access exceptions, we need to let them propagate
-                        // so the transaction can be rolled back properly
-                        if (e instanceof DataAccessException || e instanceof HibernateException) {
-                                // Re-throw to let TransactionTemplate handle rollback
-                                throw e;
-                        }
-                        
-                        // For other exceptions (validation, business logic, etc.), return error result
-                        // These don't require transaction rollback
-                        Locale locale = getLocaleFromAuthContext(authContext);
-                        String errorMessage = translate("matrix.mcp.error.generic", locale, e.getMessage());
-                        return MatrixMCPModels.MCPToolResult.builder()
-                                        .isError(true)
-                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
-                                                        .type("text")
-                                                        .text(errorMessage)
-                                                        .build()))
-                                        .build();
-                }
-                });
+                        });
                 } catch (DataAccessException | HibernateException e) {
                         // Handle database exceptions that were re-thrown from TransactionTemplate
                         // These exceptions cause transaction rollback, which is expected
-                        log.error("Database error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName, e.getMessage(),
+                        log.error("Database error calling MCP tool {}: {} [traceId={}, spanId={}]", toolName,
+                                        e.getMessage(),
                                         traceId != null ? traceId : "N/A", spanId != null ? spanId : "N/A", e);
                         Locale locale = getLocaleFromAuthContext(authContext);
                         String errorMessage = translate("matrix.mcp.error.generic", locale, e.getMessage());

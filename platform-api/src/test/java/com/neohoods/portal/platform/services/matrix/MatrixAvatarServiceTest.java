@@ -65,12 +65,12 @@ class MatrixAvatarServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(matrixAvatarService, "disabled", false);
         ReflectionTestUtils.setField(matrixAvatarService, "homeserverUrl", HOMESERVER_URL);
-        ReflectionTestUtils.setField(matrixAvatarService, "localAssistantEnabled", true); // Enable local assistant to use configured user ID
+        ReflectionTestUtils.setField(matrixAvatarService, "localAssistantEnabled", true); // Enable local assistant to
+                                                                                          // use configured user ID
         ReflectionTestUtils.setField(matrixAvatarService, "localAssistantUserId", BOT_USER_ID);
         ReflectionTestUtils.setField(matrixAvatarService, "localAssistantPermanentToken", PERMANENT_TOKEN);
         ReflectionTestUtils.setField(matrixAvatarService, "botAvatarUrl", AVATAR_URL);
         ReflectionTestUtils.setField(matrixAvatarService, "botDisplayName", "Alfred");
-        ReflectionTestUtils.setField(matrixAvatarService, "matrixAccessToken", ACCESS_TOKEN);
     }
 
     @Test
@@ -90,9 +90,11 @@ class MatrixAvatarServiceTest {
     @Test
     @DisplayName("updateBotAvatar should return false when no avatar URL configured")
     void testUpdateBotAvatar_NoAvatarUrl() throws ApiException {
-        // Given - local assistant enabled so getAssistantUserId returns configured user ID
+        // Given - local assistant enabled so getAssistantUserId returns configured user
+        // ID
         ReflectionTestUtils.setField(matrixAvatarService, "botAvatarUrl", null);
-        // No need to mock getMatrixApiClient since the method returns early when botAvatarUrl is null
+        // No need to mock getMatrixApiClient since the method returns early when
+        // botAvatarUrl is null
 
         // When
         boolean result = matrixAvatarService.updateBotAvatar();
@@ -105,8 +107,10 @@ class MatrixAvatarServiceTest {
     @Test
     @DisplayName("updateBotAvatar should return false when upload fails")
     void testUpdateBotAvatar_UploadFails() throws ApiException {
-        // Given - local assistant enabled so getAssistantUserId returns configured user ID
-        when(oauth2Service.getMatrixApiClient(anyString(), anyString(), anyBoolean(), anyString(), anyString(), isNull()))
+        // Given - local assistant enabled so getAssistantUserId returns configured user
+        // ID
+        when(oauth2Service.getMatrixApiClient(anyString(), isNull(), anyBoolean(), anyString(), anyString(),
+                isNull()))
                 .thenReturn(Optional.of(apiClient));
         when(mediaService.uploadImageToMatrix(AVATAR_URL)).thenReturn(null);
 
@@ -134,8 +138,10 @@ class MatrixAvatarServiceTest {
     @Test
     @DisplayName("updateBotDisplayName should return true on success")
     void testUpdateBotDisplayName_Success() throws ApiException {
-        // Given - local assistant enabled so getAssistantUserId returns configured user ID
-        when(oauth2Service.getMatrixApiClient(anyString(), anyString(), anyBoolean(), anyString(), anyString(), isNull()))
+        // Given - local assistant enabled so getAssistantUserId returns configured user
+        // ID
+        when(oauth2Service.getMatrixApiClient(anyString(), isNull(), anyBoolean(), anyString(), anyString(),
+                isNull()))
                 .thenReturn(Optional.of(apiClient));
 
         Map<String, Object> profileResponse = new HashMap<>();
@@ -171,7 +177,8 @@ class MatrixAvatarServiceTest {
     @DisplayName("updateRoomAvatar should return false when upload fails")
     void testUpdateRoomAvatar_UploadFails() {
         // Given
-        when(oauth2Service.getMatrixApiClient(anyString(), anyString(), anyBoolean(), anyString(), anyString(), isNull()))
+        when(oauth2Service.getMatrixApiClient(anyString(), isNull(), anyBoolean(), anyString(), anyString(),
+                isNull()))
                 .thenReturn(Optional.of(apiClient));
         when(mediaService.uploadImageToMatrix(AVATAR_URL)).thenReturn(null);
 
@@ -187,7 +194,8 @@ class MatrixAvatarServiceTest {
     @DisplayName("updateRoomAvatar should return true on success")
     void testUpdateRoomAvatar_Success() {
         // Given
-        when(oauth2Service.getMatrixApiClient(anyString(), anyString(), anyBoolean(), anyString(), anyString(), isNull()))
+        when(oauth2Service.getMatrixApiClient(anyString(), isNull(), anyBoolean(), anyString(), anyString(),
+                isNull()))
                 .thenReturn(Optional.of(apiClient));
         when(mediaService.uploadImageToMatrix(AVATAR_URL)).thenReturn(MXC_URL);
 

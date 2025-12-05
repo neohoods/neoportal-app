@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,6 +32,13 @@ public class MatrixAssistantAdminCommandService {
     private final MatrixAssistantService matrixAssistantService;
     private final MessageSource messageSource;
     private final UsersRepository usersRepository;
+
+    // Optional: LLM-as-a-Judge service
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantLLMJudgeService llmJudgeService;
+
+    @Value("${neohoods.portal.matrix.space-id}")
+    private String spaceId;
 
     @Value("${neohoods.portal.matrix.mas.admin-users}")
     private String adminUsersConfig;
@@ -80,7 +88,79 @@ public class MatrixAssistantAdminCommandService {
                     }
                 });
 
+        // Command: Generate LLM-as-a-Judge report
+        registerCommand(
+                "matrix.admin.command.llmJudgeReport.description",
+                (sender, messageBody, locale) -> {
+                    log.info("Admin command: generate LLM-as-a-Judge report from user {}", sender);
+                    if (llmJudgeService == null) {
+                        return messageSource.getMessage("matrix.admin.command.llmJudgeReport.disabled", null, locale);
+                    }
+
+                    // Generate report for last 7 days
+                    java.time.OffsetDateTime since = java.time.OffsetDateTime.now().minusDays(7);
+                    com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantLLMJudgeService.EvaluationReport report = llmJudgeService
+                            .generateReport(since);
+
+                    // Format report message
+                    String reportMessage = formatReport(report, locale);
+
+                    // Send to IT room
+                    sendReportToItRoom(reportMessage);
+
+                    return messageSource.getMessage("matrix.admin.command.llmJudgeReport.success", null, locale);
+                });
+
         log.info("Initialized {} admin commands", adminCommands.size());
+    }
+
+    /**
+     * Formats the evaluation report as a message
+     */
+    private String formatReport(
+            com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantLLMJudgeService.EvaluationReport report,
+            Locale locale) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("📊 **LLM-as-a-Judge Report (Last 7 days)**\n\n");
+        sb.append(String.format("**Total Evaluations:** %d\n", report.getTotalEvaluations()));
+        sb.append(String.format("**Average Score:** %.1f/100\n", report.getAverageScore()));
+        sb.append(String.format("**Low Scores (< 60):** %d\n\n", report.getLowScoreCount()));
+
+        if (report.getEvaluations() != null && !report.getEvaluations().isEmpty()) {
+            sb.append("**Recent Low Scores:**\n");
+            report.getEvaluations().stream()
+                    .filter(e -> e.getEvaluationScore() != null && e.getEvaluationScore() < 60)
+                    .limit(10)
+                    .forEach(e -> {
+                        sb.append(String.format("- Score: %d - Room: %s - User: %s\n",
+                                e.getEvaluationScore() != null ? e.getEvaluationScore() : 0,
+                                e.getRoomId(),
+                                e.getUserId()));
+                    });
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Sends the report to IT room
+     */
+    private void sendReportToItRoom(String reportMessage) {
+        try {
+            Optional<String> itRoomId = matrixAssistantService.getRoomIdByName("IT", spaceId);
+            if (itRoomId.isPresent()) {
+                boolean sent = matrixAssistantService.sendMessage(itRoomId.get(), reportMessage);
+                if (sent) {
+                    log.info("Sent LLM-as-a-Judge report to IT room");
+                } else {
+                    log.error("Failed to send LLM-as-a-Judge report to IT room");
+                }
+            } else {
+                log.warn("IT room not found, cannot send report");
+            }
+        } catch (Exception e) {
+            log.error("Error sending report to IT room", e);
+        }
     }
 
     /**
@@ -93,13 +173,15 @@ public class MatrixAssistantAdminCommandService {
         adminCommandDescriptions.add(descriptionKey);
 
         // Use the description key as the internal command identifier
-        // The LLM will interpret user messages in any language based on the system prompt
+        // The LLM will interpret user messages in any language based on the system
+        // prompt
         adminCommands.put(descriptionKey, command);
     }
 
     /**
      * Handles an admin command if the message contains one.
-     * Uses simple keyword matching - the LLM will interpret commands in any language
+     * Uses simple keyword matching - the LLM will interpret commands in any
+     * language
      * based on the system prompt descriptions.
      * 
      * @param sender      Matrix user ID of the sender
@@ -121,24 +203,26 @@ public class MatrixAssistantAdminCommandService {
 
         String normalizedMessage = messageBody.toLowerCase().trim();
 
-        // Simple keyword-based matching - extracts the main action word from English descriptions
+        // Simple keyword-based matching - extracts the main action word from English
+        // descriptions
         // The LLM in the system prompt will interpret commands in any language
         for (String descriptionKey : adminCommandDescriptions) {
             String description = messageSource.getMessage(descriptionKey, null, Locale.ENGLISH);
             String normalizedDesc = description.toLowerCase();
-            
+
             // Extract significant keywords (skip common words)
             String[] words = normalizedDesc.split("\\s+");
             for (String word : words) {
                 // Skip common/stop words
-                if (word.length() < 3 || 
-                    word.equals("the") || word.equals("bot") || 
-                    word.equals("your") || word.equals("you") ||
-                    word.equals("to") || word.equals("a") || word.equals("an")) {
+                if (word.length() < 3 ||
+                        word.equals("the") || word.equals("bot") ||
+                        word.equals("your") || word.equals("you") ||
+                        word.equals("to") || word.equals("a") || word.equals("an")) {
                     continue;
                 }
-                
-                // If message contains a significant keyword from the command, consider it a match
+
+                // If message contains a significant keyword from the command, consider it a
+                // match
                 // The LLM will handle proper interpretation through the system prompt
                 if (normalizedMessage.contains(word)) {
                     log.info("Admin command matched (keyword '{}'): '{}' from user {}", word, descriptionKey, sender);

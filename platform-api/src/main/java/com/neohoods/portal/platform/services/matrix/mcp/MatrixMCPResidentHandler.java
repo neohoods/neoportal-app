@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +37,7 @@ public class MatrixMCPResidentHandler extends MatrixMCPBaseHandler {
         public MatrixMCPResidentHandler(
                         MessageSource messageSource,
                         UsersRepository usersRepository,
-                        MatrixAssistantAdminCommandService adminCommandService,
+                        @Autowired(required = false) MatrixAssistantAdminCommandService adminCommandService,
                         UnitRepository unitRepository,
                         UnitMemberRepository unitMemberRepository,
                         InfoRepository infoRepository) {

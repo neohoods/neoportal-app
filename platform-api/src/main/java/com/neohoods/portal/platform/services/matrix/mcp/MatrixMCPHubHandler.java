@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ public class MatrixMCPHubHandler extends MatrixMCPBaseHandler {
         public MatrixMCPHubHandler(
                         MessageSource messageSource,
                         UsersRepository usersRepository,
-                        MatrixAssistantAdminCommandService adminCommandService,
+                        @Autowired(required = false) MatrixAssistantAdminCommandService adminCommandService,
                         InfosService infosService,
                         AnnouncementsService announcementsService,
                         ApplicationsService applicationsService,
@@ -427,4 +428,3 @@ public class MatrixMCPHubHandler extends MatrixMCPBaseHandler {
                 }
         }
 }
-

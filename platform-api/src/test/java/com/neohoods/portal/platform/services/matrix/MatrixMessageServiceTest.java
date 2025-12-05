@@ -60,10 +60,10 @@ class MatrixMessageServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(matrixMessageService, "disabled", false);
         ReflectionTestUtils.setField(matrixMessageService, "homeserverUrl", HOMESERVER_URL);
-        ReflectionTestUtils.setField(matrixMessageService, "localAssistantEnabled", true); // Enable local assistant to use configured user ID
+        ReflectionTestUtils.setField(matrixMessageService, "localAssistantEnabled", true); // Enable local assistant to
+                                                                                           // use configured user ID
         ReflectionTestUtils.setField(matrixMessageService, "localAssistantUserId", BOT_USER_ID);
         ReflectionTestUtils.setField(matrixMessageService, "localAssistantPermanentToken", PERMANENT_TOKEN);
-        ReflectionTestUtils.setField(matrixMessageService, "matrixAccessToken", ACCESS_TOKEN);
     }
 
     @Test
@@ -97,8 +97,9 @@ class MatrixMessageServiceTest {
     @Test
     @DisplayName("sendMessage should return false when bot cannot join room")
     void testSendMessage_CannotJoinRoom() {
-        // Given - local assistant enabled so getAssistantUserId returns configured user ID
-        when(oauth2Service.getMatrixApiClient(anyString(), anyString(), anyBoolean(), anyString(), anyString(), any()))
+        // Given - local assistant enabled so getAssistantUserId returns configured user
+        // ID
+        when(oauth2Service.getMatrixApiClient(anyString(), isNull(), anyBoolean(), anyString(), anyString(), any()))
                 .thenReturn(Optional.of(apiClient));
         when(membershipService.getUserRoomMembership(BOT_USER_ID, ROOM_ID))
                 .thenReturn(Optional.empty());
@@ -196,9 +197,11 @@ class MatrixMessageServiceTest {
     @Test
     @DisplayName("sendTypingIndicator should return true on success")
     void testSendTypingIndicator_Success() {
-        // Given - local assistant enabled so getAssistantUserId returns configured user ID
-        // getMatrixAccessToken is called, need to mock it - but since matrixAccessToken is set, it uses that
-        when(oauth2Service.getMatrixApiClient(eq(HOMESERVER_URL), eq(ACCESS_TOKEN), eq(true), eq(PERMANENT_TOKEN), eq(BOT_USER_ID), isNull()))
+        // Given - local assistant enabled so getAssistantUserId returns configured user
+        // ID
+        // getMatrixAccessToken is called, need to mock it
+        when(oauth2Service.getMatrixApiClient(eq(HOMESERVER_URL), isNull(), eq(true), eq(PERMANENT_TOKEN),
+                eq(BOT_USER_ID), isNull()))
                 .thenReturn(Optional.of(apiClient));
 
         ResponseEntity<Void> response = new ResponseEntity<>(HttpStatus.OK);
@@ -214,8 +217,10 @@ class MatrixMessageServiceTest {
     @Test
     @DisplayName("sendTypingIndicator should return false on failure")
     void testSendTypingIndicator_Failure() {
-        // Given - local assistant enabled so getAssistantUserId returns configured user ID
-        when(oauth2Service.getMatrixApiClient(eq(HOMESERVER_URL), eq(ACCESS_TOKEN), eq(true), eq(PERMANENT_TOKEN), eq(BOT_USER_ID), isNull()))
+        // Given - local assistant enabled so getAssistantUserId returns configured user
+        // ID
+        when(oauth2Service.getMatrixApiClient(eq(HOMESERVER_URL), isNull(), eq(true), eq(PERMANENT_TOKEN),
+                eq(BOT_USER_ID), isNull()))
                 .thenReturn(Optional.of(apiClient));
 
         ResponseEntity<Void> response = new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -228,4 +233,3 @@ class MatrixMessageServiceTest {
         assertFalse(result);
     }
 }
-

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +41,7 @@ public class MatrixMCPReservationHandler extends MatrixMCPBaseHandler {
         public MatrixMCPReservationHandler(
                         MessageSource messageSource,
                         UsersRepository usersRepository,
-                        MatrixAssistantAdminCommandService adminCommandService,
+                        @Autowired(required = false) MatrixAssistantAdminCommandService adminCommandService,
                         ReservationsService reservationsService,
                         SpacesService spacesService,
                         ReservationRepository reservationRepository,
@@ -79,7 +80,8 @@ public class MatrixMCPReservationHandler extends MatrixMCPBaseHandler {
                         }
 
                         // Get space
-                        com.neohoods.portal.platform.spaces.entities.SpaceEntity space = spacesService.getSpaceById(spaceId);
+                        com.neohoods.portal.platform.spaces.entities.SpaceEntity space = spacesService
+                                        .getSpaceById(spaceId);
 
                         // Create reservation via ReservationsService
                         ReservationEntity reservation = reservationsService.createReservation(
@@ -564,4 +566,3 @@ public class MatrixMCPReservationHandler extends MatrixMCPBaseHandler {
                 return translate(key, locale);
         }
 }
-

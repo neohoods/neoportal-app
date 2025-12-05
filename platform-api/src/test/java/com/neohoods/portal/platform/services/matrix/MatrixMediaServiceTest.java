@@ -60,8 +60,8 @@ class MatrixMediaServiceTest {
         ReflectionTestUtils.setField(matrixMediaService, "homeserverUrl", HOMESERVER_URL);
         ReflectionTestUtils.setField(matrixMediaService, "localAssistantEnabled", false);
         ReflectionTestUtils.setField(matrixMediaService, "localAssistantPermanentToken", PERMANENT_TOKEN);
-        ReflectionTestUtils.setField(matrixMediaService, "matrixAccessToken", ACCESS_TOKEN);
-        // Mock oauth2Service.getUserAccessToken() as fallback - use lenient since not all tests need it
+        // Mock oauth2Service.getUserAccessToken() as fallback - use lenient since not
+        // all tests need it
         org.mockito.Mockito.lenient().when(oauth2Service.getUserAccessToken()).thenReturn(Optional.of(ACCESS_TOKEN));
     }
 
@@ -85,7 +85,8 @@ class MatrixMediaServiceTest {
     void testUploadImageToMatrix_EmptyImageData() {
         // Given
         ResponseEntity<byte[]> downloadResponse = new ResponseEntity<>(new byte[0], HttpStatus.OK);
-        when(restTemplate.exchange(eq(IMAGE_URL), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class))).thenReturn(downloadResponse);
+        when(restTemplate.exchange(eq(IMAGE_URL), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class)))
+                .thenReturn(downloadResponse);
 
         // When
         String result = matrixMediaService.uploadImageToMatrix(IMAGE_URL);
@@ -97,25 +98,30 @@ class MatrixMediaServiceTest {
     @Test
     @DisplayName("uploadImageToMatrix should return MXC URL on success")
     void testUploadImageToMatrix_Success() {
-        // Given - matrixAccessToken is set in setUp, so it will be used (no need to mock getUserAccessToken)
+        // Given - matrixAccessToken is set in setUp, so it will be used (no need to
+        // mock getUserAccessToken)
         HttpHeaders downloadHeaders = new HttpHeaders();
         downloadHeaders.setContentType(MediaType.IMAGE_JPEG);
         ResponseEntity<byte[]> downloadResponse = new ResponseEntity<>(TEST_IMAGE_DATA, downloadHeaders, HttpStatus.OK);
-        
+
         Map<String, String> uploadResponse = new java.util.HashMap<>();
         uploadResponse.put("content_uri", MXC_URL);
         ResponseEntity<Map> uploadResponseEntity = new ResponseEntity<>(uploadResponse, HttpStatus.OK);
-        
-        // Mock download call (first exchange call) - matches IMAGE_URL with GET method and byte[].class
+
+        // Mock download call (first exchange call) - matches IMAGE_URL with GET method
+        // and byte[].class
         when(restTemplate.exchange(
                 eq(IMAGE_URL),
                 eq(org.springframework.http.HttpMethod.GET),
                 any(),
                 eq(byte[].class))).thenReturn(downloadResponse);
-        // Mock upload call (second exchange call) - matches any URL with POST method and Map.class
+        // Mock upload call (second exchange call) - matches any URL with POST method
+        // and Map.class
         // The upload URL will contain "_matrix/media/v3/upload"
-        // restTemplate.exchange(String url, HttpMethod method, HttpEntity requestEntity, Class responseType)
-        // Use anyString() since we can't easily match the exact URL, but we know it contains the path
+        // restTemplate.exchange(String url, HttpMethod method, HttpEntity
+        // requestEntity, Class responseType)
+        // Use anyString() since we can't easily match the exact URL, but we know it
+        // contains the path
         when(restTemplate.exchange(
                 anyString(),
                 eq(org.springframework.http.HttpMethod.POST),
@@ -152,7 +158,8 @@ class MatrixMediaServiceTest {
     void testDownloadImageFromUrl_Failure() {
         // Given
         ResponseEntity<byte[]> response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        when(restTemplate.exchange(eq(IMAGE_URL), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class))).thenReturn(response);
+        when(restTemplate.exchange(eq(IMAGE_URL), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class)))
+                .thenReturn(response);
 
         // When
         byte[] result = matrixMediaService.downloadImageFromUrl(IMAGE_URL);
@@ -172,7 +179,8 @@ class MatrixMediaServiceTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.IMAGE_JPEG);
         ResponseEntity<byte[]> response = new ResponseEntity<>(TEST_IMAGE_DATA, headers, HttpStatus.OK);
-        when(restTemplate.exchange(anyString(), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class))).thenReturn(response);
+        when(restTemplate.exchange(anyString(), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class)))
+                .thenReturn(response);
 
         // When
         byte[] result = matrixMediaService.downloadImageFromMxc(MXC_URL);
@@ -228,7 +236,8 @@ class MatrixMediaServiceTest {
     @Test
     @DisplayName("imagesAreIdentical should return true for identical images")
     void testImagesAreIdentical_Identical() {
-        // Given - first call downloads from IMAGE_URL, second call downloads from MXC URL
+        // Given - first call downloads from IMAGE_URL, second call downloads from MXC
+        // URL
         // Use thenAnswer to handle multiple calls with different URLs
         when(restTemplate.exchange(anyString(), eq(org.springframework.http.HttpMethod.GET), any(), eq(byte[].class)))
                 .thenReturn(new ResponseEntity<>(TEST_IMAGE_DATA, HttpStatus.OK));
@@ -243,7 +252,8 @@ class MatrixMediaServiceTest {
     @Test
     @DisplayName("imagesAreIdentical should return false for different images")
     void testImagesAreIdentical_Different() {
-        // Given - first call downloads from IMAGE_URL, second call downloads from MXC URL with different data
+        // Given - first call downloads from IMAGE_URL, second call downloads from MXC
+        // URL with different data
         byte[] differentData = "different image data".getBytes();
         // Use thenAnswer to return different data on second call
         org.mockito.stubbing.Answer<ResponseEntity<byte[]>> answer = invocation -> {
@@ -279,4 +289,3 @@ class MatrixMediaServiceTest {
         assertNull(result);
     }
 }
-

@@ -48,6 +48,14 @@ public class MatrixSyncService {
     @Autowired(required = false)
     private MatrixAssistantAdminCommandService adminCommandService;
 
+    // Optional: LLM-as-a-Judge service
+    @Autowired(required = false)
+    private com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantLLMJudgeService llmJudgeService;
+
+    // Optional: Reaction evaluation service
+    @Autowired(required = false)
+    private com.neohoods.portal.platform.services.matrix.assistant.MatrixReactionEvaluationService reactionEvaluationService;
+
     @Value("${neohoods.portal.matrix.homeserver-url}")
     private String homeserverUrl;
 
@@ -319,6 +327,13 @@ public class MatrixSyncService {
     private void processTimelineEvents(String roomId, List<Map<String, Object>> events) {
         for (Map<String, Object> event : events) {
             String eventType = (String) event.get("type");
+
+            // Process reactions
+            if ("m.reaction".equals(eventType)) {
+                processReactionEvent(roomId, event);
+                continue;
+            }
+
             if (!"m.room.message".equals(eventType)) {
                 continue; // Only process message events
             }
@@ -353,6 +368,53 @@ public class MatrixSyncService {
                 log.info("Received message in room {} from {}: {}", roomId, sender, body);
                 processMessage(roomId, sender, body, event);
             }
+        }
+    }
+
+    /**
+     * Process reaction events (m.reaction)
+     */
+    @SuppressWarnings("unchecked")
+    private void processReactionEvent(String roomId, Map<String, Object> event) {
+        try {
+            String sender = (String) event.get("sender");
+            if (sender == null || sender.equals(assistantUserId)) {
+                return; // Skip reactions from the bot itself
+            }
+
+            Object contentObj = event.get("content");
+            if (!(contentObj instanceof Map)) {
+                return;
+            }
+
+            Map<String, Object> content = (Map<String, Object>) contentObj;
+
+            // Get the event ID that this reaction relates to
+            Map<String, Object> relatesTo = (Map<String, Object>) content.get("m.relates_to");
+            if (relatesTo == null) {
+                return;
+            }
+
+            String relType = (String) relatesTo.get("rel_type");
+            if (!"m.annotation".equals(relType)) {
+                return; // Only process annotation reactions
+            }
+
+            String eventId = (String) relatesTo.get("event_id");
+            String key = (String) relatesTo.get("key"); // The emoji
+
+            if (eventId == null || key == null) {
+                return;
+            }
+
+            log.info("Received reaction {} on message {} from {} in room {}", key, eventId, sender, roomId);
+
+            // Evaluate the reaction
+            if (reactionEvaluationService != null) {
+                reactionEvaluationService.evaluateReaction(eventId, key, sender);
+            }
+        } catch (Exception e) {
+            log.error("Error processing reaction event", e);
         }
     }
 
@@ -468,6 +530,11 @@ public class MatrixSyncService {
                 log.warn("Failed to send typing indicator for room {}", roomId);
             }
 
+            // Store user question for LLM-as-a-Judge evaluation
+            final String userQuestionForEvaluation = messageBody;
+            final String userIdForEvaluation = sender;
+            final String roomIdForEvaluation = roomId;
+
             messageHandler.handleMessage(roomId, sender, messageBody, isDirectMessage)
                     .subscribe(
                             response -> {
@@ -477,6 +544,21 @@ public class MatrixSyncService {
                                     try {
                                         sendMessage(roomId, response);
                                         log.info("Sent AI response to room {}", roomId);
+
+                                        // Trigger LLM-as-a-Judge evaluation asynchronously
+                                        if (llmJudgeService != null) {
+                                            // Use a generated message ID (will be updated when we get the real one)
+                                            String messageId = java.util.UUID.randomUUID().toString();
+                                            llmJudgeService.evaluateResponseAsync(
+                                                    roomIdForEvaluation,
+                                                    userIdForEvaluation,
+                                                    messageId,
+                                                    userQuestionForEvaluation,
+                                                    response).subscribe(
+                                                            null,
+                                                            error -> log.error("Error in LLM-as-a-Judge evaluation",
+                                                                    error));
+                                        }
                                     } catch (Exception e) {
                                         log.error("Failed to send AI response message", e);
                                     }
