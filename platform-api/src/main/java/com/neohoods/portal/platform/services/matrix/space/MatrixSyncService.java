@@ -92,8 +92,10 @@ public class MatrixSyncService {
      * Accept all pending invitations for the bot
      * Called on startup to ensure the bot joins all rooms it was invited to
      * Uses Matrix SDK client (ApiClient) for consistency
+     * 
+     * @return number of invitations accepted
      */
-    private void acceptPendingInvitations() {
+    public int acceptPendingInvitations() {
         try {
             // Use MatrixAssistantService to get ApiClient (uses SDK)
             // We need to access the private method, so we'll use reflection or create a
@@ -103,7 +105,7 @@ public class MatrixSyncService {
             Optional<String> accessTokenOpt = getAssistantAccessToken();
             if (accessTokenOpt.isEmpty()) {
                 log.warn("Cannot accept pending invitations: no bot access token available");
-                return;
+                return 0;
             }
 
             log.info("Checking for pending invitations on startup using Matrix SDK...");
@@ -121,14 +123,19 @@ public class MatrixSyncService {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> invitedRooms = (Map<String, Object>) rooms.get("invite");
                 if (invitedRooms != null && !invitedRooms.isEmpty()) {
-                    log.info("Found {} pending invitation(s) on startup", invitedRooms.size());
-                    processRooms(invitedRooms, "invite");
+                    int count = invitedRooms.size();
+                    log.info("Found {} pending invitation(s) on startup, accepting them...", count);
+                    processRooms(invitedRooms, "invite", true); // Accept all during initialization
+                    return count;
                 } else {
                     log.info("No pending invitations found on startup");
+                    return 0;
                 }
             }
+            return 0;
         } catch (Exception e) {
             log.error("Error accepting pending invitations on startup", e);
+            return 0;
         }
     }
 
@@ -239,7 +246,7 @@ public class MatrixSyncService {
         if (joinObj instanceof Map) {
             Map<String, Object> joinedRooms = (Map<String, Object>) joinObj;
             if (!joinedRooms.isEmpty()) {
-                processRooms(joinedRooms, "join");
+                processRooms(joinedRooms, "join", false); // Normal operation: check space membership
             }
         }
 
@@ -248,7 +255,7 @@ public class MatrixSyncService {
         if (inviteObj instanceof Map) {
             Map<String, Object> invitedRooms = (Map<String, Object>) inviteObj;
             if (!invitedRooms.isEmpty()) {
-                processRooms(invitedRooms, "invite");
+                processRooms(invitedRooms, "invite", false); // Normal operation: check space membership
             }
         }
 
@@ -263,9 +270,13 @@ public class MatrixSyncService {
     /**
      * Process rooms and extract timeline events (messages)
      * Also handles automatic invitation acceptance for invited rooms
+     * 
+     * @param rooms Map of rooms to process
+     * @param membershipType Type of membership ("invite", "join", "leave")
+     * @param acceptAllInvitations If true, accept all invitations regardless of space membership (for initialization)
      */
     @SuppressWarnings("unchecked")
-    private void processRooms(Map<String, Object> rooms, String membershipType) {
+    private void processRooms(Map<String, Object> rooms, String membershipType, boolean acceptAllInvitations) {
         for (Map.Entry<String, Object> roomEntry : rooms.entrySet()) {
             String roomId = roomEntry.getKey();
             Object roomDataObj = roomEntry.getValue();
@@ -276,31 +287,103 @@ public class MatrixSyncService {
 
             Map<String, Object> roomData = (Map<String, Object>) roomDataObj;
 
-            // Handle invitations: automatically accept them only if room belongs to
-            // configured space
+            // Handle invitations: automatically accept them
+            // During initialization, accept all invitations (including space invitations)
+            // During normal operation, accept invitations to rooms in the configured space OR DMs (2 people)
             if ("invite".equals(membershipType)) {
                 log.info("Bot received invitation to room: {}", roomId);
 
-                // Check if room belongs to configured space (if space-id is configured)
-                // Use local assistant space-id if local assistant is enabled, otherwise use
-                // main space-id
-                String spaceIdToCheck = spaceId;
-
-                if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
-                    boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceIdToCheck);
-                    if (!belongsToSpace) {
-                        log.info(
-                                "Ignoring invitation to room {} that does not belong to configured space {} (local assistant: {})",
-                                roomId, spaceIdToCheck, localAssistantEnabled);
-                        continue; // Skip this invitation
+                boolean shouldAccept = acceptAllInvitations;
+                
+                if (!acceptAllInvitations) {
+                    // Normal operation: check if room belongs to configured space OR is a DM
+                    String spaceIdToCheck = spaceId;
+                    if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
+                        try {
+                            boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceIdToCheck);
+                            if (!belongsToSpace) {
+                                // Room doesn't belong to space - check if it's a DM
+                                // Accept invitation first to check member count (we can't check before joining)
+                                log.info(
+                                        "Room {} does not belong to configured space {}, accepting invitation to check if it's a DM",
+                                        roomId, spaceIdToCheck);
+                                boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
+                                if (joined) {
+                                    // Wait a bit for Matrix to update room state
+                                    try {
+                                        Thread.sleep(500);
+                                    } catch (InterruptedException e) {
+                                        Thread.currentThread().interrupt();
+                                    }
+                                    // Now check if it's a DM (2 members: bot + user)
+                                    boolean isDM = isDirectMessage(roomId);
+                                    if (isDM) {
+                                        log.info("Room {} is a DM (2 members), keeping invitation", roomId);
+                                        shouldAccept = true;
+                                    } else {
+                                        log.info("Room {} is not a DM and doesn't belong to space, will ignore messages from this room", roomId);
+                                        // Don't leave the room, but we'll ignore messages from it
+                                        continue; // Skip processing this room
+                                    }
+                                } else {
+                                    log.warn("Failed to join room {} to check if it's a DM", roomId);
+                                    continue; // Skip this invitation
+                                }
+                            } else {
+                                shouldAccept = true; // Room belongs to space
+                            }
+                        } catch (Exception e) {
+                            // If check fails (e.g., bot not in room yet), try to accept and check if DM
+                            log.debug("Could not verify if room {} belongs to space {}, accepting to check if DM: {}", 
+                                    roomId, spaceIdToCheck, e.getMessage());
+                            boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
+                            if (joined) {
+                                // Wait a bit for Matrix to update room state
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException ie) {
+                                    Thread.currentThread().interrupt();
+                                }
+                                boolean isDM = isDirectMessage(roomId);
+                                if (isDM) {
+                                    log.info("Room {} is a DM (2 members), keeping invitation", roomId);
+                                    shouldAccept = true;
+                                } else {
+                                    log.info("Room {} is not a DM and space check failed, will ignore messages from this room", roomId);
+                                    // Don't leave the room, but we'll ignore messages from it
+                                    continue;
+                                }
+                            } else {
+                                continue; // Skip this invitation
+                            }
+                        }
+                    } else {
+                        shouldAccept = true; // No space configured, accept all
                     }
+                } else {
+                    // Initialization mode: accept all invitations
+                    log.info("Initialization mode: accepting invitation to room {} (will verify space membership later)", roomId);
                 }
 
-                boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
-                if (joined) {
-                    log.info("Bot successfully accepted invitation and joined room: {}", roomId);
-                } else {
-                    log.warn("Bot failed to accept invitation to room: {}", roomId);
+                if (shouldAccept) {
+                    // Only join if we haven't already joined (in the DM check above)
+                    Optional<String> assistantUserIdOpt = matrixAssistantService.getAssistantUserId();
+                    boolean alreadyJoined = false;
+                    if (assistantUserIdOpt.isPresent()) {
+                        Optional<String> membership = matrixAssistantService.getUserRoomMembership(assistantUserIdOpt.get(), roomId);
+                        alreadyJoined = membership.isPresent() && "join".equals(membership.get());
+                    }
+                    
+                    if (!alreadyJoined) {
+                        boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
+                        if (joined) {
+                            log.info("Bot successfully accepted invitation and joined room: {}", roomId);
+                        } else {
+                            log.warn("Bot failed to accept invitation to room: {}", roomId);
+                        }
+                    } else {
+                        log.info("Bot already in room {}, skipping join", roomId);
+                    }
                 }
                 // Don't process timeline events for invited rooms (we're not in the room yet)
                 continue;
@@ -436,7 +519,7 @@ public class MatrixSyncService {
      * Process incoming message and respond if needed
      * Only responds to:
      * - Direct messages (DMs - rooms with exactly 2 members)
-     * - Messages that mention the bot (@alfred:chat.neohoods.com)
+     * - Messages that mention the bot (@alfred-local:chat.neohoods.com)
      */
     @SuppressWarnings("unchecked")
     private void processMessage(String roomId, String sender, String messageBody, Map<String, Object> event) {
@@ -471,24 +554,23 @@ public class MatrixSyncService {
                     normalizedMessage.contains("@bot");
         }
 
+        // Check if it's a direct message (DM) first - DMs don't belong to spaces but should be allowed
+        boolean isDirectMessage = isDirectMessage(roomId);
+
         // Check if the room belongs to the configured space (if space-id is configured)
-        // Check if the room belongs to the configured space
+        // Skip this check for DMs as they don't belong to spaces
         String spaceIdToCheck = spaceId;
 
-        // Verify that the room belongs to the configured space (for all rooms,
-        // including those with 2 members)
-        if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
+        // Verify that the room belongs to the configured space (skip for DMs)
+        if (!isDirectMessage && spaceIdToCheck != null && !spaceIdToCheck.isEmpty()) {
             boolean belongsToSpace = matrixAssistantService.roomBelongsToSpace(roomId, spaceIdToCheck);
             if (!belongsToSpace) {
                 log.info(
-                        "Ignoring message in room {} that does not belong to configured space {} (sender: {}, local assistant: {})",
-                        roomId, spaceIdToCheck, sender, localAssistantEnabled);
+                        "Ignoring message in room {} that does not belong to configured space {} (sender: {}, local assistant: {}, DM: {})",
+                        roomId, spaceIdToCheck, sender, localAssistantEnabled, isDirectMessage);
                 return;
             }
         }
-
-        // Check if it's a direct message (DM) - after verifying space membership
-        boolean isDirectMessage = isDirectMessage(roomId);
 
         // Only respond to:
         // - DMs (direct messages) - always respond in a DM

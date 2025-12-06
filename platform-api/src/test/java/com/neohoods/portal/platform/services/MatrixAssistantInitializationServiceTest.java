@@ -73,7 +73,7 @@ class MatrixAssistantInitializationServiceTest {
     private MatrixAssistantInitializationService initializationService;
 
     private static final String SPACE_ID = "!YenniyNVsUoBCLHtZS:chat.neohoods.com";
-    private static final String BOT_USER_ID = "@alfred:chat.neohoods.com";
+    private static final String BOT_USER_ID = "@alfred-local:chat.neohoods.com";
     private static final String HOMESERVER_URL = "https://matrix.neohoods.com";
 
     @BeforeEach

@@ -81,7 +81,7 @@ class MatrixAssistantServiceTest {
     private static final String HOMESERVER_URL = "https://matrix.neohoods.com";
     private static final String SERVER_NAME = "chat.neohoods.com";
     private static final String SPACE_ID = "!space:chat.neohoods.com";
-    private static final String BOT_USER_ID = "@alfred:chat.neohoods.com";
+    private static final String BOT_USER_ID = "@alfred-local:chat.neohoods.com";
     private static final String ACCESS_TOKEN = "test-access-token";
 
     @BeforeEach

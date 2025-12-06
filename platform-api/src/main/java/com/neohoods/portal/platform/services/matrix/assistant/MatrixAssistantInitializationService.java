@@ -2,6 +2,8 @@ package com.neohoods.portal.platform.services.matrix.assistant;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +18,14 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.yaml.snakeyaml.Yaml;
 
 import com.neohoods.portal.platform.entities.UserEntity;
@@ -42,6 +51,8 @@ public class MatrixAssistantInitializationService {
     private final MatrixOAuth2Service oauth2Service;
     private final UsersRepository usersRepository;
     private final ResourceLoader resourceLoader;
+    private final com.neohoods.portal.platform.services.matrix.space.MatrixSyncService matrixSyncService;
+    private final RestTemplate restTemplate;
 
     @Value("${neohoods.portal.matrix.space-id}")
     private String spaceId;
@@ -63,6 +74,8 @@ public class MatrixAssistantInitializationService {
     @Value("${neohoods.portal.matrix.it-room.avatar-url}")
     private String itRoomAvatarUrl;
 
+    @Value("${neohoods.portal.matrix.local-assistant.permanent-token:}")
+    private String localAssistantPermanentToken;
 
     /**
      * Initialize bot on application startup
@@ -96,6 +109,22 @@ public class MatrixAssistantInitializationService {
         log.info("Starting Matrix bot initialization...");
 
         try {
+            // 0. Accept all pending invitations FIRST (before checking space)
+            // This ensures the bot can join the space if it was invited
+            log.info("Accepting all pending invitations before initialization...");
+            int acceptedInvitations = matrixSyncService.acceptPendingInvitations();
+            if (acceptedInvitations > 0) {
+                log.info("Accepted {} pending invitation(s), waiting 2 seconds for Matrix to process...",
+                        acceptedInvitations);
+                // Wait a bit for Matrix to process the joins before checking space
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.warn("Interrupted while waiting for Matrix to process invitations", e);
+                }
+            }
+
             // 1. Check if space exists
             if (!checkSpace()) {
                 log.error("Space {} does not exist, disabling bot", spaceId);
@@ -565,7 +594,8 @@ public class MatrixAssistantInitializationService {
      * Invite user to appropriate rooms based on user type and primary unit
      * Includes rate limiting delays between invitations
      */
-    private MatrixRoomInvitationResult inviteUserToRooms(UserEntity user, String matrixUserId, List<MatrixRoomConfig> rooms) {
+    private MatrixRoomInvitationResult inviteUserToRooms(UserEntity user, String matrixUserId,
+            List<MatrixRoomConfig> rooms) {
         // Load all rooms once for efficiency
         Map<String, String> allRoomsMap = matrixAssistantService.getExistingRoomsInSpace(spaceId);
         log.info("Loaded {} rooms from space for user {} invitations", allRoomsMap.size(), matrixUserId);
@@ -980,6 +1010,7 @@ public class MatrixAssistantInitializationService {
     /**
      * Extract server name from homeserver URL
      */
+
     private String extractServerName() {
         try {
             if (homeserverUrl == null || homeserverUrl.isEmpty()) {

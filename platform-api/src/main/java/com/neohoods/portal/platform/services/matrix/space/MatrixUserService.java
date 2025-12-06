@@ -140,6 +140,11 @@ public class MatrixUserService {
                     // Get upstream OAuth links (Auth0)
                     try {
                         IncludeCount countForLinks = new IncludeCount("false");
+                        // filterProvider must be a ULID, not a string like "auth0"
+                        // If auth0ProviderId is not a valid ULID (26 chars), pass null
+                        String filterProvider = (auth0ProviderId != null && auth0ProviderId.length() == 26) 
+                                ? auth0ProviderId 
+                                : null;
                         PaginatedResponseForUpstreamOAuthLink linksResponse = upstreamOauthLinkApi
                                 .listUpstreamOAuthLinks(
                                         null, // pageBefore
@@ -148,7 +153,7 @@ public class MatrixUserService {
                                         null, // pageLast
                                         countForLinks, // count - use false to avoid counting total items
                                         masUserId, // filterUser
-                                        auth0ProviderId, // filterProvider
+                                        filterProvider, // filterProvider - must be ULID or null
                                         null // filterSubject
                                 );
 
@@ -441,9 +446,14 @@ public class MatrixUserService {
                     boolean linkExists = false;
                     try {
                         IncludeCount countForLinks = new IncludeCount("false");
+                        // filterProvider must be a ULID, not a string like "auth0"
+                        // If auth0ProviderId is not a valid ULID (26 chars), pass null
+                        String filterProvider = (auth0ProviderId != null && auth0ProviderId.length() == 26) 
+                                ? auth0ProviderId 
+                                : null;
                         PaginatedResponseForUpstreamOAuthLink linksResponse = upstreamOauthLinkApi
                                 .listUpstreamOAuthLinks(null, null, 100, null, countForLinks, masUserId,
-                                        auth0ProviderId,
+                                        filterProvider, // filterProvider - must be ULID or null
                                         auth0Subject);
                         if (linksResponse != null && linksResponse.getData() != null
                                 && !linksResponse.getData().isEmpty()) {

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
+import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.repositories.UsersRepository;
 import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
 import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
@@ -272,6 +273,41 @@ public class MatrixMCPSpaceHandler extends MatrixMCPBaseHandler {
                                         .content(List.of(MatrixMCPModels.MCPContent.builder()
                                                         .type("text")
                                                         .text(result.toString())
+                                                        .build()))
+                                        .build();
+                } catch (CodedErrorException e) {
+                        // Handle specific business logic errors (e.g., Space not found)
+                        log.error("Error checking space availability: {}", e.getMessage(), e);
+                        String errorMessage;
+                        if (e.getMessage() != null && e.getMessage().contains("Space not found")) {
+                                // Use existing translation key for space not found
+                                // Add explicit instruction to not retry - this is a permanent error
+                                String baseMessage = translate("matrix.mcp.space.notFound", locale, spaceIdStr);
+                                if (Locale.FRENCH.getLanguage().equals(locale.getLanguage())) {
+                                        errorMessage = baseMessage + " Cet espace n'existe pas. Ne pas réessayer cet appel.";
+                                } else {
+                                        errorMessage = baseMessage + " This space does not exist. Do not retry this call.";
+                                }
+                        } else {
+                                errorMessage = translate("matrix.mcp.space.availability.checkError", locale,
+                                                e.getMessage());
+                        }
+                        return MatrixMCPModels.MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
+                                                        .type("text")
+                                                        .text(errorMessage)
+                                                        .build()))
+                                        .build();
+                } catch (IllegalArgumentException e) {
+                        // Handle invalid UUID format
+                        log.error("Error checking space availability: {}", e.getMessage(), e);
+                        return MatrixMCPModels.MCPToolResult.builder()
+                                        .isError(true)
+                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
+                                                        .type("text")
+                                                        .text(translate("matrix.mcp.space.availability.checkError",
+                                                                        locale, "Invalid space ID format: " + spaceIdStr))
                                                         .build()))
                                         .build();
                 } catch (Exception e) {

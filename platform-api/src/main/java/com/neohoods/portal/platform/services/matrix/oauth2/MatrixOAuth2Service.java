@@ -893,7 +893,7 @@ public class MatrixOAuth2Service {
                 log.error(
                         "   1. Get a Synapse admin token (from an admin user like @quentincastel86:chat.neohoods.com)");
                 log.error("   2. POST https://matrix.neohoods.com/_synapse/admin/v1/users/{}/login",
-                        localAssistantUserId != null ? localAssistantUserId : "@alfred:chat.neohoods.com");
+                        localAssistantUserId != null ? localAssistantUserId : "@alfred-local:chat.neohoods.com");
                 log.error(
                         "   3. Configure the returned token in MATRIX_LOCAL_BOT_PERMANENT_TOKEN or MATRIX_ACCESS_TOKEN");
             }

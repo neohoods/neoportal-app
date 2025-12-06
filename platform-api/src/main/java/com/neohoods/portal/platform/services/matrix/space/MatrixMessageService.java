@@ -322,7 +322,7 @@ public class MatrixMessageService {
                     log.error(
                             "💡 SOLUTION: Create a permanent token via Synapse Admin API and configure it in MATRIX_LOCAL_BOT_PERMANENT_TOKEN");
                     log.error(
-                            "   Example: Use setup-bot-permanent-token.sh or create token via: POST /_synapse/admin/v1/users/@alfred:chat.neohoods.com/login");
+                            "   Example: Use setup-bot-permanent-token.sh or create token via: POST /_synapse/admin/v1/users/@alfred-local:chat.neohoods.com/login");
                 }
                 throw e;
             }

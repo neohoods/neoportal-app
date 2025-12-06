@@ -328,7 +328,7 @@ public class MatrixAssistantService {
     /**
      * Extract localpart from Matrix user ID for use in Synapse Admin API.
      * Synapse Admin API expects just the localpart (username) without @ and domain.
-     * For example: @alfred:chat.neohoods.com -> bot
+     * For example: @alfred-local:chat.neohoods.com -> bot
      * 
      * @param matrixUserId The Matrix user ID (e.g., @user:server.com)
      * @return The localpart (username) without @ and domain
@@ -351,7 +351,7 @@ public class MatrixAssistantService {
      * Encode Matrix user ID for use in URL path segments for Matrix Client-Server
      * API.
      * Matrix Client-Server API expects the full user ID encoded in path segments.
-     * For example: @alfred:chat.neohoods.com -> %40bot%3Achat.neohoods.com
+     * For example: @alfred-local:chat.neohoods.com -> %40bot%3Achat.neohoods.com
      * 
      * NOTE: This method is deprecated. Use UriComponentsBuilder instead for
      * constructing URLs with path segments, as it handles encoding automatically.

@@ -56,8 +56,8 @@ import com.neohoods.portal.platform.spaces.services.TTlockRemoteAPIService;
         "neohoods.portal.matrix.initialization.user-creation-enabled=true",
         "neohoods.portal.matrix.disabled=false",
         "neohoods.portal.matrix.local-assistant.enabled=true",
-        "neohoods.portal.matrix.local-assistant.user-id=@alfred:chat.neohoods.com",
-        "neohoods.portal.matrix.local-assistant.permanent-token=mpt_8gvbvWAQltW0kESWrb9v7u9lSiM9NN_Lnlsa4",
+        "neohoods.portal.matrix.local-assistant.user-id=@alfred-local:chat.neohoods.com",
+        "neohoods.portal.matrix.local-assistant.permanent-token=mpt_ewWc212wayrG9AXQTeUQmMV58N5sjv_wrmEE3",
         "neohoods.portal.matrix.oauth2.client-id=01KAKRXM4EXRFD2W9HQEYFV7CA",
         "neohoods.portal.matrix.oauth2.client-secret=c13n753c237",
         "neohoods.portal.matrix.oauth2.token-endpoint=https://mas.chat.neohoods.com/oauth2/token",
@@ -67,7 +67,7 @@ import com.neohoods.portal.platform.spaces.services.TTlockRemoteAPIService;
         "spring.datasource.username=local",
         "spring.datasource.password=local"
 })
-@org.junit.jupiter.api.Disabled("Requires Matrix server - run manually with: mvn test -Dtest=MatrixAssistantInitializationIntegrationTest")
+// @org.junit.jupiter.api.Disabled("Requires Matrix server - run manually with: mvn test -Dtest=MatrixAssistantInitializationIntegrationTest")
 class MatrixAssistantInitializationIntegrationTest {
 
     @MockBean

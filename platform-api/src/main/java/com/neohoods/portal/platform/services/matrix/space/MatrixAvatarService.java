@@ -339,10 +339,14 @@ public class MatrixAvatarService {
                     Boolean identical = mediaService.imagesAreIdentical(botAvatarUrl, currentAvatarUrl);
                     if (identical == null) {
                         // Comparison failed - could be due to network issues, cache, or image change
-                        // Force update to ensure avatar is up to date (URL might point to new image)
+                        // Don't update if comparison fails to avoid unnecessary updates
+                        // Only update if force=true (explicit request)
                         log.warn(
-                                "Could not compare bot avatar images (comparison failed), will update to ensure avatar is current");
-                        // Continue to update (don't return)
+                                "Could not compare bot avatar images (comparison failed), skipping update to avoid unnecessary changes. Use force=true to override.");
+                        if (!force) {
+                            return true; // Skip update to avoid unnecessary changes
+                        }
+                        log.info("Force update requested, proceeding despite comparison failure");
                     } else if (identical) {
                         log.info("Bot avatar image is identical to current, skipping update");
                         return true; // Already set correctly
@@ -362,6 +366,15 @@ public class MatrixAvatarService {
                     return false;
                 }
                 log.info("Avatar image uploaded to Matrix: {}", mxcUrl);
+            }
+
+            // Final check: if we have a current MXC URL and the new MXC URL is the same, skip update
+            // This prevents unnecessary updates when images are identical but comparison failed
+            if (!force && currentAvatarUrl != null && !currentAvatarUrl.isEmpty() && 
+                currentAvatarUrl.startsWith("mxc://") && mxcUrl.startsWith("mxc://") &&
+                currentAvatarUrl.equals(mxcUrl)) {
+                log.info("Bot avatar MXC URL is already set to {}, skipping update (images are identical)", mxcUrl);
+                return true; // Already set correctly
             }
 
             if (currentAvatarUrl == null || currentAvatarUrl.isEmpty()) {
@@ -557,20 +570,35 @@ public class MatrixAvatarService {
                         return true; // Already set correctly
                     }
                 } else if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-                    // Compare images by hash to avoid unnecessary uploads
-                    log.info("Comparing room avatar images (source: {}, current: {})...", imageUrl, currentRoomAvatar);
-                    Boolean identical = mediaService.imagesAreIdentical(imageUrl, currentRoomAvatar);
-                    if (identical == null) {
-                        // Comparison failed - could be due to network issues, cache, or image change
-                        // Force update to ensure avatar is up to date (URL might point to new image)
-                        log.warn(
-                                "Could not compare room avatar images (comparison failed), will update to ensure avatar is current");
-                        // Continue to update (don't return)
-                    } else if (identical) {
-                        log.info("Room avatar image is identical to current, skipping update");
-                        return true; // Already set correctly
+                    // Check if current avatar is also an HTTP/HTTPS URL (not a valid MXC URL)
+                    if (currentRoomAvatar.startsWith("http://") || currentRoomAvatar.startsWith("https://")) {
+                        // Both are HTTP/HTTPS URLs - always upload and update to convert to MXC URL
+                        // This ensures avatars are stored as MXC URLs in Matrix, not HTTPS URLs
+                        if (currentRoomAvatar.equals(imageUrl)) {
+                            log.info("Room avatar URL is already set to {}, but will update to convert to MXC URL", imageUrl);
+                        } else {
+                            log.info("Room avatar URL differs (current: {}, new: {}), will update", currentRoomAvatar, imageUrl);
+                        }
+                        // Continue to upload and update
+                    } else if (currentRoomAvatar.startsWith("mxc://")) {
+                        // Current is MXC, new is HTTP/HTTPS - compare images by hash
+                        log.info("Comparing room avatar images (source: {}, current: {})...", imageUrl, currentRoomAvatar);
+                        Boolean identical = mediaService.imagesAreIdentical(imageUrl, currentRoomAvatar);
+                        if (identical == null) {
+                            // Comparison failed - could be due to network issues, cache, or image change
+                            // Don't update if comparison fails to avoid unnecessary updates
+                            log.warn(
+                                    "Could not compare room avatar images (comparison failed), skipping update to avoid unnecessary changes");
+                            return true; // Skip update to avoid unnecessary changes
+                        } else if (identical) {
+                            log.info("Room avatar image is identical to current, skipping update");
+                            return true; // Already set correctly
+                        } else {
+                            log.info("Room avatar image differs from current (hash mismatch), will update");
+                        }
                     } else {
-                        log.info("Room avatar image differs from current (hash mismatch), will update");
+                        // Current avatar is in unknown format, force update
+                        log.info("Current room avatar is in unknown format ({}), will update", currentRoomAvatar);
                     }
                 }
             }
@@ -585,6 +613,15 @@ public class MatrixAvatarService {
                     return false;
                 }
                 log.info("Room avatar image uploaded to Matrix: {}", mxcUrl);
+            }
+
+            // Final check: if we have a current MXC URL and the new MXC URL is the same, skip update
+            // This prevents unnecessary updates when images are identical but comparison failed
+            if (currentRoomAvatar != null && !currentRoomAvatar.isEmpty() && 
+                currentRoomAvatar.startsWith("mxc://") && mxcUrl.startsWith("mxc://") &&
+                currentRoomAvatar.equals(mxcUrl)) {
+                log.info("Room avatar MXC URL is already set to {}, skipping update (images are identical)", mxcUrl);
+                return true; // Already set correctly
             }
 
             if (currentRoomAvatar == null || currentRoomAvatar.isEmpty()) {

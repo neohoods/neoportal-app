@@ -54,7 +54,7 @@ class MatrixAvatarServiceTest {
     private MatrixAvatarService matrixAvatarService;
 
     private static final String HOMESERVER_URL = "https://matrix.neohoods.com";
-    private static final String BOT_USER_ID = "@alfred:chat.neohoods.com";
+    private static final String BOT_USER_ID = "@alfred-local:chat.neohoods.com";
     private static final String ROOM_ID = "!room:chat.neohoods.com";
     private static final String ACCESS_TOKEN = "test-access-token";
     private static final String PERMANENT_TOKEN = "test-permanent-token";

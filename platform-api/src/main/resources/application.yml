@@ -84,7 +84,8 @@ neohoods:
       disabled: ${MATRIX_BOT_DISABLED:false}
       homeserver-url: ${MATRIX_HOMESERVER_URL:matrix.neohoods.com}
       server-name: ${MATRIX_SERVER_NAME:chat.neohoods.com}
-      space-id: ${MATRIX_SPACE_ID:!oQtazfkIAFxaQJKvbP:chat.neohoods.com}
+      space-id: ${MATRIX_SPACE_ID:!EQIfDGJJKhtihrXFxF:chat.neohoods.com}
+      local-assistant-user-id: ${MATRIX_LOCAL_ASSISTANT_USER_ID:@alfred-local:chat.neohoods.com}
       initialization:
         enabled: ${MATRIX_INITIALIZATION_ENABLED:true}
         rooms-config-file: ${MATRIX_ROOMS_CONFIG_FILE:classpath:matrix-default-rooms.yaml}
@@ -102,10 +103,10 @@ neohoods:
         device-authorization-endpoint: ${MATRIX_OAUTH2_DEVICE_AUTHORIZATION_ENDPOINT:https://mas.chat.neohoods.com/oauth2/device}
       local-assistant:
         enabled: ${MATRIX_LOCAL_ASSISTANT_ENABLED:true}
-        user-id: ${MATRIX_LOCAL_ASSISTANT_USER_ID:@alfred:chat.neohoods.com}
+        user-id: ${MATRIX_LOCAL_ASSISTANT_USER_ID:@alfred-local:chat.neohoods.com}
         permanent-token: ${MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN:}
         avatar-url: ${MATRIX_LOCAL_ASSISTANT_AVATAR_URL:https://neohoods.com/assets/chat/alfred-avatar.png}
-        display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred [Assistant AI]}
+        display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred [Assistant AI] - Local}
       it-room:
         avatar-url: ${MATRIX_IT_ROOM_AVATAR_URL:https://neohoods.com/assets/chat/it.png}
       assistant:
