@@ -69,6 +69,12 @@ class MatrixAssistantInitializationServiceTest {
     @Mock
     private Resource resource;
 
+    @Mock
+    private com.neohoods.portal.platform.services.matrix.space.MatrixSyncService matrixSyncService;
+
+    @Mock
+    private org.springframework.web.client.RestTemplate restTemplate;
+
     @InjectMocks
     private MatrixAssistantInitializationService initializationService;
 
@@ -84,6 +90,9 @@ class MatrixAssistantInitializationServiceTest {
         ReflectionTestUtils.setField(initializationService, "disabled", false);
         ReflectionTestUtils.setField(initializationService, "homeserverUrl", HOMESERVER_URL);
         ReflectionTestUtils.setField(initializationService, "adminUsersConfig", "");
+        
+        // Mock matrixSyncService.acceptPendingInvitations() to return 0 (no pending invitations)
+        when(matrixSyncService.acceptPendingInvitations()).thenReturn(0);
     }
 
     @Test
@@ -122,6 +131,7 @@ class MatrixAssistantInitializationServiceTest {
         initializationService.initializeBotManually();
 
         // Then
+        verify(matrixSyncService).acceptPendingInvitations();
         verify(matrixAssistantService).checkSpaceExists(SPACE_ID);
     }
 
@@ -140,6 +150,7 @@ class MatrixAssistantInitializationServiceTest {
         initializationService.initializeBotManually();
 
         // Then
+        verify(matrixSyncService).acceptPendingInvitations();
         verify(matrixAssistantService).checkSpaceExists(SPACE_ID);
         verify(matrixAssistantService, times(2)).getExistingRoomsInSpace(SPACE_ID); // Called in doInitializeBot and countPendingInvitations
         // getAssistantUserId() is no longer called in the initialization flow

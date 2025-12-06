@@ -63,6 +63,29 @@ public class MatrixMCPReservationHandler extends MatrixMCPBaseHandler {
                 String endDateStr = (String) arguments.get("endDate");
 
                 try {
+                        // Validate UUID format first
+                        if (spaceIdStr == null || spaceIdStr.isEmpty()) {
+                                return MatrixMCPModels.MCPToolResult.builder()
+                                                .isError(true)
+                                                .content(List.of(MatrixMCPModels.MCPContent.builder()
+                                                                .type("text")
+                                                                .text(translate("matrix.mcp.reservation.spaceIdRequired", locale))
+                                                                .build()))
+                                                .build();
+                        }
+                        
+                        // Check if it's a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+                        if (!spaceIdStr.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
+                                log.warn("Error creating reservation: Invalid UUID format '{}' (expected format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)", spaceIdStr);
+                                return MatrixMCPModels.MCPToolResult.builder()
+                                                .isError(true)
+                                                .content(List.of(MatrixMCPModels.MCPContent.builder()
+                                                                .type("text")
+                                                                .text(translate("matrix.mcp.reservation.invalidUuidFormat", locale, spaceIdStr) + ". " + translate("matrix.mcp.error.doNotRetry", locale) + " " + translate("matrix.mcp.reservation.useListSpaces", locale))
+                                                                .build()))
+                                                .build();
+                        }
+                        
                         UUID spaceId = UUID.fromString(spaceIdStr);
                         LocalDate startDate = LocalDate.parse(startDateStr);
                         LocalDate endDate = LocalDate.parse(endDateStr);

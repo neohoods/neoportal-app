@@ -102,6 +102,16 @@ class MatrixAssistantInitializationIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // Skip tests if Matrix tokens are not set (e.g., in CI without tokens)
+        String permanentToken = System.getenv("MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN");
+        String oauth2ClientSecret = System.getenv("MATRIX_OAUTH2_CLIENT_SECRET");
+        
+        if (permanentToken == null || permanentToken.isEmpty() || 
+            oauth2ClientSecret == null || oauth2ClientSecret.isEmpty()) {
+            org.junit.jupiter.api.Assumptions.assumeTrue(false,
+                    "MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN and MATRIX_OAUTH2_CLIENT_SECRET not set - skipping integration test");
+        }
+        
         // Skip if services are not available (Matrix not configured)
         org.junit.jupiter.api.Assumptions.assumeTrue(initializationService != null,
                 "MatrixAssistantInitializationService not available - Matrix may not be configured");

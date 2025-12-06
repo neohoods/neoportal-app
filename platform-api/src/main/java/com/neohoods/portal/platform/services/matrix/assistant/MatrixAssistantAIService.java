@@ -2,9 +2,11 @@ package com.neohoods.portal.platform.services.matrix.assistant;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -622,10 +624,24 @@ public class MatrixAssistantAIService {
                 messages.add(toolMsg);
             }
         } else {
-            // For iteration > 0, assistantMessage is already in previousMessages (added in updatedMessages),
-            // BUT we need to add the tool results immediately after it
+            // For iteration > 0, assistantMessage might already be in previousMessages (if added in updatedMessages),
+            // OR it might not be (if this is the first time we're processing it)
+            // Check if assistantMessage is already in messages
+            boolean assistantMessageAlreadyInMessages = false;
+            for (Map<String, Object> msg : messages) {
+                if (msg == assistantMessage || (msg.equals(assistantMessage) && "assistant".equals(msg.get("role")))) {
+                    assistantMessageAlreadyInMessages = true;
+                    break;
+                }
+            }
+            
+            if (!assistantMessageAlreadyInMessages) {
+                // Assistant message not in messages yet, add it first
+                messages.add(assistantMessage);
+            }
+            
             // Find the last assistant message with tool_calls in messages (which includes previousMessages)
-            // and add tool results after it
+            // and check if tool results are already present
             int lastAssistantWithToolCallsIndex = -1;
             for (int i = messages.size() - 1; i >= 0; i--) {
                 Map<String, Object> msg = messages.get(i);
@@ -640,16 +656,44 @@ public class MatrixAssistantAIService {
             }
             
             if (lastAssistantWithToolCallsIndex >= 0) {
-                // Insert tool results immediately after the last assistant message with tool_calls
-                // Calculate the insertion index (after the assistant message)
-                int insertIndex = lastAssistantWithToolCallsIndex + 1;
-                for (int i = 0; i < toolResults.size(); i++) {
-                    Map<String, Object> toolResult = toolResults.get(i);
-                    Map<String, Object> toolMsg = new HashMap<>();
-                    toolMsg.put("role", "tool");
-                    toolMsg.put("tool_call_id", toolResult.get("tool_call_id"));
-                    toolMsg.put("content", toolResult.get("result"));
-                    messages.add(insertIndex + i, toolMsg);
+                // Check if tool results are already present immediately after this assistant message
+                Map<String, Object> lastAssistantMsg = messages.get(lastAssistantWithToolCallsIndex);
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> tc = (List<Map<String, Object>>) lastAssistantMsg.get("tool_calls");
+                int expectedToolResults = tc != null ? tc.size() : 0;
+                
+                // Count tool results immediately after this assistant message
+                int toolResultsFound = 0;
+                Set<String> foundToolCallIds = new HashSet<>();
+                for (int j = lastAssistantWithToolCallsIndex + 1; j < messages.size() && toolResultsFound < expectedToolResults; j++) {
+                    Map<String, Object> nextMsg = messages.get(j);
+                    String nextRole = (String) nextMsg.get("role");
+                    if ("tool".equals(nextRole)) {
+                        String toolCallId = (String) nextMsg.get("tool_call_id");
+                        foundToolCallIds.add(toolCallId);
+                        toolResultsFound++;
+                    } else if ("assistant".equals(nextRole) || "user".equals(nextRole) || "system".equals(nextRole)) {
+                        // Hit another non-tool message before all tool results were found
+                        break;
+                    }
+                }
+                
+                // Check if we need to add tool results
+                boolean needToAddToolResults = toolResultsFound < expectedToolResults;
+                if (needToAddToolResults) {
+                    // Insert missing tool results immediately after the last assistant message with tool_calls
+                    int insertIndex = lastAssistantWithToolCallsIndex + 1 + toolResultsFound;
+                    for (Map<String, Object> toolResult : toolResults) {
+                        String toolCallId = (String) toolResult.get("tool_call_id");
+                        if (!foundToolCallIds.contains(toolCallId)) {
+                            Map<String, Object> toolMsg = new HashMap<>();
+                            toolMsg.put("role", "tool");
+                            toolMsg.put("tool_call_id", toolCallId);
+                            toolMsg.put("content", toolResult.get("result"));
+                            messages.add(insertIndex, toolMsg);
+                            insertIndex++;
+                        }
+                    }
                 }
             } else {
                 // Fallback: add tool results at the end
@@ -676,73 +720,115 @@ public class MatrixAssistantAIService {
 
         // Debug: Log message structure to verify tool_calls and tool results match
         int toolCallsCount = expectedToolResponses;
-        log.info("📤 Calling Mistral with tool result (iteration {}): {} messages, {} tools, {} tool_calls in assistant message, {} tool results", 
-                iteration, messages.size(), tools != null ? tools.size() : 0, toolCallsCount, toolResults.size());
         
-        // CRITICAL: Verify message structure - each assistant message with tool_calls must be followed by tool results
-        // Mistral API requires that each assistant message with tool_calls is immediately followed by its tool results
-        // We verify this by checking the structure sequentially, but we need to be careful:
-        // - For iteration > 0, previousMessages already contains assistant messages with their tool results
-        // - We only need to verify the NEW assistant message (the one we're adding tool results for)
-        // So we only check the last assistant message with tool_calls, not all of them
-        int lastAssistantWithToolCallsIndex = -1;
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            Map<String, Object> msg = messages.get(i);
+        // Count total tool_calls and tool results in the entire message history
+        int totalToolCalls = 0;
+        int totalToolResults = 0;
+        for (Map<String, Object> msg : messages) {
             String role = (String) msg.get("role");
             if ("assistant".equals(role)) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> tc = (List<Map<String, Object>>) msg.get("tool_calls");
-                if (tc != null && !tc.isEmpty()) {
-                    lastAssistantWithToolCallsIndex = i;
-                    break;
+                if (tc != null) {
+                    totalToolCalls += tc.size();
                 }
+            } else if ("tool".equals(role)) {
+                totalToolResults++;
             }
         }
         
-        if (lastAssistantWithToolCallsIndex >= 0) {
-            // Check that the last assistant message with tool_calls has its tool results immediately after
-            Map<String, Object> lastAssistantMsg = messages.get(lastAssistantWithToolCallsIndex);
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> tc = (List<Map<String, Object>>) lastAssistantMsg.get("tool_calls");
-            int expectedToolResults = tc != null ? tc.size() : 0;
-            
-            // Count tool results immediately after this assistant message
-            int toolResultsFound = 0;
-            for (int j = lastAssistantWithToolCallsIndex + 1; j < messages.size() && toolResultsFound < expectedToolResults; j++) {
-                Map<String, Object> nextMsg = messages.get(j);
-                String nextRole = (String) nextMsg.get("role");
-                if ("tool".equals(nextRole)) {
-                    toolResultsFound++;
-                } else if ("assistant".equals(nextRole) || "user".equals(nextRole) || "system".equals(nextRole)) {
-                    // Hit another non-tool message before all tool results were found
-                    break;
+        log.info("📤 Calling Mistral with tool result (iteration {}): {} messages, {} tools, {} tool_calls in assistant message, {} tool results. Total in history: {} tool_calls, {} tool results", 
+                iteration, messages.size(), tools != null ? tools.size() : 0, toolCallsCount, toolResults.size(), totalToolCalls, totalToolResults);
+        
+        // CRITICAL: Mistral API requires that the total number of tool_calls equals the total number of tool results
+        // This is a global check across all messages, not just the current iteration
+        if (totalToolCalls != totalToolResults) {
+            log.error("⚠️ CRITICAL: Total tool_calls ({}) != total tool results ({}) in message history! [iteration={}]", 
+                    totalToolCalls, totalToolResults, iteration);
+            // Log all assistant and tool messages for debugging
+            for (int i = 0; i < messages.size(); i++) {
+                Map<String, Object> msg = messages.get(i);
+                String role = (String) msg.get("role");
+                if ("assistant".equals(role)) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> tc = (List<Map<String, Object>>) msg.get("tool_calls");
+                    log.error("  Message {}: role=assistant, tool_calls={}", i, tc != null ? tc.size() : 0);
+                } else if ("tool".equals(role)) {
+                    log.error("  Message {}: role=tool, tool_call_id={}", i, msg.get("tool_call_id"));
                 }
             }
-            
-            if (toolResultsFound < expectedToolResults) {
-                log.error("⚠️ CRITICAL: Last assistant message at index {} has {} tool_calls but only {} tool results found immediately after! [iteration={}]", 
-                        lastAssistantWithToolCallsIndex, expectedToolResults, toolResultsFound, iteration);
-                // Log the messages around this issue
-                int start = Math.max(0, lastAssistantWithToolCallsIndex - 2);
-                int end = Math.min(messages.size(), lastAssistantWithToolCallsIndex + expectedToolResults + 3);
-                for (int k = start; k < end; k++) {
-                    Map<String, Object> debugMsg = messages.get(k);
-                    String debugRole = (String) debugMsg.get("role");
-                    if ("assistant".equals(debugRole)) {
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> debugTc = (List<Map<String, Object>>) debugMsg.get("tool_calls");
-                        log.error("  Message {}: role={}, tool_calls={}", k, debugRole, debugTc != null ? debugTc.size() : 0);
-                    } else if ("tool".equals(debugRole)) {
-                        log.error("  Message {}: role={}, tool_call_id={}", k, debugRole, debugMsg.get("tool_call_id"));
-                    } else {
-                        log.error("  Message {}: role={}", k, debugRole);
+            return Mono.error(new RuntimeException(
+                    String.format("Total tool_calls (%d) != total tool results (%d) in message history at iteration %d", 
+                            totalToolCalls, totalToolResults, iteration)));
+        }
+        
+        // CRITICAL: Verify message structure - each assistant message with tool_calls must be followed by tool results
+        // Mistral API requires that each assistant message with tool_calls is immediately followed by its tool results
+        // For iteration > 0, we only need to verify the NEW assistant message (the one we're adding tool results for)
+        // Previous assistant messages already have their tool results in previousMessages
+        // So we only check the last assistant message with tool_calls AFTER we've added the tool results
+        if (iteration > 0) {
+            // For iteration > 0, we've already added the tool results, so we can verify the structure
+            int lastAssistantWithToolCallsIndex = -1;
+            for (int i = messages.size() - 1; i >= 0; i--) {
+                Map<String, Object> msg = messages.get(i);
+                String role = (String) msg.get("role");
+                if ("assistant".equals(role)) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> tc = (List<Map<String, Object>>) msg.get("tool_calls");
+                    if (tc != null && !tc.isEmpty()) {
+                        lastAssistantWithToolCallsIndex = i;
+                        break;
                     }
                 }
-                return Mono.error(new RuntimeException(
-                        String.format("Last assistant message at index %d has %d tool_calls but only %d tool results found immediately after at iteration %d", 
-                                lastAssistantWithToolCallsIndex, expectedToolResults, toolResultsFound, iteration)));
+            }
+            
+            if (lastAssistantWithToolCallsIndex >= 0) {
+                // Check that the last assistant message with tool_calls has its tool results immediately after
+                Map<String, Object> lastAssistantMsg = messages.get(lastAssistantWithToolCallsIndex);
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> tc = (List<Map<String, Object>>) lastAssistantMsg.get("tool_calls");
+                int expectedToolResults = tc != null ? tc.size() : 0;
+                
+                // Count tool results immediately after this assistant message
+                int toolResultsFound = 0;
+                for (int j = lastAssistantWithToolCallsIndex + 1; j < messages.size() && toolResultsFound < expectedToolResults; j++) {
+                    Map<String, Object> nextMsg = messages.get(j);
+                    String nextRole = (String) nextMsg.get("role");
+                    if ("tool".equals(nextRole)) {
+                        toolResultsFound++;
+                    } else if ("assistant".equals(nextRole) || "user".equals(nextRole) || "system".equals(nextRole)) {
+                        // Hit another non-tool message before all tool results were found
+                        break;
+                    }
+                }
+                
+                if (toolResultsFound < expectedToolResults) {
+                    log.error("⚠️ CRITICAL: Last assistant message at index {} has {} tool_calls but only {} tool results found immediately after! [iteration={}]", 
+                            lastAssistantWithToolCallsIndex, expectedToolResults, toolResultsFound, iteration);
+                    // Log the messages around this issue
+                    int start = Math.max(0, lastAssistantWithToolCallsIndex - 2);
+                    int end = Math.min(messages.size(), lastAssistantWithToolCallsIndex + expectedToolResults + 3);
+                    for (int k = start; k < end; k++) {
+                        Map<String, Object> debugMsg = messages.get(k);
+                        String debugRole = (String) debugMsg.get("role");
+                        if ("assistant".equals(debugRole)) {
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> debugTc = (List<Map<String, Object>>) debugMsg.get("tool_calls");
+                            log.error("  Message {}: role={}, tool_calls={}", k, debugRole, debugTc != null ? debugTc.size() : 0);
+                        } else if ("tool".equals(debugRole)) {
+                            log.error("  Message {}: role={}, tool_call_id={}", k, debugRole, debugMsg.get("tool_call_id"));
+                        } else {
+                            log.error("  Message {}: role={}", k, debugRole);
+                        }
+                    }
+                    return Mono.error(new RuntimeException(
+                            String.format("Last assistant message at index %d has %d tool_calls but only %d tool results found immediately after at iteration %d", 
+                                    lastAssistantWithToolCallsIndex, expectedToolResults, toolResultsFound, iteration)));
+                }
             }
         }
+        // For iteration 0, the structure is already correct (assistant message + tool results added sequentially)
         
         // Log the last few messages to verify structure
         int lastMessagesToLog = Math.min(5, messages.size());
@@ -832,15 +918,30 @@ public class MatrixAssistantAIService {
                             
                             // Build updated messages: previousMessages already contains all previous messages
                             // including the assistant message and tool results from the previous iteration
+                            // CRITICAL: We need to ensure that the messages list we pass to the recursive call
+                            // contains the assistant message with tool_calls AND its tool results in the correct order
+                            // The recursive call expects previousMessages to contain all messages up to (but not including)
+                            // the new assistant message with tool_calls
                             List<Map<String, Object>> updatedMessages = new ArrayList<>(previousMessages);
                             
                             // Add the new assistant message with tool_calls (this is the response from Mistral
                             // asking for another tool call)
                             updatedMessages.add(message);
                             
+                            // CRITICAL: Add tool results immediately after the assistant message
+                            // This ensures that when we pass updatedMessages to the recursive call, it already
+                            // contains the assistant message with tool_calls AND its tool results
+                            for (Map<String, Object> toolResult : newToolResults) {
+                                Map<String, Object> toolMsg = new HashMap<>();
+                                toolMsg.put("role", "tool");
+                                toolMsg.put("tool_call_id", toolResult.get("tool_call_id"));
+                                toolMsg.put("content", toolResult.get("result"));
+                                updatedMessages.add(toolMsg);
+                            }
+                            
                             // Recursively call with ALL new tool results
-                            // Note: updatedMessages now contains: system + user + previous assistant + previous tool results + new assistant message
-                            // The recursive call will add the new tool results
+                            // Note: updatedMessages now contains: system + user + previous assistant + previous tool results + new assistant message + new tool results
+                            // The recursive call will handle the next iteration if Mistral wants to make another tool call
                             return callMistralWithToolResultsRecursive(updatedMessages, message, newToolResults,
                                     authContext, ragContext, tools, iteration + 1);
                         }

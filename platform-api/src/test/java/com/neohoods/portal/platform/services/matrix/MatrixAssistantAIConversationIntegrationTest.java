@@ -884,7 +884,7 @@ public class MatrixAssistantAIConversationIntegrationTest extends BaseIntegratio
                                                         .filter(r -> r.getStartDate().equals(tomorrow))
                                                         .collect(Collectors.toList());
                                         
-                                        assertFalse(reservations.isEmpty(), 
+                                        assertTrue(!reservations.isEmpty(), 
                                                 "At least one common room reservation should have been created for tomorrow");
                                 })
                                 .verifyComplete();

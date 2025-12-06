@@ -39,13 +39,40 @@ jobs:
           key: ${{ runner.os }}-m2-${{ needs.prepare.outputs.app-version }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Check integration test tokens
+        id: check-tokens
+        env:
+          MISTRAL_AI_TOKEN: ${{ secrets.MISTRAL_AI_TOKEN }}
+          MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN: ${{ secrets.MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN }}
+          MATRIX_OAUTH2_CLIENT_SECRET: ${{ secrets.MATRIX_OAUTH2_CLIENT_SECRET }}
+        run: |
+          if [ -n "$MISTRAL_AI_TOKEN" ] && [ -n "$MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN" ] && [ -n "$MATRIX_OAUTH2_CLIENT_SECRET" ]; then
+            echo "skip-its=false" >> $GITHUB_OUTPUT
+          else
+            echo "skip-its=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set Maven args
+        id: maven-args
+        run: |
+          if [ "${{ steps.check-tokens.outputs.skip-its }}" == "true" ]; then
+            echo "args=clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip -DskipITs" >> $GITHUB_OUTPUT
+          else
+            echo "args=clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and Test
         uses: qcastel/github-actions-maven-cmd@master
         env:
           # Use local PostgreSQL (started by the action) instead of Testcontainers
           USE_LOCAL_POSTGRES: true
+          # Only run integration tests if tokens are available
+          MISTRAL_AI_TOKEN: ${{ secrets.MISTRAL_AI_TOKEN }}
+          MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN: ${{ secrets.MATRIX_LOCAL_ASSISTANT_PERMANENT_TOKEN }}
+          MATRIX_OAUTH2_CLIENT_SECRET: ${{ secrets.MATRIX_OAUTH2_CLIENT_SECRET }}
         with:
-          maven-args: "clean verify -Ddockerfile.skip -DdockerCompose.skip -Djib.skip -DskipITs"
+          # Skip integration tests if tokens are not available
+          maven-args: ${{ steps.maven-args.outputs.args }}
 
       - name: Release
         uses: qcastel/github-actions-maven-release@master
