@@ -324,13 +324,32 @@ public class MatrixMCPSpaceHandler extends MatrixMCPBaseHandler {
         }
 
         private LocalDate parseDateOrPeriod(String dateOrPeriod) {
+                if (dateOrPeriod == null || dateOrPeriod.trim().isEmpty()) {
+                        return null;
+                }
+                
                 // Try to parse as ISO date first
                 try {
                         return LocalDate.parse(dateOrPeriod);
                 } catch (Exception e) {
                         // Try to parse period names
-                        String lower = dateOrPeriod.toLowerCase();
+                        String lower = dateOrPeriod.toLowerCase().trim();
                         LocalDate now = LocalDate.now();
+
+                        // Handle "tomorrow" and "demain"
+                        if (lower.equals("tomorrow") || lower.equals("demain")) {
+                                return now.plusDays(1);
+                        }
+                        
+                        // Handle "today" and "aujourd'hui"
+                        if (lower.equals("today") || lower.equals("aujourd'hui") || lower.equals("aujourd hui")) {
+                                return now;
+                        }
+                        
+                        // Handle "yesterday" and "hier"
+                        if (lower.equals("yesterday") || lower.equals("hier")) {
+                                return now.minusDays(1);
+                        }
 
                         if (lower.contains("noel") || lower.contains("christmas")) {
                                 // Christmas is December 24-25

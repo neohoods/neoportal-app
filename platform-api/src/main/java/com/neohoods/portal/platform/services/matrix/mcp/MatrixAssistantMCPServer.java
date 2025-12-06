@@ -196,24 +196,7 @@ public class MatrixAssistantMCPServer {
 
                                         // Check if tool requires DM (for sensitive data)
                                         if (requiresDM(toolName)) {
-                                                // Get user entity - required for DM tools
-                                                try {
-                                                        userEntity = getUser(authContext.getMatrixUserId());
-                                                        locale = getLocale(userEntity);
-                                                } catch (IllegalStateException | IllegalArgumentException e) {
-                                                        // User not found - return error with translation
-                                                        return MatrixMCPModels.MCPToolResult.builder()
-                                                                        .isError(true)
-                                                                        .content(List.of(MatrixMCPModels.MCPContent
-                                                                                        .builder()
-                                                                                        .type("text")
-                                                                                        .text(translate("matrix.mcp.error.requiresDM",
-                                                                                                        locale))
-                                                                                        .build()))
-                                                                        .build();
-                                                }
-
-                                                // Check if conversation is public (DM required)
+                                                // Check if conversation is public (DM required) - check FIRST before trying to get user
                                                 if (authContext.isConversationPublic()) {
                                                         return MatrixMCPModels.MCPToolResult.builder()
                                                                         .isError(true)
@@ -224,6 +207,29 @@ public class MatrixAssistantMCPServer {
                                                                                                         locale))
                                                                                         .build()))
                                                                         .build();
+                                                }
+                                                
+                                                // Get user entity - required for DM tools
+                                                // Use authContext.getUserEntity() if available (from test context), otherwise try getUser()
+                                                if (authContext.getUserEntity().isPresent()) {
+                                                        userEntity = authContext.getUserEntity().get();
+                                                        locale = getLocale(userEntity);
+                                                } else {
+                                                        try {
+                                                                userEntity = getUser(authContext.getMatrixUserId());
+                                                                locale = getLocale(userEntity);
+                                                        } catch (IllegalStateException | IllegalArgumentException e) {
+                                                                // User not found - return error with translation
+                                                                return MatrixMCPModels.MCPToolResult.builder()
+                                                                                .isError(true)
+                                                                                .content(List.of(MatrixMCPModels.MCPContent
+                                                                                                .builder()
+                                                                                                .type("text")
+                                                                                                .text(translate("matrix.mcp.error.requiresDM",
+                                                                                                                locale))
+                                                                                                .build()))
+                                                                                .build();
+                                                        }
                                                 }
                                         } else {
                                                 // For public tools, try to get user entity for locale, but don't fail

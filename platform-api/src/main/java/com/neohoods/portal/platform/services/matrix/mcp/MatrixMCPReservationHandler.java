@@ -67,6 +67,24 @@ public class MatrixMCPReservationHandler extends MatrixMCPBaseHandler {
                         LocalDate startDate = LocalDate.parse(startDateStr);
                         LocalDate endDate = LocalDate.parse(endDateStr);
 
+                        // Get space first to verify it exists
+                        com.neohoods.portal.platform.spaces.entities.SpaceEntity space;
+                        try {
+                                space = spacesService.getSpaceById(spaceId);
+                        } catch (com.neohoods.portal.platform.exceptions.CodedErrorException e) {
+                                if (e.getMessage() != null && e.getMessage().contains("Space not found")) {
+                                        log.warn("Error creating reservation: Space not found for ID {}", spaceIdStr);
+                                        return MatrixMCPModels.MCPToolResult.builder()
+                                                        .isError(true)
+                                                        .content(List.of(MatrixMCPModels.MCPContent.builder()
+                                                                        .type("text")
+                                                                        .text(translate("matrix.mcp.space.notFound", locale, spaceIdStr) + ". " + translate("matrix.mcp.error.doNotRetry", locale))
+                                                                        .build()))
+                                                        .build();
+                                }
+                                throw e; // Re-throw other CodedErrorExceptions
+                        }
+
                         // Check availability
                         if (!spacesService.isSpaceAvailable(spaceId, startDate, endDate)) {
                                 return MatrixMCPModels.MCPToolResult.builder()
@@ -78,10 +96,6 @@ public class MatrixMCPReservationHandler extends MatrixMCPBaseHandler {
                                                                 .build()))
                                                 .build();
                         }
-
-                        // Get space
-                        com.neohoods.portal.platform.spaces.entities.SpaceEntity space = spacesService
-                                        .getSpaceById(spaceId);
 
                         // Create reservation via ReservationsService
                         ReservationEntity reservation = reservationsService.createReservation(
