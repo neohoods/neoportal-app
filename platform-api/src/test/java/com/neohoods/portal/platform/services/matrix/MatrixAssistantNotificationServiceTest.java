@@ -18,8 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.neohoods.portal.platform.entities.UserEntity;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantNotificationService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantNotificationService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;

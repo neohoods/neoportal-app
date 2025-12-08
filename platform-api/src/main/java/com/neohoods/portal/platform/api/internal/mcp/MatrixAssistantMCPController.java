@@ -12,15 +12,19 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixAssistantMCPServer;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPModels.MCPTool;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPModels.MCPToolResult;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPServer;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPTool;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPToolResult;
+import com.neohoods.portal.platform.entities.UserEntity;
+import com.neohoods.portal.platform.repositories.UsersRepository;
+import com.neohoods.portal.platform.services.JwtService;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import reactor.core.publisher.Mono;
 
 /**
@@ -37,50 +41,148 @@ public class MatrixAssistantMCPController {
 
     private final MatrixAssistantMCPServer mcpServer;
     private final MatrixAssistantAuthContextService authContextService;
+    private final UsersRepository usersRepository;
+    private final JwtService jwtService;
 
     /**
-     * Endpoint MCP: Liste tous les outils disponibles
+     * Endpoint MCP: Liste tous les outils disponibles pour l'utilisateur
      * POST /mcp/tools/list
+     * Les outils admin sont filtrés selon les rôles de l'utilisateur
+     * Requiert un JWT token dans le header Authorization
      */
     @PostMapping(value = "/tools/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<MCPListToolsResponse>> listTools(
-            @RequestHeader(value = "X-Matrix-User-Id", required = false) String matrixUserId,
-            @RequestHeader(value = "X-Matrix-Room-Id", required = false) String roomId,
-            @RequestHeader(value = "X-Matrix-Is-DM", required = false) String isDmStr,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestHeader(value = "X-Trace-Id", required = false) String traceId,
+            @RequestHeader(value = "X-Span-Id", required = false) String spanId,
+            @RequestHeader(value = "X-Conversation-Trace-Id", required = false) String conversationTraceId,
+            @RequestHeader(value = "X-Room-Id", required = false) String roomId,
             @RequestBody(required = false) MCPRequest request) {
 
-        log.debug("MCP listTools called by user: {} in room: {}", matrixUserId, roomId);
+        // Set tracing context in MDC for log correlation
+        try {
+            if (traceId != null) {
+                MDC.put("traceId", traceId);
+            }
+            if (spanId != null) {
+                MDC.put("spanId", spanId);
+            }
+            if (conversationTraceId != null) {
+                MDC.put("conversationTraceId", conversationTraceId);
+            }
+            if (roomId != null) {
+                MDC.put("roomId", roomId);
+            }
 
-        List<MCPTool> tools = mcpServer.listTools();
+            // JWT est requis, toutes les informations viennent du token
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                throw new MatrixAssistantAuthContext.UnauthorizedException("JWT token required");
+            }
 
-        MCPListToolsResponse response = new MCPListToolsResponse();
-        response.setJsonrpc("2.0");
-        response.setId(request != null ? request.getId() : 1);
-        response.setResult(Map.of("tools", tools));
+            String token = authorization.substring("Bearer ".length());
+            var claims = jwtService.verifyToken(token);
+            String userIdStr = claims.getSubject();
+            UserEntity user = usersRepository.findById(java.util.UUID.fromString(userIdStr))
+                    .orElseThrow(() -> new MatrixAssistantAuthContext.UnauthorizedException("User not found"));
+            String jwtMatrixUserId = (String) claims.getClaim("matrixUserId");
+            String jwtRoomId = (String) claims.getClaim("roomId");
+            Boolean jwtIsDM = (Boolean) claims.getClaim("isDM");
+            MatrixAssistantAuthContext authContext = authContextService.createAuthContextFromUser(
+                    user,
+                    jwtMatrixUserId,
+                    jwtRoomId,
+                    jwtIsDM != null ? jwtIsDM : false);
 
-        return Mono.just(ResponseEntity.ok(response));
+            log.debug("MCP listTools called for user: {} (admin: {})",
+                    authContext.getMatrixUserId(), mcpServer.isAdminUser(authContext));
+
+            // Filtrer les outils selon les rôles de l'utilisateur
+            List<MCPTool> tools = mcpServer.listToolsForUser(authContext);
+
+            MCPListToolsResponse response = new MCPListToolsResponse();
+            response.setJsonrpc("2.0");
+            response.setId(request != null ? request.getId() : 1);
+            response.setResult(Map.of("tools", tools));
+
+            return Mono.just(ResponseEntity.ok(response));
+        } catch (MatrixAssistantAuthContext.UnauthorizedException e) {
+            log.warn("Unauthorized MCP listTools call: {}", e.getMessage());
+            MCPListToolsResponse response = new MCPListToolsResponse();
+            response.setJsonrpc("2.0");
+            response.setId(request != null ? request.getId() : 1);
+            MCPError error = new MCPError();
+            error.setCode(-32001); // Unauthorized
+            error.setMessage(e.getMessage());
+            response.setError(error);
+            return Mono.just(ResponseEntity.status(401).body(response));
+        } catch (Exception e) {
+            log.error("Error listing MCP tools: {}", e.getMessage(), e);
+            MCPListToolsResponse response = new MCPListToolsResponse();
+            response.setJsonrpc("2.0");
+            response.setId(request != null ? request.getId() : 1);
+            MCPError error = new MCPError();
+            error.setCode(-32603); // Internal error
+            error.setMessage("Internal error: " + e.getMessage());
+            response.setError(error);
+            return Mono.just(ResponseEntity.status(500).body(response));
+        } finally {
+            // Clean up MDC
+            MDC.remove("traceId");
+            MDC.remove("spanId");
+            MDC.remove("conversationTraceId");
+            MDC.remove("roomId");
+        }
     }
 
     /**
      * Endpoint MCP: Appelle un outil spécifique
      * POST /mcp/tools/call
+     * Requiert un JWT token dans le header Authorization
      */
     @PostMapping(value = "/tools/call", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<MCPCallToolResponse>> callTool(
-            @RequestHeader("X-Matrix-User-Id") String matrixUserId,
-            @RequestHeader("X-Matrix-Room-Id") String roomId,
-            @RequestHeader("X-Matrix-Is-DM") String isDmStr,
-            @RequestHeader(value = "X-MCP-Session-Id", required = false) String sessionId,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestHeader(value = "X-Trace-Id", required = false) String traceId,
+            @RequestHeader(value = "X-Span-Id", required = false) String spanId,
+            @RequestHeader(value = "X-Conversation-Trace-Id", required = false) String conversationTraceId,
+            @RequestHeader(value = "X-Room-Id", required = false) String roomId,
             @RequestBody MCPCallToolRequest request) {
 
-        log.info("MCP callTool: {} called by user: {} in room: {} (DM: {})",
-                request.getParams().getName(), matrixUserId, roomId, isDmStr);
-
+        // Set tracing context in MDC for log correlation
         try {
-            // Créer le contexte d'autorisation
-            boolean isDM = "true".equalsIgnoreCase(isDmStr);
-            MatrixAssistantAuthContext authContext = authContextService.createAuthContext(
-                    matrixUserId, roomId, isDM);
+            if (traceId != null) {
+                MDC.put("traceId", traceId);
+            }
+            if (spanId != null) {
+                MDC.put("spanId", spanId);
+            }
+            if (conversationTraceId != null) {
+                MDC.put("conversationTraceId", conversationTraceId);
+            }
+            if (roomId != null) {
+                MDC.put("roomId", roomId);
+            }
+
+            log.info("MCP callTool: {} called", request.getParams().getName());
+
+            // JWT est requis, toutes les informations viennent du token
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                throw new MatrixAssistantAuthContext.UnauthorizedException("JWT token required");
+            }
+
+            String token = authorization.substring("Bearer ".length());
+            var claims = jwtService.verifyToken(token);
+            String userIdStr = claims.getSubject();
+            UserEntity user = usersRepository.findById(java.util.UUID.fromString(userIdStr))
+                    .orElseThrow(() -> new MatrixAssistantAuthContext.UnauthorizedException("User not found"));
+            String jwtMatrixUserId = (String) claims.getClaim("matrixUserId");
+            String jwtRoomId = (String) claims.getClaim("roomId");
+            Boolean jwtIsDM = (Boolean) claims.getClaim("isDM");
+            MatrixAssistantAuthContext authContext = authContextService.createAuthContextFromUser(
+                    user,
+                    jwtMatrixUserId,
+                    jwtRoomId,
+                    jwtIsDM != null ? jwtIsDM : false);
 
             // Appeler l'outil MCP
             MCPToolResult result = mcpServer.callTool(
@@ -116,7 +218,7 @@ public class MatrixAssistantMCPController {
             error.setCode(-32001); // Unauthorized
             error.setMessage(e.getMessage());
             response.setError(error);
-            return Mono.just(ResponseEntity.status(403).body(response));
+            return Mono.just(ResponseEntity.status(401).body(response));
         } catch (Exception e) {
             log.error("Error calling MCP tool: {}", e.getMessage(), e);
             MCPCallToolResponse response = new MCPCallToolResponse();
@@ -127,6 +229,12 @@ public class MatrixAssistantMCPController {
             error.setMessage("Internal error: " + e.getMessage());
             response.setError(error);
             return Mono.just(ResponseEntity.status(500).body(response));
+        } finally {
+            // Clean up MDC
+            MDC.remove("traceId");
+            MDC.remove("spanId");
+            MDC.remove("conversationTraceId");
+            MDC.remove("roomId");
         }
     }
 

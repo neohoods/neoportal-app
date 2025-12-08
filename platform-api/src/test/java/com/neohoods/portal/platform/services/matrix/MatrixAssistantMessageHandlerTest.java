@@ -20,12 +20,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.neohoods.portal.platform.entities.UserEntity;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAIService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantMessageHandler;
+import com.neohoods.portal.platform.assistant.workflows.MatrixAssistantRouter;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.assistant.MatrixAssistantMessageHandler;
 
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.neohoods.portal.platform.services.matrix.space.MatrixConversationContextService;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -35,7 +35,7 @@ import reactor.test.StepVerifier;
 class MatrixAssistantMessageHandlerTest {
 
         @Mock
-        private MatrixAssistantAIService aiService;
+        private MatrixAssistantRouter router;
 
         @Mock
         private MatrixAssistantAuthContextService authContextService;
@@ -67,7 +67,7 @@ class MatrixAssistantMessageHandlerTest {
                                 .matrixUserId("@testuser:chat.neohoods.com")
                                 .roomId("!room:chat.neohoods.com")
                                 .isDirectMessage(false)
-                                .userEntity(Optional.of(testUser))
+                                .userEntity(testUser)
                                 .build();
         }
 
@@ -97,7 +97,7 @@ class MatrixAssistantMessageHandlerTest {
                                 .thenReturn(authContext);
                 when(conversationContextService.getConversationHistory(anyString()))
                                 .thenReturn(new ArrayList<>());
-                when(aiService.generateResponse(anyString(), any(), any(), eq(authContext)))
+                when(router.handleMessage(anyString(), any(), eq(authContext)))
                                 .thenReturn(Mono.just("Test response"));
 
                 // When

@@ -1,0 +1,96 @@
+✅ **STEP 1: COMPLETED** - User has requested information about spaces
+
+🟡 **STEP 2: CHOOSE SPACE** (Current Step)
+
+**YOUR GOAL**: Identify the exact spaceId UUID for the space the user wants to reserve. The user may also provide the reservation period in the same message.
+
+**CRITICAL: You MUST return a JSON response in the following format:**
+
+```json
+{
+  "status": "PENDING" | "COMPLETED" | "CANCELED",
+  "response": "Your conversational response to the user",
+  "spaceId": "UUID (required if COMPLETED)",
+  "period": {
+    "startDate": "YYYY-MM-DD or null",
+    "endDate": "YYYY-MM-DD or null",
+    "startTime": "HH:mm or null",
+    "endTime": "HH:mm or null"
+  } | null
+}
+```
+
+**STATUS GUIDELINES:**
+- **PENDING**: Use when you need more conversation to identify the space (e.g., user says "je veux réserver" but doesn't specify which space)
+- **COMPLETED**: Use when you have identified the spaceId UUID (REQUIRED for COMPLETED status)
+  - If user also provided period, include it in the period field
+  - If period is null, system will move to Step 3
+  - If period is provided, system will skip Step 3 and move to Step 4
+- **CANCELED**: Use when the user explicitly wants to cancel or change their mind
+
+**WHAT YOU NEED TO DO:**
+1. Call `list_spaces` to get all available spaces (if not already called)
+2. From the response, identify which space matches the user's request:
+   - Match by name (e.g., 'salle commune', 'common room')
+   - Match by number (e.g., 'place 23', 'parking A1')
+   - Match by type (PARKING, COMMON_ROOM, GUEST_ROOM)
+3. Extract the EXACT spaceId UUID from the list_spaces response
+   - Format: Look for 'ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+   - Copy the ENTIRE UUID exactly as shown
+   - Set status to COMPLETED and include the spaceId in your JSON response
+4. **IMPORTANT**: The user may also provide the reservation period (dates and times) in the same message. If so:
+   - Extract dates/times from the user's message
+   - Optionally call `check_space_availability` to verify availability
+   - Include the period in your JSON response (startDate, endDate, startTime, endTime)
+5. If the user doesn't specify a space, ask which space they want to reserve and show available options
+   - Set status to PENDING
+   - Set spaceId to null
+
+**IMPORTANT RULES:**
+- ⚠️ You do NOT have the spaceId yet - this is the step where you identify it!
+- ⚠️ Use the EXACT UUID from list_spaces - NEVER invent or guess UUIDs
+- ⚠️ If the space doesn't exist, inform the user and list available spaces (status: PENDING)
+- ⚠️ If COMPLETED, spaceId is REQUIRED - if missing, backend will treat as error
+- ⚠️ If user provides both space AND period, include both in your JSON response
+- ⚠️ Do NOT call create_reservation yet - wait until Step 5 (after confirmation)
+- ⚠️ Always return valid JSON - the backend expects this format
+
+**EXAMPLES:**
+
+Example 1 - User chooses space only (COMPLETED):
+```json
+{
+  "status": "COMPLETED",
+  "response": "Parfait ! J'ai identifié la place de parking N°7. Pour quelle période souhaitez-vous réserver?",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": null
+}
+```
+
+Example 2 - User chooses space + period (COMPLETED):
+```json
+{
+  "status": "COMPLETED",
+  "response": "Parfait ! J'ai identifié la place de parking N°7 pour demain de 8h à 18h.",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": {
+    "startDate": "2025-12-08",
+    "endDate": "2025-12-08",
+    "startTime": "08:00",
+    "endTime": "18:00"
+  }
+}
+```
+
+Example 3 - Need more info (PENDING):
+```json
+{
+  "status": "PENDING",
+  "response": "Quel espace souhaitez-vous réserver? Voici les options disponibles:\n\n🏠 Place de parking N°7\n🏠 Place de parking N°23",
+  "spaceId": null,
+  "period": null
+}
+```
+
+**ONCE YOU HAVE THE SPACEID**: The system will automatically move to Step 3 (CHOOSE_PERIOD) if period is missing, or Step 4 (CONFIRM_RESERVATION_SUMMARY) if all info is available.
+

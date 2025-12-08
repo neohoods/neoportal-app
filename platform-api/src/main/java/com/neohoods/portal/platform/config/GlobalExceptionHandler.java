@@ -17,6 +17,7 @@ import com.neohoods.portal.platform.exceptions.CodedException;
 import com.neohoods.portal.platform.exceptions.ResourceNotFoundException;
 import com.neohoods.portal.platform.model.CodedError;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -24,11 +25,15 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @Autowired(required = false)
+    private MatrixExceptionNotificationService exceptionNotificationService;
+
     @ExceptionHandler(CodedException.class)
     public Mono<ResponseEntity<CodedError>> handleCodedException(CodedException ex) {
         return Mono.deferContextual(ctx -> {
             String traceId = ctx.getOrDefault("traceId", generateTraceId());
             logError(traceId, ex);
+            notifyException(ex, traceId);
 
             CodedError error = new CodedError()
                     .code(ex.getCode())
@@ -46,6 +51,7 @@ public class GlobalExceptionHandler {
         return Mono.deferContextual(ctx -> {
             String traceId = ctx.getOrDefault("traceId", generateTraceId());
             logError(traceId, ex);
+            notifyException(ex, traceId);
 
             // Build a nice error message based on the error type and variables
             String message = buildUserFriendlyMessage(ex);
@@ -139,6 +145,7 @@ public class GlobalExceptionHandler {
         return Mono.deferContextual(ctx -> {
             String traceId = ctx.getOrDefault("traceId", generateTraceId());
             logError(traceId, ex);
+            notifyException(ex, traceId);
 
             CodedError error = new CodedError()
                     .code("SYS001")
@@ -155,6 +162,21 @@ public class GlobalExceptionHandler {
 
     private void logError(String traceId, Exception ex) {
         log.error("Error occurred - TraceId: {} - Message: {}", traceId, ex.getMessage(), ex);
+    }
+
+    /**
+     * Notifies the IT room about the exception (if notification service is
+     * available)
+     */
+    private void notifyException(Exception ex, String traceId) {
+        try {
+            if (exceptionNotificationService != null) {
+                exceptionNotificationService.notifyException(ex, traceId);
+            }
+        } catch (Exception e) {
+            // Don't let notification errors break the exception handling
+            log.warn("Failed to send exception notification", e);
+        }
     }
 
     private String buildUserFriendlyMessage(CodedErrorException ex) {

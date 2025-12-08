@@ -39,8 +39,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantInitializationService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantInitializationService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
 
 /**

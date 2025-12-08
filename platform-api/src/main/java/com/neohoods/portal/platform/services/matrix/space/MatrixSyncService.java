@@ -11,11 +11,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantMessageHandler;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantLLMJudgeService;
+import com.neohoods.portal.platform.assistant.services.MatrixReactionEvaluationService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAdminCommandService;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.assistant.MatrixAssistantMessageHandler;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -50,11 +52,11 @@ public class MatrixSyncService {
 
     // Optional: LLM-as-a-Judge service
     @Autowired(required = false)
-    private com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantLLMJudgeService llmJudgeService;
+    private MatrixAssistantLLMJudgeService llmJudgeService;
 
     // Optional: Reaction evaluation service
     @Autowired(required = false)
-    private com.neohoods.portal.platform.services.matrix.assistant.MatrixReactionEvaluationService reactionEvaluationService;
+    private MatrixReactionEvaluationService reactionEvaluationService;
 
     @Value("${neohoods.portal.matrix.homeserver-url}")
     private String homeserverUrl;
@@ -271,9 +273,10 @@ public class MatrixSyncService {
      * Process rooms and extract timeline events (messages)
      * Also handles automatic invitation acceptance for invited rooms
      * 
-     * @param rooms Map of rooms to process
-     * @param membershipType Type of membership ("invite", "join", "leave")
-     * @param acceptAllInvitations If true, accept all invitations regardless of space membership (for initialization)
+     * @param rooms                Map of rooms to process
+     * @param membershipType       Type of membership ("invite", "join", "leave")
+     * @param acceptAllInvitations If true, accept all invitations regardless of
+     *                             space membership (for initialization)
      */
     @SuppressWarnings("unchecked")
     private void processRooms(Map<String, Object> rooms, String membershipType, boolean acceptAllInvitations) {
@@ -289,12 +292,13 @@ public class MatrixSyncService {
 
             // Handle invitations: automatically accept them
             // During initialization, accept all invitations (including space invitations)
-            // During normal operation, accept invitations to rooms in the configured space OR DMs (2 people)
+            // During normal operation, accept invitations to rooms in the configured space
+            // OR DMs (2 people)
             if ("invite".equals(membershipType)) {
                 log.info("Bot received invitation to room: {}", roomId);
 
                 boolean shouldAccept = acceptAllInvitations;
-                
+
                 if (!acceptAllInvitations) {
                     // Normal operation: check if room belongs to configured space OR is a DM
                     String spaceIdToCheck = spaceId;
@@ -321,7 +325,9 @@ public class MatrixSyncService {
                                         log.info("Room {} is a DM (2 members), keeping invitation", roomId);
                                         shouldAccept = true;
                                     } else {
-                                        log.info("Room {} is not a DM and doesn't belong to space, will ignore messages from this room", roomId);
+                                        log.info(
+                                                "Room {} is not a DM and doesn't belong to space, will ignore messages from this room",
+                                                roomId);
                                         // Don't leave the room, but we'll ignore messages from it
                                         continue; // Skip processing this room
                                     }
@@ -334,7 +340,7 @@ public class MatrixSyncService {
                             }
                         } catch (Exception e) {
                             // If check fails (e.g., bot not in room yet), try to accept and check if DM
-                            log.debug("Could not verify if room {} belongs to space {}, accepting to check if DM: {}", 
+                            log.debug("Could not verify if room {} belongs to space {}, accepting to check if DM: {}",
                                     roomId, spaceIdToCheck, e.getMessage());
                             boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
                             if (joined) {
@@ -349,7 +355,9 @@ public class MatrixSyncService {
                                     log.info("Room {} is a DM (2 members), keeping invitation", roomId);
                                     shouldAccept = true;
                                 } else {
-                                    log.info("Room {} is not a DM and space check failed, will ignore messages from this room", roomId);
+                                    log.info(
+                                            "Room {} is not a DM and space check failed, will ignore messages from this room",
+                                            roomId);
                                     // Don't leave the room, but we'll ignore messages from it
                                     continue;
                                 }
@@ -362,7 +370,9 @@ public class MatrixSyncService {
                     }
                 } else {
                     // Initialization mode: accept all invitations
-                    log.info("Initialization mode: accepting invitation to room {} (will verify space membership later)", roomId);
+                    log.info(
+                            "Initialization mode: accepting invitation to room {} (will verify space membership later)",
+                            roomId);
                 }
 
                 if (shouldAccept) {
@@ -370,10 +380,11 @@ public class MatrixSyncService {
                     Optional<String> assistantUserIdOpt = matrixAssistantService.getAssistantUserId();
                     boolean alreadyJoined = false;
                     if (assistantUserIdOpt.isPresent()) {
-                        Optional<String> membership = matrixAssistantService.getUserRoomMembership(assistantUserIdOpt.get(), roomId);
+                        Optional<String> membership = matrixAssistantService
+                                .getUserRoomMembership(assistantUserIdOpt.get(), roomId);
                         alreadyJoined = membership.isPresent() && "join".equals(membership.get());
                     }
-                    
+
                     if (!alreadyJoined) {
                         boolean joined = matrixAssistantService.joinRoomAsBot(roomId);
                         if (joined) {
@@ -554,7 +565,8 @@ public class MatrixSyncService {
                     normalizedMessage.contains("@bot");
         }
 
-        // Check if it's a direct message (DM) first - DMs don't belong to spaces but should be allowed
+        // Check if it's a direct message (DM) first - DMs don't belong to spaces but
+        // should be allowed
         boolean isDirectMessage = isDirectMessage(roomId);
 
         // Check if the room belongs to the configured space (if space-id is configured)
@@ -777,8 +789,8 @@ public class MatrixSyncService {
         try {
             MatrixAssistantAuthContext authContext = authContextService.createAuthContext(
                     matrixUserId, null, false);
-            if (authContext.getUserEntity().isPresent()) {
-                return authContext.getUserEntity().get().getLocale();
+            if (authContext.hasUser() && authContext.getAuthenticatedUser().getLocale() != null) {
+                return authContext.getAuthenticatedUser().getLocale();
             }
         } catch (Exception e) {
             log.debug("Could not get locale for user {}, using default", matrixUserId);

@@ -14,7 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for managing conversation context per room.
- * Stores message history for each room to maintain conversation context between messages.
+ * Stores message history for each room to maintain conversation context between
+ * messages.
  */
 @Service
 @Slf4j
@@ -33,15 +34,28 @@ public class MatrixConversationContextService {
     private final Map<String, List<ConversationMessage>> roomHistory = new ConcurrentHashMap<>();
 
     /**
+     * In-memory storage of conversation trace IDs per room
+     * Key: roomId, Value: conversation_trace_id (UUID)
+     * The conversation_trace_id persists for the entire conversation in a room
+     */
+    private final Map<String, String> conversationTraceIds = new ConcurrentHashMap<>();
+
+    /**
      * Represents a message in the conversation
      */
     public static class ConversationMessage {
         private final String role; // "user" or "assistant"
         private final String content;
+        private final long timestamp; // Timestamp in milliseconds (epoch)
 
         public ConversationMessage(String role, String content) {
+            this(role, content, System.currentTimeMillis());
+        }
+
+        public ConversationMessage(String role, String content, long timestamp) {
             this.role = role;
             this.content = content;
+            this.timestamp = timestamp;
         }
 
         public String getRole() {
@@ -50,6 +64,10 @@ public class MatrixConversationContextService {
 
         public String getContent() {
             return content;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
         }
     }
 
@@ -69,12 +87,13 @@ public class MatrixConversationContextService {
             return Collections.emptyList();
         }
 
-        // Convert to Mistral API format
+        // Convert to Mistral API format (include timestamp for filtering)
         List<Map<String, Object>> messages = new ArrayList<>();
         for (ConversationMessage msg : history) {
             Map<String, Object> message = new HashMap<>();
             message.put("role", msg.getRole());
             message.put("content", msg.getContent());
+            message.put("timestamp", msg.getTimestamp()); // Include timestamp for filtering
             messages.add(message);
         }
 
@@ -83,9 +102,30 @@ public class MatrixConversationContextService {
     }
 
     /**
-     * Adds a user message to the room history
+     * Gets or creates a conversation trace ID for a room
+     * The trace ID persists for the entire conversation
      * 
      * @param roomId Matrix room ID
+     * @return conversation_trace_id (UUID)
+     */
+    public String getOrCreateConversationTraceId(String roomId) {
+        return conversationTraceIds.computeIfAbsent(roomId, k -> java.util.UUID.randomUUID().toString());
+    }
+
+    /**
+     * Gets the conversation trace ID for a room (if exists)
+     * 
+     * @param roomId Matrix room ID
+     * @return conversation_trace_id or null if not exists
+     */
+    public String getConversationTraceId(String roomId) {
+        return conversationTraceIds.get(roomId);
+    }
+
+    /**
+     * Adds a user message to the room history
+     * 
+     * @param roomId  Matrix room ID
      * @param message User message content
      */
     public void addUserMessage(String roomId, String message) {
@@ -95,9 +135,10 @@ public class MatrixConversationContextService {
     /**
      * Adds a user message to the room history with sender
      * 
-     * @param roomId Matrix room ID
+     * @param roomId  Matrix room ID
      * @param message User message content
-     * @param sender Matrix user ID of sender (optional, for context - not included in message to avoid LLM reproducing the format)
+     * @param sender  Matrix user ID of sender (optional, for context - not included
+     *                in message to avoid LLM reproducing the format)
      */
     public void addUserMessage(String roomId, String message, String sender) {
         if (!conversationContextEnabled) {
@@ -119,7 +160,7 @@ public class MatrixConversationContextService {
     /**
      * Adds an assistant response to the room history
      * 
-     * @param roomId Matrix room ID
+     * @param roomId   Matrix room ID
      * @param response Assistant response
      */
     public void addAssistantResponse(String roomId, String response) {
@@ -158,12 +199,14 @@ public class MatrixConversationContextService {
 
     /**
      * Clears history for a room (useful for tests or reset)
+     * Also clears the conversation trace ID
      * 
      * @param roomId Room ID
      */
     public void clearHistory(String roomId) {
         roomHistory.remove(roomId);
-        log.info("Cleared conversation history for room {}", roomId);
+        conversationTraceIds.remove(roomId);
+        log.info("Cleared conversation history and trace ID for room {}", roomId);
     }
 
     /**
@@ -186,6 +229,3 @@ public class MatrixConversationContextService {
         return conversationContextEnabled;
     }
 }
-
-
-

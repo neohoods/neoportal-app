@@ -1,0 +1,93 @@
+✅ **STEP 1: COMPLETED** - User requested information about spaces
+✅ **STEP 2: COMPLETED** - Space ID identified: {{SPACE_ID}}
+
+🟡 **STEP 3: CHOOSE PERIOD** (Current Step)
+
+**YOUR GOAL**: Get the reservation dates and times from the user.
+
+**CRITICAL: You MUST return a JSON response in the following format:**
+
+```json
+{
+  "status": "PENDING" | "COMPLETED" | "CANCELED",
+  "response": "Your conversational response to the user",
+  "spaceId": "{{SPACE_ID}}",
+  "period": {
+    "startDate": "YYYY-MM-DD (required if COMPLETED)",
+    "endDate": "YYYY-MM-DD (required if COMPLETED)",
+    "startTime": "HH:mm or null",
+    "endTime": "HH:mm or null"
+  } | null
+}
+```
+
+**STATUS GUIDELINES:**
+- **PENDING**: Use when you need more conversation to get the period (e.g., user says "je veux réserver" but doesn't specify dates)
+- **COMPLETED**: Use when you have extracted the complete period (startDate and endDate are REQUIRED)
+  - startTime and endTime are optional (defaults: 00:00, 23:59)
+  - System will automatically move to Step 4 (show summary)
+- **CANCELED**: Use when the user explicitly wants to cancel or change their mind
+
+**WHAT YOU NEED TO DO:**
+1. Extract reservation period from the user's message:
+   - Dates: 'demain' = tomorrow, 'aujourd'hui' = today, or specific dates (YYYY-MM-DD)
+   - Times: 'de 10h à 19h' = 10:00 to 19:00, or use defaults (00:00 to 23:59)
+2. If dates/times are NOT clear from the message, ask the user:
+   - 'Pour quelle date souhaitez-vous réserver?'
+   - 'À quelle heure?' (if not mentioned)
+   - Set status to PENDING
+3. Optionally call `check_space_availability` to verify availability:
+   - Use spaceId: {{SPACE_ID}}
+   - Use the dates/times you extracted or asked for
+   - This helps confirm the space is available before creating
+4. When you have complete period information:
+   - Set status to COMPLETED
+   - Include period in JSON response (startDate, endDate required; startTime, endTime optional)
+
+**IMPORTANT RULES:**
+- ⚠️ Do NOT call create_reservation yet - wait until Step 5 (after confirmation)
+- ⚠️ For COMPLETED status, startDate and endDate are REQUIRED
+- ⚠️ If times are not provided, use null (defaults will be applied: 00:00, 23:59)
+- ⚠️ Use 'tomorrow' or 'demain' as date string if user said 'demain', NOT a fixed date
+- ⚠️ Always return valid JSON - the backend expects this format
+- ⚠️ spaceId should match the context ({{SPACE_ID}})
+
+**EXAMPLES:**
+
+Example 1 - User provides period (COMPLETED):
+```json
+{
+  "status": "COMPLETED",
+  "response": "Parfait ! La place de parking N°7 est disponible pour demain de 8h à 18h.",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": {
+    "startDate": "2025-12-08",
+    "endDate": "2025-12-08",
+    "startTime": "08:00",
+    "endTime": "18:00"
+  }
+}
+```
+
+Example 2 - Need more info (PENDING):
+```json
+{
+  "status": "PENDING",
+  "response": "Pour quelle date souhaitez-vous réserver la place de parking N°7?",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": null
+}
+```
+
+Example 3 - User cancels (CANCELED):
+```json
+{
+  "status": "CANCELED",
+  "response": "D'accord, j'annule la demande de réservation.",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": null
+}
+```
+
+**ONCE YOU HAVE DATES AND TIMES**: The system will automatically move to Step 4 (summary).
+

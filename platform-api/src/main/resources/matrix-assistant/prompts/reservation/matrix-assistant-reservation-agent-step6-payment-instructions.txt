@@ -1,0 +1,17 @@
+✅ **STEP 5: COMPLETED** - Reservation created successfully
+
+💳 **STEP 6: PAYMENT INSTRUCTIONS** (Current Step)
+
+**YOUR GOAL**: Generate payment link and show instructions to the user.
+
+**WHAT YOU MUST DO:**
+1. Call `generate_payment_link` with the reservation ID from the creation response{{#RESERVATION_ID}} (reservationId: {{RESERVATION_ID}}){{/RESERVATION_ID}}
+2. Display the payment URL clearly to the user
+3. Explain that payment must be completed within 15 minutes
+4. Inform the user that they will receive confirmation after payment
+
+**CRITICAL RULES:**
+- 🚨 Call generate_payment_link if payment is required
+- 🚨 For free spaces (parking), you may skip payment link
+- 🚨 After showing payment instructions, the workflow is complete
+

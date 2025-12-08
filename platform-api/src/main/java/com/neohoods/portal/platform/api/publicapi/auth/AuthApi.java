@@ -44,7 +44,7 @@ import com.neohoods.portal.platform.services.MailService;
 import com.neohoods.portal.platform.services.NotificationsService;
 import com.neohoods.portal.platform.services.UsersService;
 import com.neohoods.portal.platform.services.ValidationService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.nimbusds.jwt.JWTClaimsSet;
 
 import lombok.RequiredArgsConstructor;

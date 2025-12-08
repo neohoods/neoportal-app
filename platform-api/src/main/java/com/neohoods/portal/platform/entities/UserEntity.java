@@ -94,6 +94,9 @@ public class UserEntity {
     @JoinColumn(name = "primary_unit_id")
     private UnitEntity primaryUnit;
 
+    @Column(name = "matrix_user_id")
+    private String matrixUserId;
+
     public User.UserBuilder toUser() {
         return User.builder()
                 .id(id)

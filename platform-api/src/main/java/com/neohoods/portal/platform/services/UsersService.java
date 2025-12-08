@@ -14,7 +14,7 @@ import com.neohoods.portal.platform.exceptions.CodedErrorException;
 import com.neohoods.portal.platform.model.User;
 import com.neohoods.portal.platform.model.UserBasic;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

@@ -26,7 +26,7 @@ import com.neohoods.portal.platform.matrix.ApiClient;
 import com.neohoods.portal.platform.matrix.api.RoomParticipationApi;
 import com.neohoods.portal.platform.matrix.api.SessionManagementApi;
 import com.neohoods.portal.platform.services.Auth0Service;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
 import com.neohoods.portal.platform.services.matrix.space.MatrixAvatarService;
 import com.neohoods.portal.platform.services.matrix.space.MatrixMediaService;

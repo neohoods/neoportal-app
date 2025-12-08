@@ -339,6 +339,23 @@ public class QuotaValidationTest extends BaseIntegrationTest {
         
         // Add tenant as member to owner's unit, then set it as primary
         UUID sharedUnitId = ownerUnits.get(0).getId();
+        
+        // Ensure ownerUser is admin of the unit (might not be if unit was created in another test)
+        if (!unitsService.isUserAdminOfUnit(ownerUser.getId(), sharedUnitId)) {
+            // If owner is not admin, check if they are a member and promote them
+            if (unitsService.isUserMemberOfUnit(ownerUser.getId(), sharedUnitId)) {
+                unitsService.promoteToAdmin(sharedUnitId, ownerUser.getId(), null).block();
+            } else {
+                // If not even a member, create a new unit for this test
+                var newUnit = unitsService.createUnit("Test Shared Unit " + ownerUser.getId(), null, ownerUser.getId()).block();
+                sharedUnitId = newUnit.getId();
+            }
+        }
+        
+        // Ensure ownerUser has this unit as primary
+        unitsService.setPrimaryUnitForUser(ownerUser.getId(), sharedUnitId, null).block();
+        ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+        
         try {
             unitsService.addMemberToUnit(sharedUnitId, tenantUser.getId(), ownerUser.getId()).block();
         } catch (com.neohoods.portal.platform.exceptions.CodedErrorException e) {
@@ -349,6 +366,14 @@ public class QuotaValidationTest extends BaseIntegrationTest {
         }
         unitsService.setPrimaryUnitForUser(tenantUser.getId(), sharedUnitId, null).block();
         tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        
+        // Verify both users share the same primary unit
+        ownerUser = usersRepository.findById(ownerUser.getId()).orElse(ownerUser);
+        tenantUser = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        assertTrue(ownerUser.getPrimaryUnit() != null && ownerUser.getPrimaryUnit().getId().equals(sharedUnitId),
+                "Owner should have shared unit as primary");
+        assertTrue(tenantUser.getPrimaryUnit() != null && tenantUser.getPrimaryUnit().getId().equals(sharedUnitId),
+                "Tenant should have shared unit as primary");
 
         int originalMax = space.getMaxAnnualReservations();
         space.setMaxAnnualReservations(1); // Set quota to 1 so only one reservation is allowed
@@ -360,13 +385,14 @@ public class QuotaValidationTest extends BaseIntegrationTest {
             final SpaceEntity finalSpace3 = space;
 
             // Owner reserves (uses unit quota)
-            reservationsService.createReservation(finalSpace3, ownerUser, startDate, startDate.plusDays(3));
+            ReservationEntity ownerReservation = reservationsService.createReservation(finalSpace3, ownerUser, startDate, startDate.plusDays(3));
+            assertNotNull(ownerReservation, "Owner reservation should succeed");
 
             // Act & Assert - Tenant cannot exceed shared unit quota
             assertThrows(CodedErrorException.class, () -> {
                 reservationsService.createReservation(finalSpace3, tenantUser,
                         startDate.plusDays(10), startDate.plusDays(13));
-            });
+            }, "Tenant should not be able to exceed shared unit quota");
         } finally {
             space.setMaxAnnualReservations(originalMax);
             spaceRepository.save(space);

@@ -14,6 +14,7 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.neohoods.portal.platform.entities.UserEntity;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -27,6 +28,20 @@ public class JwtService {
         this.jwkService = jwkService;
         this.signer = new ECDSASigner(jwkService.getSigningKey());
         this.verifier = new ECDSAVerifier(jwkService.getSigningKey());
+    }
+
+    /**
+     * Creates an assistant JWT carrying conversation context
+     */
+    public String createAssistantToken(UserEntity user, String matrixUserId, String roomId, boolean isDM)
+            throws JOSEException {
+        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
+                .subject(user.getId().toString())
+                .claim("matrixUserId", matrixUserId)
+                .claim("roomId", roomId)
+                .claim("isDM", isDM)
+                .claim("userType", user.getType() != null ? user.getType().name() : null);
+        return createToken(builder);
     }
 
     public String createToken(JWTClaimsSet.Builder claimsBuilder) throws JOSEException {

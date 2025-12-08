@@ -23,10 +23,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.entities.UserEntity;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAIService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixAssistantMCPAdapter;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAIService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAdminCommandService;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPAdapter;
 import com.neohoods.portal.platform.services.matrix.rag.MatrixAssistantRAGService;
 
 import reactor.core.publisher.Mono;
@@ -81,7 +81,7 @@ class MatrixAssistantAIServiceTest {
                 .matrixUserId("@testuser:chat.neohoods.com")
                 .roomId("!room:chat.neohoods.com")
                 .isDirectMessage(false)
-                .userEntity(Optional.of(testUser))
+                .userEntity(testUser)
                 .build();
     }
 

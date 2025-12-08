@@ -18,6 +18,8 @@ public interface UsersRepository extends CrudRepository<UserEntity, UUID> {
 
     List<UserEntity> findByType(UserType type);
 
+    UserEntity findByMatrixUserId(String matrixUserId);
+
     @Query("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.primaryUnit")
     List<UserEntity> findAllWithPrimaryUnit();
 }

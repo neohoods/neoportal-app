@@ -29,9 +29,9 @@ import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.repositories.InfoRepository;
 import com.neohoods.portal.platform.repositories.UnitRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAIService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAIService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAdminCommandService;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
@@ -182,7 +182,7 @@ public class MatrixAssistantAIIntegrationTest extends BaseIntegrationTest {
                                 .matrixUserId("@testuser:chat.neohoods.com")
                                 .roomId("!testroom:chat.neohoods.com")
                                 .isDirectMessage(true)
-                                .userEntity(Optional.of(testUser))
+                                .userEntity(testUser)
                                 .build();
         }
 

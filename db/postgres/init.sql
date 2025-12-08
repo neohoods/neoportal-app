@@ -20,7 +20,8 @@ CREATE TABLE "users" (
     "is_email_verified" boolean NOT NULL DEFAULT false,
     "disabled" boolean NOT NULL DEFAULT false,
     "status" varchar(255) NOT NULL DEFAULT 'WAITING_FOR_EMAIL' CHECK (status IN ('WAITING_FOR_EMAIL', 'ACTIVE', 'INACTIVE')),
-    "user_type" varchar(255) CHECK (user_type IN ('ADMIN', 'OWNER', 'LANDLORD', 'TENANT', 'SYNDIC', 'EXTERNAL', 'CONTRACTOR', 'COMMERCIAL_PROPERTY_OWNER', 'GUEST', 'PROPERTY_MANAGEMENT'))
+    "user_type" varchar(255) CHECK (user_type IN ('ADMIN', 'OWNER', 'LANDLORD', 'TENANT', 'SYNDIC', 'EXTERNAL', 'CONTRACTOR', 'COMMERCIAL_PROPERTY_OWNER', 'GUEST', 'PROPERTY_MANAGEMENT')),
+    "matrix_user_id" varchar(255)
 );
 
 

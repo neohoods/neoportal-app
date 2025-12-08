@@ -26,11 +26,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.neohoods.portal.platform.entities.UserEntity;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixAssistantMCPAdapter;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPAdapter;
 
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixAssistantMCPServer;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPModels;
+import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPServer;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MatrixAssistantMCPAdapter Unit Tests")
@@ -60,7 +60,7 @@ class MatrixAssistantMCPAdapterTest {
                 .matrixUserId("@testuser:chat.neohoods.com")
                 .roomId("!room:chat.neohoods.com")
                 .isDirectMessage(false)
-                .userEntity(Optional.of(testUser))
+                .userEntity(testUser)
                 .build();
     }
 

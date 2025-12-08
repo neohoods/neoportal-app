@@ -109,6 +109,10 @@ neohoods:
         display-name: ${MATRIX_LOCAL_ASSISTANT_DISPLAY_NAME:Alfred [Assistant AI] - Local}
       it-room:
         avatar-url: ${MATRIX_IT_ROOM_AVATAR_URL:https://neohoods.com/assets/chat/it.png}
+      exception-notification:
+        enabled: ${MATRIX_EXCEPTION_NOTIFICATION_ENABLED:true}
+        grafana-url: ${GRAFANA_URL:https://grafana.neohoods.com}
+        app-name: ${BACKEND_APP_NAME:portal-neohoods-dev-backend}
       assistant:
         ai:
           enabled: ${MATRIX_ASSISTANT_AI_ENABLED:true}

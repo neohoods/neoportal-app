@@ -22,16 +22,15 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.neohoods.portal.platform.BaseIntegrationTest;
-import com.neohoods.portal.platform.entities.ContactNumberEntity;
 import com.neohoods.portal.platform.entities.InfoEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.entities.UserStatus;
 import com.neohoods.portal.platform.entities.UserType;
 import com.neohoods.portal.platform.repositories.InfoRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAIService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.workflows.MatrixAssistantRouter;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAdminCommandService;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -70,7 +69,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MatrixAssistantEmergencyContactsIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private MatrixAssistantAIService aiService;
+    private MatrixAssistantRouter router;
 
     @Autowired
     private UsersRepository usersRepository;
@@ -124,7 +123,7 @@ public class MatrixAssistantEmergencyContactsIntegrationTest extends BaseIntegra
                 .matrixUserId("@testuser:chat.neohoods.com")
                 .roomId("!testroom:chat.neohoods.com")
                 .isDirectMessage(true)
-                .userEntity(Optional.of(testUser))
+                .userEntity(testUser)
                 .build();
     }
 
@@ -171,7 +170,7 @@ public class MatrixAssistantEmergencyContactsIntegrationTest extends BaseIntegra
         MatrixAssistantAuthContext authContext = createAuthContext();
 
         // When
-        Mono<String> responseMono = aiService.generateResponse(userQuestion, null, null, authContext);
+        Mono<String> responseMono = router.handleMessage(userQuestion, null, authContext);
 
         // Then
         StepVerifier.create(responseMono)
@@ -343,7 +342,7 @@ public class MatrixAssistantEmergencyContactsIntegrationTest extends BaseIntegra
         String question = "J'ai un problème de fuite de radiateur, je dois appeler qui ?";
 
         // When
-        Mono<String> responseMono = aiService.generateResponse(question, null, null, authContext);
+        Mono<String> responseMono = router.handleMessage(question, null, authContext);
 
         // Then
         StepVerifier.create(responseMono)
@@ -376,7 +375,7 @@ public class MatrixAssistantEmergencyContactsIntegrationTest extends BaseIntegra
         String question = "Les parties communes sont sales, qui contacter ?";
 
         // When
-        Mono<String> responseMono = aiService.generateResponse(question, null, null, authContext);
+        Mono<String> responseMono = router.handleMessage(question, null, authContext);
 
         // Then
         StepVerifier.create(responseMono)

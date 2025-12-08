@@ -19,8 +19,8 @@ import com.neohoods.portal.platform.model.MatrixBotStatusCurrentSpacesInner;
 import com.neohoods.portal.platform.model.MatrixBotStatus.MatrixAccessEnum;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCode200Response;
 import com.neohoods.portal.platform.model.PollMatrixBotDeviceCodeRequest;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantInitializationService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantInitializationService;
 import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service;
 import com.neohoods.portal.platform.services.matrix.oauth2.MatrixOAuth2Service.DeviceCodeInfo;
 

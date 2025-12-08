@@ -3,6 +3,7 @@ package com.neohoods.portal.platform.services.matrix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,9 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MatrixAssistantAuthContextService Unit Tests")
@@ -59,37 +60,30 @@ class MatrixAssistantAuthContextServiceTest {
         // Then
         assertNotNull(context);
         assertEquals(matrixUserId, context.getMatrixUserId());
-        assertTrue(context.getUserEntity().isPresent());
-        assertEquals(testUser, context.getUserEntity().get());
+        assertTrue(context.hasUser());
+        assertEquals(testUser, context.getAuthenticatedUser());
     }
 
     @Test
-    @DisplayName("createAuthContext should create context without user entity when not found")
+    @DisplayName("createAuthContext should throw UnauthorizedException when user not found")
     void testCreateAuthContext_UserNotFound() {
         // Given
         String matrixUserId = "@unknownuser:chat.neohoods.com";
         when(usersRepository.findByUsername("unknownuser")).thenReturn(null);
 
-        // When
-        MatrixAssistantAuthContext context = authContextService.createAuthContext(
-                matrixUserId, "!room:chat.neohoods.com", false);
-
-        // Then
-        assertNotNull(context);
-        assertEquals(matrixUserId, context.getMatrixUserId());
-        assertFalse(context.getUserEntity().isPresent());
+        // When/Then
+        assertThrows(MatrixAssistantAuthContext.UnauthorizedException.class, () -> {
+            authContextService.createAuthContext(matrixUserId, "!room:chat.neohoods.com", false);
+        });
     }
 
     @Test
-    @DisplayName("createAuthContext should handle null matrix user ID")
+    @DisplayName("createAuthContext should throw UnauthorizedException when matrix user ID is null")
     void testCreateAuthContext_NullUserId() {
-        // When
-        MatrixAssistantAuthContext context = authContextService.createAuthContext(
-                null, "!room:chat.neohoods.com", false);
-
-        // Then
-        assertNotNull(context);
-        assertFalse(context.getUserEntity().isPresent());
+        // When/Then
+        assertThrows(MatrixAssistantAuthContext.UnauthorizedException.class, () -> {
+            authContextService.createAuthContext(null, "!room:chat.neohoods.com", false);
+        });
     }
 
     @Test

@@ -1,0 +1,101 @@
+✅ **STEP 1: COMPLETED** - User requested information about spaces
+✅ **STEP 2: COMPLETED** - Space ID identified: {{SPACE_ID}}
+✅ **STEP 3: COMPLETED** - Period identified: {{START_DATE}} to {{END_DATE}}
+
+🟢 **STEP 4: CONFIRM RESERVATION SUMMARY** (Current Step)
+
+**YOUR GOAL**: Show a clear summary of the reservation and wait for user confirmation.
+
+**CRITICAL: You MUST return a JSON response in the following format:**
+
+```json
+{
+  "status": "PENDING" | "COMPLETED" | "CANCELED",
+  "response": "Your conversational response to the user (summary + confirmation request)",
+  "spaceId": "{{SPACE_ID}}",
+  "period": {
+    "startDate": "{{START_DATE}}",
+    "endDate": "{{END_DATE}}",
+    "startTime": "{{START_TIME}} or null",
+    "endTime": "{{END_TIME}} or null"
+  }
+}
+```
+
+**STATUS GUIDELINES:**
+- **PENDING**: Use when waiting for user confirmation (e.g., you just showed the summary and asked "Souhaitez-vous confirmer?")
+- **COMPLETED**: Use when user confirms the reservation (e.g., user says "oui", "confirmer", "yes")
+  - Backend will automatically create the reservation
+  - System will move to Step 5 (show confirmation)
+- **CANCELED**: Use when user declines or wants to cancel (e.g., user says "non", "annuler", "no")
+  - Context will be cleared
+  - Workflow ends
+
+**WHAT YOU NEED TO DO:**
+1. Display a clear summary of the reservation:
+   - Space name/ID: {{SPACE_ID}}
+   - Period: {{START_DATE}} to {{END_DATE}}
+   - Times: {{START_TIME}} to {{END_TIME}} (if provided)
+2. Ask the user to confirm:
+   - 'Souhaitez-vous confirmer cette réservation?'
+   - 'Confirmez-vous cette réservation?'
+3. Wait for user response:
+   - If user confirms (e.g., 'oui', 'confirmer', 'yes'): Set status to COMPLETED
+   - If user declines (e.g., 'non', 'annuler', 'no'): Set status to CANCELED
+   - If unclear: Set status to PENDING and ask again
+
+**IMPORTANT RULES:**
+- ⚠️ Do NOT call create_reservation - the backend will do it when status=COMPLETED
+- ⚠️ The summary should be displayed automatically after Step 3 completes
+- ⚠️ You are waiting for confirmation, not creating the reservation yet
+- ⚠️ Always return valid JSON - the backend expects this format
+- ⚠️ Include spaceId and period in your response (they should match the context)
+
+**EXAMPLES:**
+
+Example 1 - Show summary and wait (PENDING):
+```json
+{
+  "status": "PENDING",
+  "response": "📋 **Résumé de la réservation:**\n\n🏠 **Espace:** Place de parking N°7\n📅 **Période:** 2025-12-08 à 2025-12-08\n⏰ **Heures:** 08:00 à 18:00\n\nSouhaitez-vous confirmer cette réservation?",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": {
+    "startDate": "2025-12-08",
+    "endDate": "2025-12-08",
+    "startTime": "08:00",
+    "endTime": "18:00"
+  }
+}
+```
+
+Example 2 - User confirms (COMPLETED):
+```json
+{
+  "status": "COMPLETED",
+  "response": "Parfait ! Je confirme votre réservation.",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": {
+    "startDate": "2025-12-08",
+    "endDate": "2025-12-08",
+    "startTime": "08:00",
+    "endTime": "18:00"
+  }
+}
+```
+
+Example 3 - User cancels (CANCELED):
+```json
+{
+  "status": "CANCELED",
+  "response": "D'accord, j'annule la réservation.",
+  "spaceId": "550e8400-e29b-41d4-a716-446655440101",
+  "period": {
+    "startDate": "2025-12-08",
+    "endDate": "2025-12-08",
+    "startTime": "08:00",
+    "endTime": "18:00"
+  }
+}
+```
+
+**ONCE USER CONFIRMS**: The system will automatically move to Step 5 (create reservation).

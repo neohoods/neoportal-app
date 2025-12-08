@@ -31,14 +31,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPAdminHandler;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPHubHandler;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPReservationHandler;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPSpaceHandler;
 import com.neohoods.portal.platform.entities.UnitEntity;
 import com.neohoods.portal.platform.entities.UnitMemberEntity;
 import com.neohoods.portal.platform.entities.UserEntity;
 import com.neohoods.portal.platform.repositories.InfoRepository;
 import com.neohoods.portal.platform.repositories.UnitMemberRepository;
 import com.neohoods.portal.platform.repositories.UnitRepository;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixAssistantMCPServer;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPServer;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
@@ -46,10 +50,10 @@ import com.neohoods.portal.platform.spaces.entities.SpaceTypeForEntity;
 import com.neohoods.portal.platform.spaces.repositories.ReservationRepository;
 import com.neohoods.portal.platform.spaces.repositories.SpaceRepository;
 import com.neohoods.portal.platform.repositories.UsersRepository;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPModels;
-import com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPResidentHandler;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAuthContextService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantAdminCommandService;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels;
+import com.neohoods.portal.platform.assistant.mcp.MatrixMCPResidentHandler;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAuthContextService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAdminCommandService;
 import com.neohoods.portal.platform.spaces.services.ReservationsService;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
 
@@ -91,16 +95,16 @@ class MatrixAssistantMCPServerTest {
         private MatrixMCPResidentHandler residentHandler;
 
         @Mock
-        private com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPReservationHandler reservationHandler;
+        private MatrixMCPReservationHandler reservationHandler;
 
         @Mock
-        private com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPSpaceHandler spaceHandler;
+        private MatrixMCPSpaceHandler spaceHandler;
 
         @Mock
-        private com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPHubHandler hubHandler;
+        private MatrixMCPHubHandler hubHandler;
 
         @Mock
-        private com.neohoods.portal.platform.services.matrix.mcp.MatrixMCPAdminHandler adminHandler;
+        private MatrixMCPAdminHandler adminHandler;
 
         @Mock
         private MatrixAssistantAdminCommandService adminCommandService;
@@ -141,7 +145,7 @@ class MatrixAssistantMCPServerTest {
                                 .matrixUserId("@testuser:chat.neohoods.com")
                                 .roomId("!testroom:chat.neohoods.com")
                                 .isDirectMessage(false)
-                                .userEntity(Optional.empty())
+                                .userEntity(null)
                                 .build();
 
                 // Créer un contexte d'autorisation authentifié (DM)
@@ -149,7 +153,7 @@ class MatrixAssistantMCPServerTest {
                                 .matrixUserId("@testuser:chat.neohoods.com")
                                 .roomId("!dmroom:chat.neohoods.com")
                                 .isDirectMessage(true)
-                                .userEntity(Optional.of(testUser))
+                                .userEntity(testUser)
                                 .build();
 
                 // Créer une unité de test

@@ -29,8 +29,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.neohoods.portal.platform.entities.UserEntity;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantReminderService;
-import com.neohoods.portal.platform.services.matrix.assistant.MatrixAssistantService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantReminderService;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantService;
 import com.neohoods.portal.platform.spaces.entities.ReservationEntity;
 import com.neohoods.portal.platform.spaces.entities.ReservationStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
