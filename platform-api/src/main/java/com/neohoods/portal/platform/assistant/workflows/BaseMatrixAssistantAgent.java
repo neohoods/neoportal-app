@@ -21,15 +21,14 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
-import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
-import com.neohoods.portal.platform.assistant.model.ReservationStepResponse;
 import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPAdapter;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPContent;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPTool;
+import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
 import com.neohoods.portal.platform.services.matrix.rag.MatrixAssistantRAGService;
-
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -129,7 +128,7 @@ public abstract class BaseMatrixAssistantAgent {
      * Calls Mistral API with JSON response format for structured protocol.
      * Used by reservation agent to get structured ReservationStepResponse.
      */
-    protected Mono<ReservationStepResponse> callMistralAPIWithJSONResponse(
+    protected Mono<SpaceStepResponse> callMistralAPIWithJSONResponse(
             String userMessage,
             List<Map<String, Object>> conversationHistory,
             String systemPrompt,
@@ -210,9 +209,8 @@ public abstract class BaseMatrixAssistantAgent {
                         String errorMsg = e instanceof Exception ? ((Exception) e).getMessage() : e.toString();
                         log.error("Error calling Mistral API with JSON response for agent {}: {}",
                                 getClass().getSimpleName(), errorMsg, e);
-                        // Return error response
-                        return Mono.just(ReservationStepResponse.builder()
-                                .status(ReservationStepResponse.StepStatus.PENDING)
+                        return Mono.just(SpaceStepResponse.builder()
+                                .status(SpaceStepResponse.StepStatus.ERROR)
                                 .response("Désolé, une erreur s'est produite lors de la génération de la réponse.")
                                 .build());
                     });
@@ -224,7 +222,7 @@ public abstract class BaseMatrixAssistantAgent {
      * ReservationStepResponse
      */
     @SuppressWarnings("unchecked")
-    protected Mono<ReservationStepResponse> processMistralJSONResponse(
+    protected Mono<SpaceStepResponse> processMistralJSONResponse(
             Map<String, Object> response,
             MatrixAssistantAuthContext authContext,
             List<Map<String, Object>> previousMessages,
@@ -233,8 +231,8 @@ public abstract class BaseMatrixAssistantAgent {
 
         List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
         if (choices == null || choices.isEmpty()) {
-            return Mono.just(ReservationStepResponse.builder()
-                    .status(ReservationStepResponse.StepStatus.PENDING)
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ERROR)
                     .response("Aucune réponse générée.")
                     .build());
         }
@@ -261,8 +259,8 @@ public abstract class BaseMatrixAssistantAgent {
         // No tool calls, parse JSON content
         if (content == null || content.trim().isEmpty()) {
             log.warn("Empty JSON response from Mistral for agent {}", getClass().getSimpleName());
-            return Mono.just(ReservationStepResponse.builder()
-                    .status(ReservationStepResponse.StepStatus.PENDING)
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ERROR)
                     .response("Je n'ai pas pu générer de réponse. Pouvez-vous reformuler votre question ?")
                     .build());
         }
@@ -275,16 +273,16 @@ public abstract class BaseMatrixAssistantAgent {
      * Handles cases where Mistral returns text before/after JSON or markdown code
      * blocks
      */
-    private Mono<ReservationStepResponse> parseJSONResponse(String jsonContent) {
+    private Mono<SpaceStepResponse> parseJSONResponse(String jsonContent) {
         try {
             String cleanJson = extractJSONFromText(jsonContent);
 
-            ReservationStepResponse response = objectMapper.readValue(cleanJson, ReservationStepResponse.class);
+            SpaceStepResponse response = objectMapper.readValue(cleanJson, SpaceStepResponse.class);
 
             // Validate response
             if (response.getStatus() == null) {
-                log.warn("JSON response missing status field, defaulting to PENDING");
-                response.setStatus(ReservationStepResponse.StepStatus.PENDING);
+                log.warn("JSON response missing status field, defaulting to ERROR");
+                response.setStatus(SpaceStepResponse.StepStatus.ERROR);
             }
             if (response.getResponse() == null || response.getResponse().isEmpty()) {
                 log.warn("JSON response missing response field");
@@ -295,12 +293,54 @@ public abstract class BaseMatrixAssistantAgent {
         } catch (Exception e) {
             log.error("Error parsing JSON response: {}", e.getMessage(), e);
             log.debug("Failed JSON content: {}", jsonContent);
-            // Fallback: try to extract response text and return as PENDING
-            return Mono.just(ReservationStepResponse.builder()
-                    .status(ReservationStepResponse.StepStatus.PENDING)
+            // Fallback: try to extract response text and return as ERROR
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ERROR)
                     .response(jsonContent) // Return raw content as fallback
                     .build());
         }
+    }
+
+    /**
+     * Maps legacy ReservationStepResponse to SpaceStepResponse.
+     */
+    private SpaceStepResponse mapReservationToSpaceResponse(SpaceStepResponse reservation) {
+        if (reservation == null) {
+            return SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ERROR)
+                    .response("Réponse vide.")
+                    .build();
+        }
+
+        SpaceStepResponse.StepStatus status = SpaceStepResponse.StepStatus.ANSWER_USER;
+        switch (reservation.getStatus()) {
+            case COMPLETED:
+                status = SpaceStepResponse.StepStatus.COMPLETED;
+                break;
+            case CANCEL:
+                status = SpaceStepResponse.StepStatus.CANCEL;
+                break;
+            case ERROR:
+                status = SpaceStepResponse.StepStatus.ERROR;
+                break;
+            case SWITCH_STEP:
+                status = SpaceStepResponse.StepStatus.SWITCH_STEP;
+                break;
+            case ASK_USER:
+            default:
+                status = SpaceStepResponse.StepStatus.ASK_USER;
+                break;
+        }
+
+        return SpaceStepResponse.builder()
+                .status(status)
+                .nextStep(null)
+                .internalMessage(reservation.getInternalMessage())
+                .response(reservation.getResponse())
+                .spaceId(reservation.getSpaceId())
+                .period(reservation.getPeriod())
+                .locale(reservation.getLocale())
+                .build();
     }
 
     /**

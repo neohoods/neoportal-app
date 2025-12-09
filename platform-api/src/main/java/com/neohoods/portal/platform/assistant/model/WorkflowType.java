@@ -20,7 +20,7 @@ public enum WorkflowType {
      * Space reservations
      * Uses list_spaces, check_space_availability, create_reservation, generate_payment_link
      */
-    RESERVATION,
+    SPACE,
 
     /**
      * Support requests (for future implementation)

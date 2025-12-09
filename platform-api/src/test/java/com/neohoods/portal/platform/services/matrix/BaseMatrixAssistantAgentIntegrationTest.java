@@ -102,7 +102,8 @@ public abstract class BaseMatrixAssistantAgentIntegrationTest extends BaseIntegr
                     "MISTRAL_AI_TOKEN not set - skipping integration test");
         }
         // Create test user
-        // IMPORTANT: Username must match the Matrix user ID format (@username:server.com)
+        // IMPORTANT: Username must match the Matrix user ID format
+        // (@username:server.com)
         // The getUser() method extracts "testuser" from "@testuser:chat.neohoods.com"
         testUser = new UserEntity();
         testUser.setId(UUID.randomUUID());
@@ -123,14 +124,17 @@ public abstract class BaseMatrixAssistantAgentIntegrationTest extends BaseIntegr
         apartment808.setType(com.neohoods.portal.platform.entities.UnitTypeForEntity.FLAT);
         apartment808 = unitRepository.save(apartment808);
 
-        // Create a unit for testUser and set it as primary unit (required for COMMON_ROOM reservations)
+        // Create a unit for testUser and set it as primary unit (required for
+        // COMMON_ROOM reservations)
         // For PARKING, it's optional but helps avoid errors
-        // createUnit with adminId automatically adds the user as ADMIN member and sets it as primary if it's the first unit
+        // createUnit with adminId automatically adds the user as ADMIN member and sets
+        // it as primary if it's the first unit
         if (unitsService.getUserUnits(testUser.getId()).count().block() == 0) {
             unitsService.createUnit("Test Unit " + testUser.getId(), null, testUser.getId()).block();
         }
 
-        // Refresh testUser to get the updated primaryUnit (createUnit should have set it automatically)
+        // Refresh testUser to get the updated primaryUnit (createUnit should have set
+        // it automatically)
         testUser = usersRepository.findById(testUser.getId()).orElse(testUser);
 
         // Verify that primaryUnit is set
@@ -228,4 +232,3 @@ public abstract class BaseMatrixAssistantAgentIntegrationTest extends BaseIntegr
                 .build();
     }
 }
-

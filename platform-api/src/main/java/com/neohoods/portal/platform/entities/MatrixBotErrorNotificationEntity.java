@@ -29,33 +29,3 @@ public class MatrixBotErrorNotificationEntity {
     @Column(name = "error_message", columnDefinition = "text")
     private String errorMessage;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

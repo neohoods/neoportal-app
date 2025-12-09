@@ -18,10 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
 import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
 import com.neohoods.portal.platform.assistant.model.WorkflowType;
+import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
 import com.neohoods.portal.platform.exceptions.CodedException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +69,7 @@ public class MatrixAssistantRouter {
     private MatrixAssistantResidentInfoAgent residentInfoAgent;
 
     @Autowired(required = false)
-    private MatrixAssistantReservationAgent reservationAgent;
+    private MatrixAssistantSpaceAgent spaceAgent;
 
     @Autowired(required = false)
     private MatrixAssistantHelpAgent helpAgent;
@@ -401,7 +400,7 @@ public class MatrixAssistantRouter {
      */
     private boolean requiresDM(WorkflowType workflowType) {
         switch (workflowType) {
-            case RESERVATION:
+            case SPACE:
                 return true; // Reservations must be in DM
             case GENERAL:
             case RESIDENT_INFO:
@@ -426,10 +425,10 @@ public class MatrixAssistantRouter {
                 || lower.contains("booking") || lower.contains("book");
         boolean mentionsParking = lower.contains("parking") || lower.contains("place de parking");
 
-        if ((mentionsReservation || mentionsParking) && workflowType != WorkflowType.RESERVATION) {
+        if ((mentionsReservation || mentionsParking) && workflowType != WorkflowType.SPACE) {
             log.warn("Heuristic override: forcing workflow to RESERVATION (previous: {}) for message: {}",
                     workflowType, userMessage);
-            return WorkflowType.RESERVATION;
+            return WorkflowType.SPACE;
         }
 
         return workflowType;
@@ -487,9 +486,9 @@ public class MatrixAssistantRouter {
                     return Mono.just("Je peux vous aider à trouver des informations sur les résidents.");
                 }
 
-            case RESERVATION:
-                if (reservationAgent != null) {
-                    return reservationAgent.handleMessage(userMessage, conversationHistory, authContext);
+            case SPACE:
+                if (spaceAgent != null) {
+                    return spaceAgent.handleMessage(userMessage, conversationHistory, authContext);
                 } else {
                     log.warn("Reservation agent not available, falling back to general agent");
                     if (generalAgent != null) {

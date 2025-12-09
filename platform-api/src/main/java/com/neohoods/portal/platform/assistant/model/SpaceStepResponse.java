@@ -8,22 +8,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Represents the structured response from the LLM for reservation workflow steps.
+ * Represents the structured response from the LLM for space workflow steps.
  * This is the protocol between LLM and backend for state machine transitions.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationStepResponse {
+public class SpaceStepResponse {
     /**
      * Status of the step processing
-     * - PENDING: LLM needs more conversation with user
-     * - COMPLETED: Step is complete, can proceed to next step
-     * - CANCELED: User wants to cancel/change, should clear context
+     * - ANSWER_USER: Return message to user without state change
+     * - ASK_USER: Return message to user and remember we're waiting for answer on
+     * this step
+     * - SWITCH_STEP: Move to next step without user interaction (internal message
+     * passed to next step)
+     * - CANCEL: User wants to cancel/change, should clear context
+     * - COMPLETED: Workflow is complete
+     * - ERROR: LLM couldn't complete, reset context to REQUEST_SPACE_INFO
      */
     @JsonProperty("status")
     private StepStatus status;
+
+    /**
+     * Next step when status == SWITCH_STEP
+     */
+    @JsonProperty("nextStep")
+    private SpaceStep nextStep;
+
+    /**
+     * Internal message passed to next step when status == SWITCH_STEP
+     * This is NOT shown to the user, but used as context for the next step's LLM
+     */
+    @JsonProperty("internalMessage")
+    private String internalMessage;
 
     /**
      * Response message to return to the user
@@ -57,9 +75,13 @@ public class ReservationStepResponse {
      * Enum for step status
      */
     public enum StepStatus {
-        PENDING,   // LLM needs more conversation
-        COMPLETED, // Step is complete
-        CANCELED   // User wants to cancel/change
+        ANSWER_USER, // Return message to user without state change
+        ASK_USER, // Return message to user and remember we're waiting for answer on this step
+        SWITCH_STEP, // Move to next step without user interaction
+        CANCEL, // User wants to cancel/change
+        COMPLETED, // Workflow is complete
+        ERROR, // LLM couldn't complete, reset context
+        RETRY // Retry the same handler with enriched context (see section 14)
     }
 
     /**
@@ -87,14 +109,27 @@ public class ReservationStepResponse {
      * Checks if the response indicates cancellation
      */
     public boolean isCanceled() {
-        return status == StepStatus.CANCELED;
+        return status == StepStatus.CANCEL;
     }
 
     /**
-     * Checks if the response is pending (needs more conversation)
+     * Checks if the response is asking user (waiting for answer)
      */
-    public boolean isPending() {
-        return status == StepStatus.PENDING;
+    public boolean isAskingUser() {
+        return status == StepStatus.ASK_USER;
+    }
+
+    /**
+     * Checks if the response is switching to next step
+     */
+    public boolean isSwitchingStep() {
+        return status == StepStatus.SWITCH_STEP;
+    }
+
+    /**
+     * Checks if the response is an error
+     */
+    public boolean isError() {
+        return status == StepStatus.ERROR;
     }
 }
-
