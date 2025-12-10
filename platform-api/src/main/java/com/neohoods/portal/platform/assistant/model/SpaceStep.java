@@ -3,16 +3,15 @@ package com.neohoods.portal.platform.assistant.model;
 /**
  * Enum representing the current step in the space workflow.
  * 
- * The space workflow follows a 7-step process:
+ * The space workflow follows a 6-step process:
  * 1. REQUEST_SPACE_INFO - User asks for information about spaces
- * 2. CHOOSE_SPACE - User chooses a specific space to reserve
- * 3. CHOOSE_PERIOD - User chooses the reservation period (dates and times)
- * 4. CONFIRM_RESERVATION_SUMMARY - Automatically show reservation summary after
- * period is chosen
- * 5. COMPLETE_RESERVATION - Ask user for confirmation and create reservation if
+ * 2. CHOOSE_SPACE - User chooses a specific space AND period (dates and times) to reserve
+ * 3. CONFIRM_RESERVATION_SUMMARY - Automatically show reservation summary after
+ * space and period are chosen
+ * 4. COMPLETE_RESERVATION - Ask user for confirmation and create reservation if
  * confirmed
- * 6. PAYMENT_INSTRUCTIONS - Show payment link if payment is required
- * 7. PAYMENT_CONFIRMED - Background step (handled by payment webhook)
+ * 5. PAYMENT_INSTRUCTIONS - Show payment link if payment is required
+ * 6. PAYMENT_CONFIRMED - Background step (handled by payment webhook)
  */
 public enum SpaceStep {
     /**
@@ -24,28 +23,21 @@ public enum SpaceStep {
     REQUEST_SPACE_INFO,
 
     /**
-     * Step 2: Choose the space
-     * - User has chosen a specific space
+     * Step 2: Choose the space and period
+     * - User chooses a specific space AND reservation period (dates and times)
      * - Agent must extract spaceId UUID from list_spaces or user's choice
-     * - Once spaceId is found and stored, move to Step 3
+     * - Agent must extract dates and times from user message or ask for them
+     * - Optionally call check_space_availability to verify availability
+     * - Once both spaceId and period are collected, automatically move to Step 3
      */
     CHOOSE_SPACE,
 
     /**
-     * Step 3: Choose the period
-     * - Agent has spaceId from Step 2
-     * - Agent must get dates and times from user or extract from message
-     * - Optionally call check_space_availability to verify availability
-     * - Once dates and times are collected, automatically move to Step 4
-     */
-    CHOOSE_PERIOD,
-
-    /**
-     * Step 4: Confirm reservation summary (automatic)
+     * Step 3: Confirm reservation summary (automatic)
      * - Agent has spaceId, startDate, endDate, startTime, endTime
-     * - Automatically triggered after Step 3 completes
+     * - Automatically triggered after Step 2 completes
      * - Agent must display a summary of the reservation (without creating it)
-     * - After showing summary, move to Step 5
+     * - After showing summary, move to Step 4
      */
     CONFIRM_RESERVATION_SUMMARY,
 

@@ -90,6 +90,17 @@ public class RequestSpaceInfoStepHandler extends BaseSpaceStepHandler {
                         context.updateWorkflowState("locale", userLocale);
                     }
 
+                    // Guardrail: if response is missing or generic error, provide a clear prompt-like message
+                    String resp = stepResponse.getResponse();
+                    if (resp == null || resp.isBlank()
+                            || resp.toLowerCase().contains("erreur lors du traitement")) {
+                        String fallback = "Voici les places de parking disponibles. Quelle place souhaitez-vous réserver ?";
+                        return Mono.just(SpaceStepResponse.builder()
+                                .status(SpaceStepResponse.StepStatus.ASK_USER)
+                                .response(fallback)
+                                .build());
+                    }
+
                     // REQUEST_SPACE_INFO is purely informational - we never store spaceId here
                     // If user has chosen a space, the response should have SWITCH_STEP to
                     // CHOOSE_SPACE

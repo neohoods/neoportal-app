@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.model.ReservationPeriod;
 import com.neohoods.portal.platform.assistant.model.SpaceStep;
 import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
 import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
@@ -104,7 +105,8 @@ public class SpaceStateMachine {
                                     context, authContext, stepHandlers, iteration);
 
                         case ASK_USER:
-                            return handleAskUser(currentStep, stepResponse, context);
+                            return handleAskUser(currentStep, stepResponse, context, stepHandlers,
+                                    userMessage, conversationHistory, authContext, iteration);
 
                         case ANSWER_USER:
                             return handleAnswerUser(currentStep, stepResponse);
@@ -249,11 +251,92 @@ public class SpaceStateMachine {
 
     /**
      * Handles ASK_USER status - stores state and returns response
+     * Also checks if we can automatically progress (e.g., CHOOSE_SPACE with both
+     * spaceId and period)
      */
     private Mono<SpaceStepResponse> handleAskUser(
             SpaceStep currentStep,
             SpaceStepResponse stepResponse,
-            MatrixAssistantAgentContextService.AgentContext context) {
+            MatrixAssistantAgentContextService.AgentContext context,
+            Map<SpaceStep, SpaceStepHandler> stepHandlers,
+            String userMessage,
+            List<Map<String, Object>> conversationHistory,
+            MatrixAssistantAuthContext authContext,
+            int iteration) {
+
+        // Special case: CHOOSE_SPACE - if we have both spaceId and period, force
+        // transition to CONFIRM_RESERVATION_SUMMARY
+        if (currentStep == SpaceStep.CHOOSE_SPACE && context != null) {
+            String spaceId = stepResponse.getSpaceId();
+            if (spaceId == null) {
+                spaceId = context.getWorkflowStateValue("spaceId", String.class);
+            }
+
+            ReservationPeriod period = stepResponse.getPeriod();
+            boolean hasPeriodFromResponse = period != null && period.isComplete();
+
+            // Check context for period if not in response
+            boolean hasPeriodInContext = false;
+            if (!hasPeriodFromResponse) {
+                Object startDateTimeObj = context.getWorkflowState().get("startDateTime");
+                Object endDateTimeObj = context.getWorkflowState().get("endDateTime");
+                Object startDateObj = context.getWorkflowState().get("startDate");
+                Object endDateObj = context.getWorkflowState().get("endDate");
+                hasPeriodInContext = (startDateTimeObj != null && endDateTimeObj != null) ||
+                        (startDateObj != null && endDateObj != null);
+
+                // Build period from context if needed
+                if (hasPeriodInContext && period == null) {
+                    String startDate = context.getWorkflowStateValue("startDate", String.class);
+                    String endDate = context.getWorkflowStateValue("endDate", String.class);
+                    String startTime = context.getWorkflowStateValue("startTime", String.class);
+                    String endTime = context.getWorkflowStateValue("endTime", String.class);
+
+                    if (startDate != null && endDate != null) {
+                        period = ReservationPeriod.builder()
+                                .startDate(startDate)
+                                .endDate(endDate)
+                                .startTime(startTime)
+                                .endTime(endTime)
+                                .build();
+                    }
+                }
+            }
+
+            // If we have both spaceId and period, force transition
+            if (spaceId != null && period != null && period.isComplete()) {
+                log.warn(
+                        "⚠️ CHOOSE_SPACE: LLM returned ASK_USER but we have both spaceId and period - FORCING SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY");
+
+                // Store data in context first
+                context.updateWorkflowState("spaceId", spaceId);
+                if (period.getStartDate() != null) {
+                    context.updateWorkflowState("startDate", period.getStartDate());
+                }
+                if (period.getEndDate() != null) {
+                    context.updateWorkflowState("endDate", period.getEndDate());
+                }
+                if (period.getStartTime() != null) {
+                    context.updateWorkflowState("startTime", period.getStartTime());
+                }
+                if (period.getEndTime() != null) {
+                    context.updateWorkflowState("endTime", period.getEndTime());
+                }
+
+                // Force transition to CONFIRM_RESERVATION_SUMMARY
+                SpaceStepResponse forcedResponse = SpaceStepResponse.builder()
+                        .status(SpaceStepResponse.StepStatus.SWITCH_STEP)
+                        .nextStep(SpaceStep.CONFIRM_RESERVATION_SUMMARY)
+                        .response("Parfait ! J'ai identifié votre réservation.")
+                        .spaceId(spaceId)
+                        .period(period)
+                        .build();
+
+                return handleSwitchStep(
+                        currentStep, forcedResponse, userMessage, conversationHistory,
+                        context, authContext, stepHandlers, iteration);
+            }
+        }
 
         // Store in context that we're waiting for user input on this step
         if (context != null) {

@@ -141,6 +141,8 @@ neohoods:
           feedback-days-after: ${MATRIX_ASSISTANT_REMINDERS_FEEDBACK_DAYS:1}
         notifications:
           enabled: ${MATRIX_ASSISTANT_NOTIFICATIONS_ENABLED:false}
+        debug:
+          context: ${MATRIX_ASSISTANT_DEBUG_CONTEXT:true}
 mailersend:
   api-key: ${MAILERSEND_API_KEY}
   from:

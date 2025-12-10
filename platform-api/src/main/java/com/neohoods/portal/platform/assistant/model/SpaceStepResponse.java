@@ -72,6 +72,15 @@ public class SpaceStepResponse {
     private String locale;
 
     /**
+     * Map of available space choices: key is space number (e.g., "7", "23"), value is UUID
+     * Example: {"7": "550e8400-e29b-41d4-a716-446655440101", "23": "550e8400-e29b-41d4-a716-446655440102"}
+     * Should be provided when status == ASK_USER and user needs to choose from options
+     * This allows the LLM to map user's choice (e.g., "23") to the correct UUID
+     */
+    @JsonProperty("availableSpaces")
+    private java.util.Map<String, String> availableSpaces;
+
+    /**
      * Enum for step status
      */
     public enum StepStatus {

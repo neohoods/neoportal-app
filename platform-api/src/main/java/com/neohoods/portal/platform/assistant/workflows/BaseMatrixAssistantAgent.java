@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,8 @@ import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPContent;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPTool;
 import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.model.ReservationPeriod;
+import com.neohoods.portal.platform.assistant.model.SpaceStep;
 import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
 import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
 import com.neohoods.portal.platform.services.matrix.rag.MatrixAssistantRAGService;
@@ -134,6 +139,20 @@ public abstract class BaseMatrixAssistantAgent {
             String systemPrompt,
             List<Map<String, Object>> tools,
             MatrixAssistantAuthContext authContext) {
+        return callMistralAPIWithJSONResponse(null, userMessage, conversationHistory, systemPrompt, tools, authContext);
+    }
+
+    /**
+     * Calls Mistral API with JSON response format for structured protocol, with an
+     * optional context label for logging (e.g., step name).
+     */
+    protected Mono<SpaceStepResponse> callMistralAPIWithJSONResponse(
+            String contextLabel,
+            String userMessage,
+            List<Map<String, Object>> conversationHistory,
+            String systemPrompt,
+            List<Map<String, Object>> tools,
+            MatrixAssistantAuthContext authContext) {
 
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
@@ -149,6 +168,8 @@ public abstract class BaseMatrixAssistantAgent {
         }
 
         return ragContextMono.flatMap(ragContext -> {
+            // Capture current MDC context to propagate across async threads (Netty)
+            Map<String, String> mdcContext = org.slf4j.MDC.getCopyOfContextMap();
             // Build messages
             List<Map<String, Object>> messages = new ArrayList<>();
 
@@ -197,13 +218,24 @@ public abstract class BaseMatrixAssistantAgent {
             requestBody.put("temperature", 0.7);
             requestBody.put("max_tokens", 1000);
 
-            log.debug("Calling Mistral API with JSON response format for agent {}", getClass().getSimpleName());
+            String logLabel = contextLabel != null ? contextLabel : "JSON response format";
+            // Log the complete prompt and messages BEFORE sending HTTP request
+            // Restore MDC context for logging
+            withMdc(mdcContext, () -> logMistralRequest(logLabel, requestBody, messages, mdcContext));
+
+            log.info("🚀 Sending HTTP request to Mistral API [{}]", logLabel);
 
             return webClient.post()
                     .uri("/chat/completions")
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(Map.class)
+                    .doOnNext(response -> {
+                        log.info("✅ Received HTTP response from Mistral API [{}]", logLabel);
+                        // Restore MDC context in the async thread
+                        Map<String, String> contextToUse = mdcContext != null ? mdcContext : Map.of();
+                        withMdc(contextToUse, () -> logMistralResponse(logLabel, response, contextToUse));
+                    })
                     .flatMap(response -> processMistralJSONResponse(response, authContext, messages, ragContext, tools))
                     .onErrorResume(e -> {
                         String errorMsg = e instanceof Exception ? ((Exception) e).getMessage() : e.toString();
@@ -246,9 +278,37 @@ public abstract class BaseMatrixAssistantAgent {
         if (toolCalls != null && !toolCalls.isEmpty()) {
             log.info("Agent {} requested {} tool call(s) in JSON response mode", getClass().getSimpleName(),
                     toolCalls.size());
-            // Handle tool calls recursively, then parse final JSON response
+
+            // Check if Mistral is calling submit_reservation_step (function call for
+            // structured output)
+            for (Map<String, Object> toolCall : toolCalls) {
+                Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                if (function != null) {
+                    String functionName = (String) function.get("name");
+                    if ("submit_reservation_step".equals(functionName)) {
+                        // This is a function call for structured output - extract arguments directly
+                        log.info("Agent {} called submit_reservation_step - extracting structured response",
+                                getClass().getSimpleName());
+                        String argumentsJson = (String) function.get("arguments");
+                        try {
+                            return parseSubmitReservationStepArguments(argumentsJson);
+                        } catch (Exception e) {
+                            log.error("Error parsing submit_reservation_step arguments: {}", e.getMessage(), e);
+                            return Mono.just(SpaceStepResponse.builder()
+                                    .status(SpaceStepResponse.StepStatus.ERROR)
+                                    .response("Erreur lors du traitement de la réponse structurée.")
+                                    .build());
+                        }
+                    }
+                }
+            }
+
+            // Handle other tool calls recursively, then parse final JSON response
+            // Extract contextLabel from MDC if available (e.g., step=CHOOSE_SPACE)
+            Map<String, String> currentMdc = org.slf4j.MDC.getCopyOfContextMap();
+            String contextLabel = currentMdc != null ? currentMdc.get("step") : null;
             return callMistralWithToolResultsRecursiveForJSON(
-                    previousMessages, message, toolCalls, authContext, ragContext, tools, 0)
+                    contextLabel, previousMessages, message, toolCalls, authContext, ragContext, tools, 0)
                     .flatMap(finalResponse -> {
                         // After tool calls, we should get a final JSON response
                         // Try to parse it as ReservationStepResponse
@@ -269,6 +329,111 @@ public abstract class BaseMatrixAssistantAgent {
     }
 
     /**
+     * Parses submit_reservation_step function call arguments into
+     * SpaceStepResponse.
+     * This is used when Mistral calls submit_reservation_step as a function call
+     * to force structured JSON output.
+     */
+    @SuppressWarnings("unchecked")
+    private Mono<SpaceStepResponse> parseSubmitReservationStepArguments(String argumentsJson) {
+        try {
+            Map<String, Object> args = objectMapper.readValue(
+                    argumentsJson,
+                    objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+
+            SpaceStepResponse.StepStatus status;
+            try {
+                String statusStr = (String) args.get("status");
+                status = SpaceStepResponse.StepStatus.valueOf(statusStr);
+            } catch (Exception e) {
+                log.warn("Invalid status in submit_reservation_step arguments: {}, defaulting to ASK_USER",
+                        args.get("status"));
+                status = SpaceStepResponse.StepStatus.ASK_USER;
+            }
+
+            String response = (String) args.get("response");
+            if (response == null || response.isEmpty()) {
+                response = "Réponse vide.";
+            }
+
+            String spaceId = (String) args.get("spaceId");
+
+            ReservationPeriod period = null;
+            Map<String, Object> periodMap = (Map<String, Object>) args.get("period");
+            if (periodMap != null) {
+                String startDate = (String) periodMap.get("startDate");
+                String endDate = (String) periodMap.get("endDate");
+                String startTime = (String) periodMap.get("startTime");
+                String endTime = (String) periodMap.get("endTime");
+
+                if (startDate != null && endDate != null) {
+                    period = ReservationPeriod.builder()
+                            .startDate(startDate)
+                            .endDate(endDate)
+                            .startTime(startTime)
+                            .endTime(endTime)
+                            .build();
+                }
+            }
+
+            SpaceStep nextStep = null;
+            String nextStepStr = (String) args.get("nextStep");
+            if (nextStepStr != null) {
+                try {
+                    nextStep = SpaceStep.valueOf(nextStepStr);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid nextStep in submit_reservation_step arguments: {}", nextStepStr);
+                }
+            }
+
+            // Parse availableSpaces map (key = space number, value = UUID)
+            java.util.Map<String, String> availableSpaces = null;
+            Object availableSpacesObj = args.get("availableSpaces");
+            if (availableSpacesObj != null) {
+                if (availableSpacesObj instanceof java.util.Map) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> spacesMap = (java.util.Map<String, Object>) availableSpacesObj;
+                    availableSpaces = new java.util.HashMap<>();
+                    for (java.util.Map.Entry<String, Object> entry : spacesMap.entrySet()) {
+                        String key = entry.getKey();
+                        String value = entry.getValue() != null ? entry.getValue().toString() : null;
+                        if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) {
+                            availableSpaces.put(key, value);
+                        }
+                    }
+                } else if (availableSpacesObj instanceof java.util.List) {
+                    // Backward compatibility: convert list to map (numbers only, no UUIDs)
+                    @SuppressWarnings("unchecked")
+                    java.util.List<Object> spacesList = (java.util.List<Object>) availableSpacesObj;
+                    availableSpaces = new java.util.HashMap<>();
+                    for (Object obj : spacesList) {
+                        String number = obj != null ? obj.toString() : null;
+                        if (number != null && !number.isEmpty()) {
+                            // No UUID available in list format, will need to be resolved later
+                            availableSpaces.put(number, null);
+                        }
+                    }
+                }
+            }
+
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(status)
+                    .response(response)
+                    .spaceId(spaceId)
+                    .period(period)
+                    .nextStep(nextStep)
+                    .build());
+        } catch (Exception e) {
+            log.error("Error parsing submit_reservation_step arguments: {}", e.getMessage(), e);
+            log.debug("Failed arguments JSON: {}", argumentsJson);
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ERROR)
+                    .response("Erreur lors du traitement de la réponse structurée.")
+                    .build());
+        }
+    }
+
+    /**
      * Parses JSON content into ReservationStepResponse
      * Handles cases where Mistral returns text before/after JSON or markdown code
      * blocks
@@ -277,12 +442,16 @@ public abstract class BaseMatrixAssistantAgent {
         try {
             String cleanJson = extractJSONFromText(jsonContent);
 
+            // Map old status "PENDING" to "ASK_USER" for backward compatibility
+            cleanJson = cleanJson.replaceAll("\"status\"\\s*:\\s*\"PENDING\"", "\"status\":\"ASK_USER\"");
+            cleanJson = cleanJson.replaceAll("\"status\"\\s*:\\s*\"COMPLETED\"", "\"status\":\"SWITCH_STEP\"");
+
             SpaceStepResponse response = objectMapper.readValue(cleanJson, SpaceStepResponse.class);
 
             // Validate response
             if (response.getStatus() == null) {
-                log.warn("JSON response missing status field, defaulting to ERROR");
-                response.setStatus(SpaceStepResponse.StepStatus.ERROR);
+                log.warn("JSON response missing status field, defaulting to ASK_USER");
+                response.setStatus(SpaceStepResponse.StepStatus.ASK_USER);
             }
             if (response.getResponse() == null || response.getResponse().isEmpty()) {
                 log.warn("JSON response missing response field");
@@ -293,9 +462,10 @@ public abstract class BaseMatrixAssistantAgent {
         } catch (Exception e) {
             log.error("Error parsing JSON response: {}", e.getMessage(), e);
             log.debug("Failed JSON content: {}", jsonContent);
-            // Fallback: try to extract response text and return as ERROR
+            // Fallback: try to extract response text and return as ASK_USER to keep the
+            // flow
             return Mono.just(SpaceStepResponse.builder()
-                    .status(SpaceStepResponse.StepStatus.ERROR)
+                    .status(SpaceStepResponse.StepStatus.ASK_USER)
                     .response(jsonContent) // Return raw content as fallback
                     .build());
         }
@@ -430,6 +600,23 @@ public abstract class BaseMatrixAssistantAgent {
             String ragContext,
             List<Map<String, Object>> tools,
             int iteration) {
+        return callMistralWithToolResultsRecursiveForJSON(null, previousMessages, assistantMessage, toolCalls,
+                authContext, ragContext, tools, iteration);
+    }
+
+    /**
+     * Recursive tool handling with optional context label for logging
+     */
+    @SuppressWarnings("unchecked")
+    protected Mono<String> callMistralWithToolResultsRecursiveForJSON(
+            String contextLabel,
+            List<Map<String, Object>> previousMessages,
+            Map<String, Object> assistantMessage,
+            List<Map<String, Object>> toolCalls,
+            MatrixAssistantAuthContext authContext,
+            String ragContext,
+            List<Map<String, Object>> tools,
+            int iteration) {
 
         if (iteration >= MAX_TOOL_CALL_CHAIN) {
             log.warn("Max tool call chain reached ({}) for agent {} in JSON mode", MAX_TOOL_CALL_CHAIN,
@@ -448,6 +635,12 @@ public abstract class BaseMatrixAssistantAgent {
             return Mono.just("{\"status\":\"PENDING\",\"response\":\"Erreur lors du traitement de votre demande.\"}");
         }
 
+        // Capture MDC for propagation in recursive calls
+        Map<String, String> mdcContext = org.slf4j.MDC.getCopyOfContextMap();
+        String logLabel = contextLabel != null
+                ? "step=" + contextLabel + " (recursive iteration " + (iteration + 1) + ")"
+                : "JSON response format (recursive iteration " + (iteration + 1) + ")";
+
         // Execute all tool calls
         List<Map<String, Object>> toolResults = new ArrayList<>();
         for (Map<String, Object> toolCall : toolCalls) {
@@ -456,10 +649,22 @@ public abstract class BaseMatrixAssistantAgent {
             String functionName = (String) function.get("name");
             String functionArgumentsJson = (String) function.get("arguments");
 
+            // Special handling for submit_reservation_step: extract arguments and return as
+            // JSON
+            if ("submit_reservation_step".equals(functionName)) {
+                log.info("Agent {} called submit_reservation_step in recursive call - extracting structured response",
+                        getClass().getSimpleName());
+                // Return the arguments JSON directly as the final response
+                return Mono.just(functionArgumentsJson);
+            }
+
             try {
                 Map<String, Object> functionArguments = objectMapper.readValue(
                         functionArgumentsJson,
                         objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+
+                // Sanitize known args (e.g., spaceId) using context
+                functionArguments = sanitizeToolArguments(functionArguments, authContext);
 
                 // Call MCP tool
                 MatrixMCPModels.MCPToolResult toolResult = mcpAdapter.callMCPToolDirect(functionName,
@@ -500,6 +705,27 @@ public abstract class BaseMatrixAssistantAgent {
         // Add tool results
         messagesForNextCall.addAll(toolResults);
 
+        // Check if submit_reservation_step tool is available BEFORE building requestBody
+        boolean hasSubmitReservationStepTool = false;
+        for (Object toolObj : tools) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> toolMap = (Map<String, Object>) toolObj;
+            if (toolMap != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> func = (Map<String, Object>) toolMap.get("function");
+                if (func != null) {
+                    String name = (String) func.get("name");
+                    if ("submit_reservation_step".equals(name)) {
+                        hasSubmitReservationStepTool = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Note: We don't add a system message here because Mistral only accepts one system message
+        // per conversation. Instead, we rely on tool_choice to force the function call.
+
         // Call Mistral API again with tool results
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
@@ -512,7 +738,18 @@ public abstract class BaseMatrixAssistantAgent {
         requestBody.put("messages", messagesForNextCall);
         if (!tools.isEmpty()) {
             requestBody.put("tools", tools);
-            requestBody.put("tool_choice", "auto");
+            // If submit_reservation_step is available, force it to be called
+            // Mistral format: {"type": "function", "function": {"name": "function_name"}}
+            if (hasSubmitReservationStepTool) {
+                Map<String, Object> toolChoice = new HashMap<>();
+                toolChoice.put("type", "function");
+                Map<String, Object> functionChoice = new HashMap<>();
+                functionChoice.put("name", "submit_reservation_step");
+                toolChoice.put("function", functionChoice);
+                requestBody.put("tool_choice", toolChoice);
+            } else {
+                requestBody.put("tool_choice", "auto");
+            }
             // Note: response_format cannot be used with tools in Mistral API
             // The prompt must explicitly request JSON format
         } else {
@@ -522,14 +759,20 @@ public abstract class BaseMatrixAssistantAgent {
         requestBody.put("temperature", 0.7);
         requestBody.put("max_tokens", 1000);
 
-        log.debug("Calling Mistral API recursively (iteration {}) for agent {} in JSON mode", iteration + 1,
-                getClass().getSimpleName());
+        // Log the complete prompt and messages BEFORE sending HTTP request recursively
+        withMdc(mdcContext, () -> logMistralRequest(logLabel, requestBody, messagesForNextCall, mdcContext));
+
+        log.info("🚀 Sending HTTP request to Mistral API [{}]", logLabel);
 
         return webClient.post()
                 .uri("/chat/completions")
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(Map.class)
+                .doOnNext(response -> {
+                    log.info("✅ Received HTTP response from Mistral API [{}]", logLabel);
+                    withMdc(mdcContext, () -> logMistralResponse(logLabel, response, mdcContext));
+                })
                 .flatMap(response -> {
                     List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
                     if (choices == null || choices.isEmpty()) {
@@ -544,9 +787,10 @@ public abstract class BaseMatrixAssistantAgent {
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> newToolCalls = (List<Map<String, Object>>) message.get("tool_calls");
                     if (newToolCalls != null && !newToolCalls.isEmpty()) {
-                        // Recursive call for more tool calls
+                        // Recursive call for more tool calls (preserve contextLabel)
                         return callMistralWithToolResultsRecursiveForJSON(
-                                messagesForNextCall, message, newToolCalls, authContext, ragContext, tools,
+                                contextLabel, messagesForNextCall, message, newToolCalls, authContext, ragContext,
+                                tools,
                                 iteration + 1);
                     }
 
@@ -630,13 +874,16 @@ public abstract class BaseMatrixAssistantAgent {
             requestBody.put("temperature", 0.7);
             requestBody.put("max_tokens", 1000);
 
-            log.debug("Calling Mistral API for agent {} with {} tools", getClass().getSimpleName(), tools.size());
+            // Log the complete prompt and messages before calling Mistral
+            Map<String, String> mdcContext = org.slf4j.MDC.getCopyOfContextMap();
+            logMistralRequest("Standard response", requestBody, messages, mdcContext);
 
             return webClient.post()
                     .uri("/chat/completions")
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(Map.class)
+                    .doOnNext(response -> logMistralResponse("Standard response", response, mdcContext))
                     .flatMap(response -> processMistralResponse(response, authContext, messages, ragContext, tools))
                     .onErrorResume(e -> {
                         String errorMsg = e instanceof Exception ? ((Exception) e).getMessage() : e.toString();
@@ -1238,5 +1485,359 @@ public abstract class BaseMatrixAssistantAgent {
         // Default implementation: do nothing
         // Specialized agents can override this to extract information from tool results
         // and update their workflow context
+    }
+
+    private Map<String, Object> sanitizeToolArguments(
+            Map<String, Object> args,
+            MatrixAssistantAuthContext authContext) {
+        if (args == null || args.isEmpty()) {
+            return args;
+        }
+
+        Map<String, Object> sanitized = new HashMap<>(args);
+        // Normalize spaceId-like arguments
+        resolveSpaceIdAndReplace("spaceId", sanitized, authContext);
+        resolveSpaceIdAndReplace("space_id", sanitized, authContext);
+
+        return sanitized;
+    }
+
+    private boolean isValidUUID(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        try {
+            UUID.fromString(value);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Resolves a spaceId argument: if not a valid UUID, attempts to find it by
+     * number/name via list_spaces and replaces with the UUID.
+     */
+    private void resolveSpaceIdAndReplace(String key, Map<String, Object> args,
+            MatrixAssistantAuthContext authContext) {
+        Object value = args.get(key);
+        if (!(value instanceof String)) {
+            return;
+        }
+        String candidate = ((String) value).trim();
+        if (isValidUUID(candidate)) {
+            return; // already good
+        }
+
+        // Try context first
+        String roomId = authContext != null ? authContext.getRoomId() : null;
+        if (roomId != null) {
+            MatrixAssistantAgentContextService.AgentContext ctx = agentContextService.getContext(roomId);
+            if (ctx != null) {
+                String ctxSpaceId = ctx.getWorkflowStateValue("spaceId", String.class);
+                if (isValidUUID(ctxSpaceId)) {
+                    args.put(key, ctxSpaceId);
+                    return;
+                }
+            }
+        }
+
+        // Try to resolve via list_spaces (synchronous call)
+        try {
+            String resolved = resolveSpaceIdViaListSpaces(candidate, authContext);
+            if (resolved != null) {
+                args.put(key, resolved);
+            }
+        } catch (Exception e) {
+            log.warn("Could not resolve spaceId '{}' via list_spaces: {}", candidate, e.getMessage());
+        }
+    }
+
+    /**
+     * Calls list_spaces and attempts to find a matching space by number or name.
+     */
+    private String resolveSpaceIdViaListSpaces(String candidate, MatrixAssistantAuthContext authContext) {
+        Map<String, Object> listArgs = Map.of();
+        MatrixMCPModels.MCPToolResult toolResult = mcpAdapter.callMCPToolDirect("list_spaces", listArgs, authContext);
+        String text = toolResult.getContent().stream()
+                .map(MatrixMCPModels.MCPContent::getText)
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.joining("\n"));
+        if (text.isEmpty()) {
+            return null;
+        }
+
+        // Extract name -> id mapping
+        Map<String, String> nameToId = new HashMap<>();
+        Pattern idPattern = Pattern.compile("ID\\s*:\\s*([0-9a-fA-F-]{36})");
+        String[] lines = text.split("\\r?\\n");
+        String currentName = null;
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.startsWith("**")) {
+                // Name line like "**Place de parking N°7**"
+                currentName = trimmed.replace("*", "").trim();
+            }
+            Matcher m = idPattern.matcher(trimmed);
+            if (m.find() && currentName != null) {
+                nameToId.put(currentName.toLowerCase(), m.group(1));
+                currentName = null;
+            }
+        }
+
+        // Match by number if candidate is numeric
+        String candidateLower = candidate.toLowerCase();
+        boolean isNumeric = candidateLower.chars().allMatch(Character::isDigit);
+        if (isNumeric) {
+            for (Map.Entry<String, String> entry : nameToId.entrySet()) {
+                if (entry.getKey().contains(candidateLower)) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        // Match by name contains
+        for (Map.Entry<String, String> entry : nameToId.entrySet()) {
+            if (entry.getKey().contains(candidateLower)) {
+                return entry.getValue();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Logs the complete Mistral API request in a readable format
+     */
+    @SuppressWarnings("unchecked")
+    private void logMistralRequest(String context, Map<String, Object> requestBody,
+            List<Map<String, Object>> messages, Map<String, String> mdcContext) {
+        try {
+            withMdc(mdcContext, () -> {
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                log.info("🔵 MISTRAL REQUEST [{}] - {}", context, getClass().getSimpleName());
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log model and parameters
+                log.info("📋 Model: {}", requestBody.get("model"));
+                log.info("📋 Temperature: {}", requestBody.get("temperature"));
+                log.info("📋 Max tokens: {}", requestBody.get("max_tokens"));
+                if (requestBody.containsKey("tools")) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> tools = (List<Map<String, Object>>) requestBody.get("tools");
+                    log.info("📋 Tools: {} tool(s) available", tools != null ? tools.size() : 0);
+                    if (tools != null && !tools.isEmpty()) {
+                        for (Map<String, Object> tool : tools) {
+                            Map<String, Object> function = (Map<String, Object>) tool.get("function");
+                            if (function != null) {
+                                log.info("   └─ Tool: {}", function.get("name"));
+                            }
+                        }
+                    }
+                }
+                if (requestBody.containsKey("response_format")) {
+                    log.info("📋 Response format: {}", requestBody.get("response_format"));
+                }
+                if (requestBody.containsKey("tool_choice")) {
+                    log.info("📋 Tool choice: {}", requestBody.get("tool_choice"));
+                }
+
+                log.info("");
+                log.info("💬 MESSAGES:");
+                log.info("────────────────────────────────────────────────────────────────────────────────");
+
+                // Log all messages
+                for (int i = 0; i < messages.size(); i++) {
+                    Map<String, Object> msg = messages.get(i);
+                    String role = (String) msg.get("role");
+                    String content = (String) msg.get("content");
+
+                    log.info("[Message {}] Role: {}", i + 1, role.toUpperCase());
+
+                    if (content != null && !content.isEmpty()) {
+                        // Truncate very long content for readability
+                        String displayContent = content.length() > 2000
+                                ? content.substring(0, 2000) + "\n... [TRUNCATED - " + (content.length() - 2000)
+                                        + " more characters]"
+                                : content;
+                        log.info("Content:\n{}", displayContent);
+                    }
+
+                    // Log tool calls if present
+                    if (msg.containsKey("tool_calls")) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) msg.get("tool_calls");
+                        log.info("Tool calls: {} call(s)", toolCalls != null ? toolCalls.size() : 0);
+                        if (toolCalls != null) {
+                            for (Map<String, Object> toolCall : toolCalls) {
+                                Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                                if (function != null) {
+                                    log.info("   └─ Function: {} with args: {}",
+                                            function.get("name"),
+                                            function.get("arguments"));
+                                }
+                            }
+                        }
+                    }
+
+                    // Log tool results if present (truncated for readability)
+                    if (msg.containsKey("tool_call_id")) {
+                        log.info("Tool result for call_id: {}", msg.get("tool_call_id"));
+                        if (content != null) {
+                            // For list_spaces results, extract just the numbers for readability
+                            if (content.contains("Place de parking N°") || content.contains("**Place de parking")) {
+                                String numbers = extractParkingNumbers(content);
+                                if (numbers != null && !numbers.isEmpty()) {
+                                    log.info("Result (parking numbers): {}", numbers);
+                                } else {
+                                    String displayContent = content.length() > 300
+                                            ? content.substring(0, 300) + "\n... [TRUNCATED]"
+                                            : content;
+                                    log.info("Result: {}", displayContent);
+                                }
+                            } else {
+                                String displayContent = content.length() > 500
+                                        ? content.substring(0, 500) + "\n... [TRUNCATED]"
+                                        : content;
+                                log.info("Result: {}", displayContent);
+                            }
+                        }
+                    }
+
+                    log.info("");
+                }
+
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            });
+        } catch (Exception e) {
+            log.warn("Error logging Mistral request: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Logs the complete Mistral API response in a readable format
+     */
+    @SuppressWarnings("unchecked")
+    private void logMistralResponse(String context, Map<String, Object> response, Map<String, String> mdcContext) {
+        try {
+            withMdc(mdcContext, () -> {
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                log.info("🟢 MISTRAL RESPONSE [{}] - {}", context, getClass().getSimpleName());
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log usage if present
+                if (response.containsKey("usage")) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> usage = (Map<String, Object>) response.get("usage");
+                    log.info("📊 Usage:");
+                    log.info("   └─ Prompt tokens: {}", usage.get("prompt_tokens"));
+                    log.info("   └─ Completion tokens: {}", usage.get("completion_tokens"));
+                    log.info("   └─ Total tokens: {}", usage.get("total_tokens"));
+                    log.info("");
+                }
+
+                // Log choices
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                if (choices == null || choices.isEmpty()) {
+                    log.warn("⚠️  No choices in response!");
+                    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    return;
+                }
+
+                for (int i = 0; i < choices.size(); i++) {
+                    Map<String, Object> choice = choices.get(i);
+                    log.info("📦 Choice {}:", i + 1);
+                    log.info("   └─ Finish reason: {}", choice.get("finish_reason"));
+
+                    Map<String, Object> message = (Map<String, Object>) choice.get("message");
+                    if (message != null) {
+                        String role = (String) message.get("role");
+                        String content = (String) message.get("content");
+
+                        log.info("   └─ Role: {}", role);
+
+                        if (content != null && !content.isEmpty()) {
+                            // Truncate very long content for readability
+                            String displayContent = content.length() > 2000
+                                    ? content.substring(0, 2000) + "\n... [TRUNCATED - " + (content.length() - 2000)
+                                            + " more characters]"
+                                    : content;
+                            log.info("   └─ Content:\n{}", displayContent);
+                        } else {
+                            log.info("   └─ Content: [EMPTY]");
+                        }
+
+                        // Log tool calls if present
+                        if (message.containsKey("tool_calls")) {
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
+                            log.info("   └─ Tool calls: {} call(s)", toolCalls != null ? toolCalls.size() : 0);
+                            if (toolCalls != null) {
+                                for (int j = 0; j < toolCalls.size(); j++) {
+                                    Map<String, Object> toolCall = toolCalls.get(j);
+                                    Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                                    if (function != null) {
+                                        log.info("      └─ [{}] Function: {}", j + 1, function.get("name"));
+                                        String args = (String) function.get("arguments");
+                                        if (args != null) {
+                                            String displayArgs = args.length() > 1000
+                                                    ? args.substring(0, 1000) + "\n... [TRUNCATED]"
+                                                    : args;
+                                            log.info("         Arguments: {}", displayArgs);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    log.info("");
+                }
+
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            });
+        } catch (Exception e) {
+            log.warn("Error logging Mistral response: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extract parking numbers from list_spaces tool result for concise logging
+     */
+    private String extractParkingNumbers(String content) {
+        try {
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("N°(\\d+)");
+            java.util.regex.Matcher matcher = pattern.matcher(content);
+            java.util.List<String> numbers = new java.util.ArrayList<>();
+            while (matcher.find()) {
+                numbers.add(matcher.group(1));
+            }
+            if (!numbers.isEmpty()) {
+                return "N°" + String.join(", N°", numbers);
+            }
+        } catch (Exception e) {
+            // Ignore extraction errors
+        }
+        return null;
+    }
+
+    /**
+     * Execute an action with a specific MDC context, restoring the previous MDC
+     * afterwards.
+     */
+    private void withMdc(Map<String, String> mdcContext, Runnable action) {
+        Map<String, String> previous = org.slf4j.MDC.getCopyOfContextMap();
+        try {
+            if (mdcContext != null) {
+                org.slf4j.MDC.setContextMap(mdcContext);
+            }
+            action.run();
+        } finally {
+            if (previous != null) {
+                org.slf4j.MDC.setContextMap(previous);
+            } else {
+                org.slf4j.MDC.clear();
+            }
+        }
     }
 }

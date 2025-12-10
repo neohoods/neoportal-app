@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
 import com.neohoods.portal.platform.assistant.model.WorkflowType;
+import com.neohoods.portal.platform.assistant.services.ApplicationStartupTimeService;
 import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
 import com.neohoods.portal.platform.exceptions.CodedException;
 import jakarta.annotation.PostConstruct;
@@ -46,6 +47,7 @@ public class MatrixAssistantRouter {
     private final ObjectMapper objectMapper;
     private final ResourceLoader resourceLoader;
     private final MatrixAssistantAgentContextService agentContextService;
+    private final ApplicationStartupTimeService startupTimeService;
 
     @Value("${neohoods.portal.matrix.assistant.ai.provider}")
     private String provider;
@@ -149,7 +151,9 @@ public class MatrixAssistantRouter {
 
     /**
      * Filters conversation history to get only recent messages (last 10, within 15
-     * minutes)
+     * minutes).
+     * In local/dev environments, also excludes messages from before application startup
+     * to avoid stale conversation context after backend restart.
      */
     private List<Map<String, Object>> filterRecentMessages(List<Map<String, Object>> conversationHistory) {
         if (conversationHistory == null || conversationHistory.isEmpty()) {
@@ -158,20 +162,43 @@ public class MatrixAssistantRouter {
 
         long currentTime = System.currentTimeMillis();
         long fifteenMinutesAgo = currentTime - (15 * 60 * 1000); // 15 minutes in milliseconds
+        long startupTime = startupTimeService.getApplicationStartTimeMillis();
+        boolean filterByStartup = startupTimeService.shouldFilterByStartupTime();
 
-        // Filter messages within last 15 minutes
+        // Filter messages within last 15 minutes AND after application startup (in dev/local)
         List<Map<String, Object>> recentMessages = new ArrayList<>();
+        int skippedBeforeStartup = 0;
         for (Map<String, Object> message : conversationHistory) {
             Object timestampObj = message.get("timestamp");
             if (timestampObj instanceof Number) {
                 long timestamp = ((Number) timestampObj).longValue();
-                if (timestamp >= fifteenMinutesAgo) {
-                    recentMessages.add(message);
+                
+                // Check if message is within 15 minutes
+                if (timestamp < fifteenMinutesAgo) {
+                    continue; // Too old
                 }
+                
+                // In dev/local, also check if message is after application startup
+                if (filterByStartup && timestamp < startupTime) {
+                    skippedBeforeStartup++;
+                    continue; // Message from before restart
+                }
+                
+                recentMessages.add(message);
             } else {
                 // If no timestamp, assume it's recent (for backward compatibility)
-                recentMessages.add(message);
+                // But in dev/local, exclude if we're filtering by startup time
+                if (!filterByStartup) {
+                    recentMessages.add(message);
+                } else {
+                    skippedBeforeStartup++;
+                }
             }
+        }
+
+        if (skippedBeforeStartup > 0) {
+            log.info("Filtered out {} messages from before application startup (dev/local mode)",
+                    skippedBeforeStartup);
         }
 
         // Take last 10 messages (or all if less than 10)
@@ -179,7 +206,7 @@ public class MatrixAssistantRouter {
         List<Map<String, Object>> lastTenMessages = new ArrayList<>(
                 recentMessages.subList(startIndex, recentMessages.size()));
 
-        log.debug("Filtered to {} recent messages (within 15 min, last 10) out of {} total messages",
+        log.debug("Filtered to {} recent messages (within 15 min, after startup, last 10) out of {} total messages",
                 lastTenMessages.size(), conversationHistory.size());
 
         return lastTenMessages;
@@ -309,6 +336,16 @@ public class MatrixAssistantRouter {
             log.debug("Last user message is older than 15 minutes, ignoring current workflow");
         }
 
+        // If message is very short/elliptic and we already have a current workflow,
+        // keep it to avoid LLM chatter
+        if (currentWorkflow != null && userMessage != null && userMessage.trim().length() <= 18) {
+            log.debug("Short message with existing workflow {}, reusing it without LLM", currentWorkflow);
+            return Mono.just(currentWorkflow);
+        }
+
+        // Snapshot for lambda
+        final WorkflowType finalCurrentWorkflow = currentWorkflow;
+
         // Build enhanced prompt with current workflow information
         String enhancedPrompt = buildEnhancedRouterPrompt(currentWorkflow);
 
@@ -338,19 +375,54 @@ public class MatrixAssistantRouter {
         userMsg.put("content", userMessage);
         messages.add(userMsg);
 
+        // Create router function call tool to force structured output
+        List<Map<String, Object>> routerTools = new ArrayList<>();
+        Map<String, Object> routerTool = new HashMap<>();
+        routerTool.put("type", "function");
+        
+        Map<String, Object> routerFunction = new HashMap<>();
+        routerFunction.put("name", "route_to_workflow");
+        routerFunction.put("description", "Route the user's message to the appropriate workflow. You MUST call this function with the workflow type.");
+        
+        Map<String, Object> routerParameters = new HashMap<>();
+        routerParameters.put("type", "object");
+        Map<String, Object> routerProperties = new HashMap<>();
+        
+        Map<String, Object> workflowTypeField = new HashMap<>();
+        workflowTypeField.put("type", "string");
+        workflowTypeField.put("enum", java.util.Arrays.asList("GENERAL", "RESIDENT_INFO", "SPACE", "HELP", "SUPPORT"));
+        workflowTypeField.put("description", "The workflow type to route to");
+        routerProperties.put("workflowType", workflowTypeField);
+        
+        routerParameters.put("properties", routerProperties);
+        routerParameters.put("required", java.util.Arrays.asList("workflowType"));
+        routerFunction.put("parameters", routerParameters);
+        routerTool.put("function", routerFunction);
+        routerTools.add(routerTool);
+
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", model);
         requestBody.put("messages", messages);
-        requestBody.put("temperature", 0.3); // Lower temperature for more consistent classification
-        requestBody.put("max_tokens", 10); // Very short response (just the workflow type)
+        requestBody.put("temperature", 0.1); // very deterministic
+        requestBody.put("tools", routerTools);
+        // Force function call - Mistral format: {"type": "function", "function": {"name": "function_name"}}
+        Map<String, Object> toolChoice = new HashMap<>();
+        toolChoice.put("type", "function");
+        Map<String, Object> functionChoice = new HashMap<>();
+        functionChoice.put("name", "route_to_workflow");
+        toolChoice.put("function", functionChoice);
+        requestBody.put("tool_choice", toolChoice);
 
-        log.debug("Calling Mistral API for workflow identification");
+        Map<String, String> mdcContext = org.slf4j.MDC.getCopyOfContextMap();
+        // Log the complete prompt and messages before calling Mistral
+        logMistralRequest("Workflow identification", requestBody, messages, mdcContext);
 
         return webClient.post()
                 .uri("/chat/completions")
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(Map.class)
+                .doOnNext(response -> logMistralResponse("Workflow identification", response, mdcContext))
                 .map(response -> {
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
@@ -361,23 +433,56 @@ public class MatrixAssistantRouter {
 
                     Map<String, Object> choice = choices.get(0);
                     Map<String, Object> message = (Map<String, Object>) choice.get("message");
+                    
+                    // Check for function call (router now uses function calls)
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
+                    if (toolCalls != null && !toolCalls.isEmpty()) {
+                        Map<String, Object> toolCall = toolCalls.get(0);
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                        if (function != null && "route_to_workflow".equals(function.get("name"))) {
+                            String argumentsJson = (String) function.get("arguments");
+                            try {
+                                @SuppressWarnings("unchecked")
+                                Map<String, Object> args = objectMapper.readValue(
+                                        argumentsJson,
+                                        objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+                                String workflowTypeStr = (String) args.get("workflowType");
+                                if (workflowTypeStr != null) {
+                                    try {
+                                        WorkflowType workflow = WorkflowType.valueOf(workflowTypeStr);
+                                        log.debug("Parsed workflow type from function call: {}", workflow);
+                                        return workflow;
+                                    } catch (IllegalArgumentException e) {
+                                        log.warn("Invalid workflow type '{}' in function call arguments", workflowTypeStr);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                log.warn("Error parsing router function call arguments: {}", e.getMessage());
+                            }
+                        }
+                    }
+                    
+                    // Fallback: try to parse from content (should not happen with function calls)
                     String content = (String) message.get("content");
-
-                    if (content == null || content.trim().isEmpty()) {
-                        log.warn("Empty content in workflow identification response, defaulting to GENERAL");
-                        return WorkflowType.GENERAL;
+                    if (content != null && !content.trim().isEmpty()) {
+                        String workflowStr = content.trim().split("\\s+")[0].toUpperCase().replaceAll("[^A-Z_]", "");
+                        try {
+                            WorkflowType workflow = WorkflowType.valueOf(workflowStr);
+                            log.debug("Parsed workflow type from content: {}", workflow);
+                            return workflow;
+                        } catch (IllegalArgumentException e) {
+                            log.warn("Invalid workflow type '{}' in response content", workflowStr);
+                        }
                     }
-
-                    // Parse workflow type from response
-                    String workflowStr = content.trim().toUpperCase();
-                    try {
-                        WorkflowType workflow = WorkflowType.valueOf(workflowStr);
-                        log.debug("Parsed workflow type: {}", workflow);
-                        return workflow;
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Invalid workflow type '{}' in response, defaulting to GENERAL", workflowStr);
-                        return WorkflowType.GENERAL;
+                    
+                    // Final fallback
+                    log.warn("Could not parse workflow type from function call or content, using fallback");
+                    if (finalCurrentWorkflow != null) {
+                        return finalCurrentWorkflow;
                     }
+                    return WorkflowType.GENERAL;
                 })
                 .onErrorResume(e -> {
                     // Convert errors to CodedException and propagate
@@ -538,5 +643,133 @@ public class MatrixAssistantRouter {
         // For other exceptions, consider them as server errors if they're not
         // CodedException
         return !(e instanceof CodedException);
+    }
+
+    /**
+     * Logs the complete Mistral API request in a readable format
+     */
+    @SuppressWarnings("unchecked")
+    private void logMistralRequest(String context, Map<String, Object> requestBody, List<Map<String, Object>> messages,
+            Map<String, String> mdcContext) {
+        try {
+            withMdc(mdcContext, () -> {
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.info("🔵 MISTRAL REQUEST [{}] - Router", context);
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            
+            // Log model and parameters
+            log.info("📋 Model: {}", requestBody.get("model"));
+            log.info("📋 Temperature: {}", requestBody.get("temperature"));
+            log.info("📋 Max tokens: {}", requestBody.get("max_tokens"));
+            if (requestBody.containsKey("tool_choice")) {
+                log.info("📋 Tool choice: {}", requestBody.get("tool_choice"));
+            }
+            
+            log.info("");
+            log.info("💬 MESSAGES:");
+            log.info("────────────────────────────────────────────────────────────────────────────────");
+            
+            // Log all messages
+            for (int i = 0; i < messages.size(); i++) {
+                Map<String, Object> msg = messages.get(i);
+                String role = (String) msg.get("role");
+                String content = (String) msg.get("content");
+                
+                log.info("[Message {}] Role: {}", i + 1, role.toUpperCase());
+                
+                if (content != null && !content.isEmpty()) {
+                    // Truncate very long content for readability
+                    String displayContent = content.length() > 2000 
+                        ? content.substring(0, 2000) + "\n... [TRUNCATED - " + (content.length() - 2000) + " more characters]"
+                        : content;
+                    log.info("Content:\n{}", displayContent);
+                }
+                
+                log.info("");
+            }
+            
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            });
+        } catch (Exception e) {
+            log.warn("Error logging Mistral request: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Logs the complete Mistral API response in a readable format
+     */
+    @SuppressWarnings("unchecked")
+    private void logMistralResponse(String context, Map<String, Object> response, Map<String, String> mdcContext) {
+        try {
+            withMdc(mdcContext, () -> {
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.info("🟢 MISTRAL RESPONSE [{}] - Router", context);
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            
+            // Log usage if present
+            if (response.containsKey("usage")) {
+                Map<String, Object> usage = (Map<String, Object>) response.get("usage");
+                log.info("📊 Usage:");
+                log.info("   └─ Prompt tokens: {}", usage.get("prompt_tokens"));
+                log.info("   └─ Completion tokens: {}", usage.get("completion_tokens"));
+                log.info("   └─ Total tokens: {}", usage.get("total_tokens"));
+                log.info("");
+            }
+            
+            // Log choices
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+            if (choices == null || choices.isEmpty()) {
+                log.warn("⚠️  No choices in response!");
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                return;
+            }
+            
+            for (int i = 0; i < choices.size(); i++) {
+                Map<String, Object> choice = choices.get(i);
+                log.info("📦 Choice {}:", i + 1);
+                log.info("   └─ Finish reason: {}", choice.get("finish_reason"));
+                
+                Map<String, Object> message = (Map<String, Object>) choice.get("message");
+                if (message != null) {
+                    String role = (String) message.get("role");
+                    String content = (String) message.get("content");
+                    
+                    log.info("   └─ Role: {}", role);
+                    
+                    if (content != null && !content.isEmpty()) {
+                        log.info("   └─ Content: {}", content);
+                    } else {
+                        log.info("   └─ Content: [EMPTY]");
+                    }
+                }
+                
+                log.info("");
+            }
+            
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            });
+        } catch (Exception e) {
+            log.warn("Error logging Mistral response: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Execute an action with a specific MDC context, restoring the previous MDC
+     * afterwards.
+     */
+    private void withMdc(Map<String, String> mdcContext, Runnable action) {
+        Map<String, String> previous = org.slf4j.MDC.getCopyOfContextMap();
+        try {
+            if (mdcContext != null) {
+                org.slf4j.MDC.setContextMap(mdcContext);
+            }
+            action.run();
+        } finally {
+            if (previous != null) {
+                org.slf4j.MDC.setContextMap(previous);
+            } else {
+                org.slf4j.MDC.clear();
+            }
+        }
     }
 }

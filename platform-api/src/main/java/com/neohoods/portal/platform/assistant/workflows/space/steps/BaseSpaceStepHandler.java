@@ -63,11 +63,10 @@ public abstract class BaseSpaceStepHandler implements SpaceStepHandler {
             return Mono.error(new IllegalStateException("MatrixAssistantSpaceAgent not available"));
         }
 
-        // Use reflection to access protected method, or make it public/protected in
-        // BaseMatrixAssistantAgent
-        // For now, we'll create a public wrapper method in MatrixAssistantSpaceAgent
-        return agent.callMistralAPIWithJSONResponseForStep(userMessage, conversationHistory, systemPrompt, tools,
-                authContext);
+        // Forward to agent with a context label indicating the current step for clearer
+        // logs
+        return agent.callMistralAPIWithJSONResponseForStep(
+                getStep().name(), userMessage, conversationHistory, systemPrompt, tools, authContext);
     }
 
     /**

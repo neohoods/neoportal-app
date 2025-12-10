@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import jakarta.annotation.PostConstruct;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,6 +108,23 @@ public class MatrixAssistantAgentContextService {
      */
     private final Map<String, AgentContext> roomContexts = new ConcurrentHashMap<>();
 
+    @Value("${spring.profiles.active:}")
+    private String activeProfiles;
+
+    /**
+     * Clears all contexts on startup in dev/local environments
+     * to avoid stale conversation context after backend restart
+     */
+    @PostConstruct
+    public void clearContextsOnStartupIfDev() {
+        if (activeProfiles != null && (activeProfiles.contains("local") || activeProfiles.contains("dev"))) {
+            int cleared = clearAllContexts();
+            if (cleared > 0) {
+                log.info("Cleared {} stale agent contexts on startup (dev/local mode)", cleared);
+            }
+        }
+    }
+
     /**
      * Gets the agent context for a room
      * 
@@ -187,6 +207,18 @@ public class MatrixAssistantAgentContextService {
         } else {
             log.debug("No context to clear for room {}", roomId);
         }
+    }
+
+    /**
+     * Clears all contexts (useful for development/testing after backend restart)
+     * 
+     * @return Number of contexts cleared
+     */
+    public int clearAllContexts() {
+        int count = roomContexts.size();
+        roomContexts.clear();
+        log.info("Cleared all {} agent contexts", count);
+        return count;
     }
 
     /**

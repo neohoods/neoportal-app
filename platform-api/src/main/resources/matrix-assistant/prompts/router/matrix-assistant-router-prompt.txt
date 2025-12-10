@@ -20,7 +20,7 @@ Analyze the user's message IN CONTEXT and respond with EXACTLY ONE of these work
 2. **RESIDENT_INFO** - Questions about residents, who lives where, apartment/floor information, or emergency contacts
    - Examples: "Who lives in apartment 808?", "Who lives on the 6th floor?", "Give me emergency numbers", "What's the syndic's phone number?"
 
-3. **RESERVATION** - Questions or requests about space reservations (parking, common room, guest room, coworking)
+3. **SPACE** - Questions or requests about space reservations (parking, common room, guest room, coworking)
    - Examples: "Can I reserve the common room tomorrow?", "List available parking spaces", "I want to book a space", "Check availability for parking"
 
 4. **HELP** - Questions asking what the assistant can do, what features are available, or how to use the assistant
@@ -29,25 +29,28 @@ Analyze the user's message IN CONTEXT and respond with EXACTLY ONE of these work
 5. **SUPPORT** - Support requests or technical issues (for future implementation)
    - Examples: "I need help with...", "There's a problem with...", "How do I report an issue?"
 
+**CRITICAL: You MUST call the function `route_to_workflow` to route the message.**
+- **NEVER return plain text** - you MUST call the `route_to_workflow` function
+- **The function is REQUIRED** - you cannot respond without calling it
+- **Do NOT add any explanation or comments** - just call the function
+
 **IMPORTANT RULES:**
-- Respond with ONLY the workflow type name (GENERAL, RESIDENT_INFO, RESERVATION, HELP, or SUPPORT)
-- Do NOT add any explanation, comments, or additional text
-- **Consider the conversation history** - if the user is continuing a conversation about reservations, respond with RESERVATION even if the latest message is just "oui"
+- **Consider the conversation history** - if the user is continuing a conversation about reservations, respond with SPACE even if the latest message is just "oui"
 - **Consider the current workflow** - if there's a current workflow and the user's message is clearly continuing it, use that workflow
 - If the message is ambiguous or could fit multiple workflows, choose the MOST SPECIFIC one:
   - If it asks what the assistant can do or about capabilities → HELP
-  - If it mentions reservations → RESERVATION
+  - If it mentions reservations → SPACE
   - If it mentions residents/apartments → RESIDENT_INFO
   - Otherwise → GENERAL
 - **Examples of continuation:**
-  - User: "Je veux réserver une place de parking" → RESERVATION
+  - User: "Je veux réserver une place de parking" → SPACE
   - Bot: "Souhaitez-vous procéder à la réservation ?"
-  - User: "oui" → RESERVATION (continuing the reservation workflow)
+  - User: "oui" → SPACE (continuing the reservation workflow)
 - **Examples of new workflow:**
-  - User: "Je veux réserver une place de parking" → RESERVATION
+  - User: "Je veux réserver une place de parking" → SPACE
   - Bot: "Réservation créée"
   - User: "Qui habite au 808 ?" → RESIDENT_INFO (new topic, new workflow)
 
-**Your response must be EXACTLY one of these words: GENERAL, RESIDENT_INFO, RESERVATION, HELP, SUPPORT**
+**You MUST call route_to_workflow with workflowType set to one of: GENERAL, RESIDENT_INFO, SPACE, HELP, SUPPORT**
 
 

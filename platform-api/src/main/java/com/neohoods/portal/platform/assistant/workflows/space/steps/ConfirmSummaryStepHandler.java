@@ -12,9 +12,12 @@ import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
 import com.neohoods.portal.platform.assistant.model.SpaceStep;
 import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
 import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
+import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
+import com.neohoods.portal.platform.spaces.services.SpacesService;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import java.util.UUID;
 
 /**
  * Handler for CONFIRM_RESERVATION_SUMMARY step.
@@ -29,6 +32,9 @@ public class ConfirmSummaryStepHandler extends BaseSpaceStepHandler {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private SpacesService spacesService;
 
     @Override
     public SpaceStep getStep() {
@@ -75,22 +81,81 @@ public class ConfirmSummaryStepHandler extends BaseSpaceStepHandler {
         String localeStr = context.getWorkflowStateValue("locale", String.class);
         Locale locale = localeStr != null ? Locale.forLanguageTag(localeStr) : Locale.FRENCH;
 
-        // Generate summary message
-        String summaryMessage = messageSource.getMessage("matrix.reservation.summary", null, locale);
-        summaryMessage += "\n\n";
-        summaryMessage += messageSource.getMessage("matrix.reservation.spaceId", null, locale) + ": " + spaceId;
-        summaryMessage += "\n";
-        summaryMessage += messageSource.getMessage("matrix.reservation.startDate", null, locale) + ": " + startDateObj;
-        if (startTimeObj != null) {
-            summaryMessage += " " + startTimeObj;
+        // Get space name from spaceId
+        String spaceName = spaceId; // Fallback to UUID if space not found
+        try {
+            UUID spaceUuid = UUID.fromString(spaceId);
+            SpaceEntity space = spacesService.getSpaceById(spaceUuid);
+            if (space != null && space.getName() != null) {
+                spaceName = space.getName();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch space name for spaceId {}: {}", spaceId, e.getMessage());
         }
-        summaryMessage += "\n";
-        summaryMessage += messageSource.getMessage("matrix.reservation.endDate", null, locale) + ": " + endDateObj;
-        if (endTimeObj != null) {
-            summaryMessage += " " + endTimeObj;
+
+        // Format dates nicely
+        String startDateStr = startDateObj != null ? startDateObj.toString() : "";
+        String endDateStr = endDateObj != null ? endDateObj.toString() : "";
+        String startTimeStr = startTimeObj != null ? startTimeObj.toString() : "";
+        String endTimeStr = endTimeObj != null ? endTimeObj.toString() : "";
+
+        // Generate summary message with better formatting for Matrix
+        StringBuilder summaryMessage = new StringBuilder();
+        try {
+            summaryMessage.append("**").append(messageSource.getMessage("matrix.reservation.summary.title", null, locale))
+                    .append("**");
+        } catch (Exception e) {
+            summaryMessage.append("**Récapitulatif de votre réservation**");
         }
-        summaryMessage += "\n\n";
-        summaryMessage += messageSource.getMessage("matrix.reservation.confirmQuestion", null, locale);
+        summaryMessage.append("\n\n");
+
+        // Space name
+        try {
+            summaryMessage.append("**").append(messageSource.getMessage("matrix.reservation.space", null, locale))
+                    .append(":** ").append(spaceName);
+        } catch (Exception e) {
+            summaryMessage.append("**Espace:** ").append(spaceName);
+        }
+        summaryMessage.append("\n");
+
+        // Start date/time
+        try {
+            summaryMessage.append("**").append(messageSource.getMessage("matrix.reservation.from", null, locale))
+                    .append(":** ").append(startDateStr);
+            if (!startTimeStr.isEmpty()) {
+                summaryMessage.append(" ").append(messageSource.getMessage("matrix.reservation.at", null, locale))
+                        .append(" ").append(startTimeStr);
+            }
+        } catch (Exception e) {
+            summaryMessage.append("**Du:** ").append(startDateStr);
+            if (!startTimeStr.isEmpty()) {
+                summaryMessage.append(" à ").append(startTimeStr);
+            }
+        }
+        summaryMessage.append("\n");
+
+        // End date/time
+        try {
+            summaryMessage.append("**").append(messageSource.getMessage("matrix.reservation.to", null, locale))
+                    .append(":** ").append(endDateStr);
+            if (!endTimeStr.isEmpty()) {
+                summaryMessage.append(" ").append(messageSource.getMessage("matrix.reservation.at", null, locale))
+                        .append(" ").append(endTimeStr);
+            }
+        } catch (Exception e) {
+            summaryMessage.append("**Au:** ").append(endDateStr);
+            if (!endTimeStr.isEmpty()) {
+                summaryMessage.append(" à ").append(endTimeStr);
+            }
+        }
+        summaryMessage.append("\n\n");
+
+        // Confirmation question
+        try {
+            summaryMessage.append(messageSource.getMessage("matrix.reservation.summary.confirmQuestion", null, locale));
+        } catch (Exception e) {
+            summaryMessage.append("Voulez-vous confirmer cette réservation ?");
+        }
 
         // Mark summary as shown
         context.updateWorkflowState("summaryShown", true);
@@ -99,7 +164,7 @@ public class ConfirmSummaryStepHandler extends BaseSpaceStepHandler {
 
         return Mono.just(SpaceStepResponse.builder()
                 .status(SpaceStepResponse.StepStatus.ASK_USER)
-                .response(summaryMessage)
+                .response(summaryMessage.toString())
                 .spaceId(spaceId)
                 .build());
     }

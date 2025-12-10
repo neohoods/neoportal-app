@@ -41,22 +41,11 @@ public class TransitionValidator {
         ));
         
         // CHOOSE_SPACE can transition to:
-        // - Itself (ANSWER_USER, ASK_USER)
-        // - CHOOSE_PERIOD (when spaceId only)
-        // - CONFIRM_RESERVATION_SUMMARY (when spaceId + period)
+        // - Itself (ANSWER_USER, ASK_USER) - when spaceId or period is missing
+        // - CONFIRM_RESERVATION_SUMMARY (when spaceId + period are both present)
         // - End (CANCEL, ERROR)
         ALLOWED_TRANSITIONS.put(SpaceStep.CHOOSE_SPACE, EnumSet.of(
                 SpaceStep.CHOOSE_SPACE,
-                SpaceStep.CHOOSE_PERIOD,
-                SpaceStep.CONFIRM_RESERVATION_SUMMARY
-        ));
-        
-        // CHOOSE_PERIOD can transition to:
-        // - Itself (ANSWER_USER, ASK_USER)
-        // - CONFIRM_RESERVATION_SUMMARY (when period is complete)
-        // - End (CANCEL, ERROR)
-        ALLOWED_TRANSITIONS.put(SpaceStep.CHOOSE_PERIOD, EnumSet.of(
-                SpaceStep.CHOOSE_PERIOD,
                 SpaceStep.CONFIRM_RESERVATION_SUMMARY
         ));
         
@@ -126,18 +115,6 @@ public class TransitionValidator {
         switch (targetStep) {
             case CHOOSE_SPACE:
                 // No specific data required (will be collected in this step)
-                return StepTransitionContext.TransitionValidationResult.valid();
-                
-            case CHOOSE_PERIOD:
-                // spaceId must be present
-                if (response == null || !response.hasSpaceId()) {
-                    String spaceId = context != null ? context.getData("spaceId", String.class) : null;
-                    if (spaceId == null || spaceId.isEmpty()) {
-                        return StepTransitionContext.TransitionValidationResult.invalid(
-                                "MISSING_SPACE_ID",
-                                "spaceId is required to transition to CHOOSE_PERIOD");
-                    }
-                }
                 return StepTransitionContext.TransitionValidationResult.valid();
                 
             case CONFIRM_RESERVATION_SUMMARY:
