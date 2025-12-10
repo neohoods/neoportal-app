@@ -189,21 +189,25 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
                             }
                         }
 
-                        // Format response using availableSpaces map if provided
-                        String formattedResponse = formatResponseWithAvailableSpaces(responseToFormat, authContext,
-                                locale, context);
-
-                        if (!formattedResponse.equals(responseToFormat.getResponse())
-                                || responseToFormat != stepResponse) {
-                            log.info("📝 CHOOSE_SPACE: Formatted response with available spaces list");
-                            return Mono.just(SpaceStepResponse.builder()
-                                    .status(responseToFormat.getStatus())
-                                    .response(formattedResponse)
-                                    .spaceId(responseToFormat.getSpaceId())
-                                    .period(responseToFormat.getPeriod())
-                                    .nextStep(responseToFormat.getNextStep())
-                                    .availableSpaces(responseToFormat.getAvailableSpaces())
-                                    .build());
+                        // LLM now formats the list correctly with line breaks and dashes in the
+                        // response
+                        // We only need to ensure period question is added if needed, but don't reformat
+                        // the list
+                        String response = responseToFormat.getResponse();
+                        if (response != null && !response.isEmpty()
+                                && responseToFormat.getStatus() == SpaceStepResponse.StepStatus.ASK_USER) {
+                            String formattedResponse = ensurePeriodQuestion(response, locale, context);
+                            if (!formattedResponse.equals(response)) {
+                                log.info("📝 CHOOSE_SPACE: Added period question to LLM-formatted response");
+                                return Mono.just(SpaceStepResponse.builder()
+                                        .status(responseToFormat.getStatus())
+                                        .response(formattedResponse)
+                                        .spaceId(responseToFormat.getSpaceId())
+                                        .period(responseToFormat.getPeriod())
+                                        .nextStep(responseToFormat.getNextStep())
+                                        .availableSpaces(responseToFormat.getAvailableSpaces())
+                                        .build());
+                            }
                         }
 
                         return Mono.just(responseToFormat);
@@ -579,17 +583,10 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
                         locale);
                 formatted.append(prefix);
 
-                // Format numbers in groups for better readability (max 10 per line)
-                int maxPerLine = 10;
+                // Format numbers as a bulleted list for better readability in Matrix
                 for (int i = 0; i < spaceNumbers.size(); i++) {
-                    if (i > 0 && i % maxPerLine == 0) {
-                        formatted.append("\n");
-                    } else if (i > 0) {
-                        formatted.append(", ");
-                    }
-                    formatted.append(spaceNumbers.get(i));
+                    formatted.append("\n- Place de parking N°").append(spaceNumbers.get(i));
                 }
-                formatted.append(".");
 
                 response = formatted.toString();
             }

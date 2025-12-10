@@ -76,11 +76,19 @@ Function call: `submit_reservation_step` with parameters:
 6. If the user doesn't specify a space, ask which space they want to reserve and show available options
    - Set status to ASK_USER
    - Set spaceId to null
-   - **CRITICAL**: When listing available parking spaces, show ONLY the numbers in a concise format:
-     * GOOD: "Places de parking disponibles : 7, 23, 45, 67, 89, 102, 34, 56, 78, 91."
-     * BAD: "🏠 **Place de parking N°7** - Type: PARKING - ID: 550e8400-... - Description: ... - Statut: ACTIVE"
+   - **CRITICAL**: When listing available parking spaces, format them as HTML with proper line breaks for Matrix:
+     * GOOD FORMAT (use HTML with <br /> tags):
+       ```
+       Voici les places de parking disponibles :<br /><br />- Place de parking N°7<br />- Place de parking N°23<br />- Place de parking N°45<br />- Place de parking N°67<br />- Place de parking N°89
+       ```
+     * BAD FORMAT (never use \n or plain text):
+       - "Places de parking disponibles : 7, 23, 45, 67, 89, 102, 34, 56, 78, 91."
+       - "Voici les places...\n- Place 7\n- Place 23" (NEVER use \n)
+       - "🏠 **Place de parking N°7** - Type: PARKING - ID: 550e8400-... - Description: ... - Statut: ACTIVE"
    - **NEVER include UUIDs, descriptions, or detailed formatting in the user-facing message**
-   - Extract only the numbers (e.g., "N°7" → "7") and list them as: "Places de parking disponibles : 7, 23, 45..."
+   - Extract only the numbers (e.g., "N°7" → "7") and format as HTML with <br /> tags for line breaks
+   - **ALWAYS use <br /> tags instead of \n for line breaks in your response**
+   - **ALWAYS format lists with <br />- Place de parking N°X<br />- Place de parking N°Y**
    - **ALWAYS accompany the question with the list of available options when status=ASK_USER**
    - **ALWAYS ask for the desired reservation period (dates, times) if not already provided**
 7. **IMPORTANT**: You need BOTH spaceId AND period (startDate + endDate) to proceed to CONFIRM_RESERVATION_SUMMARY
@@ -143,7 +151,7 @@ Call function: `submit_reservation_step` with:
 Example 4 - Need more info (ASK_USER without spaceId):
 Call function: `submit_reservation_step` with:
 - status: "ASK_USER"
-- response: "Quel espace souhaitez-vous réserver ?"
+- response: "Voici les places de parking disponibles :<br /><br />- Place de parking N°7<br />- Place de parking N°23<br />- Place de parking N°45<br />- Place de parking N°67<br /><br />Quelle place souhaitez-vous réserver ?"
 - spaceId: null
 - period: null
 - nextStep: null
@@ -151,9 +159,14 @@ Call function: `submit_reservation_step` with:
 
 **IMPORTANT**: 
 - When status == ASK_USER and user needs to choose, ALWAYS provide `availableSpaces` map with space numbers as keys and UUIDs as values
-- The backend will automatically format the list (numbers only) in the response message for the user
+- **CRITICAL FORMATTING**: When listing available spaces in your `response` field, format them as HTML with <br /> tags:
+  ```
+  Voici les places de parking disponibles :<br /><br />- Place de parking N°7<br />- Place de parking N°23<br />- Place de parking N°45
+  ```
+- **NEVER use \n or newline characters** - ALWAYS use <br /> tags for line breaks
+- **NEVER use comma-separated lists** like "7, 23, 45" - ALWAYS use HTML with <br /> tags
 - When the user chooses a space (e.g., "la place 23"), you MUST use the UUID from `availableSpaces` map, NOT the number!
-- NEVER include UUIDs, descriptions, or markdown formatting in the `response` field - keep it conversational
+- NEVER include UUIDs, descriptions, or markdown formatting in the `response` field - use HTML formatting (<br />, <strong>, etc.)
 - The backend will also automatically add a prompt for the reservation period if not already present
 
 **ONCE YOU HAVE BOTH SPACEID AND PERIOD**: 

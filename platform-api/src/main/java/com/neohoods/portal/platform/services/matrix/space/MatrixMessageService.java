@@ -152,12 +152,10 @@ public class MatrixMessageService {
             return markdown; // No formatting, return as-is
         }
 
-        // Escape HTML to prevent injection
-        String html = escapeHtml(markdown);
-
-        // Convert Markdown to HTML
+        // Convert Markdown to HTML BEFORE escaping (to preserve ** markers)
         // **bold** -> <strong>bold</strong>
-        html = html.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
+        // Use a more robust regex that handles multiple bold sections on the same line
+        String html = markdown.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
 
         // *italic* -> <em>italic</em> (but not if it's part of **bold**)
         // We need to be careful here - only match single * that are not part of **
@@ -165,6 +163,24 @@ public class MatrixMessageService {
 
         // Convert line breaks to <br />
         html = html.replace("\n", "<br />");
+
+        // Escape HTML special characters in text content (but preserve our HTML tags)
+        // We do this by temporarily replacing our tags, escaping, then restoring them
+        html = html.replace("<strong>", "___STRONG_START___")
+                .replace("</strong>", "___STRONG_END___")
+                .replace("<em>", "___EM_START___")
+                .replace("</em>", "___EM_END___")
+                .replace("<br />", "___BR___");
+        
+        // Now escape HTML
+        html = escapeHtml(html);
+        
+        // Restore our HTML tags
+        html = html.replace("___STRONG_START___", "<strong>")
+                .replace("___STRONG_END___", "</strong>")
+                .replace("___EM_START___", "<em>")
+                .replace("___EM_END___", "</em>")
+                .replace("___BR___", "<br />");
 
         return html;
     }
@@ -273,17 +289,16 @@ public class MatrixMessageService {
                 log.info("Bot {} successfully joined room {} before sending message", assistantUserId, decodedRoomId);
             }
 
-            // Build message body - convert Markdown to HTML for Matrix
+            // Build message body - message may already contain HTML from LLM
             Map<String, Object> messageBody = new HashMap<>();
             messageBody.put("msgtype", "m.text");
             messageBody.put("body", message);
 
-            // Check if message already contains HTML tags (don't convert Markdown if HTML
-            // is present)
+            // Check if message already contains HTML tags
             boolean hasHtmlTags = message != null && message.contains("<") && message.contains(">");
 
             if (hasHtmlTags) {
-                // Message already contains HTML tags, use as-is
+                // Message already contains HTML tags from LLM, use as-is
                 messageBody.put("format", "org.matrix.custom.html");
                 messageBody.put("formatted_body", message);
             } else {
