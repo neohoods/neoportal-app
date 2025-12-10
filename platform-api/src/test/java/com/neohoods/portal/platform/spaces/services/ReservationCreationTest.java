@@ -249,9 +249,9 @@ public class ReservationCreationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Payment expires at set to 15 minutes from creation")
     public void testCreateReservation_PaymentExpiresAt_Set() {
-        // Arrange
-        LocalDate startDate = LocalDate.now().plusDays(20);
-        LocalDate endDate = LocalDate.now().plusDays(23);
+        // Arrange - Use dates far in the future to avoid conflicts with existing test data
+        LocalDate startDate = LocalDate.now().plusDays(365);
+        LocalDate endDate = LocalDate.now().plusDays(368);
 
         // Act
         ReservationEntity reservation = reservationsService.createReservation(

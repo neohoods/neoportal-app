@@ -91,15 +91,15 @@ public class SpaceAvailabilityTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Space available when no overlapping reservations")
     public void testCheckAvailability_Available() {
-        // Arrange
-        LocalDate startDate = LocalDate.now().plusDays(20);
+        // Arrange - Use dates far enough in the future to avoid conflicts with existing test data
+        LocalDate startDate = LocalDate.now().plusDays(365);
         LocalDate endDate = startDate.plusDays(3);
 
         // Act
         boolean isAvailable = spacesService.isSpaceAvailable(guestRoomSpace.getId(), startDate, endDate);
 
         // Assert
-        assertTrue(isAvailable);
+        assertTrue(isAvailable, "Space should be available for dates " + startDate + " to " + endDate);
     }
 
     @Test

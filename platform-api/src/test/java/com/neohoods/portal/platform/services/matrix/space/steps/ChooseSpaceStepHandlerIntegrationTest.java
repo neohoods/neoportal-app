@@ -41,7 +41,7 @@ public class ChooseSpaceStepHandlerIntegrationTest extends BaseMatrixAssistantAg
 
     @Test
     @Timeout(300)
-    @DisplayName("Should identify spaceId from user message and return SWITCH_STEP to CHOOSE_PERIOD")
+    @DisplayName("Should identify spaceId from user message and return SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY")
     void testIdentifySpaceId() {
         if (handler == null) {
             org.junit.jupiter.api.Assumptions.assumeTrue(false, "ChooseSpaceStepHandler not available");
@@ -69,14 +69,14 @@ public class ChooseSpaceStepHandlerIntegrationTest extends BaseMatrixAssistantAg
         log.info("Response status: {}", response.getStatus());
         log.info("Response message: {}", response.getResponse().substring(0, Math.min(200, response.getResponse().length())));
 
-        // Should either SWITCH_STEP to CHOOSE_PERIOD (if spaceId found) or ASK_USER (if not found)
+        // Should either SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY (if spaceId and period found) or ASK_USER (if not found)
         assertTrue(
                 response.isSwitchingStep() || response.isAskingUser(),
                 "Should return SWITCH_STEP or ASK_USER. Got: " + response.getStatus());
 
         if (response.isSwitchingStep()) {
-            assertEquals(SpaceStep.CHOOSE_PERIOD, response.getNextStep(),
-                    "Should switch to CHOOSE_PERIOD when spaceId identified");
+            assertEquals(SpaceStep.CONFIRM_RESERVATION_SUMMARY, response.getNextStep(),
+                    "Should switch to CONFIRM_RESERVATION_SUMMARY when spaceId and period identified");
             assertNotNull(response.getSpaceId(), "Should have spaceId when switching");
         }
     }

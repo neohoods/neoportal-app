@@ -51,7 +51,8 @@ class MatrixAssistantAuthContextServiceTest {
     void testCreateAuthContext_UserFound() {
         // Given
         String matrixUserId = "@testuser:chat.neohoods.com";
-        when(usersRepository.findByUsername("testuser")).thenReturn(testUser);
+        testUser.setMatrixUserId(matrixUserId);
+        when(usersRepository.findByMatrixUserId(matrixUserId)).thenReturn(testUser);
 
         // When
         MatrixAssistantAuthContext context = authContextService.createAuthContext(
@@ -69,7 +70,7 @@ class MatrixAssistantAuthContextServiceTest {
     void testCreateAuthContext_UserNotFound() {
         // Given
         String matrixUserId = "@unknownuser:chat.neohoods.com";
-        when(usersRepository.findByUsername("unknownuser")).thenReturn(null);
+        when(usersRepository.findByMatrixUserId(matrixUserId)).thenReturn(null);
 
         // When/Then
         assertThrows(MatrixAssistantAuthContext.UnauthorizedException.class, () -> {
@@ -91,7 +92,8 @@ class MatrixAssistantAuthContextServiceTest {
     void testCreateAuthContext_IsDirectMessage() {
         // Given
         String matrixUserId = "@testuser:chat.neohoods.com";
-        when(usersRepository.findByUsername("testuser")).thenReturn(testUser);
+        testUser.setMatrixUserId(matrixUserId);
+        when(usersRepository.findByMatrixUserId(matrixUserId)).thenReturn(testUser);
 
         // When
         MatrixAssistantAuthContext context = authContextService.createAuthContext(
@@ -102,11 +104,12 @@ class MatrixAssistantAuthContextServiceTest {
     }
 
     @Test
-    @DisplayName("createAuthContext should normalize username")
-    void testCreateAuthContext_NormalizesUsername() {
+    @DisplayName("createAuthContext should find user by matrix_user_id")
+    void testCreateAuthContext_FindsByMatrixUserId() {
         // Given
         String matrixUserId = "@Test-User.123:chat.neohoods.com";
-        when(usersRepository.findByUsername("test_user_123")).thenReturn(testUser);
+        testUser.setMatrixUserId(matrixUserId);
+        when(usersRepository.findByMatrixUserId(matrixUserId)).thenReturn(testUser);
 
         // When
         MatrixAssistantAuthContext context = authContextService.createAuthContext(
@@ -114,7 +117,7 @@ class MatrixAssistantAuthContextServiceTest {
 
         // Then
         assertNotNull(context);
-        verify(usersRepository).findByUsername("test_user_123");
+        verify(usersRepository).findByMatrixUserId(matrixUserId);
     }
 }
 

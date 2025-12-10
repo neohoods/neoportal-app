@@ -22,7 +22,6 @@ import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
 import com.neohoods.portal.platform.assistant.model.SpaceStep;
 import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
 import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
-import com.neohoods.portal.platform.assistant.workflows.space.steps.ChoosePeriodStepHandler;
 import com.neohoods.portal.platform.assistant.workflows.space.steps.ChooseSpaceStepHandler;
 import com.neohoods.portal.platform.assistant.workflows.space.steps.CompleteSpaceStepHandler;
 import com.neohoods.portal.platform.assistant.workflows.space.steps.ConfirmSummaryStepHandler;
@@ -56,9 +55,6 @@ public class ReservationWorkflowEndToEndIntegrationTest extends BaseMatrixAssist
     private ChooseSpaceStepHandler chooseSpaceHandler;
 
     @Autowired(required = false)
-    private ChoosePeriodStepHandler choosePeriodHandler;
-
-    @Autowired(required = false)
     private ConfirmSummaryStepHandler confirmSummaryHandler;
 
     @Autowired(required = false)
@@ -72,12 +68,11 @@ public class ReservationWorkflowEndToEndIntegrationTest extends BaseMatrixAssist
 
     @Test
     @Timeout(600)
-    @DisplayName("Complete parking reservation workflow: REQUEST_SPACE_INFO → CHOOSE_SPACE → CHOOSE_PERIOD → CONFIRM_SUMMARY → COMPLETE_RESERVATION")
+    @DisplayName("Complete parking reservation workflow: REQUEST_SPACE_INFO → CHOOSE_SPACE → CONFIRM_SUMMARY → COMPLETE_RESERVATION")
     void testCompleteParkingReservationWorkflow() {
         // Skip if handlers not available
         if (requestSpaceInfoHandler == null || chooseSpaceHandler == null ||
-                choosePeriodHandler == null || confirmSummaryHandler == null ||
-                completeReservationHandler == null) {
+                confirmSummaryHandler == null || completeReservationHandler == null) {
             org.junit.jupiter.api.Assumptions.assumeTrue(false, "Step handlers not available");
         }
 
@@ -144,11 +139,6 @@ public class ReservationWorkflowEndToEndIntegrationTest extends BaseMatrixAssist
                                     : userMsg1,
                             conversationHistory, context, authContext);
                     break;
-                case CHOOSE_PERIOD:
-                    nextResponseMono = choosePeriodHandler.handle(
-                            currentResponse.getInternalMessage() != null ? currentResponse.getInternalMessage() : "",
-                            conversationHistory, context, authContext);
-                    break;
                 case CONFIRM_RESERVATION_SUMMARY:
                     nextResponseMono = confirmSummaryHandler.handle("", conversationHistory, context, authContext);
                     break;
@@ -203,12 +193,6 @@ public class ReservationWorkflowEndToEndIntegrationTest extends BaseMatrixAssist
 
                 Mono<SpaceStepResponse> nextResponseMono = null;
                 switch (nextStep) {
-                    case CHOOSE_PERIOD:
-                        nextResponseMono = choosePeriodHandler.handle(
-                                currentResponse.getInternalMessage() != null ? currentResponse.getInternalMessage()
-                                        : "",
-                                conversationHistory, context, authContext);
-                        break;
                     case CONFIRM_RESERVATION_SUMMARY:
                         nextResponseMono = confirmSummaryHandler.handle("", conversationHistory, context, authContext);
                         break;

@@ -139,6 +139,7 @@ class MatrixAssistantMCPServerTest {
                 testUser.setEmail("test@example.com");
                 testUser.setFirstName("Test");
                 testUser.setLastName("User");
+                testUser.setMatrixUserId("@testuser:chat.neohoods.com");
 
                 // Créer un contexte d'autorisation public (room publique)
                 publicAuthContext = MatrixAssistantAuthContext.builder()
@@ -167,12 +168,10 @@ class MatrixAssistantMCPServerTest {
                 testMember.setUnit(testUnit);
                 testMember.setUser(testUser);
 
-                // Mock usersRepository to return testUser when looking up by username
-                // getUser() extracts username from Matrix user ID and normalizes it (lowercase,
-                // special chars -> _)
-                // "@testuser:chat.neohoods.com" -> "testuser" -> "testuser" (normalized)
+                // Mock usersRepository to return testUser when looking up by matrix_user_id
+                // getUser() uses findByMatrixUserId() now
                 // Use lenient() because not all tests use this mock
-                lenient().when(usersRepository.findByUsername("testuser")).thenReturn(testUser);
+                lenient().when(usersRepository.findByMatrixUserId("@testuser:chat.neohoods.com")).thenReturn(testUser);
 
                 // Mock messageSource for translations (used by all tools)
                 // Use lenient() because not all tests use this mock

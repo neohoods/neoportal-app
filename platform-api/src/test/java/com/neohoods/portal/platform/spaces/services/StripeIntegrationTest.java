@@ -260,8 +260,8 @@ public class StripeIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Payment webhook: updates correct reservation")
     public void testPaymentWebhook_UpdatesCorrectReservation() {
-        // Arrange - Create multiple reservations
-        LocalDate startDate = LocalDate.now().plusDays(10);
+        // Arrange - Create multiple reservations - Use dates far in the future to avoid conflicts
+        LocalDate startDate = LocalDate.now().plusDays(365);
 
         ReservationEntity res1 = reservationsService.createReservation(
                 guestRoomSpace, tenantUser, startDate, startDate.plusDays(3));

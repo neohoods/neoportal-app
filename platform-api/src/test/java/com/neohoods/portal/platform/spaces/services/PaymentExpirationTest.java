@@ -145,9 +145,9 @@ public class PaymentExpirationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Multiple pending payments: each has own expiration")
     public void testMultiplePendingPayments_SeparateExpiration() {
-        // Arrange
-        java.time.LocalDate startDate1 = java.time.LocalDate.now().plusDays(10);
-        java.time.LocalDate startDate2 = java.time.LocalDate.now().plusDays(20);
+        // Arrange - Use dates far in the future to avoid conflicts with existing test data
+        java.time.LocalDate startDate1 = java.time.LocalDate.now().plusDays(365);
+        java.time.LocalDate startDate2 = java.time.LocalDate.now().plusDays(375);
 
         // Act
         ReservationEntity res1 = reservationsService.createReservation(
