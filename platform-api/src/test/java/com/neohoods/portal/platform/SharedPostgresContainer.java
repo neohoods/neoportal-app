@@ -90,10 +90,10 @@ public class SharedPostgresContainer {
 
     public String getJdbcUrl(String databaseName) {
         if (useLocalPostgres) {
-            // Utiliser le port depuis l'environnement ou par défaut 8433 (container local)
+            // Utiliser le port depuis l'environnement ou par défaut 5432 (port PostgreSQL standard)
             String port = System.getenv("POSTGRES_PORT");
             if (port == null || port.isEmpty()) {
-                port = "8433"; // Port du container PostgreSQL local
+                port = "5432"; // Port PostgreSQL par défaut
             }
             return "jdbc:postgresql://localhost:" + port + "/" + databaseName;
         } else {
@@ -144,7 +144,7 @@ public class SharedPostgresContainer {
                     // Utiliser PostgreSQL local (dans le même container)
                     String port = System.getenv("POSTGRES_PORT");
                     if (port == null || port.isEmpty()) {
-                        port = "8433"; // Port du container PostgreSQL local
+                        port = "5432"; // Port PostgreSQL par défaut
                     }
                     jdbcUrl = "jdbc:postgresql://localhost:" + port + "/postgres";
                     username = System.getenv("POSTGRES_USER");
@@ -321,7 +321,7 @@ public class SharedPostgresContainer {
             host = "localhost";
             String portEnv = System.getenv("POSTGRES_PORT");
             if (portEnv == null || portEnv.isEmpty()) {
-                port = 8433; // Port du container PostgreSQL local
+                port = 5432; // Port PostgreSQL par défaut
             } else {
                 port = Integer.parseInt(portEnv);
             }
