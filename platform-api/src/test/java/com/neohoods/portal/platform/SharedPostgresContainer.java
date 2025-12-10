@@ -104,7 +104,7 @@ public class SharedPostgresContainer {
     public String getUsername() {
         if (useLocalPostgres) {
             String username = System.getenv("POSTGRES_USER");
-            return username != null && !username.isEmpty() ? username : "local";
+            return username != null && !username.isEmpty() ? username : "postgres";
         } else {
             return container.getUsername();
         }
@@ -113,7 +113,7 @@ public class SharedPostgresContainer {
     public String getPassword() {
         if (useLocalPostgres) {
             String password = System.getenv("POSTGRES_PASSWORD");
-            return password != null ? password : "local";
+            return password != null ? password : "postgres";
         } else {
             return container.getPassword();
         }
@@ -149,11 +149,11 @@ public class SharedPostgresContainer {
                     jdbcUrl = "jdbc:postgresql://localhost:" + port + "/postgres";
                     username = System.getenv("POSTGRES_USER");
                     if (username == null || username.isEmpty()) {
-                        username = "local";
+                        username = "postgres";
                     }
                     password = System.getenv("POSTGRES_PASSWORD");
                     if (password == null) {
-                        password = "local";
+                        password = "postgres";
                     }
                 } else {
                     // Utiliser Testcontainers (environnement local)
@@ -282,11 +282,11 @@ public class SharedPostgresContainer {
         if (useLocalPostgres) {
             username = System.getenv("POSTGRES_USER");
             if (username == null || username.isEmpty()) {
-                username = "local";
+                username = "postgres";
             }
             password = System.getenv("POSTGRES_PASSWORD");
             if (password == null) {
-                password = "local";
+                password = "postgres";
             }
         } else {
             username = container.getUsername();
