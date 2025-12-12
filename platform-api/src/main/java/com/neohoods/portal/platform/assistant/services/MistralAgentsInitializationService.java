@@ -43,6 +43,9 @@ public class MistralAgentsInitializationService {
     private final MatrixAssistantMCPAdapter mcpAdapter;
     private final ResourceLoader resourceLoader;
 
+    @Autowired(required = false)
+    private List<com.neohoods.portal.platform.assistant.workflows.space.steps.SpaceStepHandler> stepHandlers;
+
     @Value("${neohoods.portal.matrix.assistant.ai.enabled:false}")
     private boolean aiEnabled;
 
@@ -178,13 +181,17 @@ public class MistralAgentsInitializationService {
                 getToolsForStep(SpaceStep.CHOOSE_SPACE, allMCPTools),
                 libraryIds));
 
-        // CONFIRM_RESERVATION_SUMMARY agent
-        agentCreations.add(createSpaceStepAgent(
-                SpaceStep.CONFIRM_RESERVATION_SUMMARY,
-                confirmSummaryPromptFile,
-                "Shows reservation summary and waits for user confirmation",
-                getToolsForStep(SpaceStep.CONFIRM_RESERVATION_SUMMARY, allMCPTools),
-                libraryIds));
+        // CONFIRM_RESERVATION_SUMMARY agent - Skip if backendOnly
+        if (!isStepBackendOnly(SpaceStep.CONFIRM_RESERVATION_SUMMARY)) {
+            agentCreations.add(createSpaceStepAgent(
+                    SpaceStep.CONFIRM_RESERVATION_SUMMARY,
+                    confirmSummaryPromptFile,
+                    "Shows reservation summary and waits for user confirmation",
+                    getToolsForStep(SpaceStep.CONFIRM_RESERVATION_SUMMARY, allMCPTools),
+                    libraryIds));
+        } else {
+            log.info("Skipping agent creation for CONFIRM_RESERVATION_SUMMARY (backend-only step)");
+        }
 
         // COMPLETE_RESERVATION agent
         agentCreations.add(createSpaceStepAgent(
@@ -194,13 +201,17 @@ public class MistralAgentsInitializationService {
                 getToolsForStep(SpaceStep.COMPLETE_RESERVATION, allMCPTools),
                 libraryIds));
 
-        // PAYMENT_INSTRUCTIONS agent
-        agentCreations.add(createSpaceStepAgent(
-                SpaceStep.PAYMENT_INSTRUCTIONS,
-                paymentInstructionsPromptFile,
-                "Generates payment link and shows payment instructions",
-                getToolsForStep(SpaceStep.PAYMENT_INSTRUCTIONS, allMCPTools),
-                libraryIds));
+        // PAYMENT_INSTRUCTIONS agent - Skip if backendOnly
+        if (!isStepBackendOnly(SpaceStep.PAYMENT_INSTRUCTIONS)) {
+            agentCreations.add(createSpaceStepAgent(
+                    SpaceStep.PAYMENT_INSTRUCTIONS,
+                    paymentInstructionsPromptFile,
+                    "Generates payment link and shows payment instructions",
+                    getToolsForStep(SpaceStep.PAYMENT_INSTRUCTIONS, allMCPTools),
+                    libraryIds));
+        } else {
+            log.info("Skipping agent creation for PAYMENT_INSTRUCTIONS (backend-only step)");
+        }
 
         return Mono.when(agentCreations);
     }
@@ -386,6 +397,20 @@ public class MistralAgentsInitializationService {
     }
 
     /**
+     * Checks if a step is backend-only (no LLM needed)
+     */
+    private boolean isStepBackendOnly(SpaceStep step) {
+        if (stepHandlers == null) {
+            return false;
+        }
+        return stepHandlers.stream()
+                .filter(handler -> handler.getStep() == step)
+                .findFirst()
+                .map(com.neohoods.portal.platform.assistant.workflows.space.steps.SpaceStepHandler::isBackendOnly)
+                .orElse(false);
+    }
+
+    /**
      * Loads a prompt file
      */
     private String loadPromptFile(String filePath, String defaultValue) {
@@ -405,5 +430,3 @@ public class MistralAgentsInitializationService {
         return defaultValue;
     }
 }
-
-

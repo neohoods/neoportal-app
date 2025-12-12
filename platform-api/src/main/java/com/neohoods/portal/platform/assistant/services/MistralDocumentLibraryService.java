@@ -11,12 +11,16 @@ import io.netty.channel.ChannelOption;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.netty.http.client.HttpClient;
@@ -102,6 +106,7 @@ public class MistralDocumentLibraryService {
 
     /**
      * Uploads a document to the library
+     * Mistral API requires multipart/form-data with the file as binary data
      * 
      * @param libraryId Library ID
      * @param fileName  File name
@@ -117,18 +122,27 @@ public class MistralDocumentLibraryService {
                 .baseUrl(MISTRAL_API_BASE_URL)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
 
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("file_name", fileName);
-        requestBody.put("content", content);
+        // Convert content to bytes
+        byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
+        ByteArrayResource fileResource = new ByteArrayResource(contentBytes) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
 
-        log.debug("Uploading document {} to library {}", fileName, libraryId);
+        // Create multipart form data
+        MultiValueMap<String, Object> formData = new LinkedMultiValueMap<>();
+        formData.add("file", fileResource);
+
+        log.debug("Uploading document {} to library {} (size: {} bytes)", fileName, libraryId, contentBytes.length);
 
         return webClient.post()
                 .uri("/libraries/{libraryId}/documents", libraryId)
-                .bodyValue(requestBody)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData(formData))
                 .retrieve()
                 .bodyToMono(Map.class)
                 .map(response -> {

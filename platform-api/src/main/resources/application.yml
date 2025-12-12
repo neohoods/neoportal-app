@@ -118,7 +118,7 @@ neohoods:
           enabled: ${MATRIX_ASSISTANT_AI_ENABLED:true}
           provider: mistral
           api-key: ${MISTRAL_AI_TOKEN:}
-          model: ${MATRIX_ASSISTANT_AI_MODEL:mistral-small}
+          model: ${MATRIX_ASSISTANT_AI_MODEL:devstral-medium-latest}
           system-prompt-file: ${MATRIX_ASSISTANT_AI_SYSTEM_PROMPT_FILE:classpath:matrix-assistant-system-prompt.txt}
           context-public-file: ${MATRIX_ASSISTANT_AI_CONTEXT_PUBLIC_FILE:classpath:matrix-assistant-context-public.txt}
           context-private-file: ${MATRIX_ASSISTANT_AI_CONTEXT_PRIVATE_FILE:classpath:matrix-assistant-context-private.txt}
