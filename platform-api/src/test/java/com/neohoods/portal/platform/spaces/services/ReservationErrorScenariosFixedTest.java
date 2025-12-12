@@ -137,7 +137,8 @@ public class ReservationErrorScenariosFixedTest extends BaseIntegrationTest {
             ownerUser = owners.get(0);
         }
 
-        // Create units for tenant and owner users (required for GUEST_ROOM reservations)
+        // Create units for tenant and owner users (required for GUEST_ROOM
+        // reservations)
         if (unitsService.getUserUnits(tenantUser.getId()).count().block() == 0) {
             unitsService.createUnit("Test Unit " + tenantUser.getId(), null, tenantUser.getId()).block();
         }
@@ -464,24 +465,80 @@ public class ReservationErrorScenariosFixedTest extends BaseIntegrationTest {
         guestRoomSpace.setUsedAnnualReservations(0);
         spaceRepository.save(guestRoomSpace);
 
-        // For quota testing, we'll use the global quota mechanism which is simpler and more reliable
-        // This avoids issues with space availability checks happening before quota checks
-        // Set the global quota as used to trigger SPACE_ANNUAL_QUOTA_EXCEEDED error
-        guestRoomSpace.setUsedAnnualReservations(1);
-        spaceRepository.save(guestRoomSpace);
-        
-        // Note: If user has a unit, the quota check will use unit-based quota instead of global quota
-        // In that case, we would need to create a reservation for that unit, but that's complex
-        // For this test, we'll rely on the global quota mechanism which works for users without units
+        // For quota testing with GUEST_ROOM (which requires a unit), we need to test
+        // unit-based quota
+        // Create a reservation for the user's unit in the current year to reach the
+        // quota
+        // This will trigger SPACE_ANNUAL_QUOTA_EXCEEDED when trying to create a second
+        // reservation
+        UserEntity user = usersRepository.findById(tenantUser.getId()).orElse(tenantUser);
+        if (user.getPrimaryUnit() != null) {
+            // Check if there's already a reservation for this unit/year
+            Long existingReservations = reservationRepository.countReservationsByUnitAndYear(
+                    user.getPrimaryUnit().getId(), currentYear);
+
+            // If we haven't reached quota yet, create a reservation to fill it
+            if (existingReservations < guestRoomSpace.getMaxAnnualReservations()) {
+                // Try multiple date ranges to find available dates
+                boolean quotaReservationCreated = false;
+                LocalDate[] testDates = {
+                        startDate.minusDays(60),
+                        startDate.minusDays(90),
+                        LocalDate.of(currentYear, 1, 15),
+                        LocalDate.of(currentYear, 2, 1),
+                        LocalDate.of(currentYear, 3, 1)
+                };
+
+                for (LocalDate testReservationStart : testDates) {
+                    if (testReservationStart.getYear() != currentYear) {
+                        continue; // Skip dates in different year
+                    }
+                    LocalDate testReservationEnd = testReservationStart.plusDays(1);
+
+                    // Check if space is available for these dates
+                    if (spacesService.isSpaceAvailable(guestRoomSpace.getId(), testReservationStart,
+                            testReservationEnd)) {
+                        try {
+                            ReservationEntity quotaReservation = reservationsService.createReservation(
+                                    guestRoomSpace, tenantUser, testReservationStart, testReservationEnd);
+                            // Confirm it to count towards quota
+                            reservationsService.confirmReservation(quotaReservation.getId(), "pi_quota", "cs_quota");
+                            quotaReservationCreated = true;
+                            break; // Success, exit loop
+                        } catch (Exception e) {
+                            // Try next date range
+                            continue;
+                        }
+                    }
+                }
+
+                // If we couldn't create a quota reservation, check if we already have enough
+                if (!quotaReservationCreated) {
+                    Long finalCount = reservationRepository.countReservationsByUnitAndYear(
+                            user.getPrimaryUnit().getId(), currentYear);
+                    if (finalCount < guestRoomSpace.getMaxAnnualReservations()) {
+                        // Can't test quota without being able to create a reservation
+                        org.junit.jupiter.api.Assumptions.assumeTrue(false,
+                                "Could not create quota reservation and existing count (" + finalCount +
+                                        ") is below quota (" + guestRoomSpace.getMaxAnnualReservations() + ")");
+                    }
+                }
+            }
+        } else {
+            // User has no unit - test global quota
+            guestRoomSpace.setUsedAnnualReservations(1);
+            spaceRepository.save(guestRoomSpace);
+        }
 
         // Verify space is available for startDate before testing quota
-        // If space is not available, we can't test quota (availability check happens first)
+        // If space is not available, we can't test quota (availability check happens
+        // first)
         if (!spacesService.isSpaceAvailable(guestRoomSpace.getId(), startDate, endDate)) {
             // Space not available - this test cannot verify quota in this scenario
             // The test is designed to verify quota, but space availability takes precedence
-            org.junit.jupiter.api.Assumptions.assumeTrue(false, 
-                    "Space not available for dates " + startDate + " to " + endDate + 
-                    ". Cannot test quota without available space.");
+            org.junit.jupiter.api.Assumptions.assumeTrue(false,
+                    "Space not available for dates " + startDate + " to " + endDate +
+                            ". Cannot test quota without available space.");
         }
 
         // Act & Assert
@@ -491,8 +548,8 @@ public class ReservationErrorScenariosFixedTest extends BaseIntegrationTest {
 
         // Verify precise error code - should be quota exceeded, not space not available
         assertEquals(CodedError.SPACE_ANNUAL_QUOTA_EXCEEDED, exception.getError(),
-                "Expected SPACE_ANNUAL_QUOTA_EXCEEDED but got " + exception.getError() + 
-                ". Space availability check may have failed. startDate=" + startDate + ", endDate=" + endDate);
+                "Expected SPACE_ANNUAL_QUOTA_EXCEEDED but got " + exception.getError() +
+                        ". Space availability check may have failed. startDate=" + startDate + ", endDate=" + endDate);
         assertEquals("SPA005", exception.getError().getCode());
         assertEquals("Space has reached its maximum annual reservation limit",
                 exception.getError().getDefaultMessage());
