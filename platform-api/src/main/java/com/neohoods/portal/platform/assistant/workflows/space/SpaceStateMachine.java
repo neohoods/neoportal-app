@@ -109,7 +109,8 @@ public class SpaceStateMachine {
                                     userMessage, conversationHistory, authContext, iteration);
 
                         case ANSWER_USER:
-                            return handleAnswerUser(currentStep, stepResponse);
+                            return handleAnswerUser(currentStep, stepResponse, context, userMessage,
+                                    conversationHistory, authContext, stepHandlers, iteration);
 
                         case COMPLETED:
                             return handleCompleted(currentStep, stepResponse, context, authContext);
@@ -268,8 +269,16 @@ public class SpaceStateMachine {
         // transition to CONFIRM_RESERVATION_SUMMARY
         if (currentStep == SpaceStep.CHOOSE_SPACE && context != null) {
             String spaceId = stepResponse.getSpaceId();
+            // Normalize empty string to null
+            if (spaceId != null && spaceId.isEmpty()) {
+                spaceId = null;
+            }
             if (spaceId == null) {
                 spaceId = context.getWorkflowStateValue("spaceId", String.class);
+                // Also normalize from context
+                if (spaceId != null && spaceId.isEmpty()) {
+                    spaceId = null;
+                }
             }
 
             ReservationPeriod period = stepResponse.getPeriod();
@@ -304,7 +313,8 @@ public class SpaceStateMachine {
             }
 
             // If we have both spaceId and period, force transition
-            if (spaceId != null && period != null && period.isComplete()) {
+            // CRITICAL: Check that spaceId is not null AND not empty (normalized above)
+            if (spaceId != null && !spaceId.isEmpty() && period != null && period.isComplete()) {
                 log.warn(
                         "⚠️ CHOOSE_SPACE: LLM returned ASK_USER but we have both spaceId and period - FORCING SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY");
 
@@ -349,10 +359,102 @@ public class SpaceStateMachine {
 
     /**
      * Handles ANSWER_USER status - just returns the response
+     * BUT: If we're in CHOOSE_SPACE and have both spaceId and period, force
+     * transition
      */
     private Mono<SpaceStepResponse> handleAnswerUser(
             SpaceStep currentStep,
-            SpaceStepResponse stepResponse) {
+            SpaceStepResponse stepResponse,
+            MatrixAssistantAgentContextService.AgentContext context,
+            String userMessage,
+            List<Map<String, Object>> conversationHistory,
+            MatrixAssistantAuthContext authContext,
+            Map<SpaceStep, SpaceStepHandler> stepHandlers,
+            int iteration) {
+
+        // Special case: CHOOSE_SPACE - if we have both spaceId and period, force
+        // transition
+        // This handles cases where LLM incorrectly uses ANSWER_USER instead of
+        // SWITCH_STEP
+        if (currentStep == SpaceStep.CHOOSE_SPACE && context != null) {
+            String spaceId = stepResponse.getSpaceId();
+            // Normalize empty string to null
+            if (spaceId != null && spaceId.isEmpty()) {
+                spaceId = null;
+            }
+            if (spaceId == null) {
+                spaceId = context.getWorkflowStateValue("spaceId", String.class);
+                if (spaceId != null && spaceId.isEmpty()) {
+                    spaceId = null;
+                }
+            }
+
+            ReservationPeriod period = stepResponse.getPeriod();
+            boolean hasPeriodFromResponse = period != null && period.isComplete();
+
+            // Check context for period if not in response
+            if (!hasPeriodFromResponse && context != null) {
+                Object startDateTimeObj = context.getWorkflowState().get("startDateTime");
+                Object endDateTimeObj = context.getWorkflowState().get("endDateTime");
+                Object startDateObj = context.getWorkflowState().get("startDate");
+                Object endDateObj = context.getWorkflowState().get("endDate");
+                boolean hasPeriodInContext = (startDateTimeObj != null && endDateTimeObj != null) ||
+                        (startDateObj != null && endDateObj != null);
+
+                // Build period from context if needed
+                if (hasPeriodInContext && period == null) {
+                    String startDate = context.getWorkflowStateValue("startDate", String.class);
+                    String endDate = context.getWorkflowStateValue("endDate", String.class);
+                    String startTime = context.getWorkflowStateValue("startTime", String.class);
+                    String endTime = context.getWorkflowStateValue("endTime", String.class);
+
+                    if (startDate != null && endDate != null) {
+                        period = ReservationPeriod.builder()
+                                .startDate(startDate)
+                                .endDate(endDate)
+                                .startTime(startTime)
+                                .endTime(endTime)
+                                .build();
+                    }
+                }
+            }
+
+            // If we have both spaceId and period, force SWITCH_STEP
+            if (spaceId != null && !spaceId.isEmpty() && period != null && period.isComplete()) {
+                log.warn(
+                        "⚠️ CHOOSE_SPACE: LLM returned ANSWER_USER but we have both spaceId and period - FORCING SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY");
+
+                // Store data in context first
+                if (context != null) {
+                    context.updateWorkflowState("spaceId", spaceId);
+                    if (period.getStartDate() != null) {
+                        context.updateWorkflowState("startDate", period.getStartDate());
+                    }
+                    if (period.getEndDate() != null) {
+                        context.updateWorkflowState("endDate", period.getEndDate());
+                    }
+                    if (period.getStartTime() != null) {
+                        context.updateWorkflowState("startTime", period.getStartTime());
+                    }
+                    if (period.getEndTime() != null) {
+                        context.updateWorkflowState("endTime", period.getEndTime());
+                    }
+                }
+
+                // Force transition to CONFIRM_RESERVATION_SUMMARY
+                SpaceStepResponse forcedResponse = SpaceStepResponse.builder()
+                        .status(SpaceStepResponse.StepStatus.SWITCH_STEP)
+                        .nextStep(SpaceStep.CONFIRM_RESERVATION_SUMMARY)
+                        .response("Parfait ! J'ai identifié votre réservation.")
+                        .spaceId(spaceId)
+                        .period(period)
+                        .build();
+
+                return handleSwitchStep(
+                        currentStep, forcedResponse, userMessage, conversationHistory,
+                        context, authContext, stepHandlers, iteration);
+            }
+        }
 
         return Mono.just(stepResponse);
     }

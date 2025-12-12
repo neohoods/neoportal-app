@@ -1,5 +1,7 @@
 package com.neohoods.portal.platform.assistant.workflows;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -8,18 +10,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import io.netty.channel.ChannelOption;
+import reactor.netty.http.client.HttpClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPAdapter;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPTool;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPReservationHandler;
 import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
+import com.neohoods.portal.platform.assistant.model.ReservationPeriod;
 import com.neohoods.portal.platform.assistant.model.SpaceStep;
 import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
 import com.neohoods.portal.platform.assistant.model.WorkflowType;
@@ -149,6 +159,8 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
 
     /**
      * Public wrapper for step handlers to call Mistral API
+     * Uses Conversations API with step-specific agents if available, otherwise
+     * falls back to Chat Completions
      */
     public Mono<SpaceStepResponse> callMistralAPIWithJSONResponseForStep(
             String stepLabel,
@@ -158,8 +170,278 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
             List<Map<String, Object>> tools,
             MatrixAssistantAuthContext authContext) {
         String label = stepLabel != null ? "step=" + stepLabel : null;
+
+        // Try to use Conversations API with step-specific agent
+        if (mistralAgentsService != null && mistralConversationsService != null && stepLabel != null) {
+            try {
+                SpaceStep step = SpaceStep.valueOf(stepLabel);
+                String agentName = com.neohoods.portal.platform.assistant.services.MistralAgentsService
+                        .getAgentNameForStep(step);
+                String agentId = mistralAgentsService.getAgentId(agentName);
+                if (agentId != null && !agentId.isEmpty()) {
+                    log.debug("Using Conversations API with agent {} for step {}", agentName, stepLabel);
+                    return callMistralAPIWithJSONResponseUsingConversations(
+                            label, userMessage, conversationHistory, systemPrompt, tools, authContext, agentId, step);
+                }
+            } catch (IllegalArgumentException e) {
+                log.debug("Invalid step label {}, falling back to Chat Completions", stepLabel);
+            }
+        }
+
+        // Fallback to Chat Completions API
         return callMistralAPIWithJSONResponse(label, userMessage, conversationHistory, systemPrompt, tools,
                 authContext);
+    }
+
+    /**
+     * Calls Mistral API using Conversations API with a step-specific agent
+     */
+    private Mono<SpaceStepResponse> callMistralAPIWithJSONResponseUsingConversations(
+            String contextLabel,
+            String userMessage,
+            List<Map<String, Object>> conversationHistory,
+            String systemPrompt,
+            List<Map<String, Object>> tools,
+            MatrixAssistantAuthContext authContext,
+            String agentId,
+            SpaceStep step) {
+
+        String roomId = authContext.getRoomId();
+        String logLabel = contextLabel != null ? contextLabel : "step=" + step.name();
+
+        // Build inputs: include conversation history + current message
+        List<Map<String, Object>> inputs = new ArrayList<>();
+        if (conversationHistory != null && !conversationHistory.isEmpty()) {
+            for (Map<String, Object> histMsg : conversationHistory) {
+                Map<String, Object> cleanMsg = new HashMap<>();
+                cleanMsg.put("role", histMsg.get("role"));
+                cleanMsg.put("content", histMsg.get("content"));
+                inputs.add(cleanMsg);
+            }
+        }
+        Map<String, Object> userMsg = new HashMap<>();
+        userMsg.put("role", "user");
+        userMsg.put("content", userMessage);
+        inputs.add(userMsg);
+
+        // Check if we should create a new conversation or append
+        boolean shouldCreateNew = mistralConversationsService.shouldCreateNewConversation(roomId, agentId);
+
+        Mono<Map<String, Object>> responseMono;
+        if (shouldCreateNew) {
+            log.debug("Starting new conversation for step {} with agent {}", step, agentId);
+            responseMono = mistralConversationsService.startConversation(roomId, agentId, inputs, true)
+                    .flatMap(conversationId -> {
+                        // Update context
+                        if (roomId != null) {
+                            MatrixAssistantAgentContextService.AgentContext context = agentContextService
+                                    .getOrCreateContext(roomId);
+                            context.setMistralConversationId(conversationId);
+                            context.updateLastInteractionTime();
+                        }
+                        // Retrieve conversation to get entries
+                        return retrieveConversationForStep(conversationId, agentId);
+                    });
+        } else {
+            log.debug("Appending to existing conversation for step {} with agent {}", step, agentId);
+            responseMono = mistralConversationsService.appendToConversation(roomId, userMessage)
+                    .flatMap(conversationId -> {
+                        // Update context
+                        if (roomId != null) {
+                            MatrixAssistantAgentContextService.AgentContext context = agentContextService
+                                    .getOrCreateContext(roomId);
+                            context.setMistralConversationId(conversationId);
+                            context.updateLastInteractionTime();
+                        }
+                        // Retrieve conversation to get entries
+                        return retrieveConversationForStep(conversationId, agentId);
+                    });
+        }
+
+        return responseMono
+                .flatMap(response -> parseStepResponseFromConversation(response, authContext, tools, step))
+                .onErrorResume(e -> {
+                    log.warn("Failed to use Conversations API for step {}, falling back to Chat Completions: {}",
+                            step, e.getMessage());
+                    return callMistralAPIWithJSONResponse(logLabel, userMessage, conversationHistory, systemPrompt,
+                            tools,
+                            authContext);
+                });
+    }
+
+    /**
+     * Retrieves a conversation by ID for step processing
+     */
+    private Mono<Map<String, Object>> retrieveConversationForStep(String conversationId, String agentId) {
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
+        WebClient webClient = webClientBuilder
+                .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        return webClient.get()
+                .uri("/conversations/{conversationId}", conversationId)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .cast(java.util.Map.class)
+                .map(response -> {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> typedResponse = (Map<String, Object>) response;
+                    Map<String, String> mdcContext = org.slf4j.MDC.getCopyOfContextMap();
+                    logMistralResponse("Step conversation", typedResponse, mdcContext, agentId, conversationId);
+                    return typedResponse;
+                });
+    }
+
+    /**
+     * Parses SpaceStepResponse from conversation entries
+     */
+    @SuppressWarnings("unchecked")
+    private Mono<SpaceStepResponse> parseStepResponseFromConversation(
+            Map<String, Object> conversationResponse,
+            MatrixAssistantAuthContext authContext,
+            List<Map<String, Object>> tools,
+            SpaceStep step) {
+
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) conversationResponse.get("entries");
+        if (entries == null || entries.isEmpty()) {
+            log.warn("No entries in conversation response for step {}", step);
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ERROR)
+                    .response("Erreur lors du traitement de votre demande.")
+                    .build());
+        }
+
+        // Find the latest message.output entry with tool_reference chunks
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            Map<String, Object> entry = entries.get(i);
+            String entryType = (String) entry.get("type");
+
+            if ("message.output".equals(entryType)) {
+                List<Map<String, Object>> content = (List<Map<String, Object>>) entry.get("content");
+                if (content != null) {
+                    for (Map<String, Object> chunk : content) {
+                        String chunkType = (String) chunk.get("type");
+                        if ("tool_reference".equals(chunkType)) {
+                            Map<String, Object> toolRef = (Map<String, Object>) chunk.get("tool_reference");
+                            if (toolRef != null) {
+                                String toolName = (String) toolRef.get("name");
+                                if ("submit_reservation_step".equals(toolName)) {
+                                    Map<String, Object> output = (Map<String, Object>) toolRef.get("output");
+                                    if (output != null) {
+                                        return Mono.just(parseStepResponseFromToolOutput(output));
+                                    }
+                                }
+                            }
+                        } else if ("text".equals(chunkType)) {
+                            // Try to parse JSON from text content
+                            String text = (String) chunk.get("text");
+                            if (text != null && text.trim().startsWith("{")) {
+                                try {
+                                    Map<String, Object> jsonResponse = objectMapper.readValue(text,
+                                            objectMapper.getTypeFactory().constructMapType(Map.class, String.class,
+                                                    Object.class));
+                                    return Mono.just(parseStepResponseFromToolOutput(jsonResponse));
+                                } catch (Exception e) {
+                                    log.debug("Could not parse JSON from text chunk: {}", e.getMessage());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback: try to process tool executions if any
+        return processToolExecutionsFromConversation(entries, authContext, tools, step);
+    }
+
+    /**
+     * Parses SpaceStepResponse from tool output map
+     */
+    @SuppressWarnings("unchecked")
+    private SpaceStepResponse parseStepResponseFromToolOutput(Map<String, Object> output) {
+        SpaceStepResponse.SpaceStepResponseBuilder builder = SpaceStepResponse.builder();
+
+        String statusStr = (String) output.get("status");
+        if (statusStr != null) {
+            try {
+                builder.status(SpaceStepResponse.StepStatus.valueOf(statusStr));
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid status '{}' in tool output", statusStr);
+                builder.status(SpaceStepResponse.StepStatus.ASK_USER);
+            }
+        }
+
+        builder.response((String) output.get("response"));
+        builder.spaceId((String) output.get("spaceId"));
+
+        Map<String, Object> periodMap = (Map<String, Object>) output.get("period");
+        if (periodMap != null) {
+            ReservationPeriod period = ReservationPeriod.builder()
+                    .startDate((String) periodMap.get("startDate"))
+                    .endDate((String) periodMap.get("endDate"))
+                    .startTime((String) periodMap.get("startTime"))
+                    .endTime((String) periodMap.get("endTime"))
+                    .build();
+            builder.period(period);
+        }
+
+        String nextStepStr = (String) output.get("nextStep");
+        if (nextStepStr != null) {
+            try {
+                builder.nextStep(SpaceStep.valueOf(nextStepStr));
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid nextStep '{}' in tool output", nextStepStr);
+            }
+        }
+
+        Map<String, String> availableSpaces = (Map<String, String>) output.get("availableSpaces");
+        if (availableSpaces != null) {
+            builder.availableSpaces(availableSpaces);
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Processes tool executions from conversation entries (for tool calls that need
+     * execution)
+     */
+    @SuppressWarnings("unchecked")
+    private Mono<SpaceStepResponse> processToolExecutionsFromConversation(
+            List<Map<String, Object>> entries,
+            MatrixAssistantAuthContext authContext,
+            List<Map<String, Object>> tools,
+            SpaceStep step) {
+
+        // Find tool.execution entries and execute them
+        List<Map<String, Object>> toolExecutions = new ArrayList<>();
+        for (Map<String, Object> entry : entries) {
+            String entryType = (String) entry.get("type");
+            if ("tool.execution".equals(entryType)) {
+                toolExecutions.add(entry);
+            }
+        }
+
+        if (toolExecutions.isEmpty()) {
+            // No tool executions, return asking user response
+            return Mono.just(SpaceStepResponse.builder()
+                    .status(SpaceStepResponse.StepStatus.ASK_USER)
+                    .response("En attente de votre réponse...")
+                    .build());
+        }
+
+        // Execute tools and continue conversation
+        // This is complex - for now, fallback to Chat Completions
+        log.debug("Found {} tool executions in conversation, falling back to Chat Completions for processing",
+                toolExecutions.size());
+        return Mono.error(new RuntimeException("Tool executions need processing - fallback to Chat Completions"));
     }
 
     /**
@@ -237,18 +519,34 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
                         String endDate = context.getWorkflowStateValue("endDate", String.class);
                         String startTime = context.getWorkflowStateValue("startTime", String.class);
                         String endTime = context.getWorkflowStateValue("endTime", String.class);
-                        
+
+                        // Get the actual current step from context (may have been updated by state
+                        // machine)
+                        // Fallback to the original currentStep if not found in context
+                        String stepStr = context.getWorkflowStateValue("reservationStep", String.class);
+                        SpaceStep actualStep = currentStep;
+                        if (stepStr != null) {
+                            try {
+                                actualStep = SpaceStep.valueOf(stepStr);
+                            } catch (IllegalArgumentException e) {
+                                // Keep currentStep if invalid
+                            }
+                        }
+
                         // Format debug block with proper null handling
-                        // Use HTML format for Matrix (code blocks in Markdown are not automatically converted)
-                        String stateStr = currentStep != null ? currentStep.name() : "null";
+                        // Use HTML format for Matrix - <pre><code> tags will be preserved by
+                        // convertMarkdownToMatrixHtml
+                        String stateStr = actualStep != null ? actualStep.name() : "null";
                         String spaceIdStr = spaceId != null ? spaceId : "null";
                         String startDateStr = startDate != null ? startDate : "null";
                         String endDateStr = endDate != null ? endDate : "null";
                         String startTimeStr = startTime != null ? startTime : "null";
                         String endTimeStr = endTime != null ? endTime : "null";
-                        
-                        // Format as HTML code block for Matrix
-                        // Escape HTML special characters in values to prevent injection
+
+                        // Format as HTML code block - escape only the content values to prevent
+                        // injection
+                        // The <pre><code> tags themselves will be preserved by
+                        // convertMarkdownToMatrixHtml
                         String debugContent = String.format(
                                 "[state=%s, spaceId=%s, startDate=%s, endDate=%s, startTime=%s, endTime=%s]",
                                 stateStr.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"),
@@ -257,6 +555,7 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
                                 endDateStr.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"),
                                 startTimeStr.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"),
                                 endTimeStr.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"));
+                        // Use HTML format - tags will be preserved by convertMarkdownToMatrixHtml
                         String debugBlock = "\n\n<pre><code>" + debugContent + "</code></pre>";
                         return baseResponse + debugBlock;
                     }
@@ -334,8 +633,8 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
         Object endDateTimeObj = context.getWorkflowState().get("endDateTime");
         Object startDateObj = context.getWorkflowState().get("startDate");
         Object endDateObj = context.getWorkflowState().get("endDate");
-        boolean hasPeriod = (startDateTimeObj != null && endDateTimeObj != null) || 
-                           (startDateObj != null && endDateObj != null);
+        boolean hasPeriod = (startDateTimeObj != null && endDateTimeObj != null) ||
+                (startDateObj != null && endDateObj != null);
         Boolean reservationCreated = context.getWorkflowStateValue("reservationCreated", Boolean.class);
         Boolean summaryShown = context.getWorkflowStateValue("summaryShown", Boolean.class);
         Boolean paymentLinkGenerated = context.getWorkflowStateValue("paymentLinkGenerated", Boolean.class);
@@ -386,17 +685,20 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
             // If we're at CHOOSE_SPACE, check if we have both spaceId and period
             if (storedStep == SpaceStep.CHOOSE_SPACE) {
                 if (hasPeriod) {
-                    // Both spaceId and period are present, automatically move to CONFIRM_RESERVATION_SUMMARY
-                    log.info("Upgrading step from CHOOSE_SPACE to CONFIRM_RESERVATION_SUMMARY (spaceId and period collected)");
+                    // Both spaceId and period are present, automatically move to
+                    // CONFIRM_RESERVATION_SUMMARY
+                    log.info(
+                            "Upgrading step from CHOOSE_SPACE to CONFIRM_RESERVATION_SUMMARY (spaceId and period collected)");
                     return SpaceStep.CONFIRM_RESERVATION_SUMMARY;
                 }
                 return SpaceStep.CHOOSE_SPACE;
             }
-            // If we're at CONFIRM_RESERVATION_SUMMARY or later but missing data, don't downgrade
+            // If we're at CONFIRM_RESERVATION_SUMMARY or later but missing data, don't
+            // downgrade
             // This prevents resetting when context is temporarily unavailable
-            if (storedStep == SpaceStep.CONFIRM_RESERVATION_SUMMARY || 
-                storedStep == SpaceStep.COMPLETE_RESERVATION ||
-                storedStep == SpaceStep.PAYMENT_INSTRUCTIONS) {
+            if (storedStep == SpaceStep.CONFIRM_RESERVATION_SUMMARY ||
+                    storedStep == SpaceStep.COMPLETE_RESERVATION ||
+                    storedStep == SpaceStep.PAYMENT_INSTRUCTIONS) {
                 // Don't downgrade - keep the current step even if data seems missing
                 // This handles cases where data is stored but not yet loaded
                 log.debug("Keeping step {} even though some data appears missing (may be loading)", storedStep);
@@ -405,10 +707,12 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
         }
 
         // Step 1: Request space info (no spaceId)
-        // CRITICAL: If we're at CHOOSE_SPACE without spaceId, that's NORMAL - we're actively collecting it
+        // CRITICAL: If we're at CHOOSE_SPACE without spaceId, that's NORMAL - we're
+        // actively collecting it
         // Only reset to REQUEST_SPACE_INFO if we're already at REQUEST_SPACE_INFO
         if (spaceId == null) {
-            // If we're at CHOOSE_SPACE, it's normal to not have spaceId yet - we're processing it
+            // If we're at CHOOSE_SPACE, it's normal to not have spaceId yet - we're
+            // processing it
             if (storedStep == SpaceStep.CHOOSE_SPACE) {
                 return SpaceStep.CHOOSE_SPACE;
             }
@@ -480,9 +784,126 @@ public class MatrixAssistantSpaceAgent extends BaseMatrixAssistantAgent {
 
         // Replace placeholders with actual values from context
         String filledPrompt = fillStepPromptPlaceholders(stepPrompt, context);
+
+        // Add preventive validation: inject current state and rules based on state
+        String preventiveValidation = buildPreventiveValidation(step, context);
+        if (!preventiveValidation.isEmpty()) {
+            promptBuilder.append("\n\n");
+            promptBuilder.append(preventiveValidation);
+        }
+
         promptBuilder.append(filledPrompt);
 
         return promptBuilder.toString();
+    }
+
+    /**
+     * Builds preventive validation rules based on current step and context state.
+     * This helps guide the LLM before it makes mistakes, rather than correcting
+     * after.
+     */
+    private String buildPreventiveValidation(SpaceStep step, MatrixAssistantAgentContextService.AgentContext context) {
+        if (context == null) {
+            return "";
+        }
+
+        StringBuilder validation = new StringBuilder();
+        validation.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        validation.append("📊 **CURRENT STATE & VALIDATION RULES**\n");
+        validation.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+
+        // Get current state values
+        String spaceId = context.getWorkflowStateValue("spaceId", String.class);
+        Object startDateObj = context.getWorkflowState().get("startDate");
+        Object endDateObj = context.getWorkflowState().get("endDate");
+        Object startTimeObj = context.getWorkflowState().get("startTime");
+        Object endTimeObj = context.getWorkflowState().get("endTime");
+        Object startDateTimeObj = context.getWorkflowState().get("startDateTime");
+        Object endDateTimeObj = context.getWorkflowState().get("endDateTime");
+
+        boolean hasSpaceId = spaceId != null && !spaceId.isEmpty();
+        boolean hasStartDate = startDateObj != null || startDateTimeObj != null;
+        boolean hasEndDate = endDateObj != null || endDateTimeObj != null;
+        boolean hasPeriod = hasStartDate && hasEndDate;
+
+        // Display current state
+        validation.append("**Current State:**\n");
+        validation.append("- spaceId: ").append(hasSpaceId ? "✅ " + spaceId : "❌ NOT SET").append("\n");
+        validation.append("- startDate: ")
+                .append(hasStartDate ? "✅ " + (startDateObj != null ? startDateObj : startDateTimeObj) : "❌ NOT SET")
+                .append("\n");
+        validation.append("- endDate: ")
+                .append(hasEndDate ? "✅ " + (endDateObj != null ? endDateObj : endDateTimeObj) : "❌ NOT SET")
+                .append("\n");
+        if (startTimeObj != null) {
+            validation.append("- startTime: ✅ ").append(startTimeObj).append("\n");
+        }
+        if (endTimeObj != null) {
+            validation.append("- endTime: ✅ ").append(endTimeObj).append("\n");
+        }
+        validation.append("\n");
+
+        // Step-specific validation rules
+        if (step == SpaceStep.CHOOSE_SPACE) {
+            validation.append("**🚨 VALIDATION RULES FOR CHOOSE_SPACE:**\n\n");
+
+            if (hasSpaceId && hasPeriod) {
+                validation.append("✅ **BOTH spaceId AND period are present!**\n");
+                validation.append(
+                        "→ **YOU MUST use:** `status: \"SWITCH_STEP\"` with `nextStep: \"CONFIRM_RESERVATION_SUMMARY\"`\n");
+                validation.append("→ **FORBIDDEN:** Do NOT use `status: \"ASK_USER\"` or `status: \"COMPLETED\"`\n");
+                validation.append("→ **FORBIDDEN:** Do NOT ask for confirmation - switch immediately!\n\n");
+            } else if (hasSpaceId && !hasPeriod) {
+                validation.append("⚠️ **spaceId is present but period is missing!**\n");
+                validation.append("→ **YOU MUST use:** `status: \"ASK_USER\"` to request the reservation period\n");
+                validation
+                        .append("→ **Include:** Ask for dates and times (startDate, endDate, startTime, endTime)\n\n");
+            } else if (!hasSpaceId && hasPeriod) {
+                validation.append("⚠️ **period is present but spaceId is missing!**\n");
+                validation.append("→ **YOU MUST use:** `status: \"ASK_USER\"` to request the space choice\n");
+                validation.append("→ **Include:** Call `list_spaces` and provide `availableSpaces` map\n\n");
+            } else {
+                validation.append("❌ **BOTH spaceId AND period are missing!**\n");
+                validation.append("→ **YOU MUST use:** `status: \"ASK_USER\"` to request both space and period\n");
+                validation.append("→ **Include:** Call `list_spaces` and provide `availableSpaces` map\n");
+                validation.append("→ **Include:** Ask for reservation period (dates and times)\n\n");
+            }
+
+            validation.append("**CRITICAL:**\n");
+            validation.append(
+                    "- ❌ **NEVER use** `status: \"COMPLETED\"` in CHOOSE_SPACE - only COMPLETE_RESERVATION can use COMPLETED\n");
+            validation.append(
+                    "- ❌ **NEVER create reservations** in this step - you can only identify spaceId and period\n");
+            validation.append("- ✅ **ALWAYS call** `submit_reservation_step` function - never return plain text\n");
+        } else if (step == SpaceStep.CONFIRM_RESERVATION_SUMMARY) {
+            validation.append("**🚨 VALIDATION RULES FOR CONFIRM_RESERVATION_SUMMARY:**\n\n");
+
+            if (!hasSpaceId || !hasPeriod) {
+                validation.append("⚠️ **Missing required data!**\n");
+                validation.append("→ This step requires both spaceId and period\n");
+                validation.append("→ If missing, this indicates a workflow error\n\n");
+            } else {
+                validation.append("✅ **All required data is present!**\n");
+                validation.append("→ Display the summary and wait for user confirmation\n");
+                validation.append("→ Use `status: \"ASK_USER\"` to wait for confirmation\n\n");
+            }
+        } else if (step == SpaceStep.COMPLETE_RESERVATION) {
+            validation.append("**🚨 VALIDATION RULES FOR COMPLETE_RESERVATION:**\n\n");
+
+            if (!hasSpaceId || !hasPeriod) {
+                validation.append("⚠️ **Missing required data!**\n");
+                validation.append("→ Cannot create reservation without spaceId and period\n");
+                validation.append("→ This indicates a workflow error\n\n");
+            } else {
+                validation.append("✅ **All required data is present!**\n");
+                validation.append("→ If user confirms, call `create_reservation` tool\n");
+                validation.append("→ After successful creation, use `status: \"COMPLETED\"`\n\n");
+            }
+        }
+
+        validation.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+        return validation.toString();
     }
 
     /**

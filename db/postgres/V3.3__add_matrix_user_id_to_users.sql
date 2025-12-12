@@ -9,3 +9,8 @@ COMMENT ON COLUMN users.matrix_user_id IS 'Matrix user ID (e.g., @username:chat.
 
 
 
+
+
+
+
+

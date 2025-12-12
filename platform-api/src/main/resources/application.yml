@@ -131,6 +131,9 @@ neohoods:
         conversation:
           enabled: ${MATRIX_ASSISTANT_CONVERSATION_ENABLED:true}
           max-history: ${MATRIX_ASSISTANT_CONVERSATION_MAX_HISTORY:20}
+          expiration-minutes: ${MATRIX_ASSISTANT_CONVERSATION_EXPIRATION_MINUTES:10}
+        agents:
+          enabled: ${MATRIX_ASSISTANT_AGENTS_ENABLED:true}
         mcp:
           enabled: ${MATRIX_ASSISTANT_MCP_ENABLED:true}
           base-url: ${MATRIX_ASSISTANT_MCP_BASE_URL:http://localhost:8080/mcp}

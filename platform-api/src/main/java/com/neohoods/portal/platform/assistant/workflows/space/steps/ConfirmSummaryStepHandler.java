@@ -99,7 +99,7 @@ public class ConfirmSummaryStepHandler extends BaseSpaceStepHandler {
         String startTimeStr = startTimeObj != null ? startTimeObj.toString() : "";
         String endTimeStr = endTimeObj != null ? endTimeObj.toString() : "";
 
-        // Generate summary message with better formatting for Matrix
+        // Generate summary message with Markdown formatting (backend will convert to HTML)
         StringBuilder summaryMessage = new StringBuilder();
         try {
             summaryMessage.append("**").append(messageSource.getMessage("matrix.reservation.summary.title", null, locale))

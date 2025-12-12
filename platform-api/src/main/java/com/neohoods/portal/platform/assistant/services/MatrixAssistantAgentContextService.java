@@ -37,11 +37,14 @@ public class MatrixAssistantAgentContextService {
         private WorkflowType currentWorkflow;
         private Map<String, Object> workflowState;
         private LocalDateTime lastUpdated;
+        private String mistralConversationId;
+        private LocalDateTime lastInteractionTime;
 
         public AgentContext(String roomId) {
             this.roomId = roomId;
             this.workflowState = new HashMap<>();
             this.lastUpdated = LocalDateTime.now();
+            this.lastInteractionTime = LocalDateTime.now();
         }
 
         public String getRoomId() {
@@ -76,6 +79,33 @@ public class MatrixAssistantAgentContextService {
 
         public void setLastUpdated(LocalDateTime lastUpdated) {
             this.lastUpdated = lastUpdated;
+        }
+
+        public String getMistralConversationId() {
+            return mistralConversationId;
+        }
+
+        public void setMistralConversationId(String mistralConversationId) {
+            this.mistralConversationId = mistralConversationId;
+            this.lastInteractionTime = LocalDateTime.now();
+            this.lastUpdated = LocalDateTime.now();
+        }
+
+        public LocalDateTime getLastInteractionTime() {
+            return lastInteractionTime;
+        }
+
+        public void setLastInteractionTime(LocalDateTime lastInteractionTime) {
+            this.lastInteractionTime = lastInteractionTime;
+            this.lastUpdated = LocalDateTime.now();
+        }
+
+        /**
+         * Updates the last interaction time to now
+         */
+        public void updateLastInteractionTime() {
+            this.lastInteractionTime = LocalDateTime.now();
+            this.lastUpdated = LocalDateTime.now();
         }
 
         /**
@@ -154,9 +184,9 @@ public class MatrixAssistantAgentContextService {
     /**
      * Updates the context for a room
      * 
-     * @param roomId Matrix room ID
+     * @param roomId   Matrix room ID
      * @param workflow Workflow type
-     * @param state Workflow state (will be copied)
+     * @param state    Workflow state (will be copied)
      */
     public void updateContext(String roomId, WorkflowType workflow, Map<String, Object> state) {
         if (roomId == null || roomId.isEmpty()) {
@@ -167,8 +197,8 @@ public class MatrixAssistantAgentContextService {
         AgentContext context = getOrCreateContext(roomId);
         context.setCurrentWorkflow(workflow);
         context.setWorkflowState(state);
-        
-        log.debug("Updated agent context for room {}: workflow={}, state keys={}", 
+
+        log.debug("Updated agent context for room {}: workflow={}, state keys={}",
                 roomId, workflow, state != null ? state.keySet() : "null");
     }
 
@@ -176,8 +206,8 @@ public class MatrixAssistantAgentContextService {
      * Updates a specific key in the workflow state for a room
      * 
      * @param roomId Matrix room ID
-     * @param key State key
-     * @param value State value
+     * @param key    State key
+     * @param value  State value
      */
     public void updateWorkflowState(String roomId, String key, Object value) {
         if (roomId == null || roomId.isEmpty()) {
@@ -187,7 +217,7 @@ public class MatrixAssistantAgentContextService {
 
         AgentContext context = getOrCreateContext(roomId);
         context.updateWorkflowState(key, value);
-        
+
         log.debug("Updated workflow state for room {}: {}={}", roomId, key, value);
     }
 
@@ -200,7 +230,7 @@ public class MatrixAssistantAgentContextService {
         if (roomId == null || roomId.isEmpty()) {
             return;
         }
-        
+
         AgentContext removed = roomContexts.remove(roomId);
         if (removed != null) {
             log.info("Cleared agent context for room {}", roomId);
@@ -240,7 +270,7 @@ public class MatrixAssistantAgentContextService {
 
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("📋 **Contexte Agent - Room: %s**\n\n", roomId));
-        sb.append(String.format("**Workflow actuel:** %s\n", 
+        sb.append(String.format("**Workflow actuel:** %s\n",
                 context.getCurrentWorkflow() != null ? context.getCurrentWorkflow().name() : "Aucun"));
         sb.append(String.format("**Dernière mise à jour:** %s\n\n", context.getLastUpdated()));
 
@@ -281,5 +311,3 @@ public class MatrixAssistantAgentContextService {
         return roomContexts.containsKey(roomId);
     }
 }
-
-

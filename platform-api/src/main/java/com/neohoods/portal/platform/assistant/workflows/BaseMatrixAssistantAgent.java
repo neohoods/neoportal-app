@@ -2,6 +2,7 @@ package com.neohoods.portal.platform.assistant.workflows;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -21,7 +22,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import io.netty.channel.ChannelOption;
+import reactor.netty.http.client.HttpClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPAdapter;
@@ -50,6 +55,12 @@ public abstract class BaseMatrixAssistantAgent {
     protected final MatrixAssistantMCPAdapter mcpAdapter;
     protected final ResourceLoader resourceLoader;
     protected final MatrixAssistantAgentContextService agentContextService;
+
+    @Autowired(required = false)
+    protected com.neohoods.portal.platform.assistant.services.MistralAgentsService mistralAgentsService;
+
+    @Autowired(required = false)
+    protected com.neohoods.portal.platform.assistant.services.MistralConversationsService mistralConversationsService;
 
     @Value("${neohoods.portal.matrix.assistant.ai.provider}")
     protected String provider;
@@ -154,8 +165,14 @@ public abstract class BaseMatrixAssistantAgent {
             List<Map<String, Object>> tools,
             MatrixAssistantAuthContext authContext) {
 
+        // Configure HttpClient with longer timeouts for Mistral API
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -357,6 +374,10 @@ public abstract class BaseMatrixAssistantAgent {
             }
 
             String spaceId = (String) args.get("spaceId");
+            // Normalize empty string to null
+            if (spaceId != null && spaceId.isEmpty()) {
+                spaceId = null;
+            }
 
             ReservationPeriod period = null;
             Map<String, Object> periodMap = (Map<String, Object>) args.get("period");
@@ -422,6 +443,7 @@ public abstract class BaseMatrixAssistantAgent {
                     .spaceId(spaceId)
                     .period(period)
                     .nextStep(nextStep)
+                    .availableSpaces(availableSpaces)
                     .build());
         } catch (Exception e) {
             log.error("Error parsing submit_reservation_step arguments: {}", e.getMessage(), e);
@@ -705,7 +727,8 @@ public abstract class BaseMatrixAssistantAgent {
         // Add tool results
         messagesForNextCall.addAll(toolResults);
 
-        // Check if submit_reservation_step tool is available BEFORE building requestBody
+        // Check if submit_reservation_step tool is available BEFORE building
+        // requestBody
         boolean hasSubmitReservationStepTool = false;
         for (Object toolObj : tools) {
             @SuppressWarnings("unchecked")
@@ -723,12 +746,18 @@ public abstract class BaseMatrixAssistantAgent {
             }
         }
 
-        // Note: We don't add a system message here because Mistral only accepts one system message
+        // Note: We don't add a system message here because Mistral only accepts one
+        // system message
         // per conversation. Instead, we rely on tool_choice to force the function call.
 
         // Call Mistral API again with tool results
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -823,8 +852,13 @@ public abstract class BaseMatrixAssistantAgent {
             List<Map<String, Object>> tools,
             MatrixAssistantAuthContext authContext) {
 
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -1304,8 +1338,13 @@ public abstract class BaseMatrixAssistantAgent {
                 totalToolCalls, totalToolResults, iteration);
 
         // Call Mistral again with tool results
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -1612,11 +1651,29 @@ public abstract class BaseMatrixAssistantAgent {
     @SuppressWarnings("unchecked")
     private void logMistralRequest(String context, Map<String, Object> requestBody,
             List<Map<String, Object>> messages, Map<String, String> mdcContext) {
+        logMistralRequest(context, requestBody, messages, mdcContext, null, null);
+    }
+
+    /**
+     * Logs the complete Mistral API request in a readable format with
+     * agent/conversation info
+     */
+    @SuppressWarnings("unchecked")
+    protected void logMistralRequest(String context, Map<String, Object> requestBody,
+            List<Map<String, Object>> messages, Map<String, String> mdcContext, String agentId, String conversationId) {
         try {
             withMdc(mdcContext, () -> {
                 log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 log.info("🔵 MISTRAL REQUEST [{}] - {}", context, getClass().getSimpleName());
                 log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log agent and conversation IDs if available
+                if (agentId != null && !agentId.isEmpty()) {
+                    log.info("🤖 Agent ID: {}", agentId);
+                }
+                if (conversationId != null && !conversationId.isEmpty()) {
+                    log.info("💬 Conversation ID: {}", conversationId);
+                }
 
                 // Log model and parameters
                 log.info("📋 Model: {}", requestBody.get("model"));
@@ -1653,6 +1710,24 @@ public abstract class BaseMatrixAssistantAgent {
                     String content = (String) msg.get("content");
 
                     log.info("[Message {}] Role: {}", i + 1, role.toUpperCase());
+
+                    // Extract and log locale if present (assistant message with language_iso)
+                    if ("assistant".equals(role) && content != null) {
+                        try {
+                            // Try to parse JSON content for locale
+                            if (content.trim().startsWith("{")) {
+                                Map<String, Object> contentObj = objectMapper.readValue(content,
+                                        objectMapper.getTypeFactory().constructMapType(Map.class, String.class,
+                                                Object.class));
+                                String locale = (String) contentObj.get("language_iso");
+                                if (locale != null && !locale.isEmpty()) {
+                                    log.info("   └─ Locale: {}", locale);
+                                }
+                            }
+                        } catch (Exception e) {
+                            // Not JSON, ignore
+                        }
+                    }
 
                     if (content != null && !content.isEmpty()) {
                         // Truncate very long content for readability
@@ -1719,11 +1794,37 @@ public abstract class BaseMatrixAssistantAgent {
      */
     @SuppressWarnings("unchecked")
     private void logMistralResponse(String context, Map<String, Object> response, Map<String, String> mdcContext) {
+        logMistralResponse(context, response, mdcContext, null, null);
+    }
+
+    /**
+     * Logs the complete Mistral API response in a readable format with
+     * agent/conversation info
+     */
+    @SuppressWarnings("unchecked")
+    protected void logMistralResponse(String context, Map<String, Object> response, Map<String, String> mdcContext,
+            String agentId, String conversationId) {
         try {
             withMdc(mdcContext, () -> {
                 log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 log.info("🟢 MISTRAL RESPONSE [{}] - {}", context, getClass().getSimpleName());
                 log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log agent and conversation IDs if available
+                if (agentId != null && !agentId.isEmpty()) {
+                    log.info("🤖 Agent ID: {}", agentId);
+                }
+                if (conversationId != null && !conversationId.isEmpty()) {
+                    log.info("💬 Conversation ID: {}", conversationId);
+                }
+
+                // Log conversation ID from response if present (Conversations API)
+                if (response.containsKey("id")) {
+                    String responseConversationId = (String) response.get("id");
+                    if (responseConversationId != null && !responseConversationId.isEmpty()) {
+                        log.info("💬 Response Conversation ID: {}", responseConversationId);
+                    }
+                }
 
                 // Log usage if present
                 if (response.containsKey("usage")) {
@@ -1734,6 +1835,59 @@ public abstract class BaseMatrixAssistantAgent {
                     log.info("   └─ Completion tokens: {}", usage.get("completion_tokens"));
                     log.info("   └─ Total tokens: {}", usage.get("total_tokens"));
                     log.info("");
+                }
+
+                // Log entries if present (Conversations API format)
+                if (response.containsKey("entries")) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> entries = (List<Map<String, Object>>) response.get("entries");
+                    log.info("📝 Entries: {} entry/entries", entries != null ? entries.size() : 0);
+                    if (entries != null && !entries.isEmpty()) {
+                        for (int i = 0; i < entries.size(); i++) {
+                            Map<String, Object> entry = entries.get(i);
+                            String entryType = (String) entry.get("type");
+                            log.info("   └─ Entry {}: type={}, id={}", i + 1, entryType, entry.get("id"));
+
+                            // Log tool.execution entries
+                            if ("tool.execution".equals(entryType)) {
+                                String toolName = (String) entry.get("name");
+                                log.info("      └─ Tool: {}", toolName);
+                                if (entry.containsKey("created_at")) {
+                                    log.info("      └─ Created at: {}", entry.get("created_at"));
+                                }
+                                if (entry.containsKey("completed_at")) {
+                                    log.info("      └─ Completed at: {}", entry.get("completed_at"));
+                                }
+                            }
+
+                            // Log message.output entries with tool_reference chunks
+                            if ("message.output".equals(entryType)) {
+                                List<Map<String, Object>> content = (List<Map<String, Object>>) entry.get("content");
+                                if (content != null) {
+                                    for (Map<String, Object> chunk : content) {
+                                        String chunkType = (String) chunk.get("type");
+                                        if ("tool_reference".equals(chunkType)) {
+                                            Map<String, Object> toolRef = (Map<String, Object>) chunk
+                                                    .get("tool_reference");
+                                            if (toolRef != null) {
+                                                log.info("      └─ Tool reference: name={}, output={}",
+                                                        toolRef.get("name"), toolRef.get("output"));
+                                            }
+                                        } else if ("text".equals(chunkType)) {
+                                            String text = (String) chunk.get("text");
+                                            if (text != null && !text.isEmpty()) {
+                                                String displayText = text.length() > 500
+                                                        ? text.substring(0, 500) + "\n... [TRUNCATED]"
+                                                        : text;
+                                                log.info("      └─ Text: {}", displayText);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        log.info("");
+                    }
                 }
 
                 // Log choices

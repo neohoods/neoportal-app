@@ -195,7 +195,10 @@ public class CompleteSpaceStepHandler extends BaseSpaceStepHandler {
             // Add link to reservation
             String reservationUrl = frontendUrl + "/spaces/reservations/" + reservation.getId();
             confirmationMessage.append("\n\n");
-            confirmationMessage.append("[Voir la réservation](").append(reservationUrl).append(")");
+            String viewReservationLinkText = messageSource.getMessage("matrix.reservation.viewReservationLink", null,
+                    locale);
+            confirmationMessage.append("[").append(viewReservationLinkText).append("](").append(reservationUrl)
+                    .append(")");
 
             log.info("✅ COMPLETE_RESERVATION: Reservation created successfully (id={})", reservation.getId());
 
@@ -219,8 +222,11 @@ public class CompleteSpaceStepHandler extends BaseSpaceStepHandler {
 
                         // Add link to reservation
                         String reservationUrl2 = frontendUrl + "/spaces/reservations/" + reservation.getId();
+                        String viewReservationLinkText2 = messageSource
+                                .getMessage("matrix.reservation.viewReservationLink", null, locale);
                         confirmationMessage.append("\n\n");
-                        confirmationMessage.append("[Voir la réservation](").append(reservationUrl2).append(")");
+                        confirmationMessage.append("[").append(viewReservationLinkText2).append("](")
+                                .append(reservationUrl2).append(")");
                         log.info("✅ COMPLETE_RESERVATION: Reservation confirmed automatically (id={})",
                                 reservation.getId());
 
@@ -313,10 +319,16 @@ public class CompleteSpaceStepHandler extends BaseSpaceStepHandler {
                 context.updateWorkflowState("reservationId", fallbackId);
                 context.updateWorkflowState("reservationCreated", true);
                 context.updateWorkflowState("paymentRequired", false);
-                String confirmationMessage = "Réservation enregistrée (fallback). ID: " + fallbackId;
+                StringBuilder confirmationMessage = new StringBuilder();
+                confirmationMessage.append(messageSource.getMessage("matrix.reservation.createdSuccess", null, locale));
+                confirmationMessage.append(" ")
+                        .append(messageSource.getMessage("matrix.reservation.fallbackSuffix", null, locale));
+                confirmationMessage.append("\n\n");
+                confirmationMessage.append(messageSource.getMessage("matrix.reservation.id", null, locale));
+                confirmationMessage.append(": ").append(fallbackId);
                 return Mono.just(SpaceStepResponse.builder()
                         .status(SpaceStepResponse.StepStatus.COMPLETED)
-                        .response(confirmationMessage)
+                        .response(confirmationMessage.toString())
                         .build());
             }
 
@@ -338,23 +350,57 @@ public class CompleteSpaceStepHandler extends BaseSpaceStepHandler {
 
             context.updateWorkflowState("reservationId", reservation.getId().toString());
             context.updateWorkflowState("reservationCreated", true);
-            context.updateWorkflowState("paymentRequired",
-                    reservation.getStatus() == ReservationStatusForEntity.PENDING_PAYMENT);
+            boolean paymentRequired = reservation.getStatus() == ReservationStatusForEntity.PENDING_PAYMENT;
+            context.updateWorkflowState("paymentRequired", paymentRequired);
 
-            String confirmationMessage = "Réservation enregistrée. ID: " + reservation.getId();
-            return Mono.just(SpaceStepResponse.builder()
-                    .status(SpaceStepResponse.StepStatus.COMPLETED)
-                    .response(confirmationMessage)
-                    .build());
+            // Generate confirmation message with link
+            StringBuilder confirmationMessage = new StringBuilder();
+            confirmationMessage.append(messageSource.getMessage("matrix.reservation.createdSuccess", null, locale));
+            confirmationMessage.append("\n\n");
+            confirmationMessage.append(messageSource.getMessage("matrix.reservation.id", null, locale));
+            confirmationMessage.append(": ").append(reservation.getId());
+
+            // Add link to reservation
+            String reservationUrl = frontendUrl + "/spaces/reservations/" + reservation.getId();
+            confirmationMessage.append("\n\n");
+            String viewReservationLinkText = messageSource.getMessage("matrix.reservation.viewReservationLink", null,
+                    locale);
+            confirmationMessage.append("[").append(viewReservationLinkText).append("](").append(reservationUrl)
+                    .append(")");
+
+            // If payment required, switch to payment instructions
+            if (paymentRequired) {
+                return Mono.just(SpaceStepResponse.builder()
+                        .status(SpaceStepResponse.StepStatus.SWITCH_STEP)
+                        .nextStep(SpaceStep.PAYMENT_INSTRUCTIONS)
+                        .response(confirmationMessage.toString())
+                        .build());
+            } else {
+                // No payment - workflow complete
+                String roomId = authContext.getRoomId();
+                if (roomId != null) {
+                    agentContextService.clearContext(roomId);
+                }
+                return Mono.just(SpaceStepResponse.builder()
+                        .status(SpaceStepResponse.StepStatus.COMPLETED)
+                        .response(confirmationMessage.toString())
+                        .build());
+            }
         } catch (Exception ex) {
             String fallbackId = UUID.randomUUID().toString();
             context.updateWorkflowState("reservationId", fallbackId);
             context.updateWorkflowState("reservationCreated", true);
             context.updateWorkflowState("paymentRequired", false);
-            String confirmationMessage = "Réservation enregistrée (fallback). ID: " + fallbackId;
+            StringBuilder confirmationMessage = new StringBuilder();
+            confirmationMessage.append(messageSource.getMessage("matrix.reservation.createdSuccess", null, locale));
+            confirmationMessage.append(" ")
+                    .append(messageSource.getMessage("matrix.reservation.fallbackSuffix", null, locale));
+            confirmationMessage.append("\n\n");
+            confirmationMessage.append(messageSource.getMessage("matrix.reservation.id", null, locale));
+            confirmationMessage.append(": ").append(fallbackId);
             return Mono.just(SpaceStepResponse.builder()
                     .status(SpaceStepResponse.StepStatus.COMPLETED)
-                    .response(confirmationMessage)
+                    .response(confirmationMessage.toString())
                     .build());
         }
     }

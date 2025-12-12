@@ -34,11 +34,13 @@ public class SharedPostgresContainer {
         if (useLocalPostgres) {
             // Dans un environnement conteneurisé (CI), utiliser PostgreSQL local
             // qui tourne dans le même container
+            System.out.println("Using local PostgreSQL (USE_LOCAL_POSTGRES is set)");
             this.container = null; // Pas de container Testcontainers
         } else {
             // En local, utiliser Testcontainers avec un container partagé
             // Vérifier d'abord si Docker est disponible avant de créer le container
             try {
+                System.out.println("Attempting to start Testcontainers PostgreSQL container...");
                 PostgreSQLContainer container = new PostgreSQLContainer("postgres:16-alpine")
                         .withDatabaseName("postgres") // Base de données par défaut pour créer d'autres DBs
                         .withUsername("test")
@@ -50,13 +52,35 @@ public class SharedPostgresContainer {
                 System.out.println("Starting Testcontainers PostgreSQL container...");
                 container.start();
                 this.container = container; // Assigner après le start pour éviter le warning de resource leak
-                System.out.println("Testcontainers PostgreSQL container started successfully at: " + container.getJdbcUrl());
+                System.out.println("✓ Testcontainers PostgreSQL container started successfully");
+                System.out.println("  JDBC URL: " + container.getJdbcUrl());
+                System.out.println("  Host: " + container.getHost());
+                System.out.println("  Port: " + container.getFirstMappedPort());
             } catch (Exception e) {
                 // Si Docker n'est pas disponible, fallback sur PostgreSQL local
                 // (utile pour les environnements où Docker n'est pas accessible)
-                System.err.println("WARNING: Could not start Testcontainers PostgreSQL container. " +
-                        "Falling back to local PostgreSQL. Error: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("⚠ WARNING: Could not start Testcontainers PostgreSQL container.");
+                System.err.println("  Error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                
+                // Vérifier si c'est un problème Docker
+                String errorMsg = e.getMessage();
+                if (errorMsg != null && errorMsg.contains("Docker")) {
+                    System.err.println("");
+                    System.err.println("  Docker is not available or not properly configured.");
+                    System.err.println("  Solutions:");
+                    System.err.println("    1. Start Docker Desktop and ensure it's running");
+                    System.err.println("    2. Or set USE_LOCAL_POSTGRES=true and ensure PostgreSQL is running on localhost:5432");
+                    System.err.println("    3. Or set POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD environment variables");
+                }
+                
+                System.err.println("  Falling back to local PostgreSQL (localhost:5432)");
+                if (e.getCause() != null) {
+                    System.err.println("  Cause: " + e.getCause().getMessage());
+                }
+                // Print stack trace only in debug mode
+                if (System.getProperty("testcontainers.debug") != null) {
+                    e.printStackTrace();
+                }
                 useLocalPostgres = true;
                 this.container = null;
             }
@@ -162,23 +186,42 @@ public class SharedPostgresContainer {
                     password = container.getPassword();
                 }
 
+                // Test connection first
+                System.out.println("Testing connection to PostgreSQL...");
+                System.out.println("  JDBC URL: " + jdbcUrl);
+                System.out.println("  Username: " + username);
+                try (Connection testConn = DriverManager.getConnection(jdbcUrl, username, password)) {
+                    System.out.println("✓ Connection test successful");
+                } catch (Exception connError) {
+                    System.err.println("✗ Connection test failed:");
+                    System.err.println("  " + connError.getClass().getSimpleName() + ": " + connError.getMessage());
+                    System.err.println("");
+                    System.err.println("  Solutions:");
+                    System.err.println("    1. Start Docker Desktop and ensure Testcontainers can start a container");
+                    System.err.println("    2. Or start PostgreSQL locally: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16-alpine");
+                    System.err.println("    3. Or set USE_LOCAL_POSTGRES=true and ensure PostgreSQL is running on localhost:5432");
+                    System.err.println("    4. Or configure POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD environment variables");
+                    throw new RuntimeException("Cannot connect to PostgreSQL at " + jdbcUrl + 
+                            ". Please ensure PostgreSQL is running or Testcontainers can start a container.", connError);
+                }
+
                 try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
                         Statement stmt = conn.createStatement()) {
 
                     // Créer la base de données via JDBC
                     System.out.println("Creating database: " + databaseName);
                     stmt.executeUpdate("CREATE DATABASE \"" + databaseName + "\"");
-                    System.out.println("Database created successfully: " + databaseName);
+                    System.out.println("✓ Database created successfully: " + databaseName);
 
                     // Se connecter à la nouvelle base de données et exécuter les scripts via psql
                     // (psql est nécessaire pour les fonctions et triggers)
                     System.out.println("Executing init.sql for database: " + databaseName);
                     executeInitScriptViaPsql(databaseName, "init.sql", username, password);
-                    System.out.println("init.sql executed successfully");
+                    System.out.println("✓ init.sql executed successfully");
 
                     System.out.println("Executing data.sql for database: " + databaseName);
                     executeInitScriptViaPsql(databaseName, "data.sql", username, password);
-                    System.out.println("data.sql executed successfully");
+                    System.out.println("✓ data.sql executed successfully");
                 }
             } catch (Exception e) {
                 // Logger l'erreur complète pour debug
@@ -448,6 +491,10 @@ public class SharedPostgresContainer {
     }
 
     private File findScriptFile(String scriptName) {
+        String userDir = System.getProperty("user.dir");
+        System.out.println("Searching for SQL script: " + scriptName);
+        System.out.println("  Current working directory: " + userDir);
+        
         // Essayer plusieurs chemins possibles depuis le répertoire de test
         File[] candidates = {
                 new File("/github/workspace/db/postgres/" + scriptName), // CI path
@@ -461,13 +508,13 @@ public class SharedPostgresContainer {
 
         for (File candidate : candidates) {
             if (candidate.exists() && candidate.isFile()) {
+                System.out.println("  ✓ Found script at: " + candidate.getAbsolutePath());
                 return candidate;
             }
         }
 
         // Si aucun fichier trouvé, essayer le chemin absolu depuis le répertoire de
         // travail
-        String userDir = System.getProperty("user.dir");
         if (userDir != null) {
             File[] absoluteCandidates = {
                     new File("/github/workspace/db/postgres/" + scriptName), // CI path
@@ -478,6 +525,7 @@ public class SharedPostgresContainer {
             };
             for (File candidate : absoluteCandidates) {
                 if (candidate.exists() && candidate.isFile()) {
+                    System.out.println("  ✓ Found script at: " + candidate.getAbsolutePath());
                     return candidate;
                 }
             }
@@ -489,7 +537,20 @@ public class SharedPostgresContainer {
                 if (parentDir != null) {
                     File ciCandidate = new File(parentDir, "db/postgres/" + scriptName);
                     if (ciCandidate.exists() && ciCandidate.isFile()) {
+                        System.out.println("  ✓ Found script at: " + ciCandidate.getAbsolutePath());
                         return ciCandidate;
+                    }
+                }
+            }
+            
+            // Chercher depuis neoportal-app si on est dans platform-api
+            if (userDir.endsWith("platform-api")) {
+                File neoportalAppDir = new File(userDir).getParentFile();
+                if (neoportalAppDir != null && neoportalAppDir.getName().equals("neoportal-app")) {
+                    File scriptFile = new File(neoportalAppDir, "db/postgres/" + scriptName);
+                    if (scriptFile.exists() && scriptFile.isFile()) {
+                        System.out.println("  ✓ Found script at: " + scriptFile.getAbsolutePath());
+                        return scriptFile;
                     }
                 }
             }
@@ -505,6 +566,7 @@ public class SharedPostgresContainer {
                 File testDbDir = new File(classDir.getParentFile().getParentFile().getParentFile(),
                         "../db/postgres/" + scriptName);
                 if (testDbDir.exists() && testDbDir.isFile()) {
+                    System.out.println("  ✓ Found script at: " + testDbDir.getAbsolutePath());
                     return testDbDir;
                 }
             }
@@ -512,6 +574,7 @@ public class SharedPostgresContainer {
             // Ignorer les erreurs de reflection
         }
 
+        System.err.println("  ✗ Script not found: " + scriptName);
         return null;
     }
 

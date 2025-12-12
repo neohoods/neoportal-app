@@ -1,176 +1,51 @@
-✅ **REQUEST_SPACE_INFO: COMPLETED** - User has requested information about spaces
-
 🟡 **CHOOSE_SPACE** (Current Step)
 
-🚨🚨🚨 **ABSOLUTE MANDATORY RULE - NO EXCEPTIONS:** 🚨🚨🚨
-- **You MUST call the function `submit_reservation_step` to submit your response!**
-- **NEVER return plain text or JSON in the content - ALWAYS call `submit_reservation_step`!**
-- **After calling list_spaces or check_space_availability, you MUST call `submit_reservation_step` with your structured response!**
-- **The function `submit_reservation_step` is available in your tools - USE IT!**
-- **If you return text instead of calling the function, the system will fail!**
+**Votre tâche** : Identifier l'espace (spaceId) et la période de réservation (dates et heures).
 
-🚨🚨🚨 **CRITICAL RULE - NO CONFIRMATION IN THIS STEP:** 🚨🚨🚨
-- **IF YOU HAVE BOTH spaceId AND period (startDate + endDate), YOU MUST USE status: "SWITCH_STEP" with nextStep: "CONFIRM_RESERVATION_SUMMARY"**
-- **NEVER use status: "ASK_USER" when you have both spaceId and period - ALWAYS use SWITCH_STEP!**
-- **DO NOT ask for confirmation - that's CONFIRM_RESERVATION_SUMMARY's job, NOT yours!**
-- **Your ONLY job is to identify spaceId and period - once you have both, switch immediately!**
+**Règles :**
 
-**YOUR GOAL**: Identify the exact spaceId UUID for the space the user wants to reserve AND extract the reservation period (dates and times). Once you have BOTH, switch to CONFIRM_RESERVATION_SUMMARY immediately - DO NOT ask for confirmation!
+- **Vous DEVEZ appeler** `submit_reservation_step` pour répondre (jamais de texte brut).
 
-**CRITICAL: You MUST call the function `submit_reservation_step` with the following parameters:**
+- **Formatage** : Utilisez du texte naturel avec `\n` et Markdown (`**bold**`). Le backend formatera pour Matrix.
 
-Function call: `submit_reservation_step` with parameters:
-- `status`: "ASK_USER" | "SWITCH_STEP" | "CANCEL" | "ERROR"
-- `response`: "Your conversational response to the user" (required)
-- `spaceId`: "UUID string or null" (optional, but include if identified)
-- `period`: {
-    "startDate": "YYYY-MM-DD or null",
-    "endDate": "YYYY-MM-DD or null",
-    "startTime": "HH:mm or null",
-    "endTime": "HH:mm or null"
-  } or null (optional)
-- `nextStep`: "CONFIRM_RESERVATION_SUMMARY" | null (optional, required if status is SWITCH_STEP and both spaceId and period are present)
-- `availableSpaces`: {"7": "550e8400-e29b-41d4-a716-446655440101", "23": "550e8400-e29b-41d4-a716-446655440102", ...} (optional, but **REQUIRED** when status == ASK_USER and user needs to choose from a list of spaces)
-  - Key = space number (e.g., "7", "23")
-  - Value = UUID of the space
-  - This mapping allows you to convert user's choice (e.g., "la place 23") to the correct UUID
+- **Status** :
+  - `ASK_USER` : UNIQUEMENT si spaceId OU période manquant → demandez l'info manquante.
+  - `SWITCH_STEP` : **OBLIGATOIRE** si spaceId ET période présents → passez immédiatement à `CONFIRM_RESERVATION_SUMMARY` (NE PAS demander confirmation, le backend le fera).
+  - `CANCEL` : Si l'utilisateur annule.
+  - ❌ **INTERDIT** : `COMPLETED` (réservé à COMPLETE_RESERVATION).
+  - ❌ **INTERDIT** : `ASK_USER` quand vous avez déjà spaceId ET période - vous DEVEZ utiliser `SWITCH_STEP`.
+  - ❌ **INTERDIT** : `ANSWER_USER` quand vous avez spaceId ET période - vous DEVEZ utiliser `SWITCH_STEP` (ne demandez JAMAIS confirmation dans CHOOSE_SPACE).
 
-**STATUS GUIDELINES:**
-- **ASK_USER**: Use ONLY when you need MORE information from the user (missing spaceId OR missing period)
-  - ⚠️ **CRITICAL**: If you have identified the spaceId (even if availability is an issue), you MUST include it in the JSON response!
-  - ⚠️ **CRITICAL**: If status == ASK_USER and the user needs to choose from a list of spaces, you MUST provide the `availableSpaces` map with space numbers as keys and UUIDs as values (e.g., {"7": "550e8400-...", "23": "550e8400-...", "45": "550e8400-..."})
-  - Example: User says "Je voudrais réserver une place" → You call list_spaces → Extract mapping from result → Return ASK_USER with availableSpaces: {"7": "uuid-7", "23": "uuid-23", ...} and ask which one they want
-  - Example: User says "la place 45" → You identify spaceId → Period missing → Return ASK_USER with spaceId included, asking for period
-  - ⚠️ **ABSOLUTE RULE**: NEVER use ASK_USER when you have BOTH spaceId AND period - ALWAYS use SWITCH_STEP instead!
-- **SWITCH_STEP**: Use when you have identified BOTH spaceId AND period (startDate + endDate)
-  - ⚠️ **ABSOLUTE MANDATORY RULE**: As soon as you have BOTH spaceId AND period, you MUST use SWITCH_STEP with nextStep: "CONFIRM_RESERVATION_SUMMARY"
-  - ⚠️ **DO NOT ask for confirmation** - just switch to CONFIRM_RESERVATION_SUMMARY which will handle confirmation
-  - ⚠️ **NEVER use ASK_USER** when you have both spaceId and period - ALWAYS use SWITCH_STEP!
-  - ⚠️ **Your response message should be simple** - just acknowledge that you've identified both (e.g., "Parfait ! J'ai identifié la place de parking N°23 pour demain.")
-- **CANCEL**: Use when the user explicitly wants to cancel or change their mind
-- **ERROR**: Use only when you cannot process the request due to a technical error
+- **Actions** :
+  - Appelez `list_spaces` pour obtenir les espaces disponibles.
+  - Extrayez le spaceId UUID exact (jamais le numéro).
+  - Extrayez la période (dates : "demain" = demain, heures : "10h-19h" = 10:00-19:00).
+  - Si besoin, appelez `check_space_availability` pour vérifier.
+  - Si l'utilisateur doit choisir, fournissez `availableSpaces` : `{"7": "uuid-7", "23": "uuid-23"}`.
+  - ❌ **CRITIQUE : NE LISTEZ JAMAIS les numéros d'espaces dans votre réponse texte** : le backend formatera automatiquement la liste en HTML depuis `availableSpaces`.
+  - ❌ **INTERDIT ABSOLUMENT** : 
+    - Listes séparées par virgules ("Voici les places disponibles : 7, 23, 45, 67")
+    - Listes avec "et" ("7, 23, 34 et 45")
+    - Listes à puces ("- Place de parking N°7", "- Place 7", "- Place ")
+    - Lignes commençant par "- Place" (même sans numéro)
+    - Toute mention explicite de numéros d'espaces dans le texte de réponse
+    - Phrases comme "Voici les places disponibles : ..." (même sans liste)
+    - Patterns comme "Place de parking N°7Place de parking N°23" (sans séparateurs)
+    - **Même si vous avez `availableSpaces`, NE mentionnez JAMAIS les numéros dans `response`**
+  - ✅ **CORRECT** : `response: "Quel espace souhaitez-vous réserver ?"` (sans aucune liste, juste la question).
+  - ✅ **CORRECT** : `response: "Quelle place de parking souhaitez-vous réserver pour demain ?"` (sans liste de numéros).
+  - ✅ **CORRECT** : `response: "Quelle place souhaitez-vous réserver ?"` (question simple, le backend ajoutera la liste).
+  - ✅ **CORRECT** : `spaceId: null` (pas `""`) si aucun espace identifié.
 
-**WHAT YOU NEED TO DO:**
-1. Call `list_spaces` to get all available spaces (if not already called)
-2. From the response, build the `availableSpaces` map: extract each space number (e.g., "7", "23") and its corresponding UUID
-   - Format from list_spaces: "Place de parking N°7" → number "7", "ID: 550e8400-..." → UUID "550e8400-..."
-   - Build map: {"7": "550e8400-...", "23": "550e8400-...", ...}
-3. Identify which space matches the user's request:
-   - Match by name (e.g., 'salle commune', 'common room')
-   - Match by number (e.g., 'place 23', 'parking A1', 'la place 45')
-   - Match by type (PARKING, COMMON_ROOM, GUEST_ROOM)
-4. Extract the EXACT spaceId UUID from the list_spaces response or from the `availableSpaces` map you built
-   - Format: Look for 'ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' in list_spaces result
-   - OR: Look up the number in your `availableSpaces` map to get the UUID
-   - Copy the ENTIRE UUID exactly as shown - NEVER use the number as spaceId!
-   - **CRITICAL**: ALWAYS include the spaceId (UUID) in your JSON response if you have identified it, even if status is ASK_USER!
-5. **CRITICAL**: Extract the reservation period (dates and times) from the user's message:
-   - Dates: 'demain' = tomorrow, 'aujourd'hui' = today, or specific dates (YYYY-MM-DD)
-   - Times: 'de 10h à 19h' = 10:00 to 19:00, or use defaults (00:00 to 23:59)
-   - If dates/times are NOT clear from the message, ask the user:
-     * 'Pour quelle date souhaitez-vous réserver?'
-     * 'À quelle heure?' (if not mentioned)
-   - Optionally call `check_space_availability` to verify availability with the extracted period
-   - **CRITICAL**: When you call `check_space_availability`, you pass spaceId and dates - these MUST be included in your `submit_reservation_step` response!
-   - **CRITICAL**: Include the period in your JSON response (startDate, endDate, startTime, endTime) if extracted, even if you're asking the user for confirmation!
-6. If the user doesn't specify a space, ask which space they want to reserve and show available options
-   - Set status to ASK_USER
-   - Set spaceId to null
-   - **CRITICAL**: When listing available parking spaces, format them as HTML with proper line breaks for Matrix:
-     * GOOD FORMAT (use HTML with <br /> tags):
-       ```
-       Voici les places de parking disponibles :<br /><br />- Place de parking N°7<br />- Place de parking N°23<br />- Place de parking N°45<br />- Place de parking N°67<br />- Place de parking N°89
-       ```
-     * BAD FORMAT (never use \n or plain text):
-       - "Places de parking disponibles : 7, 23, 45, 67, 89, 102, 34, 56, 78, 91."
-       - "Voici les places...\n- Place 7\n- Place 23" (NEVER use \n)
-       - "🏠 **Place de parking N°7** - Type: PARKING - ID: 550e8400-... - Description: ... - Statut: ACTIVE"
-   - **NEVER include UUIDs, descriptions, or detailed formatting in the user-facing message**
-   - Extract only the numbers (e.g., "N°7" → "7") and format as HTML with <br /> tags for line breaks
-   - **ALWAYS use <br /> tags instead of \n for line breaks in your response**
-   - **ALWAYS format lists with <br />- Place de parking N°X<br />- Place de parking N°Y**
-   - **ALWAYS accompany the question with the list of available options when status=ASK_USER**
-   - **ALWAYS ask for the desired reservation period (dates, times) if not already provided**
-7. **IMPORTANT**: You need BOTH spaceId AND period (startDate + endDate) to proceed to CONFIRM_RESERVATION_SUMMARY
-   - If only spaceId is present → Ask for period (status: ASK_USER, include spaceId in response)
-   - If only period is present → Ask for space (status: ASK_USER, include period in response)
-   - ⚠️ **CRITICAL**: If both are present → ALWAYS use status: SWITCH_STEP with nextStep: "CONFIRM_RESERVATION_SUMMARY" (DO NOT ask for confirmation - that's CONFIRM_RESERVATION_SUMMARY's job!)
+**Exemples :**
 
-**CRITICAL RULES:**
-- ⚠️ **MOST IMPORTANT**: If you have identified the spaceId UUID (even if availability is an issue), you MUST include it in the JSON response, regardless of status!
-- ⚠️ **MOST IMPORTANT**: If you have extracted the reservation period (dates/times) from the user's message OR from a check_space_availability call, you MUST include it in the JSON response!
-- ⚠️ **CRITICAL**: After calling `check_space_availability` with spaceId and dates, you MUST include BOTH `spaceId` AND `period` in your `submit_reservation_step` response!
-- ⚠️ **CRITICAL**: As soon as you have BOTH spaceId AND period, you MUST use status: SWITCH_STEP with nextStep: "CONFIRM_RESERVATION_SUMMARY" - DO NOT ask for confirmation, that's not your job!
-- ⚠️ Example: User says "la place 23 pour demain" → You call check_space_availability with spaceId="550e8400-..." and dates="2025-12-10" → You MUST return: `{"status": "SWITCH_STEP", "response": "Parfait ! J'ai identifié la place de parking N°23 pour demain.", "spaceId": "550e8400-...", "period": {"startDate": "2025-12-10", "endDate": "2025-12-10", "startTime": null, "endTime": null}, "nextStep": "CONFIRM_RESERVATION_SUMMARY"}`
-- ⚠️ Example: User says "la place 45" → You find spaceId "550e8400-..." → Period missing → You MUST return: `{"status": "ASK_USER", "response": "Pour quelle période souhaitez-vous réserver la place 45 ?", "spaceId": "550e8400-...", ...}`
-- ⚠️ **If the user gives a number (ex: 45, "la 45", "place 45"), you MUST pick the space whose name/number contains EXACTLY that number.** Do NOT choose another number (ex: do NOT pick N°7 when the user asked for 45). If not found, tell the user it doesn't exist and list available options. Always include spaceId when you find it.
-- ⚠️ You do NOT have the spaceId yet - this is the step where you identify it!
-- ⚠️ Use the EXACT UUID from list_spaces or from availableSpaces map - NEVER invent or guess UUIDs
-- ⚠️ If the space doesn't exist, inform the user and list available spaces (status: ASK_USER, spaceId: null)
-- ⚠️ If SWITCH_STEP, spaceId is REQUIRED - if missing, backend will treat as error
-- ⚠️ If user provides both space AND period, include both in your JSON response
-- ⚠️ **When you call check_space_availability, you pass spaceId and dates - these MUST be included in your response!**
-- ⚠️ Do NOT call create_reservation yet - wait until COMPLETE_RESERVATION step
-- ⚠️ Always return valid JSON - the backend expects this format
-- ⚠️ NEVER return plain text - always return JSON!
+- User : "la place 23 pour demain 10h-12h"
+  → `submit_reservation_step` : `status: "SWITCH_STEP"`, `spaceId: "uuid-23"`, `period: {startDate: "2025-12-10", endDate: "2025-12-10", startTime: "10:00", endTime: "12:00"}`, `nextStep: "CONFIRM_RESERVATION_SUMMARY"`
+  → **IMPORTANT** : Ne demandez PAS confirmation ici, passez directement à CONFIRM_RESERVATION_SUMMARY
 
-**EXAMPLES:**
+- User : "la place 23 pour demain"
+  → `submit_reservation_step` : `status: "SWITCH_STEP"`, `spaceId: "uuid-23"`, `period: {startDate: "2025-12-10", endDate: "2025-12-10"}`, `nextStep: "CONFIRM_RESERVATION_SUMMARY"`
+  → **IMPORTANT** : Même sans heures précises, si vous avez spaceId + dates, passez à CONFIRM_RESERVATION_SUMMARY
 
-Example 1 - User chooses space, availability OK (SWITCH_STEP):
-Call function: `submit_reservation_step` with:
-- status: "SWITCH_STEP"
-- response: "Parfait ! J'ai identifié la place de parking N°45. Pour quelle période souhaitez-vous réserver?"
-- spaceId: "550e8400-e29b-41d4-a716-446655440103"
-- period: null
-- nextStep: "CHOOSE_PERIOD"
-
-Example 2 - User chooses space, not available today (ASK_USER with spaceId):
-Call function: `submit_reservation_step` with:
-- status: "ASK_USER"
-- response: "La place de parking N°45 n'est pas libre aujourd'hui. Pour quelle date souhaitez-vous la réserver?"
-- spaceId: "550e8400-e29b-41d4-a716-446655440103"
-- period: null
-- nextStep: null
-
-Example 2b - User chooses space + period, availability checked (SWITCH_STEP - DO NOT ask for confirmation):
-Call function: `submit_reservation_step` with:
-- status: "SWITCH_STEP"
-- response: "Parfait ! J'ai identifié la place de parking N°23 pour demain."
-- spaceId: "550e8400-e29b-41d4-a716-446655440102"
-- period: {"startDate": "2025-12-10", "endDate": "2025-12-10", "startTime": null, "endTime": null}
-- nextStep: "CONFIRM_RESERVATION_SUMMARY"
-
-Example 3 - User chooses space + period (SWITCH_STEP):
-Call function: `submit_reservation_step` with:
-- status: "SWITCH_STEP"
-- response: "Parfait ! J'ai identifié la place de parking N°45 pour demain."
-- spaceId: "550e8400-e29b-41d4-a716-446655440103"
-- period: {"startDate": "2025-12-10", "endDate": "2025-12-10", "startTime": null, "endTime": null}
-- nextStep: "CONFIRM_RESERVATION_SUMMARY"
-
-Example 4 - Need more info (ASK_USER without spaceId):
-Call function: `submit_reservation_step` with:
-- status: "ASK_USER"
-- response: "Voici les places de parking disponibles :<br /><br />- Place de parking N°7<br />- Place de parking N°23<br />- Place de parking N°45<br />- Place de parking N°67<br /><br />Quelle place souhaitez-vous réserver ?"
-- spaceId: null
-- period: null
-- nextStep: null
-- availableSpaces: {"7": "550e8400-e29b-41d4-a716-446655440101", "23": "550e8400-e29b-41d4-a716-446655440102", "45": "550e8400-e29b-41d4-a716-446655440103", ...}
-
-**IMPORTANT**: 
-- When status == ASK_USER and user needs to choose, ALWAYS provide `availableSpaces` map with space numbers as keys and UUIDs as values
-- **CRITICAL FORMATTING**: When listing available spaces in your `response` field, format them as HTML with <br /> tags:
-  ```
-  Voici les places de parking disponibles :<br /><br />- Place de parking N°7<br />- Place de parking N°23<br />- Place de parking N°45
-  ```
-- **NEVER use \n or newline characters** - ALWAYS use <br /> tags for line breaks
-- **NEVER use comma-separated lists** like "7, 23, 45" - ALWAYS use HTML with <br /> tags
-- When the user chooses a space (e.g., "la place 23"), you MUST use the UUID from `availableSpaces` map, NOT the number!
-- NEVER include UUIDs, descriptions, or markdown formatting in the `response` field - use HTML formatting (<br />, <strong>, etc.)
-- The backend will also automatically add a prompt for the reservation period if not already present
-
-**ONCE YOU HAVE BOTH SPACEID AND PERIOD**: 
-- ⚠️ **YOU MUST use status: SWITCH_STEP with nextStep: "CONFIRM_RESERVATION_SUMMARY"**
-- ⚠️ **DO NOT ask for confirmation** - that's the role of CONFIRM_RESERVATION_SUMMARY step
-- ⚠️ **Your job is ONLY to identify spaceId and period** - once you have both, switch immediately to CONFIRM_RESERVATION_SUMMARY
-- The CONFIRM_RESERVATION_SUMMARY step will handle showing the summary and asking for confirmation
+- User : "je veux réserver une place"
+  → Appelez `list_spaces` → `submit_reservation_step` : `status: "ASK_USER"`, `response: "Quel espace souhaitez-vous réserver ?"` (sans liste), `availableSpaces: {"7": "uuid-7", ...}` (le backend générera la liste automatiquement)

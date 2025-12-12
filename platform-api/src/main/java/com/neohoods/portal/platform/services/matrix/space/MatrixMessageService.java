@@ -59,7 +59,8 @@ public class MatrixMessageService {
 
     /**
      * Get Matrix API client configured with access token
-     * Uses MatrixOAuth2Service which will automatically use OAuth2 token service as fallback
+     * Uses MatrixOAuth2Service which will automatically use OAuth2 token service as
+     * fallback
      */
     private Optional<ApiClient> getMatrixAccessToken() {
         if (disabled) {
@@ -141,28 +142,57 @@ public class MatrixMessageService {
      * @param markdown Markdown text
      * @return HTML formatted text, or original text if no formatting detected
      */
+    /**
+     * Converts Markdown text to Matrix-compatible HTML.
+     * Handles:
+     * - **bold** -> <strong>bold</strong>
+     * - *italic* -> <em>italic</em>
+     * - [text](url) -> <a href="url">text</a>
+     * - Line breaks (\n, \r\n, \r) -> <br />
+     * - Bullet lists (- item) -> <br />
+     * - item
+     * - Escapes HTML special characters while preserving our HTML tags
+     */
     public String convertMarkdownToMatrixHtml(String markdown) {
         if (markdown == null || markdown.isEmpty()) {
             return markdown;
         }
 
-        // Check if message contains Markdown formatting
-        boolean hasMarkdown = markdown.contains("**") || markdown.contains("*") || markdown.contains("\n");
+        // Check if message contains Markdown formatting or line breaks
+        boolean hasMarkdown = markdown.contains("**") || markdown.contains("*") ||
+                markdown.contains("[") || markdown.contains("]") ||
+                markdown.contains("\n") || markdown.contains("\r");
         if (!hasMarkdown) {
             return markdown; // No formatting, return as-is
         }
 
+        String html = markdown;
+
+        // Convert Markdown links to HTML BEFORE escaping
+        // [text](url) -> <a href="url">text</a>
+        // Pattern: [text](url) where text can contain any characters except ]
+        // and url can contain any characters except )
+        html = html.replaceAll("\\[([^\\]]+)\\]\\(([^\\)]+)\\)", "<a href=\"$2\">$1</a>");
+
         // Convert Markdown to HTML BEFORE escaping (to preserve ** markers)
         // **bold** -> <strong>bold</strong>
         // Use a more robust regex that handles multiple bold sections on the same line
-        String html = markdown.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
+        html = html.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
 
         // *italic* -> <em>italic</em> (but not if it's part of **bold**)
         // We need to be careful here - only match single * that are not part of **
         html = html.replaceAll("(?<!\\*)\\*([^*]+?)\\*(?!\\*)", "<em>$1</em>");
 
         // Convert line breaks to <br />
+        // Handle Windows (\r\n), Unix (\n), and old Mac (\r) line endings
+        html = html.replace("\r\n", "<br />");
         html = html.replace("\n", "<br />");
+        html = html.replace("\r", "<br />");
+
+        // Bullet lists: lines starting with "- " are already handled by line breaks
+        // above
+        // But we can ensure proper spacing for better readability
+        // (This is optional - Matrix will render <br />- item correctly)
 
         // Escape HTML special characters in text content (but preserve our HTML tags)
         // We do this by temporarily replacing our tags, escaping, then restoring them
@@ -170,17 +200,39 @@ public class MatrixMessageService {
                 .replace("</strong>", "___STRONG_END___")
                 .replace("<em>", "___EM_START___")
                 .replace("</em>", "___EM_END___")
-                .replace("<br />", "___BR___");
-        
+                .replace("<a href=\"", "___A_HREF_START___")
+                .replace("\">", "___A_HREF_MIDDLE___")
+                .replace("</a>", "___A_END___")
+                .replace("<br />", "___BR___")
+                .replace("<ul>", "___UL_START___")
+                .replace("</ul>", "___UL_END___")
+                .replace("<li>", "___LI_START___")
+                .replace("</li>", "___LI_END___")
+                .replace("<pre>", "___PRE_START___")
+                .replace("</pre>", "___PRE_END___")
+                .replace("<code>", "___CODE_START___")
+                .replace("</code>", "___CODE_END___");
+
         // Now escape HTML
         html = escapeHtml(html);
-        
+
         // Restore our HTML tags
         html = html.replace("___STRONG_START___", "<strong>")
                 .replace("___STRONG_END___", "</strong>")
                 .replace("___EM_START___", "<em>")
                 .replace("___EM_END___", "</em>")
-                .replace("___BR___", "<br />");
+                .replace("___A_HREF_START___", "<a href=\"")
+                .replace("___A_HREF_MIDDLE___", "\">")
+                .replace("___A_END___", "</a>")
+                .replace("___BR___", "<br />")
+                .replace("___UL_START___", "<ul>")
+                .replace("___UL_END___", "</ul>")
+                .replace("___LI_START___", "<li>")
+                .replace("___LI_END___", "</li>")
+                .replace("___PRE_START___", "<pre>")
+                .replace("___PRE_END___", "</pre>")
+                .replace("___CODE_START___", "<code>")
+                .replace("___CODE_END___", "</code>");
 
         return html;
     }
@@ -289,26 +341,37 @@ public class MatrixMessageService {
                 log.info("Bot {} successfully joined room {} before sending message", assistantUserId, decodedRoomId);
             }
 
-            // Build message body - message may already contain HTML from LLM
+            // Build message body - convert \n to <br /> and format for Matrix
             Map<String, Object> messageBody = new HashMap<>();
+
+            // Always convert \n (both escaped and actual) to <br /> for proper HTML
+            // formatting in Matrix
+            String htmlBody = message;
+            if (htmlBody != null) {
+                // First handle escaped newlines from JSON (the string literal "\n")
+                // This happens when JSON contains \n which becomes the string "\n" in Java
+                htmlBody = htmlBody.replace("\\n", "<br />");
+
+                // Then handle actual newline characters
+                htmlBody = htmlBody.replace("\n", "<br />");
+
+                // Also handle carriage return + newline (Windows line endings)
+                htmlBody = htmlBody.replace("\r\n", "<br />");
+                htmlBody = htmlBody.replace("\r", "<br />");
+
+                // Convert Markdown to HTML (handles **bold**, *italic*, etc.)
+                htmlBody = convertMarkdownToMatrixHtml(htmlBody);
+            }
+
+            // Plain text body (for clients that don't support HTML)
+            String plainBody = htmlBody != null ? htmlBody.replace("<br />", "\n").replaceAll("<[^>]+>", "") : message;
             messageBody.put("msgtype", "m.text");
-            messageBody.put("body", message);
+            messageBody.put("body", plainBody);
 
-            // Check if message already contains HTML tags
-            boolean hasHtmlTags = message != null && message.contains("<") && message.contains(">");
-
-            if (hasHtmlTags) {
-                // Message already contains HTML tags from LLM, use as-is
+            // Always set HTML format if we have HTML tags or <br />
+            if (htmlBody != null && (htmlBody.contains("<") || htmlBody.contains("<br />"))) {
                 messageBody.put("format", "org.matrix.custom.html");
-                messageBody.put("formatted_body", message);
-            } else {
-                // Convert Markdown to HTML for Matrix formatted messages
-                String htmlBody = convertMarkdownToMatrixHtml(message);
-                if (htmlBody != null && !htmlBody.equals(message)) {
-                    // Message contains formatting, add HTML format
-                    messageBody.put("format", "org.matrix.custom.html");
-                    messageBody.put("formatted_body", htmlBody);
-                }
+                messageBody.put("formatted_body", htmlBody);
             }
 
             // Generate transaction ID (must be unique per room)
@@ -352,7 +415,8 @@ public class MatrixMessageService {
             if (e.getCode() == 500) {
                 Optional<String> assistantUserIdOpt = getAssistantUserId();
                 if (assistantUserIdOpt.isPresent()) {
-                    Optional<String> membership = membershipService.getUserRoomMembership(assistantUserIdOpt.get(), roomId);
+                    Optional<String> membership = membershipService.getUserRoomMembership(assistantUserIdOpt.get(),
+                            roomId);
                     log.error("Bot {} membership status in room {}: {}", assistantUserIdOpt.get(), roomId,
                             membership.orElse("none"));
                 }
@@ -461,4 +525,3 @@ public class MatrixMessageService {
         }
     }
 }
-

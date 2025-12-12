@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.time.Duration;
+
+import io.netty.channel.ChannelOption;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,8 +18,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import reactor.netty.http.client.HttpClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neohoods.portal.platform.assistant.model.MatrixAssistantAuthContext;
@@ -48,6 +55,12 @@ public class MatrixAssistantRouter {
     private final ResourceLoader resourceLoader;
     private final MatrixAssistantAgentContextService agentContextService;
     private final ApplicationStartupTimeService startupTimeService;
+
+    @Autowired(required = false)
+    private com.neohoods.portal.platform.assistant.services.MistralAgentsService mistralAgentsService;
+
+    @Autowired(required = false)
+    private com.neohoods.portal.platform.assistant.services.MistralConversationsService mistralConversationsService;
 
     @Value("${neohoods.portal.matrix.assistant.ai.provider}")
     private String provider;
@@ -152,7 +165,8 @@ public class MatrixAssistantRouter {
     /**
      * Filters conversation history to get only recent messages (last 10, within 15
      * minutes).
-     * In local/dev environments, also excludes messages from before application startup
+     * In local/dev environments, also excludes messages from before application
+     * startup
      * to avoid stale conversation context after backend restart.
      */
     private List<Map<String, Object>> filterRecentMessages(List<Map<String, Object>> conversationHistory) {
@@ -165,25 +179,26 @@ public class MatrixAssistantRouter {
         long startupTime = startupTimeService.getApplicationStartTimeMillis();
         boolean filterByStartup = startupTimeService.shouldFilterByStartupTime();
 
-        // Filter messages within last 15 minutes AND after application startup (in dev/local)
+        // Filter messages within last 15 minutes AND after application startup (in
+        // dev/local)
         List<Map<String, Object>> recentMessages = new ArrayList<>();
         int skippedBeforeStartup = 0;
         for (Map<String, Object> message : conversationHistory) {
             Object timestampObj = message.get("timestamp");
             if (timestampObj instanceof Number) {
                 long timestamp = ((Number) timestampObj).longValue();
-                
+
                 // Check if message is within 15 minutes
                 if (timestamp < fifteenMinutesAgo) {
                     continue; // Too old
                 }
-                
+
                 // In dev/local, also check if message is after application startup
                 if (filterByStartup && timestamp < startupTime) {
                     skippedBeforeStartup++;
                     continue; // Message from before restart
                 }
-                
+
                 recentMessages.add(message);
             } else {
                 // If no timestamp, assume it's recent (for backward compatibility)
@@ -300,16 +315,217 @@ public class MatrixAssistantRouter {
     }
 
     /**
-     * Identifies the workflow type using a lightweight LLM call
-     * Takes into account conversation history and current workflow
-     * This implements the Routing workflow pattern from Anthropic's best practices
+     * Identifies the workflow type using ROUTING_AGENT with Conversations API
+     * Falls back to Chat Completions API if Agents API is not available
      */
     private Mono<WorkflowType> identifyWorkflow(
             String userMessage,
             List<Map<String, Object>> conversationHistory,
             MatrixAssistantAuthContext authContext) {
+
+        // Check if Mistral Agents API is available
+        if (mistralAgentsService != null && mistralConversationsService != null) {
+            String routingAgentName = com.neohoods.portal.platform.assistant.services.MistralAgentsService
+                    .getRoutingAgentName();
+            String routingAgentId = mistralAgentsService.getAgentId(routingAgentName);
+            if (routingAgentId != null && !routingAgentId.isEmpty()) {
+                return identifyWorkflowWithConversationsAPI(userMessage, conversationHistory, authContext,
+                        routingAgentId);
+            }
+        }
+
+        // Fallback to Chat Completions API
+        return identifyWorkflowWithChatCompletions(userMessage, conversationHistory, authContext);
+    }
+
+    /**
+     * Identifies workflow using Conversations API with ROUTING_AGENT
+     */
+    private Mono<WorkflowType> identifyWorkflowWithConversationsAPI(
+            String userMessage,
+            List<Map<String, Object>> conversationHistory,
+            MatrixAssistantAuthContext authContext,
+            String routingAgentId) {
+
+        String roomId = authContext.getRoomId();
+        WorkflowType currentWorkflow = null;
+        if (roomId != null) {
+            MatrixAssistantAgentContextService.AgentContext context = agentContextService.getContext(roomId);
+            if (context != null) {
+                currentWorkflow = context.getCurrentWorkflow();
+            }
+        }
+
+        // Pre-filter: Get recent conversation history
+        List<Map<String, Object>> recentHistory = filterRecentMessages(conversationHistory);
+        boolean shouldIncludeCurrentWorkflow = shouldIncludeCurrentWorkflow(recentHistory);
+        if (!shouldIncludeCurrentWorkflow) {
+            currentWorkflow = null;
+            log.debug("Last user message is older than 15 minutes, ignoring current workflow");
+        }
+
+        // Short message optimization
+        if (currentWorkflow != null && userMessage != null && userMessage.trim().length() <= 18) {
+            log.debug("Short message with existing workflow {}, reusing it without LLM", currentWorkflow);
+            return Mono.just(currentWorkflow);
+        }
+
+        final WorkflowType finalCurrentWorkflow = currentWorkflow;
+
+        // Build inputs: include recent history + current message
+        List<Map<String, Object>> inputs = new ArrayList<>();
+        if (!recentHistory.isEmpty()) {
+            for (Map<String, Object> msg : recentHistory) {
+                Map<String, Object> cleanMsg = new HashMap<>();
+                cleanMsg.put("role", msg.get("role"));
+                cleanMsg.put("content", msg.get("content"));
+                inputs.add(cleanMsg);
+            }
+        }
+        Map<String, Object> userMsg = new HashMap<>();
+        userMsg.put("role", "user");
+        userMsg.put("content", userMessage);
+        inputs.add(userMsg);
+
+        // Check if we should create a new conversation or append
+        boolean shouldCreateNew = mistralConversationsService.shouldCreateNewConversation(roomId, routingAgentId);
+
+        Mono<Map<String, Object>> responseMono;
+        if (shouldCreateNew) {
+            log.debug("Starting new routing conversation for room {}", roomId);
+            responseMono = mistralConversationsService.startConversation(roomId, routingAgentId, inputs, true)
+                    .flatMap(conversationId -> {
+                        // Update context
+                        if (roomId != null) {
+                            MatrixAssistantAgentContextService.AgentContext context = agentContextService
+                                    .getOrCreateContext(roomId);
+                            context.setMistralConversationId(conversationId);
+                            context.updateLastInteractionTime();
+                        }
+                        // Retrieve conversation to get entries
+                        return retrieveConversation(conversationId);
+                    });
+        } else {
+            log.debug("Appending to existing routing conversation for room {}", roomId);
+            responseMono = mistralConversationsService.appendToConversation(roomId, userMessage)
+                    .flatMap(conversationId -> {
+                        // Update context
+                        if (roomId != null) {
+                            MatrixAssistantAgentContextService.AgentContext context = agentContextService
+                                    .getOrCreateContext(roomId);
+                            context.setMistralConversationId(conversationId);
+                            context.updateLastInteractionTime();
+                        }
+                        // Retrieve conversation to get entries
+                        return retrieveConversation(conversationId);
+                    });
+        }
+
+        return responseMono
+                .map(response -> parseWorkflowFromConversationEntries(response, finalCurrentWorkflow))
+                .onErrorResume(e -> {
+                    log.warn("Failed to use Conversations API for routing, falling back to Chat Completions: {}",
+                            e.getMessage());
+                    return identifyWorkflowWithChatCompletions(userMessage, conversationHistory, authContext);
+                });
+    }
+
+    /**
+     * Retrieves a conversation by ID
+     */
+    private Mono<Map<String, Object>> retrieveConversation(String conversationId) {
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
         WebClient webClient = webClientBuilder
                 .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        return webClient.get()
+                .uri("/conversations/{conversationId}", conversationId)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .cast(java.util.Map.class)
+                .map(response -> {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> typedResponse = (Map<String, Object>) response;
+                    Map<String, String> mdcContext = org.slf4j.MDC.getCopyOfContextMap();
+                    logMistralResponse("Routing conversation", typedResponse, mdcContext);
+                    return typedResponse;
+                });
+    }
+
+    /**
+     * Parses workflow type from conversation entries
+     */
+    @SuppressWarnings("unchecked")
+    private WorkflowType parseWorkflowFromConversationEntries(Map<String, Object> conversationResponse,
+            WorkflowType fallbackWorkflow) {
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) conversationResponse.get("entries");
+        if (entries == null || entries.isEmpty()) {
+            log.warn("No entries in conversation response, using fallback workflow");
+            return fallbackWorkflow != null ? fallbackWorkflow : WorkflowType.GENERAL;
+        }
+
+        // Find the latest message.output entry with tool_reference chunks
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            Map<String, Object> entry = entries.get(i);
+            String entryType = (String) entry.get("type");
+
+            if ("message.output".equals(entryType)) {
+                List<Map<String, Object>> content = (List<Map<String, Object>>) entry.get("content");
+                if (content != null) {
+                    for (Map<String, Object> chunk : content) {
+                        String chunkType = (String) chunk.get("type");
+                        if ("tool_reference".equals(chunkType)) {
+                            Map<String, Object> toolRef = (Map<String, Object>) chunk.get("tool_reference");
+                            if (toolRef != null) {
+                                String toolName = (String) toolRef.get("name");
+                                if ("route_to_workflow".equals(toolName)) {
+                                    Map<String, Object> output = (Map<String, Object>) toolRef.get("output");
+                                    if (output != null) {
+                                        String workflowTypeStr = (String) output.get("workflowType");
+                                        if (workflowTypeStr != null) {
+                                            try {
+                                                WorkflowType workflow = WorkflowType.valueOf(workflowTypeStr);
+                                                log.debug("Parsed workflow type from conversation: {}", workflow);
+                                                return workflow;
+                                            } catch (IllegalArgumentException e) {
+                                                log.warn("Invalid workflow type '{}' in conversation", workflowTypeStr);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        log.warn("Could not parse workflow type from conversation entries, using fallback");
+        return fallbackWorkflow != null ? fallbackWorkflow : WorkflowType.GENERAL;
+    }
+
+    /**
+     * Fallback: Identifies workflow using Chat Completions API (original
+     * implementation)
+     */
+    private Mono<WorkflowType> identifyWorkflowWithChatCompletions(
+            String userMessage,
+            List<Map<String, Object>> conversationHistory,
+            MatrixAssistantAuthContext authContext) {
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
+
+        WebClient webClient = webClientBuilder
+                .baseUrl(MISTRAL_API_BASE_URL)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -379,21 +595,22 @@ public class MatrixAssistantRouter {
         List<Map<String, Object>> routerTools = new ArrayList<>();
         Map<String, Object> routerTool = new HashMap<>();
         routerTool.put("type", "function");
-        
+
         Map<String, Object> routerFunction = new HashMap<>();
         routerFunction.put("name", "route_to_workflow");
-        routerFunction.put("description", "Route the user's message to the appropriate workflow. You MUST call this function with the workflow type.");
-        
+        routerFunction.put("description",
+                "Route the user's message to the appropriate workflow. You MUST call this function with the workflow type.");
+
         Map<String, Object> routerParameters = new HashMap<>();
         routerParameters.put("type", "object");
         Map<String, Object> routerProperties = new HashMap<>();
-        
+
         Map<String, Object> workflowTypeField = new HashMap<>();
         workflowTypeField.put("type", "string");
         workflowTypeField.put("enum", java.util.Arrays.asList("GENERAL", "RESIDENT_INFO", "SPACE", "HELP", "SUPPORT"));
         workflowTypeField.put("description", "The workflow type to route to");
         routerProperties.put("workflowType", workflowTypeField);
-        
+
         routerParameters.put("properties", routerProperties);
         routerParameters.put("required", java.util.Arrays.asList("workflowType"));
         routerFunction.put("parameters", routerParameters);
@@ -405,7 +622,8 @@ public class MatrixAssistantRouter {
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0.1); // very deterministic
         requestBody.put("tools", routerTools);
-        // Force function call - Mistral format: {"type": "function", "function": {"name": "function_name"}}
+        // Force function call - Mistral format: {"type": "function", "function":
+        // {"name": "function_name"}}
         Map<String, Object> toolChoice = new HashMap<>();
         toolChoice.put("type", "function");
         Map<String, Object> functionChoice = new HashMap<>();
@@ -433,7 +651,7 @@ public class MatrixAssistantRouter {
 
                     Map<String, Object> choice = choices.get(0);
                     Map<String, Object> message = (Map<String, Object>) choice.get("message");
-                    
+
                     // Check for function call (router now uses function calls)
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
@@ -447,7 +665,8 @@ public class MatrixAssistantRouter {
                                 @SuppressWarnings("unchecked")
                                 Map<String, Object> args = objectMapper.readValue(
                                         argumentsJson,
-                                        objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+                                        objectMapper.getTypeFactory().constructMapType(Map.class, String.class,
+                                                Object.class));
                                 String workflowTypeStr = (String) args.get("workflowType");
                                 if (workflowTypeStr != null) {
                                     try {
@@ -455,7 +674,8 @@ public class MatrixAssistantRouter {
                                         log.debug("Parsed workflow type from function call: {}", workflow);
                                         return workflow;
                                     } catch (IllegalArgumentException e) {
-                                        log.warn("Invalid workflow type '{}' in function call arguments", workflowTypeStr);
+                                        log.warn("Invalid workflow type '{}' in function call arguments",
+                                                workflowTypeStr);
                                     }
                                 }
                             } catch (Exception e) {
@@ -463,7 +683,7 @@ public class MatrixAssistantRouter {
                             }
                         }
                     }
-                    
+
                     // Fallback: try to parse from content (should not happen with function calls)
                     String content = (String) message.get("content");
                     if (content != null && !content.trim().isEmpty()) {
@@ -476,7 +696,7 @@ public class MatrixAssistantRouter {
                             log.warn("Invalid workflow type '{}' in response content", workflowStr);
                         }
                     }
-                    
+
                     // Final fallback
                     log.warn("Could not parse workflow type from function call or content, using fallback");
                     if (finalCurrentWorkflow != null) {
@@ -653,42 +873,43 @@ public class MatrixAssistantRouter {
             Map<String, String> mdcContext) {
         try {
             withMdc(mdcContext, () -> {
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.info("🔵 MISTRAL REQUEST [{}] - Router", context);
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            
-            // Log model and parameters
-            log.info("📋 Model: {}", requestBody.get("model"));
-            log.info("📋 Temperature: {}", requestBody.get("temperature"));
-            log.info("📋 Max tokens: {}", requestBody.get("max_tokens"));
-            if (requestBody.containsKey("tool_choice")) {
-                log.info("📋 Tool choice: {}", requestBody.get("tool_choice"));
-            }
-            
-            log.info("");
-            log.info("💬 MESSAGES:");
-            log.info("────────────────────────────────────────────────────────────────────────────────");
-            
-            // Log all messages
-            for (int i = 0; i < messages.size(); i++) {
-                Map<String, Object> msg = messages.get(i);
-                String role = (String) msg.get("role");
-                String content = (String) msg.get("content");
-                
-                log.info("[Message {}] Role: {}", i + 1, role.toUpperCase());
-                
-                if (content != null && !content.isEmpty()) {
-                    // Truncate very long content for readability
-                    String displayContent = content.length() > 2000 
-                        ? content.substring(0, 2000) + "\n... [TRUNCATED - " + (content.length() - 2000) + " more characters]"
-                        : content;
-                    log.info("Content:\n{}", displayContent);
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                log.info("🔵 MISTRAL REQUEST [{}] - Router", context);
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log model and parameters
+                log.info("📋 Model: {}", requestBody.get("model"));
+                log.info("📋 Temperature: {}", requestBody.get("temperature"));
+                log.info("📋 Max tokens: {}", requestBody.get("max_tokens"));
+                if (requestBody.containsKey("tool_choice")) {
+                    log.info("📋 Tool choice: {}", requestBody.get("tool_choice"));
                 }
-                
+
                 log.info("");
-            }
-            
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                log.info("💬 MESSAGES:");
+                log.info("────────────────────────────────────────────────────────────────────────────────");
+
+                // Log all messages
+                for (int i = 0; i < messages.size(); i++) {
+                    Map<String, Object> msg = messages.get(i);
+                    String role = (String) msg.get("role");
+                    String content = (String) msg.get("content");
+
+                    log.info("[Message {}] Role: {}", i + 1, role.toUpperCase());
+
+                    if (content != null && !content.isEmpty()) {
+                        // Truncate very long content for readability
+                        String displayContent = content.length() > 2000
+                                ? content.substring(0, 2000) + "\n... [TRUNCATED - " + (content.length() - 2000)
+                                        + " more characters]"
+                                : content;
+                        log.info("Content:\n{}", displayContent);
+                    }
+
+                    log.info("");
+                }
+
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             });
         } catch (Exception e) {
             log.warn("Error logging Mistral request: {}", e.getMessage());
@@ -702,51 +923,51 @@ public class MatrixAssistantRouter {
     private void logMistralResponse(String context, Map<String, Object> response, Map<String, String> mdcContext) {
         try {
             withMdc(mdcContext, () -> {
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.info("🟢 MISTRAL RESPONSE [{}] - Router", context);
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            
-            // Log usage if present
-            if (response.containsKey("usage")) {
-                Map<String, Object> usage = (Map<String, Object>) response.get("usage");
-                log.info("📊 Usage:");
-                log.info("   └─ Prompt tokens: {}", usage.get("prompt_tokens"));
-                log.info("   └─ Completion tokens: {}", usage.get("completion_tokens"));
-                log.info("   └─ Total tokens: {}", usage.get("total_tokens"));
-                log.info("");
-            }
-            
-            // Log choices
-            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-            if (choices == null || choices.isEmpty()) {
-                log.warn("⚠️  No choices in response!");
                 log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                return;
-            }
-            
-            for (int i = 0; i < choices.size(); i++) {
-                Map<String, Object> choice = choices.get(i);
-                log.info("📦 Choice {}:", i + 1);
-                log.info("   └─ Finish reason: {}", choice.get("finish_reason"));
-                
-                Map<String, Object> message = (Map<String, Object>) choice.get("message");
-                if (message != null) {
-                    String role = (String) message.get("role");
-                    String content = (String) message.get("content");
-                    
-                    log.info("   └─ Role: {}", role);
-                    
-                    if (content != null && !content.isEmpty()) {
-                        log.info("   └─ Content: {}", content);
-                    } else {
-                        log.info("   └─ Content: [EMPTY]");
-                    }
+                log.info("🟢 MISTRAL RESPONSE [{}] - Router", context);
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log usage if present
+                if (response.containsKey("usage")) {
+                    Map<String, Object> usage = (Map<String, Object>) response.get("usage");
+                    log.info("📊 Usage:");
+                    log.info("   └─ Prompt tokens: {}", usage.get("prompt_tokens"));
+                    log.info("   └─ Completion tokens: {}", usage.get("completion_tokens"));
+                    log.info("   └─ Total tokens: {}", usage.get("total_tokens"));
+                    log.info("");
                 }
-                
-                log.info("");
-            }
-            
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+                // Log choices
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                if (choices == null || choices.isEmpty()) {
+                    log.warn("⚠️  No choices in response!");
+                    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    return;
+                }
+
+                for (int i = 0; i < choices.size(); i++) {
+                    Map<String, Object> choice = choices.get(i);
+                    log.info("📦 Choice {}:", i + 1);
+                    log.info("   └─ Finish reason: {}", choice.get("finish_reason"));
+
+                    Map<String, Object> message = (Map<String, Object>) choice.get("message");
+                    if (message != null) {
+                        String role = (String) message.get("role");
+                        String content = (String) message.get("content");
+
+                        log.info("   └─ Role: {}", role);
+
+                        if (content != null && !content.isEmpty()) {
+                            log.info("   └─ Content: {}", content);
+                        } else {
+                            log.info("   └─ Content: [EMPTY]");
+                        }
+                    }
+
+                    log.info("");
+                }
+
+                log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             });
         } catch (Exception e) {
             log.warn("Error logging Mistral response: {}", e.getMessage());

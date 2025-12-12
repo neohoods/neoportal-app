@@ -14,6 +14,7 @@ import com.neohoods.portal.platform.assistant.model.SpaceStepResponse;
 import com.neohoods.portal.platform.assistant.mcp.MatrixAssistantMCPAdapter;
 import com.neohoods.portal.platform.assistant.mcp.MatrixMCPModels.MCPTool;
 import com.neohoods.portal.platform.assistant.services.MatrixAssistantAgentContextService;
+import com.neohoods.portal.platform.assistant.services.MatrixMessageTemplateService;
 import com.neohoods.portal.platform.spaces.entities.SpaceStatusForEntity;
 import com.neohoods.portal.platform.spaces.entities.SpaceEntity;
 import com.neohoods.portal.platform.spaces.services.SpacesService;
@@ -34,6 +35,9 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
 
     @Autowired
     private SpacesService spacesService;
+
+    @Autowired
+    private MatrixMessageTemplateService templateService;
 
     @Override
     public SpaceStep getStep() {
@@ -119,6 +123,37 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
                         return Mono.just(stepResponse);
                     }
 
+                    // CRITICAL VALIDATION: CHOOSE_SPACE step CANNOT use COMPLETED status
+                    // If LLM returns COMPLETED, force SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY if
+                    // both spaceId and period are present
+                    if (stepResponse.getStatus() == SpaceStepResponse.StepStatus.COMPLETED) {
+                        log.warn(
+                                "⚠️ CHOOSE_SPACE: LLM incorrectly returned COMPLETED status - this step cannot complete reservations!");
+                        if (stepResponse.hasSpaceId() && stepResponse.hasCompletePeriod()) {
+                            log.info(
+                                    "🔧 CHOOSE_SPACE: Forcing SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY (both spaceId and period present)");
+                            stepResponse = SpaceStepResponse.builder()
+                                    .status(SpaceStepResponse.StepStatus.SWITCH_STEP)
+                                    .nextStep(SpaceStep.CONFIRM_RESERVATION_SUMMARY)
+                                    .response(stepResponse.getResponse())
+                                    .spaceId(stepResponse.getSpaceId())
+                                    .period(stepResponse.getPeriod())
+                                    .availableSpaces(stepResponse.getAvailableSpaces())
+                                    .build();
+                        } else {
+                            log.warn(
+                                    "⚠️ CHOOSE_SPACE: Cannot force SWITCH_STEP - missing spaceId or period, forcing ASK_USER");
+                            stepResponse = SpaceStepResponse.builder()
+                                    .status(SpaceStepResponse.StepStatus.ASK_USER)
+                                    .response(stepResponse.getResponse() != null ? stepResponse.getResponse()
+                                            : "Pourriez-vous préciser l'espace et la période souhaités ?")
+                                    .spaceId(stepResponse.getSpaceId())
+                                    .period(stepResponse.getPeriod())
+                                    .availableSpaces(stepResponse.getAvailableSpaces())
+                                    .build();
+                        }
+                    }
+
                     // CRITICAL: Store spaceId if present, regardless of status
                     // The LLM may return ASK_USER but still have identified the spaceId
                     if (stepResponse.hasSpaceId() && context != null) {
@@ -164,7 +199,93 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
                                 stepResponse.getStatus());
                     }
 
-                    if (stepResponse.isAskingUser()) {
+                    // CRITICAL: Check if we have both spaceId and period BEFORE processing any
+                    // user-facing status
+                    // If both are present, force SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY
+                    // immediately
+                    // This applies to both ASK_USER and ANSWER_USER (LLM sometimes uses ANSWER_USER
+                    // incorrectly)
+                    boolean isUserFacingStatus = stepResponse.isAskingUser()
+                            || stepResponse.getStatus() == SpaceStepResponse.StepStatus.ANSWER_USER;
+
+                    if (isUserFacingStatus) {
+                        String spaceIdToCheck = stepResponse.getSpaceId();
+                        // Normalize empty string to null
+                        if (spaceIdToCheck != null && spaceIdToCheck.isEmpty()) {
+                            spaceIdToCheck = null;
+                        }
+                        // Check context if not in response
+                        if (spaceIdToCheck == null && context != null) {
+                            spaceIdToCheck = context.getWorkflowStateValue("spaceId", String.class);
+                            if (spaceIdToCheck != null && spaceIdToCheck.isEmpty()) {
+                                spaceIdToCheck = null;
+                            }
+                        }
+
+                        ReservationPeriod periodToCheck = stepResponse.getPeriod();
+                        boolean hasPeriodFromResponse = periodToCheck != null && periodToCheck.isComplete();
+
+                        // Check context for period if not in response
+                        if (!hasPeriodFromResponse && context != null) {
+                            Object startDateTimeObj = context.getWorkflowState().get("startDateTime");
+                            Object endDateTimeObj = context.getWorkflowState().get("endDateTime");
+                            Object startDateObj = context.getWorkflowState().get("startDate");
+                            Object endDateObj = context.getWorkflowState().get("endDate");
+                            boolean hasPeriodInContext = (startDateTimeObj != null && endDateTimeObj != null) ||
+                                    (startDateObj != null && endDateObj != null);
+
+                            // Build period from context if needed
+                            if (hasPeriodInContext && periodToCheck == null) {
+                                String startDate = context.getWorkflowStateValue("startDate", String.class);
+                                String endDate = context.getWorkflowStateValue("endDate", String.class);
+                                String startTime = context.getWorkflowStateValue("startTime", String.class);
+                                String endTime = context.getWorkflowStateValue("endTime", String.class);
+
+                                if (startDate != null && endDate != null) {
+                                    periodToCheck = ReservationPeriod.builder()
+                                            .startDate(startDate)
+                                            .endDate(endDate)
+                                            .startTime(startTime)
+                                            .endTime(endTime)
+                                            .build();
+                                }
+                            }
+                        }
+
+                        // If we have both spaceId and period, force SWITCH_STEP immediately
+                        if (spaceIdToCheck != null && !spaceIdToCheck.isEmpty() && periodToCheck != null
+                                && periodToCheck.isComplete()) {
+                            log.info(
+                                    "🔧 CHOOSE_SPACE: LLM returned {} but we have both spaceId and period - FORCING SWITCH_STEP to CONFIRM_RESERVATION_SUMMARY immediately",
+                                    stepResponse.getStatus());
+
+                            // Store data in context
+                            if (context != null) {
+                                context.updateWorkflowState("spaceId", spaceIdToCheck);
+                                if (periodToCheck.getStartDate() != null) {
+                                    context.updateWorkflowState("startDate", periodToCheck.getStartDate());
+                                }
+                                if (periodToCheck.getEndDate() != null) {
+                                    context.updateWorkflowState("endDate", periodToCheck.getEndDate());
+                                }
+                                if (periodToCheck.getStartTime() != null) {
+                                    context.updateWorkflowState("startTime", periodToCheck.getStartTime());
+                                }
+                                if (periodToCheck.getEndTime() != null) {
+                                    context.updateWorkflowState("endTime", periodToCheck.getEndTime());
+                                }
+                            }
+
+                            // Return SWITCH_STEP immediately - don't send ASK_USER message
+                            return Mono.just(SpaceStepResponse.builder()
+                                    .status(SpaceStepResponse.StepStatus.SWITCH_STEP)
+                                    .nextStep(SpaceStep.CONFIRM_RESERVATION_SUMMARY)
+                                    .spaceId(spaceIdToCheck)
+                                    .period(periodToCheck)
+                                    .availableSpaces(stepResponse.getAvailableSpaces())
+                                    .build());
+                        }
+
                         // Need more conversation - format response using availableSpaces if present
                         log.info("🔄 CHOOSE_SPACE: Status=ASK_USER, continuing conversation");
 
@@ -189,25 +310,40 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
                             }
                         }
 
-                        // LLM now formats the list correctly with line breaks and dashes in the
-                        // response
-                        // We only need to ensure period question is added if needed, but don't reformat
-                        // the list
-                        String response = responseToFormat.getResponse();
-                        if (response != null && !response.isEmpty()
-                                && responseToFormat.getStatus() == SpaceStepResponse.StepStatus.ASK_USER) {
-                            String formattedResponse = ensurePeriodQuestion(response, locale, context);
-                            if (!formattedResponse.equals(response)) {
-                                log.info("📝 CHOOSE_SPACE: Added period question to LLM-formatted response");
-                                return Mono.just(SpaceStepResponse.builder()
-                                        .status(responseToFormat.getStatus())
-                                        .response(formattedResponse)
-                                        .spaceId(responseToFormat.getSpaceId())
-                                        .period(responseToFormat.getPeriod())
-                                        .nextStep(responseToFormat.getNextStep())
-                                        .availableSpaces(responseToFormat.getAvailableSpaces())
-                                        .build());
-                            }
+                        // Format response with HTML template for available spaces list
+                        String llmResponse = responseToFormat.getResponse();
+                        java.util.Map<String, String> availableSpaces = responseToFormat.getAvailableSpaces();
+
+                        // Check if spaceId is already defined - if so, don't show available spaces list
+                        String currentSpaceId = context != null ? context.getWorkflowStateValue("spaceId", String.class)
+                                : null;
+                        boolean hasSpaceId = currentSpaceId != null || stepResponse.hasSpaceId();
+
+                        String formattedResponse = llmResponse;
+
+                        // Only format with spaces list if spaceId is NOT already defined and
+                        // availableSpaces is present
+                        if (!hasSpaceId && availableSpaces != null && !availableSpaces.isEmpty()) {
+                            log.info("📝 CHOOSE_SPACE: Formatting response with HTML template for {} available spaces",
+                                    availableSpaces.size());
+                            formattedResponse = templateService.formatResponseWithAvailableSpacesList(
+                                    llmResponse, availableSpaces, locale);
+                        }
+
+                        // Ensure period question is added if needed
+                        formattedResponse = ensurePeriodQuestion(formattedResponse, locale, context);
+
+                        // Return formatted response if it changed
+                        if (!formattedResponse.equals(llmResponse)) {
+                            log.info("📝 CHOOSE_SPACE: Formatted response with HTML template");
+                            return Mono.just(SpaceStepResponse.builder()
+                                    .status(responseToFormat.getStatus())
+                                    .response(formattedResponse)
+                                    .spaceId(responseToFormat.getSpaceId())
+                                    .period(responseToFormat.getPeriod())
+                                    .nextStep(responseToFormat.getNextStep())
+                                    .availableSpaces(responseToFormat.getAvailableSpaces())
+                                    .build());
                         }
 
                         return Mono.just(responseToFormat);
@@ -535,8 +671,9 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
     }
 
     /**
-     * Formats response using availableSpaces array if present.
-     * If availableSpaces is provided, formats the message with the list of choices.
+     * Formats response using availableSpaces map if present.
+     * Automatically generates the list of available spaces from the map.
+     * Removes any list that the LLM might have generated in the response.
      * Also ensures period prompt is included if not already present.
      */
     private String formatResponseWithAvailableSpaces(SpaceStepResponse stepResponse,
@@ -557,39 +694,30 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
         if (!hasSpaceId && availableSpaces != null && !availableSpaces.isEmpty()) {
             // Extract space numbers from map keys for display
             java.util.List<String> spaceNumbers = new java.util.ArrayList<>(availableSpaces.keySet());
+            java.util.Collections.sort(spaceNumbers,
+                    (a, b) -> Integer.compare(Integer.parseInt(a), Integer.parseInt(b)));
 
-            // Check if response already contains a list of spaces (to avoid duplication)
-            String lowerResponse = response.toLowerCase();
-            boolean alreadyHasList = false;
+            // Remove any list of spaces that the LLM might have generated in the response
+            // This prevents duplication since we'll generate it automatically
+            response = removeSpaceListFromResponse(response, spaceNumbers);
+
+            // Always generate the list automatically from availableSpaces map
+            StringBuilder formatted = new StringBuilder();
+            String cleanResponse = response.replaceAll("[.:;,!]+$", "").trim();
+            formatted.append(cleanResponse);
+
+            // Add spaces list in a more readable format for Matrix
+            formatted.append("\n\n");
+            String prefix = messageSource.getMessage("matrix.reservation.chooseSpace.availableSpacesPrefix", null,
+                    locale);
+            formatted.append(prefix);
+
+            // Format numbers as a bulleted list for better readability in Matrix
             for (String number : spaceNumbers) {
-                if (lowerResponse.contains("place " + number) || lowerResponse.contains("n°" + number)
-                        || lowerResponse.contains("n° " + number) || lowerResponse.contains(number + ",")
-                        || lowerResponse.contains(number + " ")) {
-                    alreadyHasList = true;
-                    break;
-                }
+                formatted.append("\n- Place de parking N°").append(number);
             }
 
-            // Only add list if not already present in response
-            if (!alreadyHasList) {
-                // Format as a more ergonomic Matrix message with line breaks
-                StringBuilder formatted = new StringBuilder();
-                String cleanResponse = response.replaceAll("[.:;,!]+$", "").trim();
-                formatted.append(cleanResponse);
-
-                // Add spaces list in a more readable format for Matrix
-                formatted.append("\n\n");
-                String prefix = messageSource.getMessage("matrix.reservation.chooseSpace.availableSpacesPrefix", null,
-                        locale);
-                formatted.append(prefix);
-
-                // Format numbers as a bulleted list for better readability in Matrix
-                for (int i = 0; i < spaceNumbers.size(); i++) {
-                    formatted.append("\n- Place de parking N°").append(spaceNumbers.get(i));
-                }
-
-                response = formatted.toString();
-            }
+            response = formatted.toString();
         } else if (!hasSpaceId) {
             // Fallback: try to extract from response or fetch from list_spaces
             // This handles cases where LLM didn't provide availableSpaces but included it
@@ -602,6 +730,73 @@ public class ChooseSpaceStepHandler extends BaseSpaceStepHandler {
 
         // Ensure period prompt is included only if period is not already defined
         return ensurePeriodQuestion(response, locale, context);
+    }
+
+    /**
+     * Removes any list of spaces from the LLM response to avoid duplication.
+     * The backend will generate the list automatically from availableSpaces map.
+     */
+    private String removeSpaceListFromResponse(String response, java.util.List<String> spaceNumbers) {
+        if (response == null || response.isEmpty() || spaceNumbers == null || spaceNumbers.isEmpty()) {
+            return response;
+        }
+
+        String lowerResponse = response.toLowerCase();
+
+        // Check if response contains space list patterns
+        boolean hasList = false;
+
+        // Pattern 1: Check for comma-separated lists (e.g., "7, 23, 45, 67")
+        String commaPattern = String.join("|", spaceNumbers);
+        if (lowerResponse.matches(".*\\b(" + commaPattern + ")\\s*,\\s*\\d+.*")) {
+            hasList = true;
+        }
+
+        // Pattern 2: Check for bulleted lists or explicit mentions
+        if (!hasList) {
+            for (String number : spaceNumbers) {
+                if (lowerResponse.contains("place " + number) || lowerResponse.contains("n°" + number)
+                        || lowerResponse.contains("n° " + number) || lowerResponse.contains("parking n°" + number)
+                        || lowerResponse.matches(".*\\b" + number + "\\b.*")) {
+                    hasList = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasList) {
+            return response;
+        }
+
+        // Remove common list patterns
+        // Pattern 1: Comma-separated lists (e.g., "Voici les places disponibles : 7,
+        // 23, 45, 67, 89")
+        String numbersPattern = String.join("|", spaceNumbers);
+        response = response.replaceAll("(?i)(Voici\\s+les?\\s+places?\\s+(de\\s+)?parking\\s+disponibles?\\s*:?\\s*)" +
+                "(" + numbersPattern + "\\s*,\\s*)*" + numbersPattern + ".*", "$1");
+
+        // Pattern 2: Lines starting with "- Place de parking N°X" or "- Place N°X"
+        response = response.replaceAll("(?m)^\\s*-\\s*Place\\s+(de\\s+)?parking\\s+N°\\d+.*$", "");
+
+        // Pattern 3: Lines containing "N°X" in list format
+        for (String number : spaceNumbers) {
+            response = response.replaceAll("(?m)^.*N°\\s*" + number + ".*$", "");
+            // Also remove standalone numbers that match space numbers
+            response = response.replaceAll("\\b" + number + "\\b(?=\\s*[,.]|$)", "");
+        }
+
+        // Pattern 4: Remove "Voici les places disponibles :" or similar prefixes
+        response = response
+                .replaceAll("(?i)(Voici\\s+les?\\s+places?\\s+(de\\s+)?parking\\s+disponibles?\\s*:?\\s*\\n)", "");
+        response = response.replaceAll("(?i)(Places?\\s+(de\\s+)?parking\\s+disponibles?\\s*:?\\s*\\n)", "");
+
+        // Clean up multiple consecutive newlines and trailing commas
+        response = response.replaceAll("\\n{3,}", "\n\n");
+        response = response.replaceAll(",\\s*,+", ","); // Remove duplicate commas
+        response = response.replaceAll(",\\s*\\.", "."); // Remove comma before period
+
+        // Trim and clean up
+        return response.trim();
     }
 
     /**
